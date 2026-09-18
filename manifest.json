@@ -1,0 +1,10 @@
+{
+    "id": "flatline-protocol",
+    "name": "FLATLINE PROTOCOL",
+    "version": "1.0.0",
+    "apiVersion": 2,
+    "author": "shiinobu",
+    "description": "GHOSTWIRE hunts the BLACKLEDGER ransomware syndicate across four missions, from its access broker to the architect behind it.",
+    "permissions": ["filesystem", "network", "events", "mail", "bank", "shell", "ui"],
+    "dependencies": []
+}
