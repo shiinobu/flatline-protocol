@@ -10,72 +10,123 @@ this file goes back to empty (or gets reused for whichever mission is
 active next). See `docs/implementation-rules.md` §9 for the full policy
 this file exists to support (zero comments in `src/`).
 
-**Currently scoped to: M01 ("Jejak Pertama")** — in active development,
-not yet live-tested in-game.
+**Currently scoped to: M02-M04, all in active development.** M01 reached
+FINAL LOCK on 2026-09-19 — all its findings have been folded into
+`docs/bugs.md` (entries 1-11) and `docs/story.md` (section 4). M02-M04
+are implemented but not yet live-tested.
 
-Deviations from `docs/story.md`'s literal tool sequence, made because the
-real SDK types (`node_modules/@hotbunny/hackhub-content-sdk/index.d.ts`)
-don't support the narrative framing literally — confirm each once M01 is
-actually played, then fold whichever hold up into `docs/story.md`/
-`docs/bugs.md` at FINAL LOCK:
+---
 
-1. **`lynx` is OSINT, not a web-page reader.** `LynxData`/`LynxLookupData`
-   return `{ips, address, contact, socialMedia, additional}`, not HTML. So
-   "lynx reads a listing" was split into two separate objectives: `lynx`
-   against the storefront domain confirms it hosts the target IP
-   (`identifySeller`), and the actual "verified access for sale" listing
-   text is read by browsing to `/internal-ops/` in the in-game browser
-   (`readListing`, gated on `Browser.Meta`). Confirm this reads naturally
-   in-game rather than as two redundant steps.
-2. **`ftp` doesn't deliver a real file.** `CommandDataMap.ftp`'s `data` is
-   `string | null` — there is no FTP file-download event in `ModEventMap`.
-   The wordlist `hydra` needs (`HydraEvent.wordlistFile: FileInfo`) is
-   instead delivered as a mail attachment (`Mail.attachments`), sent the
-   moment `Terminal.FTP.Connect` fires for the target IP — framed
-   narratively as "the FTP transfer synced to your downloads." Confirm the
-   attachment actually produces a real, hydra-usable file once downloaded.
-3. **`ssh`/`weechat` now register fixtures too, added preemptively after
-   the `ftp` finding (bugs.md entry 1).** Live-test confirmed native `ftp`
-   flatly refuses every login (`530 Login incorrect`) unless a matching
-   `Shell.addCommandData("ftp", ...)` fixture exists — the real
-   `Network.createUser` device account alone was not enough. Since `ssh`
-   (`{host, key} -> {ip, status}`) and `weechat` (`{host, password} ->
-   boolean`) have the same fixture-shaped surface in `CommandDataMap`,
-   M01 now registers both (`ssh` keyed on the broker's real password as
-   `key`; `weechat` keyed on the IRC password) rather than waiting to hit
-   the same wall twice. **Still needs live-test confirmation**: does
-   registering `ssh`'s fixture with `key: <password>` actually make
-   `ssh -h user@ip` (password-prompt form) succeed, or does `key` mean
-   something else entirely (e.g. a one-shot token/flag value distinct
-   from the interactive password)? If `ssh`/`weechat` still fail after
-   this fix, that's the next thing to dig into — possibly the real
-   syntax uses `-u`/`-p`/`-k`-style flags the same way `ftp` turned out
-   to.
-4. **New from live-test (bugs.md entry 2): a `Shell.addCommandData`
-   fixture is not enough on its own — the port also has to be `active`
-   in the real `Network.createSubnetNetwork` `ports` array.** `ftp`
-   failed a second time with `No route to host` even after the fixture
-   from point 3 was added, because port 21 was never declared on the
-   device (only 22/80/443 were). Fixed by adding port 21. **Check
-   `weechat` against the same risk**: `WeeChat.createServer(host,
-   password)` is its own namespace, separate from `Network.*` entirely —
-   unconfirmed whether it needs any port/topology of its own to be
-   reachable, or whether `createServer` alone is sufficient. If `weechat`
-   also fails to connect, this is the first thing to check.
-5. **[UNRESOLVED, highest priority right now] `ftp` still gives `No route
-   to host` — now 3 different network shapes tried, all identical.**
-   Confirmed NOT a stale-build issue (user verified build/install/restart/
-   `mods.reset` all happened correctly each time) and confirmed
-   `nmap 203.0.113.90` prints correctly — though that only proves the
-   print fixture works, not that a real network device exists. Full
-   attempt history in `docs/bugs.md` entry 4. Current (4th) attempt: flat
-   top-level `type: Router` with `children: []`, matching
-   entity-resolution-mods' own Q01 shape exactly — reasoning: the SDK's
-   own doc example uses a LAN-style child IP (`10.0.0.2`), suggesting
-   `children` are pivot-only internal hosts, not directly-dialable public
-   IPs, which would explain why attempt 3's child (still on a
-   public-looking IP) also failed. **Not yet live-tested.** If this ALSO
-   fails identically, stop iterating on `Network.*` shape entirely and
-   check something outside it next: manifest permissions, whether `ftp`
-   only resolves against `Network.registerDomain`-registered hosts (not
-   raw IPs), or an SDK/game version mismatch.
+**M02 ("The Maker") — implemented, not yet live-tested.** Deviations/
+assumptions to confirm once played:
+
+1. **`Terminal.NmapScan`'s `versionScan` flag gates "use `-sV`."** Used
+   the raw `Terminal.NmapScan` event (`{ip, versionScan?}`) directly
+   instead of `Terminal.Command`+`Shell.getCommandData` (M01's approach)
+   to check `-sV` was actually passed, since `Shell.addCommandData`'s
+   fixture is keyed by IP only and can't distinguish the flag. Simpler
+   than M01's approach; unconfirmed whether `versionScan` is reliably set
+   by the real command regardless of fixture presence.
+2. **`Subfinder.Results` is assumed to auto-populate from `Network.
+   registerDomain`.** No SDK namespace exists to explicitly seed subfinder
+   results, so the dev subdomain is just registered as its own domain
+   (`Network.registerDomain(M02_DEV_SUBDOMAIN, M02_DEV_IP)`) and the
+   objective listens for it to show up in `Subfinder.Results.subdomains`
+   when the player runs `subfinder` on the root domain. Unconfirmed
+   whether the engine actually cross-references registered domains this
+   way.
+3. **`Sqlmap.DumpTable`/`John.DecryptHash` completion is identity-only,
+   not content-verified.** `SqlmapDumpTableEvent` only carries
+   `{host, tableName}` (no row data) and `JohnDecryptHashEvent` only
+   `{hash, password}` — there's no SDK-level guarantee the *displayed*
+   dump actually shows the seeded `Database` rows the player needs to
+   find the hash in the first place. Assumes `sqlmap`'s UI reads from
+   `Database.create`'s seeded tables; not yet confirmed live.
+4. **`Metasploit.Rootgrab`/`Meterpreter.Download` gate purely on `ip`/
+   `host`, with no module or exploit-name check.** `Network.
+   setVulnerabilities(M02_WORKSTATION_IP, [{type: "RCE"}])` is assumed to
+   be what lets `metasploit search`/`use` find a matching module against
+   that host; unconfirmed whether `RCE` alone is specific enough or
+   whether a `version` string is also required for a real match.
+
+---
+
+**M03 ("Money Trail") — implemented, not yet live-tested.** Deviations/
+assumptions to confirm once played:
+
+1. **`PFSense.Changes` carries no `ip` field at the type level.**
+   `PFSenseChangesEvent` is just `{old: any, new: any}` — there is no way
+   to confirm which pfSense box a change belongs to from the event alone.
+   Assumes a single-active-session model: `PFSense.Login` (which does
+   carry `ip`) sets a `pfsenseLoggedIn` flag, and every `PFSense.Changes`
+   that fires while that flag is set is attributed to the target pfSense
+   box. The first change completes `pivotViaNat`; a second change (after
+   the ledger is dumped) completes `revertNatRule`. Not yet confirmed
+   this single-session assumption holds, or that the event fires exactly
+   once per rule add/revert rather than per field edited.
+2. **`Wireshark.Started` completion doesn't filter by source/destination
+   IP.** `WiresharkListeningEvent{source?, destination?}` are both
+   optional (unset means "capture everything"), so the objective just
+   requires wireshark to be started *after* the NAT pivot, not that it's
+   scoped to the finance VLAN specifically. Loosest of all the M02-M04
+   gates in this file; revisit if it completes too easily in practice.
+3. **LAN-style child IP (`10.50.0.5`) used for the Finance VLAN device**,
+   consistent with the Router-wrapping-child-Device shape confirmed
+   necessary in `docs/bugs.md` entry 5. Unlike M01's flat topology
+   (which needed restructuring after the fact), M03 already uses a
+   `children`-nested shape — but has not yet been live-tested to confirm
+   it actually connects.
+4. **`lynx <handle>` is used for the finance employee's leaked-password
+   OSINT instead of a real Twotter account/post.** Simpler and consistent
+   with M01's lynx-on-arbitrary-string-input pattern; means there's no
+   actual social post the player can browse to, only the terminal lookup
+   — a narrower implementation of the story's "public post" framing.
+
+---
+
+**M04 ("The Architect") — implemented, not yet live-tested.** Deviations/
+assumptions to confirm once played:
+
+1. **The premature-`cat` "self-wipe" trap is punitive-only, not a real
+   file deletion.** There's no SDK call to delete a single file off a
+   remote device's declarative `rootFiles`, so triggering the trap just
+   sends a warning mail (`M04_TRAP_WARNING_*`) — the file remains
+   extractable via the safe path afterward rather than being permanently
+   lost. This is a deliberate, documented compromise, not an oversight;
+   revisit if the SDK gains a remote per-file delete primitive.
+2. **`attrcheck` reveals the trap via a custom mod event
+   (`flatline.m04.attrcheckRevealed`), not a native `ModEventMap` entry.**
+   Works via `QuestEvents.on`'s generic string-event fallback (typed
+   `any`); no declaration-merging was added for it, kept intentionally
+   minimal per the zero-comments/no-speculative-abstraction rules.
+3. **`extractSafely` gates on `Files.Transfer` with `type: "DOWNLOAD"`.**
+   Assumes this event fires for a remote-to-local file copy via
+   `explorer` or similar, not just for in-game store/app downloads.
+   Unconfirmed live.
+4. **`Terminal.Ls` discovery (`discoverIdentityFile`) only checks that
+   the player is connected (SSH or already privileged), not that the
+   specific folder/file was listed** — `Terminal.Ls`'s payload is the
+   *folder* (`FileInfo`), not a list of its children, so there's no way
+   to confirm the identity file specifically was among what was shown.
+   Slightly looser than intended; would complete on any `ls` once
+   connected.
+5. **The A/B/C ending is resolved entirely through GoMail (one template
+   field with 3 valid values, plus a matching 3-body freehand fallback),
+   not through the `Dialog`.** The `Dialog` in `content/m04.ts` is
+   flavor-only, triggered via `this.createDialog("default")` right after
+   `extractSafely` completes, and deliberately carries no `onSelect`/
+   `onEnd` function properties on any option — see `docs/story.md`'s
+   note on the `onSelect`/`Dialog` lesson entity-resolution-mods learned
+   the hard way. Confirm live that `createDialog` at that point doesn't
+   collide with anything else already showing.
+
+---
+
+**Carried over from M01 (now fixed, applies to M02-M04 too):**
+`m03-quest.ts`'s `OnObjectivesStart` creates `M03_SKYNET_IP` and
+`M03_PFSENSE_IP` as flat top-level networks with no `children` wrapping —
+the same broken shape `docs/bugs.md` entry 5 documents for M01's SSH
+failure. Apply the Router-wrapping-child-Device fix (and the
+`WeeChat`/`Network` destroy-before-create ordering from entries 6-7)
+before M03's first live-test. M02 and M04 have not been checked yet
+either — same audit needed there.

@@ -66,6 +66,12 @@ conspiracy unraveling gradually rather than four disconnected jobs.
 | M3/M4 entity | **SKN Capital Nominees** | Parent holding entity behind the shell company |
 | M4 target | **"The Architect"** | BLACKLEDGER's kingpin, owner of SKN Capital Nominees |
 
+**Mission titles (English, as of 2026-09-19):** M1 "First Trace"
+(was "Jejak Pertama"), M2 "The Maker" (was "Sang Pembuat"), M3
+"Money Trail" (was "Jalur Uang"), M4 "The Architect" (was "Sang Dalang"
+— reuses the target's own established name rather than a fresh
+translation of "the puppeteer").
+
 A recurring anonymous dead-drop contact receives evidence at the end of
 every mission via GoMail — this same contact becomes the branch point for
 Mission 4's ending.
@@ -74,31 +80,59 @@ Mission 4's ending.
 
 Each mission: ~9-11 objectives, matching entity-resolution-mods' Q03 depth.
 
-### Mission 1 — "Jejak Pertama"
+### Mission 1 — "First Trace" (FINAL LOCK, 2026-09-19)
 
-**Target:** A7xDEFACE9, the initial access broker who sold the hospital's
-network access in the first place.
+**Status: implemented, live-tested, playable end-to-end.** The chain below
+is the *actual shipped design* — it diverged significantly from the
+original outline during implementation (see `docs/bugs.md` entries 4-11
+for why `ftp`/`hydra`/Wireshark/`Http.Intercepted` were all tried and
+dropped). The original outline is kept in this file's git history for
+reference; this section describes what a player actually experiences.
 
-**Chain:**
-1. `Mail.Read` — anonymous tip arrives (domain only, no IP).
-2. `nslookup` — resolve the domain to an IP.
-3. `nmap` — scan the resolved IP.
-4. `dirhunter` — finds a hidden `/internal-ops/` path.
-5. **Optional/red-herring:** the tip also contains a second, unrelated
-   decoy domain that must be ruled out via `whois`/`geoip`.
-6. `lynx` — reads a "verified access for sale" listing that name-drops the
-   hospital-sector sale.
-7. `ftp` — downloads a leaked sample wordlist mentioned on that page.
-8. `hydra` — brute-forces the broker's SSH panel using that wordlist (the
-   wordlist is earned via the chain above, never handed to the player for
-   free).
-9. `ssh` — connects using the cracked credentials.
-10. `ls`/`cat` (or a custom `salesledger`-style command) — finds the
-    transaction row naming the buyer alias **A7xC0DEFACE**.
-11. A stored `weechat` log confirms it and hints at "a new build."
-12. GoMail to the recurring anonymous dead-drop contact.
+**Target:** A7xDEFACE9 (storefront domain `verifiedaccess.mkt`), the
+initial access broker who sold the hospital's network access.
 
-### Mission 2 — "Sang Pembuat"
+**Chain (8 objectives):**
+1. `Mail.Read` — a "standing instructions" mail from the recurring
+   dead-drop contact (the Custodian) arrives first, revealing the report
+   address once for the whole 4-mission arc, then the anonymous tip
+   arrives naming two domains — one real, one a decoy.
+2. **Investigate the storefront** (merged step — `nslookup`/`nmap`/
+   `dirhunter`/`lynx`, no single required tool) — the storefront's home
+   page is a looping, shuffled list of "lots" (fake network-access
+   listings); most are dead-end decoys, and the real hospital listing
+   (`OPN 102`) is deliberately marked "no longer listed" with no link,
+   discoverable only via `dirhunter`.
+3. **Rule out the decoy domain** (parallel, not gating) — `geoip` on the
+   decoy IP proves it's an unrelated privacy-registered domain in
+   Iceland, nothing to do with the case.
+4. **Access the broker's server via SSH** (merged step, replacing the
+   original `ftp`+`hydra` chain entirely) — the real `OPN 102` listing
+   page hints at a plaintext session cookie; the actual credential comes
+   from a leaked `access.log` page (found via `dirhunter`, listing all
+   lot paths' session cookies, only one of which is real) → `openssl -dec`
+   the matching cookie isn't needed here (that's step 5) — running
+   `python3 jwt_decoder.py <token>` on the real one mails back the
+   broker's SSH password → `ssh` in.
+5. **Find something suspicious on the server** — `ls`/`cat` through
+   `home/`/`logs/` (several decoy files mixed in) finds `ops-relay.log`,
+   a base64-"encrypted" IRC credential note.
+6. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
+   IRC host/password (exact-match required, not just "ran openssl on
+   something").
+7. **Access the IRC channel and confirm** — `weechat` into the recovered
+   channel; a seeded 14-line conversation between the broker and a
+   contact confirms the buyer alias and namedrops the same plaintext-
+   cookie vulnerability, corroborating everything found so far.
+8. **Report** — GoMail to the Custodian, naming the broker (the `OPN 102`
+   listing URL), the buyer alias (**A7xC0DEFACE**), and a case ID found on
+   a separate "LedgerVault" evidence site (`x7k2m9vdlq4wnyt3.dark`,
+   discovered via a throwaway reference in one of the server's log
+   files) — the vault also contains a `network_map.txt` fulfilling the
+   sales ledger's own mention of "requested rush turnaround on network
+   map."
+
+### Mission 2 — "The Maker"
 
 **Target:** A7xC0DEFACE, the ransomware toolkit developer / affiliate-panel
 admin.
@@ -125,7 +159,7 @@ admin.
     company.
 11. Dead-drop mail.
 
-### Mission 3 — "Jalur Uang"
+### Mission 3 — "Money Trail"
 
 **Target:** Skynet Import-Export Co. (shell company).
 
@@ -153,7 +187,7 @@ admin.
    (tradecraft, not just "mission complete").
 10. Dead-drop mail naming SKN Capital Nominees.
 
-### Mission 4 — "Sang Dalang"
+### Mission 4 — "The Architect"
 
 **Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
 Nominees. Deliberate convergence point of all three prior threads
@@ -234,21 +268,50 @@ not four separate jobs.
 Not yet decided/built — track progress here as missions move from design
 to code:
 
-- [x] M1 "Jejak Pertama" — implemented (`src/content/m01.ts`,
-  `src/main/m01-quest.ts`, `src/websites/a7xdeface9/`), not yet
-  live-tested in-game. See `docs/scratch.md` for SDK-accuracy deviations
-  from this doc's literal tool sequence, pending live-test confirmation.
-- [ ] M2 "Sang Pembuat" — not started.
-- [ ] M3 "Jalur Uang" — not started.
-- [ ] M4 "Sang Dalang" — not started.
-- [ ] Manifest permission review once M1's `ftp`/`weechat` and M3's
-  pfSense usage are actually implemented, to confirm the current
-  `permissions` array (`filesystem, network, events, mail, bank, shell,
-  ui`) is complete and nothing extra is required.
-- [ ] Websites needed: A7xDEFACE9's storefront/panel (M1), A7xC0DEFACE's
-  affiliate panel + dev server presence (M2), Skynet Import-Export's
-  public site + internal finance portal (M3), The Architect's C2
-  dashboard (M4).
-- [ ] Custom commands needed: a `salesledger`-style command for M1
-  (optional, could also just be `ls`/`cat` against a file), `attrcheck`
-  for M4's booby-trapped file.
+- [x] **M1 "First Trace" — FINAL LOCK, live-tested and confirmed playable
+  end-to-end (2026-09-19).** `ftp`/`hydra` dropped entirely from the
+  objective chain after 6+ unresolved routing-bug attempts (see
+  `docs/bugs.md` entries 4-6 for the eventual root cause and fix — a
+  Router-wrapping-child-Device network shape). `Wireshark`/
+  `Http.Intercepted` were also tried and dropped for the session-cookie
+  step (entries 8-9); replaced by an `openssl`-decrypt mechanic confirmed
+  against the base game's own official tutorial quest. Final chain
+  described in section 4 above.
+- [x] M2 "The Maker" — implemented (`src/content/m02.ts`,
+  `src/main/m02-quest.ts`, `src/websites/a7xcodeface/`), not yet
+  live-tested in-game. `tsc --noEmit` and `esbuild` both clean. **Apply
+  the Router-wrapping-child-Device network shape (bugs.md entry 5) before
+  first live-test**, not after hitting the same wall M1 did.
+- [x] M3 "Money Trail" — implemented (`src/content/m03.ts`,
+  `src/main/m03-quest.ts`, `src/websites/skynet-importexport/`), not yet
+  live-tested in-game. `tsc --noEmit` and `esbuild` both clean. Same
+  network-shape warning as M2 applies here.
+- [x] M4 "The Architect" — implemented (`src/content/m04.ts`,
+  `src/main/m04-quest.ts`, `src/websites/architect-c2/`,
+  `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`
+  and `esbuild` both clean. Same network-shape warning as M2 applies here.
+- [ ] Manifest permission review — M1's `ssh`/`weechat`/`openssl`, M2's
+  metasploit/meterpreter/sqlmap/john/subfinder, M3's pfSense/bettercap/
+  wireshark/explorer, and M4's metasploit/nuclei/explorer are all now
+  implemented; the current `permissions` array (`filesystem, network,
+  events, mail, bank, shell, ui`) has not yet been explicitly re-audited
+  against this full, final tool list.
+- [x] Websites needed: A7xDEFACE9's storefront/panel (M1),
+  A7xC0DEFACE's dev-notes site + decoy `/admin/` (M2), Skynet
+  Import-Export's public site (M3 — the internal finance portal is
+  reached by pivot + `sqlmap`/`explorer`, not a browsable `Website`), The
+  Architect's C2 dashboard + hidden `/legacy-cms/` (M4). All built.
+- [x] Custom commands needed: `attrcheck` for M4's booby-trapped file,
+  built (`src/commands/attrcheck.ts`). No `salesledger`-style command was
+  needed for M1 in the end — `cat` against the ledger file covered it.
+- [ ] Full live-test pass for M2, M3 and M4 — none of the three has been
+  played yet. Several mechanics were implemented against real SDK event
+  shapes but without a working precedent in this project (unlike M1's
+  nmap/hydra/ssh/ftp/weechat, which entity-resolution-mods had already
+  used): `PFSense.Changes` (no `ip` field on the event itself — gated on a
+  login flag instead), `Wireshark.Started` filtering, `Subfinder.Results`
+  auto-discovery of a registered subdomain, `Nuclei.Results` against a
+  vulnerability tagged via `Network.setVulnerabilities`, and the
+  low-priv-shell-then-`Rootgrab` two-stage Metasploit flow. See
+  `docs/scratch.md` for the full list of deviations/assumptions pending
+  confirmation once each mission is actually played.

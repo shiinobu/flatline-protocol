@@ -1,0 +1,176 @@
+import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
+
+import { DEAD_DROP_CONTACT } from "./characters.js";
+import { M01_BUYER_ALIAS } from "./m01.js";
+
+export const M02_ROOT_DOMAIN = "a7xcodeface.dev";
+export const M02_ROOT_IP = "203.0.113.140";
+export const M02_DEV_SUBDOMAIN = "devbox.a7xcodeface.dev";
+export const M02_DEV_IP = "203.0.113.141";
+export const M02_WORKSTATION_IP = "203.0.113.142";
+
+export const M02_ADMIN_PATH = "/admin/";
+
+export const M02_DB_USER = "panel_svc";
+export const M02_DB_PASSWORD = "svc_internal_only";
+
+export const M02_ADMIN_USERNAME = "root";
+export const M02_ADMIN_HASH = "5f4dcc3b5aa765d61d8327deb882cf141a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5";
+export const M02_ADMIN_PASSWORD = "buildfast_2024!";
+
+export const M02_AFFILIATE_TABLE = "affiliates";
+export const M02_ADMINS_TABLE = "admins";
+
+export const M02_DEPLOY_LOG_FILE_NAME = "deploy";
+export const M02_DEPLOY_LOG_FILE_EXTENSION = "log";
+export const M02_DEPLOY_LOG_CONTENT = [
+    "DEPLOY LOG — build-affiliate-panel",
+    "===================================",
+    "",
+    "2024-03-11 02:14 UTC — pushed payload_v9 to affiliate mirror.",
+    "2024-03-11 02:41 UTC — client hospital-sea-01 confirmed lock, ransom note delivered.",
+    "2024-03-11 09:02 UTC — client escrow released, payout queued.",
+].join("\n");
+
+export const M02_FINANCIAL_DOC_FILE_NAME = "wire_authorization";
+export const M02_FINANCIAL_DOC_FILE_EXTENSION = "pdf";
+export const M02_SHELL_COMPANY_NAME = "Skynet Import-Export Co.";
+export const M02_FINANCIAL_DOC_CONTENT = [
+    "WIRE AUTHORIZATION — INTERNAL",
+    "==============================",
+    "",
+    `Beneficiary: ${M02_SHELL_COMPANY_NAME}`,
+    "Purpose: consulting services (logistics)",
+    "Amount: escrow release, ransom payout batch",
+    "Authorized by: dev ops",
+].join("\n");
+
+export const M02_TIP_SUBJECT = "re: your last report";
+export const M02_TIP_CONTENT = [
+    `Good work on ${M01_BUYER_ALIAS}. That alias traces back to a toolkit developer`,
+    "who also runs an affiliate panel for the ransomware itself.",
+    "",
+    `Start with the root domain: ${M02_ROOT_DOMAIN}`,
+    "Whatever you find, send it the same way as before.",
+].join("\n");
+
+export const M02_REPORT_SUBJECT = "Toolkit developer confirmed — shell company named";
+export const M02_REPORT_TEMPLATE_ID = "flatline.m02.report";
+export const M02_REPORT_TEMPLATE_LABEL = "Mission 2 Findings";
+export const M02_REPORT_TEMPLATE_CONTENT = [
+    "Developer: {{developer}}",
+    "Shell company: {{shellCompany}}",
+    "",
+    "Confirmed via affiliate panel dump, deployment logs and workstation extraction.",
+].join("\n");
+export const M02_REPORT_BODY = [
+    `Developer: ${M02_DEV_SUBDOMAIN}`,
+    `Shell company: ${M02_SHELL_COMPANY_NAME}`,
+    "",
+    "Confirmed via affiliate panel dump, deployment logs and workstation extraction.",
+].join("\n");
+
+export const M02_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
+
+export const M02_ROOT_NMAP_RESULT: Shell.NmapPort[] = [
+    { port: 80, status: "CLOSE", service: "http" },
+    { port: 443, status: "OPEN", service: "https" },
+];
+
+export const M02_DEV_NMAP_RESULT: Shell.NmapPort[] = [
+    { port: 22, status: "OPEN", service: "ssh", version: "OpenSSH 7.2" },
+    { port: 443, status: "OPEN", service: "https", version: "nginx 1.10 (EOL)" },
+];
+
+export const M02_OBJECTIVE_IDS = {
+    reviewLead: "m02.objective.00",
+    whoisRoot: "m02.objective.01",
+    exploreAdminDecoy: "m02.objective.02",
+    discoverDevSubdomain: "m02.objective.03",
+    scanDevServer: "m02.objective.04",
+    dumpAffiliatePanel: "m02.objective.05",
+    crackAdminHash: "m02.objective.06",
+    accessDevServer: "m02.objective.07",
+    findDeploymentLogs: "m02.objective.08",
+    rootgrabWorkstation: "m02.objective.09",
+    downloadFinancialDoc: "m02.objective.10",
+    reportFindings: "m02.objective.11",
+} as const;
+
+export const M02_OBJECTIVES: QuestObjectiveDefinition[] = [
+    {
+        name: M02_OBJECTIVE_IDS.reviewLead,
+        description: "Review the follow-up lead on the buyer alias",
+    },
+    {
+        name: M02_OBJECTIVE_IDS.whoisRoot,
+        description: "Run whois on the toolkit developer's root domain",
+        terminalCommand: "whois",
+        unlocksAfter: [M02_OBJECTIVE_IDS.reviewLead],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.exploreAdminDecoy,
+        description: "Enumerate hidden paths on the root domain",
+        terminalCommand: "dirhunter",
+        hint: "Pure paranoia — there's nothing behind this door but a login form.",
+        unlocksAfter: [M02_OBJECTIVE_IDS.whoisRoot],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.discoverDevSubdomain,
+        description: "Enumerate subdomains of the root domain",
+        terminalCommand: "subfinder",
+        unlocksAfter: [M02_OBJECTIVE_IDS.whoisRoot],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.scanDevServer,
+        description: "Version-scan the dev server",
+        terminalCommand: "nmap",
+        hint: "A bare scan won't show enough. Use -sV.",
+        unlocksAfter: [M02_OBJECTIVE_IDS.discoverDevSubdomain],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.dumpAffiliatePanel,
+        description: "Dump the affiliate panel's database",
+        terminalCommand: "sqlmap",
+        unlocksAfter: [M02_OBJECTIVE_IDS.scanDevServer],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.crackAdminHash,
+        description: "Crack the admin's password hash from the dump",
+        terminalCommand: "john",
+        unlocksAfter: [M02_OBJECTIVE_IDS.dumpAffiliatePanel],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.accessDevServer,
+        description: "Connect to the dev server",
+        terminalCommand: "ssh",
+        unlocksAfter: [M02_OBJECTIVE_IDS.crackAdminHash],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.findDeploymentLogs,
+        description: "Find the deployment log matching the hospital incident",
+        terminalCommand: "cat",
+        unlocksAfter: [M02_OBJECTIVE_IDS.accessDevServer],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.rootgrabWorkstation,
+        description: "Exploit the developer's personal workstation",
+        terminalCommand: "metasploit",
+        unlocksAfter: [M02_OBJECTIVE_IDS.findDeploymentLogs],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.downloadFinancialDoc,
+        description: "Pull the financial document naming the shell company",
+        unlocksAfter: [M02_OBJECTIVE_IDS.rootgrabWorkstation],
+    },
+    {
+        name: M02_OBJECTIVE_IDS.reportFindings,
+        description: "Send your findings to the dead drop",
+        unlocksAfter: [M02_OBJECTIVE_IDS.downloadFinancialDoc],
+    },
+];
+
+export const M02_REWARDS = {
+    money: 400,
+    xp: 90,
+} as const;

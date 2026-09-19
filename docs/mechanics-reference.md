@@ -77,7 +77,7 @@ file whenever a mission introduces or confirms a new tool.
 | `ls` | `Terminal.Ls` (`{id, name}`) | List directory contents (file-ID based) |
 | `cd` | `Terminal.Cd` | Change working directory |
 | `cat` | `Terminal.Cat` | Print file contents |
-| `openssl` | `Terminal.Openssl` | Certificate/crypto operations |
+| `openssl` | `Terminal.Openssl` (`{type: "enc"\|"dec", input, output}`) | Base64 encode/decode (`btoa`/`atob`), not real cryptography — confirmed by reading strings out of the base game's own `app.asar`, whose official tutorial quest uses the identical mechanic. Falls back to plain `atob()`/`btoa()` when no `Shell.addCommandData("openssl", {type, text}, ...)` fixture matches, so a mission can just seed valid base64 content without registering a fixture at all. |
 | `python3` | `Python3.ExecFile` | Execute a Python script file |
 | `explorer` | `Terminal.Explorer` | GUI file explorer (not a terminal command) |
 | process kill | `Process.Killed` | Kill a running process by PID |
@@ -96,6 +96,6 @@ rides on, not tools themselves).
 
 ## 2. Custom Commands Registry (built by this project)
 
-**Currently empty** — no custom commands have been built yet. Add a row
-here (`Command | File | Built for | Registration | Notes`) as soon as this
-project's first custom `@RegisterCommand` ships.
+| Command | File | Built for | Registration | Notes |
+|---|---|---|---|---|
+| `attrcheck` | `src/commands/attrcheck.ts` | M04's booby-trapped `master_identity_backup` file | `@RegisterCommand({ default: true, scope: "both" })` | Resolves the given path via `Files.getByPath` (session-aware, so it works against the remote host over SSH) and, if it matches the trap file, prints a warning and emits a custom mod event (`flatline.m04.attrcheckRevealed`) the quest listens for instead of completing the objective directly. Not yet live-tested. |

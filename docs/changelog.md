@@ -160,3 +160,118 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   `children: []`, matching entity-resolution-mods' own working Q01
   shape. Not yet live-tested. Full detail: `docs/bugs.md` entry 4
   (rewritten to track all 4 attempts in one place).
+- **[bug] M01 `ftp` still `No route to host` after 6+ total attempts —
+  currently OPEN, work paused.** Further attempts (fixture keyed on
+  domain instead of IP, a real `anonymous`/`anonymous` user added, target
+  IP moved onto RFC 5737 docs space) all produced the identical error;
+  one domain-keyed retest briefly returned `530` instead, then reverted
+  to `No route to host` on a confirmed-fresh rebuild, so that result isn't
+  trusted as a real signal. Root cause remains unknown. Recommended
+  fallback, not yet actioned: drop `ftp` from M01's objective chain and
+  deliver the wordlist via mail attachment off the `/internal-ops/` page
+  read instead (both already proven-working mechanisms elsewhere in this
+  mission). User is asking a contact for a second opinion before
+  resuming; M02-M04 implementation proceeded in parallel since it doesn't
+  depend on this fix. Full detail: `docs/bugs.md` entry 4.
+- **[milestone] Missions 2-4 implemented end-to-end, not yet
+  live-tested.** All three built against the real SDK types the same way
+  M01 was (`node_modules/@hotbunny/hackhub-content-sdk/index.d.ts`
+  re-read directly for every tool involved), following the same
+  content/logic split, dev-flag gating, dual-path report validation, and
+  `OnObjectivesStart()`-owns-topology rules M01 established:
+  - **M2 "Sang Pembuat"** (`src/content/m02.ts`, `src/main/m02-quest.ts`,
+    `src/websites/a7xcodeface/`) — 12 objectives: whois/subfinder/`-sV`
+    nmap chain to a dev subdomain, `sqlmap`+`john` crack an affiliate
+    panel admin hash, `ssh` into the dev server for matching deployment
+    logs, then a first-time `metasploit`/`Meterpreter` use against the
+    developer's separate workstation to pull a financial document naming
+    the shell company. A `Database` is created/removed alongside the
+    `Network` topology, mirroring the same idempotent-teardown pattern.
+  - **M3 "Jalur Uang"** (`src/content/m03.ts`, `src/main/m03-quest.ts`,
+    `src/websites/skynet-importexport/`) — 12 objectives: OSINT the
+    shell company's public site and a finance employee's leaked password
+    pattern, `hydra`-crack a pfSense admin login, pivot into an internal
+    Finance VLAN child device (LAN-style IP, per the lesson from M01's
+    `docs/bugs.md` entry 4), `wireshark` + `sqlmap` the internal ledger,
+    then revert the same NAT change before leaving. `PFSense.Changes`
+    carries no `ip` field at the type level, so the add/revert pivot is
+    gated on a `PFSense.Login`-set flag plus a change counter instead of
+    matching the event's own payload — flagged in `docs/scratch.md` as
+    unconfirmed until played.
+  - **M4 "Sang Dalang"** (`src/content/m04.ts`, `src/main/m04-quest.ts`,
+    `src/websites/architect-c2/`, `src/commands/attrcheck.ts`) — 11
+    objectives, converging all three prior threads: trace the recurring
+    VPN IP, `nuclei`-confirm a CVE, a two-stage
+    `Metasploit.Meterpreter.Connected` → `Metasploit.Rootgrab` shell, then
+    a booby-trapped `master_identity_backup` file that must be checked
+    with the new custom `attrcheck` command and extracted via a raw
+    `Files.Transfer` download rather than `cat` (which instead sends a
+    punitive "self-wipe" warning mail and does not complete the
+    objective). Ends on an open A/B/C choice, resolved through one GoMail
+    report template with 3 valid `choice` values plus a matching 3-body
+    freehand fallback, rather than gating completion on the `Dialog`
+    itself (kept purely as flavor, invoked via `this.createDialog()`) —
+    Dialog options in `content/m04.ts` intentionally carry no
+    `onSelect`/`onEnd` callbacks, per the "strip every function property"
+    lesson cited in `docs/story.md`.
+  - `src/index.ts` now imports all three missions' quests, websites, and
+    the `attrcheck` command; `tsc --noEmit` and `esbuild` are clean for
+    the whole project (`dist/mod.js`, 78.0 KB). None of the three has
+    been played in-game yet — see `docs/scratch.md` for every
+    SDK-behavior assumption still pending live-test confirmation.
+
+## 2026-09-19
+
+- **[mechanic] M01's `ftp`/`hydra` objective chain dropped entirely,
+  redesigned around a cookie/JWT-decode mechanic.** After 6+ unresolved
+  `No route to host` attempts (`docs/bugs.md` entry 4), abandoned native
+  `ftp` and Metasploit for M01. New chain: intercept a session cookie's
+  JWT, decode it with `jwt_decoder.py` (a real base-game tool, confirmed
+  by reading strings out of the installed game's `app.asar`), reveal the
+  broker's SSH password. Full design: `docs/story.md` section 4.
+- **[mechanic] `verifiedaccess.mkt` storefront rebuilt as a 12-path
+  haystack.** Home page is now a shuffled, looping marquee of 10 "lots"
+  (4 linked/active, 6 "no longer listed" and `dirhunter`-only); plus
+  `/admin/`, `/vendor-portal/` decoys. The real listing (`OPN 102`) is
+  one of the unlinked six. `dirhunter` is the only way to find it.
+- **[bug] `Wireshark` doesn't capture the player's own browser traffic to
+  a public domain; `Http.Intercepted` never fires without a player-facing
+  proxy UI, which doesn't exist.** Both tried and abandoned for the
+  session-cookie step. Full detail: `docs/bugs.md` entries 8-9.
+- **[mechanic] Session token now delivered via a decoy-laden
+  `/access-log/` page (9 fake tokens + 1 real) and decrypted with
+  `openssl -dec`.** Confirmed `openssl` is base64 (`atob`/`btoa`) with a
+  fallback, not real crypto, by reading strings out of the base game's
+  own `app.asar` (its official tutorial quest uses the identical
+  mechanic). Full detail: `docs/mechanics-reference.md`.
+- **[bug] `Network.createSubnetNetwork` needs a Router-wrapping-child-
+  Device shape for `ssh` to connect — likely the real root cause of the
+  original, never-resolved `ftp` routing bug too.** Fixed by giving the
+  Router its own disposable IP and nesting the real target as a
+  `children` entry. Full detail: `docs/bugs.md` entry 5 (with a
+  retrospective note on entry 4).
+- **[bug] `await` before `Network.createSubnetNetwork` in the same
+  handler loses mod context; `WeeChat.createServer`/`sendMessage` are
+  also "left alone" on an existing host.** Both fixed with
+  fire-and-forget destroy-then-create ordering. Full detail:
+  `docs/bugs.md` entries 6-7.
+- **[bug] The recurring dead-drop contact's email was never shown to the
+  player in any mission.** Fixed in M01 with a "standing instructions"
+  mail from the Custodian, sent once at the start of the whole arc. Full
+  detail: `docs/bugs.md` entry 10.
+- **[mechanic] Added a "LedgerVault" evidence site
+  (`x7k2m9vdlq4wnyt3.dark`) and a `caseId` field on the final report.**
+  Discovered via a throwaway reference in a server log file; contains
+  decoy "quarter" folders plus the real case's `network_map.txt` and
+  `case_id.txt`. Report template's `broker` field now accepts the
+  `OPN 102` listing URL with or without `https://`/trailing slash.
+- **[milestone] Mission titles translated to English.** M1 "Jejak
+  Pertama" → "First Trace", M2 "Sang Pembuat" → "The Maker", M3 "Jalur
+  Uang" → "Money Trail", M4 "Sang Dalang" → **"The Architect"** (reuses
+  the target's own already-established name rather than a fresh
+  translation).
+- **[milestone] M1 "First Trace" reaches FINAL LOCK — live-tested and
+  confirmed playable end-to-end.** All findings folded into
+  `docs/bugs.md` (entries 1-11) and `docs/story.md` (section 4);
+  `docs/scratch.md`'s M01 section cleared per this project's own
+  scratch-file policy.

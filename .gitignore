@@ -5,3 +5,4 @@ mod.js
 .DS_Store
 Thumbs.db
 build-install.ps1
+.claude
