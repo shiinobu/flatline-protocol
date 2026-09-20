@@ -10,7 +10,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import {
-    M01_BROKER_LISTING_URL,
+    M01_BROKER_ALIAS,
     M01_BROKER_USERNAME,
     M01_BUYER_ALIAS,
     M01_CASE_ID,
@@ -38,6 +38,10 @@ import {
     M01_FRONT_NMAP_RESULT,
     M01_FRONT_ROUTER_IP,
     M01_FRONT_ROUTER_LAN_IP,
+    M01_HACKHUB_AUTHOR_AVATAR,
+    M01_HACKHUB_AUTHOR_NAME,
+    M01_HACKHUB_POST_CONTENT,
+    M01_HACKHUB_POST_MEDIA,
     M01_HIDDEN_PATH,
     M01_LEGACY_CONTENT,
     M01_LEGACY_IP,
@@ -58,6 +62,8 @@ import {
     M01_LEDGER_FILE_NAME,
     M01_LEDGERVAULT_DOMAIN,
     M01_LEDGERVAULT_IP,
+    M01_LEDGERVAULT_PROJECT,
+    M01_LISTING_CODE,
     M01_NMAP_RESULT,
     M01_OBJECTIVES,
     M01_OBJECTIVE_IDS,
@@ -117,6 +123,7 @@ interface M01QuestData {
     readonly suspiciousFileFound: boolean;
     readonly credentialsDecrypted: boolean;
     readonly chatConfirmed: boolean;
+    readonly vaultVisited: boolean;
     readonly reportSent: boolean;
 }
 
@@ -442,7 +449,7 @@ const registerM01TwotterPersonas = (): void => {
     });
 };
 
-const normalizeBrokerReference = (value: unknown): string =>
+const normalizeUrlReference = (value: unknown): string =>
     typeof value === "string" ? value.trim().replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
 
 @RegisterQuest
@@ -451,10 +458,15 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     override Title = "First Trace";
     override Description = "Trace the initial access broker who sold out the hospital's network.";
     override Group = "storyline" as const;
-    override AutoStart = true;
+    override AutoStart = false;
     override AutoComplete = true;
     override QuestsToComplete = questGate("m01", []);
     override Rewards = (isQuestDevFocus("m01") || isQuestTesterFocus("m01")) ? { money: 0, xp: 0 } : M01_REWARDS;
+    override HackhubPost = {
+        content: M01_HACKHUB_POST_CONTENT,
+        media: M01_HACKHUB_POST_MEDIA,
+        author: { name: M01_HACKHUB_AUTHOR_NAME, avatar: M01_HACKHUB_AUTHOR_AVATAR },
+    };
 
     override Objectives = applyDevGating(M01_OBJECTIVES, isQuestDevFocus("m01"));
 
@@ -475,6 +487,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             suspiciousFileFound: false,
             credentialsDecrypted: false,
             chatConfirmed: false,
+            vaultVisited: false,
             reportSent: false,
         };
     }
@@ -520,7 +533,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             label: M01_REPORT_TEMPLATE_LABEL,
             title: M01_REPORT_SUBJECT,
             content: M01_REPORT_TEMPLATE_CONTENT,
-            fields: ["broker", "buyer", "caseId"],
+            fields: ["listingCode", "broker", "buyer", "caseId", "project", "vaultUrl"],
         });
 
         this.Events.on("Mail.Read", (data) => {
@@ -567,7 +580,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.pathname.replace(/\/$/, "") !== M01_HIDDEN_PATH.replace(/\/$/, "")) return;
 
             this.SetData("listingFound", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.accessListing);
         });
 
         this.Events.on("Python3.ExecFile", (data) => {
@@ -608,7 +620,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (this.Data.backendAccessed) return;
 
             this.SetData("backendAccessed", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.accessBackend);
         });
 
         this.Events.on("Terminal.Cat", (data) => {
@@ -630,11 +641,18 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data !== M01_IRC_HOST) return;
 
             this.SetData("chatConfirmed", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.confirmViaChat);
+        });
+
+        this.Events.on("Browser.Meta", (data) => {
+            if (this.Data.vaultVisited) return;
+            if (data.hostname !== M01_LEDGERVAULT_DOMAIN) return;
+
+            this.SetData("vaultVisited", true);
         });
 
         this.Events.on("Mail.Sent", (data) => {
             if (this.Data.reportSent) return;
+            if (!this.Data.vaultVisited) return;
             if (!this.isReport(data.subject, data.content)) return;
             if (data.to !== M01_DEAD_DROP_EMAIL) return;
 
@@ -693,11 +711,14 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
         if (!fields || typeof fields !== "object") return false;
 
-        const { broker, buyer, caseId } = fields as Record<string, unknown>;
+        const { listingCode, broker, buyer, caseId, project, vaultUrl } = fields as Record<string, unknown>;
         return (
-            normalizeBrokerReference(broker) === M01_BROKER_LISTING_URL &&
+            listingCode === M01_LISTING_CODE &&
+            broker === M01_BROKER_ALIAS &&
             buyer === M01_BUYER_ALIAS &&
-            caseId === M01_CASE_ID
+            caseId === M01_CASE_ID &&
+            project === M01_LEDGERVAULT_PROJECT &&
+            normalizeUrlReference(vaultUrl) === M01_LEDGERVAULT_DOMAIN
         );
     }
 }

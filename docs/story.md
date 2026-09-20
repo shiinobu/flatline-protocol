@@ -80,74 +80,94 @@ Mission 4's ending.
 
 Each mission: ~9-11 objectives, matching entity-resolution-mods' Q03 depth.
 
-### Mission 1 — "First Trace" (mechanics redesigned, 2026-09-20)
+### Mission 1 — "First Trace" (redesigned twice: mechanics 2026-09-20, objective/report/entry-point 2026-09-21)
 
-**Status: implemented, not yet re-live-tested.** The plot/target/evidence
-chain is unchanged from the FINAL LOCK version live-tested on 2026-09-19;
-what changed in the 2026-09-20 mechanics redesign (see
-`docs/network-plan.md`) is purely technical: the broker's backend now
-sits behind a `Firewall` device the player must breach first (no mission
-in the campaign is allowed to be easier than "Very Hard," including this
-one), every IP was redesigned (see `docs/network-plan.md` for the
-current addresses — they are not repeated here to avoid two sources of
-truth drifting apart), and neither `hint` nor `terminalCommand` was ever
-set on this mission's objectives, so no removal was needed for those two
-fields specifically. The pre-redesign implementation is kept for
-reference at `src/content/m01.original.ts` / `src/main/m01-quest.original.ts`.
-The original outline (before the 2026-09-19 `ftp`/`hydra`/Wireshark
-pivot) is kept in this file's git history; this section describes what a
-player actually experiences today.
+**Status: implemented across two redesign passes since the 2026-09-19
+FINAL LOCK, pending an external tester's validation instead of a
+developer live-test.** `src/guard/flags.ts` is currently set to
+`isTester = true` with `TESTER_FOCUS_QUEST.m01 = true` for exactly that
+purpose. What changed:
 
-**Target:** A7xDEFACE9 (storefront domain `verifiedaccess.mkt`), the
-initial access broker who sold the hospital's network access.
+- **2026-09-20 (mechanics):** the broker's backend now sits behind a
+  `Firewall` device the player must breach first. The original plan was
+  `ssh` into that firewall directly — confirmed impossible (`ssh`
+  hard-rejects any non-`Device` node; see `docs/bugs.md` entry 17) —
+  replaced with `pfsense` (web-admin login) + `kimai` (a real,
+  `Firewall`-only HackDB tool that leaks a signed JWT credential).
+  Websites were also restructured into per-mission folders
+  (`src/websites/m01/…`), and the storefront domain is `blackwire-network.mkt`
+  (not `verifiedaccess.mkt`, an earlier working name).
+- **2026-09-21 (objective/report/entry-point):** the 4 player-facing
+  objectives were collapsed into 1 (see below); the tip email, dead-drop
+  ("standing instructions"), and report were all rewritten longer/richer;
+  the broker's discoverable identity was fixed from a stray placeholder
+  name to **A7xDEFACE9** (matching the "A7x" codename family M02's target
+  also uses); LedgerVault was rebuilt into an interactive file-browser
+  page and its domain reveal was moved into the IRC chat (see step 7);
+  and the mission now starts from a Hackhub feed post instead of
+  auto-starting.
 
-**Chain (9 objectives):**
-1. `Mail.Read` — a "standing instructions" mail from the recurring
-   dead-drop contact (the Custodian) arrives first, revealing the report
-   address once for the whole 4-mission arc, then the anonymous tip
-   arrives naming two domains — one real, one a decoy.
-2. **Investigate the storefront** (merged step — `nslookup`/`nmap`/
+The pre-redesign implementation is kept for reference at
+`src/content/m01.original.ts` / `src/main/m01-quest.original.ts`.
+
+**Target:** A7xDEFACE9 (storefront domain `blackwire-network.mkt`), the
+initial access broker who sold the hospital's network access. Their
+vendor handle is printed directly on the real listing page (`OPN-102` /
+`MED-SEA-0417`).
+
+**Entry point:** GHOSTWIRE's own Hackhub feed post is how the player
+discovers and claims this mission (`AutoStart` is off). Once claimed, a
+"standing instructions" mail from the recurring dead-drop contact (the
+Custodian) arrives, then the anonymous tip naming two domains — one
+real, one a decoy.
+
+**Player-facing objective (1, not 9):** "Track down the broker who sold
+access to the hospital's network, get into their operation, and trace it
+back to their hidden archive -- then report what you find to the dead
+drop." Every step below still has to happen mechanically — per this
+project's "full mechanic, not full objective" rule, they just don't each
+get their own objective checkpoint anymore.
+
+**Mechanical chain (same substance, one step reordered):**
+1. **Investigate the storefront** (merged step — `nslookup`/`nmap`/
    `dirhunter`/`lynx`, no single required tool) — the storefront's home
-   page is a looping, shuffled list of "lots" (fake network-access
-   listings); most are dead-end decoys, and the real hospital listing
-   (`OPN 102`) is deliberately marked "no longer listed" with no link,
-   discoverable only via `dirhunter`.
-3. **Rule out the decoy domain** (parallel, not gating) — `geoip` on the
-   decoy IP proves it's an unrelated privacy-registered domain in
-   Iceland, nothing to do with the case.
-4. **Breach the perimeter firewall** (NEW, 2026-09-20) — `nmap`-ing the
-   broker's backend shows its SSH port `FILTERED`, not open: a separate
-   `Firewall` device on the same router is dropping the connection. The
-   same `python3 jwt_decoder.py <token>` run that already recovers the
-   broker's password now also recovers a `failover_gateway` IP in the
-   decoded payload — that's the firewall, SSH-able with the same
-   recovered credential. Breaching it lifts the block on the backend's
+   page is a looping, shuffled list of "lots"; most are decoys, and the
+   real hospital listing (`OPN 102` / `MED-SEA-0417`) is marked "no
+   longer listed" with no link, discoverable only via `dirhunter`.
+2. **Rule out the decoy domain** (parallel, not gating) — `geoip` on the
+   decoy IP proves it's unrelated.
+3. **Breach the perimeter firewall** — `python3 kimai.py <firewall ip>`
+   leaks a signed JWT off the `Firewall` node; `python3 jwt_decoder.py
+   <token>` decodes it into a `pfsense` login credential; logging into
+   `pfsense` and making any change there lifts the block on the backend's
    SSH port.
-5. **Access the broker's server via SSH** (merged step, replacing the
-   original `ftp`+`hydra` chain entirely) — the real `OPN 102` listing
-   page hints at a plaintext session cookie; the actual credential comes
-   from a leaked `access.log` page (found via `dirhunter`, listing all
-   lot paths' session cookies, only one of which is real) → `openssl -dec`
-   the matching cookie isn't needed here (that's step 6) — running
-   `python3 jwt_decoder.py <token>` on the real one mails back the
-   broker's SSH password → `ssh` in, now that step 4 has opened the port.
-6. **Find something suspicious on the server** — `ls`/`cat` through
+4. **Access the broker's server via SSH**, now that the port is open.
+5. **Find something suspicious on the server** — `ls`/`cat` through
    `home/`/`logs/` (several decoy files mixed in) finds `ops-relay.log`,
    a base64-"encrypted" IRC credential note.
-7. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
-   IRC host/password (exact-match required, not just "ran openssl on
-   something").
-8. **Access the IRC channel and confirm** — `weechat` into the recovered
-   channel; a seeded 14-line conversation between the broker and a
-   contact confirms the buyer alias and namedrops the same plaintext-
-   cookie vulnerability, corroborating everything found so far.
-9. **Report** — GoMail to the Custodian, naming the broker (the `OPN 102`
-   listing URL), the buyer alias (**A7xC0DEFACE**), and a case ID found on
-   a separate "LedgerVault" evidence site (`x7k2m9vdlq4wnyt3.dark`,
-   discovered via a throwaway reference in one of the server's log
-   files) — the vault also contains a `network_map.txt` fulfilling the
-   sales ledger's own mention of "requested rush turnaround on network
-   map."
+6. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
+   IRC host/password.
+7. **Access the IRC channel** — `weechat` into the recovered channel; a
+   seeded conversation between the broker and a contact confirms the
+   buyer alias (**A7xC0DEFACE**) and, near the end, casually reveals the
+   LedgerVault domain split across two lines ("mirror's still on
+   x7k2m9vdlq4wnyt3, right?" / "the .dark one? yeah, hasn't moved in
+   months") — moved here in the 2026-09-21 pass specifically so the vault
+   can't be found any other way (a backend cron log and a Twotter post
+   that used to leak it in plain text were both scrubbed).
+8. **Visit LedgerVault** (`x7k2m9vdlq4wnyt3.dark`) — a hard-gated,
+   mechanically-checked step (`Browser.Meta` sets `vaultVisited`; the
+   final report is refused if this never happened, regardless of whether
+   its field values are otherwise correct). Rebuilt in the 2026-09-21
+   pass into an interactive file-browser page with real evidence images;
+   contains the `network_map.txt`/`case_id.txt` content plus Q1/Q2/Q3
+   "project" folders showing BLACKLEDGER's own multi-year pattern
+   (Northstar Port Authority 2020, Rheinland Energie AG 2023, this
+   hospital case).
+9. **Report** — GoMail to the Custodian with 6 fields: `Listing`
+   (`MED-SEA-0417`), `Broker` (`A7xDEFACE9`), `Buyer` (`A7xC0DEFACE`),
+   `Case` (`CASE-A7X-0417`), `Project` (`Q3-2026-SEA`), `Vault`
+   (`x7k2m9vdlq4wnyt3.dark`).
 
 ### Mission 2 — "The Maker"
 
@@ -324,8 +344,20 @@ to code:
   registration from `OnStart` into an idempotent `OnObjectivesStart`
   reconcile (destroy-then-recreate, matching the pattern `docs/bugs.md`
   entry 3 documents) so future tweaks take effect on restart without
-  abandoning the quest. `tsc --noEmit` clean; **not yet re-live-tested in
-  HackHub** — do that before considering M1 done again.
+  abandoning the quest.
+  **2026-09-21 objective/report/entry-point pass applied on top of
+  that:** the 4 objectives collapsed to 1 (`reportFindings` only, see
+  section 4 above); the storefront's `ssh`-into-firewall step (already
+  known impossible) was replaced with `pfsense`+`kimai`; tip/dead-drop/
+  report content rewritten and the report gained 3 new fields (`Listing`,
+  `Project`, `Vault`); broker identity fixed from a stray placeholder to
+  **A7xDEFACE9**; LedgerVault rebuilt into an interactive page and its
+  domain reveal moved into the IRC chat, gated behind a new hard
+  `vaultVisited` check on the final report; and the mission now starts
+  from a Hackhub feed post (`AutoStart` off) instead of auto-starting.
+  `tsc --noEmit` clean; `isTester`/`TESTER_FOCUS_QUEST.m01` is currently
+  on so an external tester can validate this pass — **do not mark FINAL
+  LOCK again until their results come back.**
 - [x] M2 "The Maker" — mechanics redesigned 2026-09-20 (`src/content/m02.ts`,
   `src/main/m02-quest.ts`, `src/websites/m02/a7xcodeface/`), not yet
   live-tested in-game. `tsc --noEmit` clean, independent code-reviewer

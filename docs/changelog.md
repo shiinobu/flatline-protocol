@@ -321,3 +321,53 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   prereqs) without flattening its objective gating (`unlocksAfter` stays
   intact, unlike dev-focus) and without paying out `Rewards` — applies to
   all four missions, not just M01.
+
+## 2026-09-21
+
+- **[mechanic] M1's 4 player-facing objectives collapsed into 1.**
+  `M01_OBJECTIVE_IDS`/`M01_OBJECTIVES` now expose only `reportFindings`;
+  the three intermediate `completeObjective` calls were removed from
+  `m01-quest.ts` but the underlying event listeners/`SetData` flags they
+  sat inside were left intact — the mechanics still run, they just don't
+  each get their own objective checkpoint anymore.
+- **[mechanic] M1's tip email, dead-drop mail, and report (template +
+  freehand body) rewritten longer and more informative.** The report
+  gained 3 new fields — `Listing` (`MED-SEA-0417`), `Project`
+  (`Q3-2026-SEA`), `Vault` (the LedgerVault domain) — alongside the
+  existing `Broker`/`Buyer`/`Case`, for 6 total. `normalizeBrokerReference`
+  generalized to `normalizeUrlReference`, now used for `vaultUrl`.
+- **[bug] Broker's discoverable identity fixed from a stray placeholder
+  name to `A7xDEFACE9`.** The listing page's Vendor field said
+  `WRAITHTRADE` — unique to this one listing, not a reused marketplace
+  filler — which never matched `docs/story.md`'s "A7x" codename family
+  (`A7xC0DEFACE` is M2's target). Fixed in `opn-102.html`'s Vendor field
+  and the matching LedgerVault caption; the `Broker` report field now
+  validates against `A7xDEFACE9` instead of the listing URL. Known
+  leftover: the LedgerVault receipt photo's own pixels still print
+  "WRAITHTRADE" (baked into the generated image, not editable in code).
+- **[mechanic] Visiting LedgerVault is now a hard-gated, mechanically
+  checked step, not just implied by needing its field values.** A new
+  `Browser.Meta` listener sets `vaultVisited`; the final report's
+  `Mail.Sent` handler now refuses to complete unless `vaultVisited` is
+  true, regardless of whether every field value is otherwise correct.
+- **[mechanic] LedgerVault's domain moved to be discoverable only through
+  the IRC chat, closing two other paths that used to leak it.** The
+  backend cron log and a Twotter post both used to print the domain in
+  plain text, independent of IRC status; both were scrubbed, and the
+  domain now only appears (split across two chat lines, so it's not one
+  obvious answer) in the seeded `WeeChat` conversation, which requires
+  `chatConfirmed` to read.
+- **[mechanic] M1 now starts from a Hackhub feed post instead of
+  auto-starting.** `AutoStart` set to `false`; a `HackhubPost` was added
+  with content written from GHOSTWIRE's own point of view, an avatar, and
+  a "FLATLINE PROTOCOL" key-art image as the post's media.
+- **[mechanic] `isDev`/`isTester` flipped for an external tester handoff.**
+  `isDev` off, `isTester` on with `TESTER_FOCUS_QUEST.m01` — M02-M04 lock
+  out entirely (isolation lock) and M01 pays no reward, so a friend can
+  try the mission cleanly without touching unfinished content or the real
+  economy.
+- **[milestone] M1 "First Trace" — second redesign pass complete, held
+  for external tester validation rather than re-marked FINAL LOCK.** See
+  `docs/story.md` section 4 and its `## 7` checklist entry for the full
+  before/after; nothing here has been personally live-tested by the
+  developer since the 2026-09-19 FINAL LOCK it supersedes.

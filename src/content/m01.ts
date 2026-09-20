@@ -29,6 +29,10 @@ export const M01_HIDDEN_PATH = "/listings/med-sea-0417/";
 export const M01_GATEWAY_SUBDOMAIN = `gateway.${M01_DOMAIN}`;
 export const M01_FAILOVER_SUBDOMAIN = `failover.${M01_DOMAIN}`;
 
+export const M01_BROKER_ALIAS = "A7xDEFACE9";
+export const M01_LISTING_CODE = "MED-SEA-0417";
+export const M01_LEDGERVAULT_PROJECT = "Q3-2026-SEA";
+
 export const M01_DECOY_DOMAIN = "frostgate-exchange.mkt";
 export const M01_DECOY_IP = "168.100.9.44";
 
@@ -189,7 +193,7 @@ export const M01_TWOTTER_CONTACT_BIO = "figures guy. don't ask what kind.";
 export const M01_TWOTTER_CONTACT_POSTS: M01TwotterPost[] = [
     { content: "clearescrow payout finally cleared, only took 9 days this time", interaction: { comments: 3, share: 1, likes: 22, views: 480 } },
     { content: "anyone else's timeline just ads now", interaction: { comments: 8, share: 2, likes: 35, views: 610 } },
-    { content: `found this randomly, no idea what it even is -- ${M01_LEDGERVAULT_DOMAIN} -- probably nothing`, interaction: { comments: 1, share: 0, likes: 4, views: 150 } },
+    { content: "found some random .dark link buried in an old file, no idea what it even is -- probably nothing", interaction: { comments: 1, share: 0, likes: 4, views: 150 } },
     { content: "donated to the pacificcare drive again this year", interaction: { comments: 5, share: 3, likes: 41, views: 520 } },
     { content: `obsidian renewed the subscription again -- ${M01_OBSIDIAN_DOMAIN} still worth it honestly`, interaction: { comments: 6, share: 4, likes: 52, views: 890 } },
     { content: "if one more person asks me for an obsidian invite i'm turning dms off too", interaction: { comments: 14, share: 5, likes: 78, views: 1200 } },
@@ -242,6 +246,10 @@ export const M01_IRC_CONVERSATION: M01IrcLine[] = [
     { username: M01_IRC_CONTACT_USERNAME, message: "you sure? plain cookie like that is asking for trouble" },
     { username: M01_IRC_USERNAME, message: "it's fine. just get the payment sorted before client gets impatient" },
     { username: M01_IRC_CONTACT_USERNAME, message: "copy. will confirm once escrow releases" },
+    { username: M01_IRC_USERNAME, message: "mirror's still on x7k2m9vdlq4wnyt3, right?" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "the .dark one? yeah, hasn't moved in months" },
+    { username: M01_IRC_USERNAME, message: "good, don't touch it then" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "wasn't planning to. that thing's got years of receipts on it" },
     { username: M01_IRC_USERNAME, message: "good. this one needs to go clean" },
 ];
 
@@ -271,7 +279,7 @@ export const M01_DUMMY_AUTH_LOG_CONTENT = [
 export const M01_DUMMY_CRON_LOG_CONTENT = [
     "backup.sh completed successfully",
     "cert-renew.sh: no action needed",
-    `vault-sync.sh completed successfully -- nightly backup mirrored to ${M01_LEDGERVAULT_DOMAIN}`,
+    "vault-sync.sh completed successfully",
 ].join("\n");
 export const M01_DUMMY_SYSTEM_LOG_CONTENT = [
     "disk usage at 62%",
@@ -280,10 +288,19 @@ export const M01_DUMMY_SYSTEM_LOG_CONTENT = [
 
 export const M01_TIP_SUBJECT = "you should look into this";
 export const M01_TIP_CONTENT = [
-    "Found this while digging through leaked broker chatter.",
-    "One name keeps coming up -- an ops guy who isn't exactly careful about what he posts online.",
+    "Found this while digging through leaked broker chatter -- some kind of",
+    "access-for-sale operation, dressed up as a legit marketplace on the",
+    "surface.",
     "",
-    "Search around for a handle close to \"opsadmin\". Start there.",
+    "One name keeps coming up: an ops guy who isn't exactly careful about",
+    "what he posts online. Word is his latest listing moved fast --",
+    "healthcare sector, and the buyer paid a premium for a rush job. That",
+    "should tell you something about who's asking.",
+    "",
+    "Search around for a handle close to \"opsadmin\". Start there -- the",
+    "storefront's just the front door. Whatever this guy actually runs lives",
+    "somewhere deeper, and he's sloppy enough to leave a trail if you're",
+    "patient.",
     "",
     "Be careful. Whoever runs this isn't small-time.",
 ].join("\n");
@@ -305,29 +322,69 @@ export const M01_REPORT_TEMPLATE_LABEL = "Mission 1 Findings";
 export const M01_REPORT_TEMPLATE_CONTENT = [
     "FINDINGS",
     "--------",
+    "Listing: {{listingCode}}",
     "Broker: {{broker}}",
     "Buyer: {{buyer}}",
     "Case: {{caseId}}",
+    "Project: {{project}}",
+    "Vault: {{vaultUrl}}",
     "",
-    "Source: compromised sales ledger + IRC chatter.",
+    "Summary: initial access into a healthcare network was sold through this",
+    "storefront, confirmed via the broker's own backend and cross-referenced",
+    "against a separate ledger tied to the buyer's larger operation. This",
+    "isn't an isolated listing -- the same buyer alias shows up across",
+    "multiple past incidents on record.",
+    "",
+    "Source: storefront listing, broker backend access, IRC confirmation,",
+    "and the broker's LedgerVault archive.",
 ].join("\n");
 export const M01_REPORT_BODY = [
     "FINDINGS",
     "--------",
-    `Broker: ${M01_BROKER_LISTING_URL}`,
+    `Listing: ${M01_LISTING_CODE}`,
+    `Broker: ${M01_BROKER_ALIAS}`,
     `Buyer: ${M01_BUYER_ALIAS}`,
     `Case: ${M01_CASE_ID}`,
+    `Project: ${M01_LEDGERVAULT_PROJECT}`,
+    `Vault: ${M01_LEDGERVAULT_DOMAIN}`,
     "",
-    "Source: compromised sales ledger + IRC chatter.",
+    "Summary: initial access into a healthcare network was sold through this",
+    "storefront, confirmed via the broker's own backend and cross-referenced",
+    "against a separate ledger tied to the buyer's larger operation. This",
+    "isn't an isolated listing -- the same buyer alias shows up across",
+    "multiple past incidents on record.",
+    "",
+    "Source: storefront listing, broker backend access, IRC confirmation,",
+    "and the broker's LedgerVault archive.",
 ].join("\n");
 
 export const M01_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M01_TIPSTER_EMAIL = ANONYMOUS_TIPSTER.email;
 
+export const M01_HACKHUB_AUTHOR_NAME = "GHOSTWIRE";
+export const M01_HACKHUB_AUTHOR_AVATAR = "./assets/ghostwire-avatar.png";
+export const M01_HACKHUB_POST_MEDIA = "./assets/flatline-protocol-ops.png";
+export const M01_HACKHUB_POST_CONTENT = [
+    "Found a broker running access sales into places that should be",
+    "off-limits. Hospitals. Healthcare. Somebody's paying good money to",
+    "make sure the wrong people can walk right in.",
+    "",
+    "I've had enough of watching this happen and nothing changing. Time to",
+    "trace it back to whoever's really running this.",
+].join("\n");
+
 export const M01_CUSTODIAN_SUBJECT = "standing instructions";
 export const M01_CUSTODIAN_CONTENT = [
-    "Everything you find goes here. No exceptions, no other channel.",
-    "I'll reach out if there's a problem. Otherwise, don't expect a reply.",
+    "This address is the only channel between us. Whatever you find, however",
+    "you find it, it comes here -- one report per job, nothing partial, no",
+    "side conversations.",
+    "",
+    "I won't confirm receipt and I won't check in. If something's wrong,",
+    "you'll hear from me. Otherwise assume silence means it's been read and",
+    "it's enough.",
+    "",
+    "Keep this address off anything that can be traced back to you. This",
+    "isn't the only job, and it won't be the last time you use it.",
 ].join("\n");
 
 export const M01_FRONT_NMAP_RESULT: Shell.NmapPort[] = [
@@ -345,31 +402,13 @@ export const M01_FIREWALL_NMAP_RESULT: Shell.NmapPort[] = [
 ];
 
 export const M01_OBJECTIVE_IDS = {
-    accessListing: "m01.objective.00",
-    accessBackend: "m01.objective.01",
-    confirmViaChat: "m01.objective.02",
     reportFindings: "m01.objective.03",
 } as const;
 
 export const M01_OBJECTIVES: QuestObjectiveDefinition[] = [
     {
-        name: M01_OBJECTIVE_IDS.accessListing,
-        description: "Track down the broker's real storefront and find the hidden listing for the hospital sale",
-    },
-    {
-        name: M01_OBJECTIVE_IDS.accessBackend,
-        description: "Get past whatever's guarding the storefront and into the broker's real backend server",
-        unlocksAfter: [M01_OBJECTIVE_IDS.accessListing],
-    },
-    {
-        name: M01_OBJECTIVE_IDS.confirmViaChat,
-        description: "Confirm what you've found through the broker's own private channel",
-        unlocksAfter: [M01_OBJECTIVE_IDS.accessBackend],
-    },
-    {
         name: M01_OBJECTIVE_IDS.reportFindings,
-        description: "Send your findings to the dead drop",
-        unlocksAfter: [M01_OBJECTIVE_IDS.confirmViaChat],
+        description: "Track down the broker who sold access to the hospital's network, get into their operation, and trace it back to their hidden archive -- then report what you find to the dead drop.",
     },
 ];
 
