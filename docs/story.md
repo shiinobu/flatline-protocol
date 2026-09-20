@@ -80,19 +80,28 @@ Mission 4's ending.
 
 Each mission: ~9-11 objectives, matching entity-resolution-mods' Q03 depth.
 
-### Mission 1 — "First Trace" (FINAL LOCK, 2026-09-19)
+### Mission 1 — "First Trace" (mechanics redesigned, 2026-09-20)
 
-**Status: implemented, live-tested, playable end-to-end.** The chain below
-is the *actual shipped design* — it diverged significantly from the
-original outline during implementation (see `docs/bugs.md` entries 4-11
-for why `ftp`/`hydra`/Wireshark/`Http.Intercepted` were all tried and
-dropped). The original outline is kept in this file's git history for
-reference; this section describes what a player actually experiences.
+**Status: implemented, not yet re-live-tested.** The plot/target/evidence
+chain is unchanged from the FINAL LOCK version live-tested on 2026-09-19;
+what changed in the 2026-09-20 mechanics redesign (see
+`docs/network-plan.md`) is purely technical: the broker's backend now
+sits behind a `Firewall` device the player must breach first (no mission
+in the campaign is allowed to be easier than "Very Hard," including this
+one), every IP was redesigned (see `docs/network-plan.md` for the
+current addresses — they are not repeated here to avoid two sources of
+truth drifting apart), and neither `hint` nor `terminalCommand` was ever
+set on this mission's objectives, so no removal was needed for those two
+fields specifically. The pre-redesign implementation is kept for
+reference at `src/content/m01.original.ts` / `src/main/m01-quest.original.ts`.
+The original outline (before the 2026-09-19 `ftp`/`hydra`/Wireshark
+pivot) is kept in this file's git history; this section describes what a
+player actually experiences today.
 
 **Target:** A7xDEFACE9 (storefront domain `verifiedaccess.mkt`), the
 initial access broker who sold the hospital's network access.
 
-**Chain (8 objectives):**
+**Chain (9 objectives):**
 1. `Mail.Read` — a "standing instructions" mail from the recurring
    dead-drop contact (the Custodian) arrives first, revealing the report
    address once for the whole 4-mission arc, then the anonymous tip
@@ -106,25 +115,33 @@ initial access broker who sold the hospital's network access.
 3. **Rule out the decoy domain** (parallel, not gating) — `geoip` on the
    decoy IP proves it's an unrelated privacy-registered domain in
    Iceland, nothing to do with the case.
-4. **Access the broker's server via SSH** (merged step, replacing the
+4. **Breach the perimeter firewall** (NEW, 2026-09-20) — `nmap`-ing the
+   broker's backend shows its SSH port `FILTERED`, not open: a separate
+   `Firewall` device on the same router is dropping the connection. The
+   same `python3 jwt_decoder.py <token>` run that already recovers the
+   broker's password now also recovers a `failover_gateway` IP in the
+   decoded payload — that's the firewall, SSH-able with the same
+   recovered credential. Breaching it lifts the block on the backend's
+   SSH port.
+5. **Access the broker's server via SSH** (merged step, replacing the
    original `ftp`+`hydra` chain entirely) — the real `OPN 102` listing
    page hints at a plaintext session cookie; the actual credential comes
    from a leaked `access.log` page (found via `dirhunter`, listing all
    lot paths' session cookies, only one of which is real) → `openssl -dec`
-   the matching cookie isn't needed here (that's step 5) — running
+   the matching cookie isn't needed here (that's step 6) — running
    `python3 jwt_decoder.py <token>` on the real one mails back the
-   broker's SSH password → `ssh` in.
-5. **Find something suspicious on the server** — `ls`/`cat` through
+   broker's SSH password → `ssh` in, now that step 4 has opened the port.
+6. **Find something suspicious on the server** — `ls`/`cat` through
    `home/`/`logs/` (several decoy files mixed in) finds `ops-relay.log`,
    a base64-"encrypted" IRC credential note.
-6. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
+7. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
    IRC host/password (exact-match required, not just "ran openssl on
    something").
-7. **Access the IRC channel and confirm** — `weechat` into the recovered
+8. **Access the IRC channel and confirm** — `weechat` into the recovered
    channel; a seeded 14-line conversation between the broker and a
    contact confirms the buyer alias and namedrops the same plaintext-
    cookie vulnerability, corroborating everything found so far.
-8. **Report** — GoMail to the Custodian, naming the broker (the `OPN 102`
+9. **Report** — GoMail to the Custodian, naming the broker (the `OPN 102`
    listing URL), the buyer alias (**A7xC0DEFACE**), and a case ID found on
    a separate "LedgerVault" evidence site (`x7k2m9vdlq4wnyt3.dark`,
    discovered via a throwaway reference in one of the server's log
@@ -133,6 +150,13 @@ initial access broker who sold the hospital's network access.
    map."
 
 ### Mission 2 — "The Maker"
+
+**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
+plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
+is purely technical: the personal workstation (step 9) now sits behind a
+home Wi-Fi network cracked via `bettercap`+`fern` instead of being a
+second internet-facing router, adding one objective (7 → 8). Pre-redesign
+implementation kept at `src/content/m02.original.ts`/`src/main/m02-quest.original.ts`.
 
 **Target:** A7xC0DEFACE, the ransomware toolkit developer / affiliate-panel
 admin.
@@ -161,6 +185,14 @@ admin.
 
 ### Mission 3 — "Money Trail"
 
+**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
+plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
+is purely technical: the finance VLAN (step 6-8) now splits across two
+hosts behind a `Splitter` — the finance-server ("Coin-Drift") and the
+accomplice's PC ("Faded-Ledger") — instead of one device holding
+everything. Objective count unchanged. Pre-redesign implementation kept
+at `src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
+
 **Target:** Skynet Import-Export Co. (shell company).
 
 **Chain:**
@@ -188,6 +220,15 @@ admin.
 10. Dead-drop mail naming SKN Capital Nominees.
 
 ### Mission 4 — "The Architect"
+
+**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
+plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
+is purely technical: the VPN IP traced in step 1 is now literally the
+real network's Router address (previously a disconnected OSINT-only
+lead), gated behind a `Firewall`+`Splitter`, with two new honeypot decoys
+("Null-Crown", "Ash-Vector") alongside the C2 host as an extra
+red-herring layer. Objective count unchanged. Pre-redesign implementation
+kept at `src/content/m04.original.ts`/`src/main/m04-quest.original.ts`.
 
 **Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
 Nominees. Deliberate convergence point of all three prior threads
@@ -277,25 +318,44 @@ to code:
   step (entries 8-9); replaced by an `openssl`-decrypt mechanic confirmed
   against the base game's own official tutorial quest. Final chain
   described in section 4 above.
-- [x] M2 "The Maker" — implemented (`src/content/m02.ts`,
-  `src/main/m02-quest.ts`, `src/websites/a7xcodeface/`), not yet
-  live-tested in-game. `tsc --noEmit` and `esbuild` both clean. **Apply
-  the Router-wrapping-child-Device network shape (bugs.md entry 5) before
-  first live-test**, not after hitting the same wall M1 did.
-- [x] M3 "Money Trail" — implemented (`src/content/m03.ts`,
-  `src/main/m03-quest.ts`, `src/websites/skynet-importexport/`), not yet
-  live-tested in-game. `tsc --noEmit` and `esbuild` both clean. Same
-  network-shape warning as M2 applies here.
-- [x] M4 "The Architect" — implemented (`src/content/m04.ts`,
-  `src/main/m04-quest.ts`, `src/websites/architect-c2/`,
+  **2026-09-20 mechanics redesign applied on top of this** (see
+  `docs/network-plan.md`): added a perimeter `Firewall` device (8 → 9
+  objectives), redesigned every IP/`lanIp`, moved network/domain/cookie
+  registration from `OnStart` into an idempotent `OnObjectivesStart`
+  reconcile (destroy-then-recreate, matching the pattern `docs/bugs.md`
+  entry 3 documents) so future tweaks take effect on restart without
+  abandoning the quest. `tsc --noEmit` clean; **not yet re-live-tested in
+  HackHub** — do that before considering M1 done again.
+- [x] M2 "The Maker" — mechanics redesigned 2026-09-20 (`src/content/m02.ts`,
+  `src/main/m02-quest.ts`, `src/websites/m02/a7xcodeface/`), not yet
+  live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
+  pass run. Workstation now sits behind a `Network.createWifiNetwork` AP
+  (Router-wrapping-child-Device shape applies automatically, per
+  `bugs.md` entry 5) instead of the flat internet-facing router the
+  pre-redesign version used.
+- [x] M3 "Money Trail" — mechanics redesigned 2026-09-20 (`src/content/m03.ts`,
+  `src/main/m03-quest.ts`, `src/websites/m03/skynet-importexport/`), not
+  yet live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
+  pass run. pfSense's finance VLAN already used the correct
+  Router-wrapping-child-Device shape pre-redesign; now wraps a `Splitter`
+  with two Devices instead of one flat Device.
+- [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
+  `src/main/m04-quest.ts`, `src/websites/m04/architect-c2/`,
   `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`
-  and `esbuild` both clean. Same network-shape warning as M2 applies here.
-- [ ] Manifest permission review — M1's `ssh`/`weechat`/`openssl`, M2's
-  metasploit/meterpreter/sqlmap/john/subfinder, M3's pfSense/bettercap/
-  wireshark/explorer, and M4's metasploit/nuclei/explorer are all now
-  implemented; the current `permissions` array (`filesystem, network,
-  events, mail, bank, shell, ui`) has not yet been explicitly re-audited
-  against this full, final tool list.
+  clean, independent code-reviewer pass run. The pre-redesign version had
+  the C2 host as a flat top-level `Router` with direct SSH access — the
+  exact broken shape `bugs.md` entry 5 documents — now fixed by nesting it
+  under a `Firewall`+`Splitter` hierarchy as part of the same redesign.
+- [x] Manifest permission review — M1's `ssh`/`weechat`/`openssl`, M2's
+  metasploit/meterpreter/sqlmap/john/subfinder/bettercap/fern (Wi-Fi
+  added 2026-09-20), M3's pfSense/bettercap/wireshark/explorer, and M4's
+  metasploit/nuclei/explorer/honeypot-mail are all now implemented and
+  re-audited against `manifest.json`'s `permissions` array (`filesystem,
+  network, events, mail, bank, shell, ui`). Every one of these rides on
+  `Network.*`/`Shell.*`/`Mail.*` namespaces already covered by that same
+  7-permission set — `Network.createWifiNetwork`/`connectWifi` are no
+  exception, there is no separate Wi-Fi-specific permission scope in the
+  SDK. No manifest change needed.
 - [x] Websites needed: A7xDEFACE9's storefront/panel (M1),
   A7xC0DEFACE's dev-notes site + decoy `/admin/` (M2), Skynet
   Import-Export's public site (M3 — the internal finance portal is
@@ -312,6 +372,10 @@ to code:
   login flag instead), `Wireshark.Started` filtering, `Subfinder.Results`
   auto-discovery of a registered subdomain, `Nuclei.Results` against a
   vulnerability tagged via `Network.setVulnerabilities`, and the
-  low-priv-shell-then-`Rootgrab` two-stage Metasploit flow. See
+  low-priv-shell-then-`Rootgrab` two-stage Metasploit flow. The
+  2026-09-20 mechanics redesign adds more of these: M2's `Fern.FindPassword`/
+  `Network.WifiConnected` gating, and M4's `Firewall` rule reaching a
+  `Device` nested inside a sibling `Splitter` (untested — see
+  `docs/network-plan.md`'s M4 section for the fallback if it doesn't). See
   `docs/scratch.md` for the full list of deviations/assumptions pending
   confirmation once each mission is actually played.

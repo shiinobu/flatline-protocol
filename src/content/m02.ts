@@ -7,7 +7,14 @@ export const M02_ROOT_DOMAIN = "a7xcodeface.dev";
 export const M02_ROOT_IP = "203.0.113.140";
 export const M02_DEV_SUBDOMAIN = "devbox.a7xcodeface.dev";
 export const M02_DEV_IP = "203.0.113.141";
+export const M02_DEV_ROUTER_IP = "66.0.34.201";
+
+export const M02_WORKSTATION_WIFI_IP = "66.0.34.202";
+export const M02_WORKSTATION_WIFI_SSID = "TP-Link_8F21";
+export const M02_WORKSTATION_WIFI_PASSWORD = "homebase2021";
 export const M02_WORKSTATION_IP = "203.0.113.142";
+export const M02_WORKSTATION_LAN_IP = "192.168.0.2";
+export const M02_WORKSTATION_CODENAME = "Stale-Fork";
 
 export const M02_ADMIN_PATH = "/admin/";
 
@@ -15,7 +22,7 @@ export const M02_DB_USER = "panel_svc";
 export const M02_DB_PASSWORD = "svc_internal_only";
 
 export const M02_ADMIN_USERNAME = "root";
-export const M02_ADMIN_HASH = "5f4dcc3b5aa765d61d8327deb882cf141a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5";
+export const M02_ADMIN_HASH = "f5b8e356551c3c860a671c107e24c2a9";
 export const M02_ADMIN_PASSWORD = "buildfast_2024!";
 
 export const M02_AFFILIATE_TABLE = "affiliates";
@@ -30,6 +37,7 @@ export const M02_DEPLOY_LOG_CONTENT = [
     "2024-03-11 02:14 UTC — pushed payload_v9 to affiliate mirror.",
     "2024-03-11 02:41 UTC — client hospital-sea-01 confirmed lock, ransom note delivered.",
     "2024-03-11 09:02 UTC — client escrow released, payout queued.",
+    "2024-03-11 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
 ].join("\n");
 
 export const M02_FINANCIAL_DOC_FILE_NAME = "wire_authorization";
@@ -84,17 +92,13 @@ export const M02_DEV_NMAP_RESULT: Shell.NmapPort[] = [
 
 export const M02_OBJECTIVE_IDS = {
     reviewLead: "m02.objective.00",
-    whoisRoot: "m02.objective.01",
-    exploreAdminDecoy: "m02.objective.02",
-    discoverDevSubdomain: "m02.objective.03",
-    scanDevServer: "m02.objective.04",
-    dumpAffiliatePanel: "m02.objective.05",
-    crackAdminHash: "m02.objective.06",
-    accessDevServer: "m02.objective.07",
-    findDeploymentLogs: "m02.objective.08",
-    rootgrabWorkstation: "m02.objective.09",
-    downloadFinancialDoc: "m02.objective.10",
-    reportFindings: "m02.objective.11",
+    reconRootDomain: "m02.objective.01",
+    breachAffiliatePanel: "m02.objective.02",
+    accessDevServer: "m02.objective.03",
+    breachWorkstationWifi: "m02.objective.04",
+    rootgrabWorkstation: "m02.objective.05",
+    downloadFinancialDoc: "m02.objective.06",
+    reportFindings: "m02.objective.07",
 } as const;
 
 export const M02_OBJECTIVES: QuestObjectiveDefinition[] = [
@@ -103,60 +107,33 @@ export const M02_OBJECTIVES: QuestObjectiveDefinition[] = [
         description: "Review the follow-up lead on the buyer alias",
     },
     {
-        name: M02_OBJECTIVE_IDS.whoisRoot,
-        description: "Run whois on the toolkit developer's root domain",
-        terminalCommand: "whois",
+        name: M02_OBJECTIVE_IDS.reconRootDomain,
+        description:
+            "Trace the root domain past its public face and find where the real work happens.",
         unlocksAfter: [M02_OBJECTIVE_IDS.reviewLead],
     },
     {
-        name: M02_OBJECTIVE_IDS.exploreAdminDecoy,
-        description: "Enumerate hidden paths on the root domain",
-        terminalCommand: "dirhunter",
-        hint: "Pure paranoia — there's nothing behind this door but a login form.",
-        unlocksAfter: [M02_OBJECTIVE_IDS.whoisRoot],
-    },
-    {
-        name: M02_OBJECTIVE_IDS.discoverDevSubdomain,
-        description: "Enumerate subdomains of the root domain",
-        terminalCommand: "subfinder",
-        unlocksAfter: [M02_OBJECTIVE_IDS.whoisRoot],
-    },
-    {
-        name: M02_OBJECTIVE_IDS.scanDevServer,
-        description: "Version-scan the dev server",
-        terminalCommand: "nmap",
-        hint: "A bare scan won't show enough. Use -sV.",
-        unlocksAfter: [M02_OBJECTIVE_IDS.discoverDevSubdomain],
-    },
-    {
-        name: M02_OBJECTIVE_IDS.dumpAffiliatePanel,
-        description: "Dump the affiliate panel's database",
-        terminalCommand: "sqlmap",
-        unlocksAfter: [M02_OBJECTIVE_IDS.scanDevServer],
-    },
-    {
-        name: M02_OBJECTIVE_IDS.crackAdminHash,
-        description: "Crack the admin's password hash from the dump",
-        terminalCommand: "john",
-        unlocksAfter: [M02_OBJECTIVE_IDS.dumpAffiliatePanel],
+        name: M02_OBJECTIVE_IDS.breachAffiliatePanel,
+        description:
+            "Breach the affiliate panel's database and crack your way into the admin account.",
+        unlocksAfter: [M02_OBJECTIVE_IDS.reconRootDomain],
     },
     {
         name: M02_OBJECTIVE_IDS.accessDevServer,
-        description: "Connect to the dev server",
-        terminalCommand: "ssh",
-        unlocksAfter: [M02_OBJECTIVE_IDS.crackAdminHash],
+        description:
+            "Access the dev server and track down the deployment log — the receipt for the hospital job.",
+        unlocksAfter: [M02_OBJECTIVE_IDS.breachAffiliatePanel],
     },
     {
-        name: M02_OBJECTIVE_IDS.findDeploymentLogs,
-        description: "Find the deployment log matching the hospital incident",
-        terminalCommand: "cat",
+        name: M02_OBJECTIVE_IDS.breachWorkstationWifi,
+        description:
+            "The deployment log points to a home workstation, off the company's own network entirely. Find the Wi-Fi it sits behind and get onto it.",
         unlocksAfter: [M02_OBJECTIVE_IDS.accessDevServer],
     },
     {
         name: M02_OBJECTIVE_IDS.rootgrabWorkstation,
         description: "Exploit the developer's personal workstation",
-        terminalCommand: "metasploit",
-        unlocksAfter: [M02_OBJECTIVE_IDS.findDeploymentLogs],
+        unlocksAfter: [M02_OBJECTIVE_IDS.breachWorkstationWifi],
     },
     {
         name: M02_OBJECTIVE_IDS.downloadFinancialDoc,

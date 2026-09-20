@@ -122,11 +122,38 @@ assumptions to confirm once played:
 
 ---
 
-**Carried over from M01 (now fixed, applies to M02-M04 too):**
-`m03-quest.ts`'s `OnObjectivesStart` creates `M03_SKYNET_IP` and
-`M03_PFSENSE_IP` as flat top-level networks with no `children` wrapping —
-the same broken shape `docs/bugs.md` entry 5 documents for M01's SSH
-failure. Apply the Router-wrapping-child-Device fix (and the
-`WeeChat`/`Network` destroy-before-create ordering from entries 6-7)
-before M03's first live-test. M02 and M04 have not been checked yet
-either — same audit needed there.
+**Carried over from M01, now resolved (2026-09-20 redesign pass):** the
+Router-wrapping-child-Device audit flagged above was done for all three
+missions. M03 already had it right pre-redesign (only the finance VLAN's
+internal shape changed, to add a `Splitter`). M02's workstation is now a
+`Network.createWifiNetwork` AP (wraps correctly by construction). M04's
+C2 host was the one actually broken pre-redesign (flat top-level `Router`
+with direct SSH) — fixed by nesting it under a new `Firewall`+`Splitter`
+hierarchy as part of the same pass.
+
+---
+
+**2026-09-20 mechanics redesign — new deviations/assumptions to confirm
+once M2/M3/M4 are actually played** (see `docs/network-plan.md` for the
+full design):
+
+1. **M2:** `Fern.FindPassword`'s `subnet.ip` is assumed to identify which
+   Wi-Fi network was cracked; `Network.WifiConnected` is not separately
+   gated (the mission's `unlocksAfter` chain, not a real connectivity
+   check, is what stops the player from rootgrabbing the workstation
+   before joining its Wi-Fi). Unconfirmed whether the engine would
+   actually let `metasploit`/`ssh` reach a Wi-Fi-child device before
+   `Network.connectWifi` succeeds, or whether that's purely cosmetic.
+2. **M3:** `Terminal.Explorer`'s gate for the bonus objective moved to
+   `M03_ACCOMPLICE_IP` (Faded-Ledger); nothing enforces that the player
+   actually pivoted through the NAT rule before reaching it (same
+   pre-existing looseness `PFSense.Changes` already had, just now on a
+   second device).
+3. **M4:** the `Firewall`'s `rules` (blocking 22/3389 with `destination:
+   M04_C2_IP`) reaching through a sibling `Splitter` to a grandchild
+   Device is untested — deliberately not load-bearing for mission
+   progress (port 443, the one the mission needs, is `active: true`
+   regardless of whether the rule takes effect). The two honeypots'
+   `Mail.send` alert on `Terminal.SSH.Connected` is flavor-only — there is
+   no suspicion-meter API in this SDK at all (confirmed absent from
+   `index.d.ts`), same compromise as M04 finding #1 above.

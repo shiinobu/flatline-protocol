@@ -9,17 +9,24 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import {
+    M03_ACCOMPLICE_CODENAME,
+    M03_ACCOMPLICE_IP,
+    M03_ACCOMPLICE_PASSWORD,
+    M03_ACCOMPLICE_USERNAME,
+    M03_COINDRIFT_CODENAME,
+    M03_COINDRIFT_IP,
     M03_DEAD_DROP_EMAIL,
     M03_FINANCE_EMPLOYEE_HANDLE,
-    M03_FINANCE_IP,
     M03_FINANCE_PASSWORD,
     M03_FINANCE_USERNAME,
+    M03_LEAK_PATTERN,
     M03_LEDGER_TABLE,
     M03_MX_HOST,
     M03_OBJECTIVES,
     M03_OBJECTIVE_IDS,
     M03_PARENT_ENTITY_NAME,
     M03_PFSENSE_IP,
+    M03_PFSENSE_LAN_IP,
     M03_PFSENSE_PASSWORD,
     M03_PFSENSE_USERNAME,
     M03_REPORT_BODY,
@@ -31,6 +38,7 @@ import {
     M03_SKYNET_DOMAIN,
     M03_SKYNET_IP,
     M03_SKYNET_NMAP_RESULT,
+    M03_SPLITTER_IP,
     M03_SPREADSHEET_CONTENT,
     M03_SPREADSHEET_FILE_EXTENSION,
     M03_SPREADSHEET_FILE_NAME,
@@ -38,7 +46,7 @@ import {
     M03_TIP_SUBJECT,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/dev-flag.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M03QuestData {
     readonly leadReviewed: boolean;
@@ -72,7 +80,10 @@ const registerM03ShellFixtures = (): void => {
     Shell.addCommandData("lynx", M03_SKYNET_DOMAIN, {
         ips: [M03_SKYNET_IP],
         address: [`https://${M03_SKYNET_DOMAIN}/`],
-        additional: ["Import-export logistics firm. Generic corporate front."],
+        additional: [
+            "Import-export logistics firm. Generic corporate front.",
+            `Staff directory blurb name-drops a finance analyst active online: ${M03_FINANCE_EMPLOYEE_HANDLE}.`,
+        ],
     });
     Shell.addCommandData("mxlookup", M03_SKYNET_DOMAIN, M03_MX_HOST);
     Shell.addCommandData("lynx", M03_FINANCE_EMPLOYEE_HANDLE, {
@@ -80,6 +91,7 @@ const registerM03ShellFixtures = (): void => {
         additional: [
             "Finance analyst. Complained publicly about being forced to reuse the company's " +
                 "standard password format across every internal tool.",
+            `"ugh, IT still makes us do ${M03_LEAK_PATTERN} for everything. so predictable."`,
         ],
     });
     Shell.addCommandData(
@@ -90,24 +102,99 @@ const registerM03ShellFixtures = (): void => {
 };
 
 const registerM03Database = (): string => {
-    const existing = Database.getByHost(M03_FINANCE_IP);
-    if (existing) return existing.id;
+    const existing = Database.getByHost(M03_COINDRIFT_IP);
+    const databaseId =
+        existing?.id ??
+        Database.create({
+            host: M03_COINDRIFT_IP,
+            user: M03_FINANCE_USERNAME,
+            password: M03_FINANCE_PASSWORD,
+            tables: {},
+        });
 
-    return Database.create({
-        host: M03_FINANCE_IP,
-        user: M03_FINANCE_USERNAME,
-        password: M03_FINANCE_PASSWORD,
-        tables: {
-            [M03_LEDGER_TABLE]: [
-                {
-                    id: { value: 1, type: "number" },
-                    beneficiary: { value: M02_SHELL_COMPANY_NAME, type: "string" },
-                    parentEntity: { value: M03_PARENT_ENTITY_NAME, type: "string" },
-                    amount: { value: 42000, type: "number" },
-                },
-            ],
+    Database.setTable(databaseId, M03_LEDGER_TABLE, [
+        {
+            id: { value: 1, type: "number" },
+            beneficiary: { value: M02_SHELL_COMPANY_NAME, type: "string" },
+            parentEntity: { value: M03_PARENT_ENTITY_NAME, type: "string" },
+            amount: { value: 42000, type: "number" },
         },
+    ]);
+
+    return databaseId;
+};
+
+const registerM03FinanceVlan = (): void => {
+    Network.destroyNetwork(M03_PFSENSE_IP);
+
+    Network.createSubnetNetwork({
+        ip: M03_PFSENSE_IP,
+        lanIp: M03_PFSENSE_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [
+            Network.createUser({
+                username: M03_PFSENSE_USERNAME,
+                password: M03_PFSENSE_PASSWORD,
+            }),
+        ],
+        ports: [{ external: 443, internal: 443, active: true, service: "https" }],
+        children: [
+            {
+                ip: M03_SPLITTER_IP,
+                lanIp: M03_SPLITTER_IP,
+                type: NetworkDeviceType.Splitter,
+                users: [],
+                children: [
+                    {
+                        ip: M03_COINDRIFT_IP,
+                        lanIp: M03_COINDRIFT_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M03_COINDRIFT_CODENAME,
+                        users: [
+                            Network.createUser({
+                                username: M03_FINANCE_USERNAME,
+                                password: M03_FINANCE_PASSWORD,
+                            }),
+                        ],
+                        ports: [
+                            { external: 445, internal: 445, active: true, service: "smb" },
+                            { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
+                        ],
+                    },
+                    {
+                        ip: M03_ACCOMPLICE_IP,
+                        lanIp: M03_ACCOMPLICE_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M03_ACCOMPLICE_CODENAME,
+                        users: [
+                            Network.createUser({
+                                username: M03_ACCOMPLICE_USERNAME,
+                                password: M03_ACCOMPLICE_PASSWORD,
+                            }),
+                        ],
+                        ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
+                        rootFiles: [
+                            {
+                                name: M03_SPREADSHEET_FILE_NAME,
+                                extension: M03_SPREADSHEET_FILE_EXTENSION,
+                                data: M03_SPREADSHEET_CONTENT,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
     });
+
+    Network.removePort(M03_COINDRIFT_IP, 3306);
+    Network.addPort(M03_COINDRIFT_IP, {
+        external: 3306,
+        internal: 3306,
+        active: true,
+        service: "mysql",
+        version: "mariadb",
+    });
+    Network.setVulnerabilities(M03_COINDRIFT_IP, [{ type: "SQL_INJECTION" }]);
 };
 
 @RegisterQuest
@@ -119,7 +206,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
     override AutoStart = true;
     override AutoComplete = true;
     override QuestsToComplete = questGate("m03", ["flatline.m02"]);
-    override Rewards = isQuestDevFocus("m03") ? { money: 0, xp: 0 } : M03_REWARDS;
+    override Rewards = (isQuestDevFocus("m03") || isQuestTesterFocus("m03")) ? { money: 0, xp: 0 } : M03_REWARDS;
 
     override Objectives = applyDevGating(M03_OBJECTIVES, isQuestDevFocus("m03"));
 
@@ -164,41 +251,9 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             children: [],
         });
 
-        Network.createSubnetNetwork({
-            ip: M03_PFSENSE_IP,
-            type: NetworkDeviceType.Router,
-            users: [
-                Network.createUser({
-                    username: M03_PFSENSE_USERNAME,
-                    password: M03_PFSENSE_PASSWORD,
-                }),
-            ],
-            ports: [{ external: 443, internal: 443, active: true, service: "https" }],
-            children: [
-                {
-                    ip: M03_FINANCE_IP,
-                    type: NetworkDeviceType.Device,
-                    users: [
-                        Network.createUser({
-                            username: M03_FINANCE_USERNAME,
-                            password: M03_FINANCE_PASSWORD,
-                        }),
-                    ],
-                    ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
-                    rootFiles: [
-                        {
-                            name: M03_SPREADSHEET_FILE_NAME,
-                            extension: M03_SPREADSHEET_FILE_EXTENSION,
-                            data: M03_SPREADSHEET_CONTENT,
-                        },
-                    ],
-                },
-            ],
-        });
+        registerM03FinanceVlan();
 
         Network.registerDomain(M03_SKYNET_DOMAIN, M03_SKYNET_IP);
-
-        Network.setVulnerabilities(M03_FINANCE_IP, [{ type: "SQL_INJECTION" }]);
 
         registerM03ShellFixtures();
         this.databaseId = registerM03Database();
@@ -298,7 +353,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
         this.Events.on("Sqlmap.DumpTable", (data) => {
             if (this.Data.ledgerDumped) return;
-            if (data.host !== M03_FINANCE_IP || data.tableName !== M03_LEDGER_TABLE) return;
+            if (data.host !== M03_COINDRIFT_IP || data.tableName !== M03_LEDGER_TABLE) return;
 
             this.SetData("ledgerDumped", true);
             this.completeObjective(M03_OBJECTIVE_IDS.dumpFinanceLedger);
@@ -306,7 +361,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
         this.Events.on("Terminal.Explorer", (data) => {
             if (this.Data.shareExplored) return;
-            if (data.ip !== M03_FINANCE_IP) return;
+            if (data.ip !== M03_ACCOMPLICE_IP) return;
 
             this.SetData("shareExplored", true);
             this.completeObjective(M03_OBJECTIVE_IDS.bonusExploreShare);

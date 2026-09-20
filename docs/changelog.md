@@ -275,3 +275,49 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   `docs/bugs.md` (entries 1-11) and `docs/story.md` (section 4);
   `docs/scratch.md`'s M01 section cleared per this project's own
   scratch-file policy.
+
+## 2026-09-20
+
+- **[mechanic] M1's "SSH into the failover gateway" premise replaced —
+  the real `ssh` command hard-rejects any non-`Device` network node,
+  making it impossible against a `Firewall`.** New mechanic: `pfsense`
+  (web-admin login, type-agnostic) plus `kimai` (a real, catalog-
+  downloadable HackDB tool that only targets `Firewall` nodes and leaks a
+  signed JWT credential). Discovered by decompiling the base game's own
+  `ssh`/`kimai` command classes. Full detail: `docs/bugs.md` entry 17.
+- **[mechanic] `src/websites/` restructured into per-mission folders**
+  (`m01/`, `m02/`, `m03/`, `m04/`), replacing flat legacy folder names
+  (`a7xdeface9` → `blackwire-network`, `shadowline-exchange` →
+  `frostgate-exchange`, `a7xcodeface`, `skynet-importexport`,
+  `architect-c2` moved under their own mission folders).
+- **[mechanic] Two new M1 decoy domains built to full parity with the
+  real target.** `frostgate-exchange` and `obsidian-access` mirror
+  `blackwire-network`'s listing/lot page structure exactly, so a
+  `dirhunter`/recon pass can't distinguish decoy from real target by
+  surface depth alone — per this project's "full mechanic, not full
+  objective" design rule.
+- **[bug] `.original.ts` mission backups importing their sibling's live
+  content file instead of their own snapshot — found and fixed across
+  all four missions.** Applied to M01's pair too, as a preventive fix
+  (it wasn't yet erroring there). Full detail: `docs/bugs.md` entry 16.
+- **[mechanic] LedgerVault (`x7k2m9vdlq4wnyt3.dark`) rebuilt from three
+  static text pages into one interactive file-browser page** — folder
+  navigation, an image lightbox, and a search box, in a new dark/red
+  visual theme, replacing the original plain-monospace panels. Content
+  mapped onto established canon instead of generic placeholders: **Q1 =
+  Northstar Port Authority** (maritime/critical infrastructure, 2020),
+  **Q2 = Rheinland Energie AG** (energy/utilities, 2023), **Q3 =
+  PacificCare Health** (the mission's own hospital case). `CASE-A7X-0417`
+  and `network_map.txt` — both load-bearing for the final report's
+  `caseId` exact-match check — were carried over into the new design, not
+  dropped.
+- **[mechanic] PacificCare Health's public homepage given a "systems
+  down" banner and a leaked BLACKLEDGER lockscreen screenshot**, playing
+  against its own PR copy ("network issue") — the hospital site's first
+  visual asset.
+- **[mechanic] `isTester`/`TESTER_FOCUS_QUEST` flag added to
+  `src/guard/flags.ts`, alongside the existing dev-focus flag.** Lets a
+  QA tester jump straight to one mission (bypassing prior-mission
+  prereqs) without flattening its objective gating (`unlocksAfter` stays
+  intact, unlike dev-focus) and without paying out `Rewards` — applies to
+  all four missions, not just M01.

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian Access</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0810;color:#d3c9de;font-family:Consolas,Monaco,"Courier New",monospace;padding:28px 24px}
+  header{border:1px solid #241d2e;background:#0d0a13;padding:18px 22px;margin-bottom:18px}
+  h1{margin:0;color:#c48aff;letter-spacing:2px;font-size:22px}
+  .tag{color:#8a7d99;font-size:12px;margin-top:6px}
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  input,select{background:#0d0a13;border:1px solid #241d2e;color:#c1b3cf;padding:10px 12px;font:12px inherit;outline:none}
+  input{flex:1;min-width:180px}input:focus,select:focus{border-color:#5c4b70}
+  .stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{border:1px solid #1e1726;background:#0d0a13;padding:8px 12px;font-size:11px;color:#8a7d99}
+  .stat b{color:#d3c9de}
+  .layout{display:grid;grid-template-columns:190px 1fr;gap:14px;align-items:start}
+  .side{border:1px solid #241d2e;background:#0d0a13;padding:16px}
+  .side-logo{color:#e7dcf2;font-size:14px;letter-spacing:2px;margin-bottom:16px}
+  .side-section{color:#4c4358;font-size:9px;letter-spacing:1px;margin:16px 0 8px}
+  .side-link{display:block;padding:7px 8px;margin-bottom:2px;color:#8a7d99;font-size:11px}
+  .side-link.active{background:#1a1420;color:#d8c8ec}
+  table{width:100%;border-collapse:collapse;background:#0d0a13;border:1px solid #241d2e}
+  th{text-align:left;color:#5f5470;font-size:10px;font-weight:normal;letter-spacing:1px;padding:11px;border-bottom:1px solid #241d2e}
+  td{padding:12px 11px;border-bottom:1px solid #18121e;font-size:12px}
+  tr:hover td{background:#120d1a}
+  .label{color:#e4d8ee;font-weight:bold}
+  .cat{color:#8a7d99}
+  .desc{color:#75687f}
+  .sold{color:#544a61}
+  .active-status{color:#d8a6ff}
+  a.open{color:#c48aff;text-decoration:none;border:1px solid #3d2f4f;padding:5px 10px;font-size:10px}
+  a.open:hover{background:#170f20;border-color:#5c4b70}
+  footer{margin-top:16px;color:#40364c;font-size:10px}
+  @media(max-width:760px){
+    .layout{grid-template-columns:1fr}
+    .side{display:none}
+    table,thead,tbody,tr,th,td{display:block}
+    thead{display:none}
+    tr{border-bottom:1px solid #1e1726;padding:10px 0}
+    td{border:0;padding:3px 0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>OBSIDIAN ACCESS</h1>
+  <div class="tag">verified network access, mirror listings. serious buyers only.</div>
+</header>
+
+<div class="toolbar">
+  <input id="search" placeholder="search listing, region, sector...">
+  <select id="category">
+    <option value="ALL">ALL CATEGORIES</option>
+    <option>RETAIL</option><option>ISP</option><option>LOGISTICS</option>
+    <option>EDU</option><option>GOV</option><option>FIN</option>
+  </select>
+</div>
+
+<div class="stats">
+  <div class="stat">LISTINGS <b id="total">0</b></div>
+  <div class="stat">ACTIVE <b id="active">0</b></div>
+</div>
+
+<div class="layout">
+  <aside class="side">
+    <div class="side-logo">OBSIDIAN</div>
+    <div class="side-section">DIRECTORY</div>
+    <a class="side-link active">Mirror Index</a>
+    <a class="side-link">Archived</a>
+    <div class="side-section">SYSTEM</div>
+    <a class="side-link">Status</a>
+  </aside>
+  <table>
+    <thead><tr><th>LISTING</th><th>CATEGORY</th><th>DETAIL</th><th>STATUS</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+
+<footer>OBSIDIAN ACCESS // FICTIONAL NETWORK NODE</footer>
+
+<script>
+const LOTS = [
+  { slug: null, label: "RETAIL-EU-4471", cat: "RETAIL", desc: "Retail chain, EU region" },
+  { slug: null, label: "GOV-APAC-1120", cat: "GOV", desc: "no longer listed" },
+  { slug: null, label: "LOG-NA-8802", cat: "LOGISTICS", desc: "no longer listed" },
+  { slug: null, label: "FIN-NA-3387", cat: "FIN", desc: "no longer listed" },
+  { slug: null, label: "EDU-EU-9915", cat: "EDU", desc: "no longer listed" },
+  { slug: null, label: "ISP-APAC-4420", cat: "ISP", desc: "no longer listed" },
+  { slug: "isp-na-2207", label: "ISP-NA-2207", cat: "ISP", desc: "Regional ISP, NA region" },
+  { slug: "edu-apac-6641", label: "EDU-APAC-6641", cat: "EDU", desc: "University network, APAC region" },
+  { slug: "retail-na-5528", label: "RETAIL-NA-5528", cat: "RETAIL", desc: "Retail chain, NA region" },
+  { slug: "gov-eu-7793", label: "GOV-EU-7793", cat: "GOV", desc: "Government network, EU region" },
+];
+
+const shuffle = (arr) => {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+const DATA = shuffle(LOTS);
+
+const rows = document.getElementById("rows");
+
+function render() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const c = document.getElementById("category").value;
+  const data = DATA.filter(x =>
+    (c === "ALL" || x.cat === c) &&
+    [x.label, x.cat, x.desc].join(" ").toLowerCase().includes(q)
+  );
+  rows.innerHTML = data.map(x => `
+    <tr>
+      <td class="label">${x.label}</td>
+      <td class="cat">${x.cat}</td>
+      <td class="desc">${x.desc}</td>
+      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "ACTIVE" : "SOLD"}</td>
+      <td>${x.slug ? `<a class="open" href="/${x.slug}/">OPEN</a>` : ""}</td>
+    </tr>`).join("");
+  document.getElementById("total").textContent = data.length;
+  document.getElementById("active").textContent = data.filter(x => x.slug).length;
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("category").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>

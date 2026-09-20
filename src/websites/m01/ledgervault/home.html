@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LedgerVault</title>
+<style>
+*{box-sizing:border-box}
+
+:root{
+    --bg:#08090b;
+    --surface:#0f1114;
+    --surface2:#14171a;
+    --surface3:#191c20;
+    --border:#292d32;
+    --border-soft:#202328;
+    --text:#ececef;
+    --muted:#8a8c92;
+    --muted2:#60636a;
+    --red:#e33443;
+    --red-dark:#8f202a;
+    --red-soft:#b52b37;
+}
+
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    text-transform:uppercase;
+}
+
+.topbar{
+    height:64px;
+    background:#090a0c;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    padding:0 30px;
+    position:relative;
+}
+
+.topbar:after{
+    content:"";
+    position:absolute;
+    left:30px;
+    bottom:-1px;
+    width:88px;
+    height:2px;
+    background:var(--red);
+}
+
+.logo{
+    color:#f2f2f3;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.05em;
+}
+
+.user{
+    margin-left:auto;
+    color:#7c7f85;
+    font-size:13px;
+    letter-spacing:.04em;
+}
+
+.layout{
+    display:flex;
+    min-height:calc(100vh - 64px);
+}
+
+.sidebar{
+    width:216px;
+    background:#0c0e11;
+    border-right:1px solid var(--border);
+    padding:25px 12px;
+}
+
+.nav-title{
+    color:#5f636a;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.13em;
+    padding:0 12px 10px;
+}
+
+.nav-item{
+    display:block;
+    padding:11px 12px;
+    margin-bottom:3px;
+    border-radius:0;
+    border-left:2px solid transparent;
+    color:#94979d;
+    text-decoration:none;
+    font-size:14px;
+    letter-spacing:.03em;
+    transition:.15s ease;
+}
+
+.nav-item:hover{
+    background:#15181c;
+    color:#e4e4e6;
+}
+
+.nav-item.active{
+    background:#181b20;
+    color:#f0f0f1;
+    border-left-color:var(--red);
+}
+
+.main{
+    flex:1;
+    max-width:1180px;
+    padding:36px 44px 54px;
+}
+
+.breadcrumb{
+    color:var(--muted2);
+    font-size:13px;
+    margin-bottom:21px;
+    letter-spacing:.08em;
+}
+
+.breadcrumb a,.back{
+    color:#b0b2b8;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.breadcrumb a:hover{
+    color:#fff;
+}
+
+.breadcrumb span{
+    margin:0 9px;
+    color:#45484e;
+}
+
+.toolbar{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    margin-bottom:17px;
+}
+
+.title{
+    color:#f1f1f2;
+    font-size:30px;
+    font-weight:600;
+    letter-spacing:-.02em;
+}
+
+.search{
+    margin-left:auto;
+    width:285px;
+    height:44px;
+    background:#0e1013;
+    border:1px solid var(--border);
+    border-radius:2px;
+    color:#d1d3d7;
+    padding:0 13px;
+    outline:none;
+    font:inherit;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+}
+
+.search::placeholder{
+    color:#5f6268;
+}
+
+.search:focus{
+    border-color:var(--red-dark);
+    background:#111316;
+}
+
+.file-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:2px;
+}
+
+.file-table th{
+    text-align:left;
+    color:#686c73;
+    font-size:12px;
+    font-weight:600;
+    padding:13px 17px;
+    background:#131519;
+    border-bottom:1px solid var(--border);
+    letter-spacing:.1em;
+}
+
+.file-table td{
+    padding:16px 17px;
+    border-bottom:1px solid var(--border-soft);
+    color:#b4b7bd;
+    font-size:14px;
+    letter-spacing:.02em;
+}
+
+.file-table tr:last-child td{
+    border-bottom:none;
+}
+
+.file-table tbody tr{
+    transition:.12s ease;
+}
+
+.file-table tbody tr:hover{
+    background:#171a1e;
+}
+
+.name{
+    width:60%;
+}
+
+.folder{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    color:#dadadd;
+    text-decoration:none;
+    cursor:pointer;
+    font-weight:500;
+}
+
+.folder:hover{
+    color:#fff;
+}
+
+.icon{
+    display:inline-flex;
+    width:25px;
+    height:21px;
+    align-items:center;
+    justify-content:center;
+    border-radius:1px;
+    color:#d3d4d7;
+    background:#202329;
+    border:1px solid #34383e;
+    font-size:10px;
+}
+
+.folder:hover .icon{
+    background:var(--red-dark);
+    border-color:var(--red-soft);
+}
+
+.modified{
+    color:#777b82;
+}
+
+.type{
+    color:#63676e;
+}
+
+.summary{
+    padding:13px 2px;
+    color:#5f636a;
+    font-size:11px;
+    letter-spacing:.1em;
+}
+
+footer{
+    margin-top:56px;
+    padding-top:17px;
+    border-top:1px solid var(--border-soft);
+    color:#4d5157;
+    font-size:10px;
+    letter-spacing:.08em;
+}
+
+.hidden{
+    display:none;
+}
+
+.folder-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    margin-bottom:22px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--border-soft);
+    position:relative;
+}
+
+.folder-header:after{
+    content:"";
+    position:absolute;
+    bottom:-1px;
+    left:0;
+    width:72px;
+    height:2px;
+    background:var(--red);
+}
+
+.folder-page-title{
+    color:#f1f1f2;
+    font-size:31px;
+    font-weight:700;
+    letter-spacing:.01em;
+    margin:0;
+}
+
+.back{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    color:#d8d9dc;
+    text-decoration:none;
+    cursor:pointer;
+    background:#15181c;
+    border:1px solid #353941;
+    border-radius:2px;
+    padding:11px 16px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.08em;
+    transition:.15s ease;
+}
+
+.back:hover{
+    background:#1b1e23;
+    border-color:var(--red);
+    color:#fff;
+}
+
+.file-list{
+    border:1px solid var(--border);
+    border-radius:2px;
+    overflow:hidden;
+    background:var(--surface);
+}
+
+.file-row{
+    display:flex;
+    align-items:center;
+    min-height:132px;
+    padding:18px;
+    border-bottom:1px solid var(--border-soft);
+    cursor:pointer;
+    transition:.12s ease;
+}
+
+.file-row:last-child{
+    border-bottom:none;
+}
+
+.file-row:hover{
+    background:#171a1e;
+    box-shadow:inset 2px 0 0 var(--red);
+}
+
+.file-thumb{
+    width:210px;
+    height:126px;
+    object-fit:cover;
+    margin-right:21px;
+    background:#17191c;
+    border:1px solid #30343a;
+    border-radius:1px;
+    flex:none;
+}
+
+.file-name{
+    color:#d8dade;
+    flex:1;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.03em;
+}
+
+.file-meta{
+    color:#747880;
+    font-size:12px;
+    min-width:112px;
+    text-align:right;
+    letter-spacing:.05em;
+}
+
+.file-type{
+    width:76px;
+    color:#656970;
+    font-size:11px;
+    text-align:right;
+    letter-spacing:.08em;
+}
+
+.viewer{
+    position:fixed;
+    inset:0;
+    background:rgba(4,5,7,.97);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:36px;
+    z-index:10;
+}
+
+.viewer.show{
+    display:flex;
+}
+
+.viewer-content{
+    max-width:1180px;
+    width:100%;
+    text-align:center;
+}
+
+.viewer img{
+    max-width:100%;
+    max-height:84vh;
+    object-fit:contain;
+    border:1px solid #34383e;
+    border-radius:1px;
+    background:#08090b;
+    box-shadow:0 24px 80px rgba(0,0,0,.55);
+}
+
+.viewer-name{
+    margin-top:15px;
+    color:#a6a9af;
+    font-size:12px;
+    letter-spacing:.08em;
+}
+
+.close{
+    position:absolute;
+    top:18px;
+    right:24px;
+    width:40px;
+    height:40px;
+    border:1px solid #393d44;
+    border-radius:2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#a3a6ac;
+    font-size:23px;
+    cursor:pointer;
+    background:#121419;
+}
+
+.close:hover{
+    color:#fff;
+    background:#191c21;
+    border-color:var(--red);
+}
+
+.preload{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    opacity:0;
+    pointer-events:none;
+}
+
+@media(max-width:860px){
+    .sidebar{width:185px}
+    .main{padding:30px 24px 44px}
+    .search{width:235px}
+    .file-thumb{width:165px;height:105px}
+}
+
+@media(max-width:720px){
+    .sidebar{display:none}
+    .main{padding:24px 16px 36px}
+    .toolbar{align-items:flex-start;flex-direction:column;gap:13px}
+    .search{margin-left:0;width:100%}
+    .file-table th:nth-child(3),.file-table td:nth-child(3){display:none}
+    .file-row{min-height:108px;padding:14px}
+    .file-thumb{width:135px;height:88px;margin-right:15px}
+    .file-meta{min-width:auto;margin-left:12px}
+    .file-type{display:none}
+    .folder-header{align-items:flex-start}
+}
+
+@media(max-width:500px){
+    .topbar{padding:0 16px}
+    .topbar:after{left:16px}
+    .main{padding:19px 10px 30px}
+    .file-table th:nth-child(2),.file-table td:nth-child(2){display:none}
+    .file-row{min-height:98px}
+    .file-thumb{width:112px;height:73px}
+    .file-name{font-size:12px}
+    .folder-header{gap:12px;flex-direction:row}
+    .folder-page-title{font-size:22px}
+    .back{font-size:11px;padding:10px 12px}
+    .viewer{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="preload">
+<img src="./assets/q1-invoice.png" alt="">
+<img src="./assets/q1-lockscreen.png" alt="">
+<img src="./assets/q1-port-exterior.png" alt="">
+<img src="./assets/q1-evidence.png" alt="">
+<img src="./assets/q1-settlement.png" alt="">
+<img src="./assets/q2-invoice.png" alt="">
+<img src="./assets/q2-lockscreen.png" alt="">
+<img src="./assets/q2-substation.png" alt="">
+<img src="./assets/q2-evidence.png" alt="">
+<img src="./assets/q2-settlement.png" alt="">
+<img src="./assets/q3-receipt.png" alt="">
+<img src="./assets/q3-exterior.png" alt="">
+<img src="./assets/q3-corridor.png" alt="">
+<img src="./assets/q3-notice.png" alt="">
+<img src="./assets/q3-scheduling.png" alt="">
+<img src="./assets/q3-foundnote.png" alt="">
+</div>
+<div class="topbar"><div class="logo">LedgerVault</div><div class="user">internal</div></div>
+<div class="layout">
+<aside class="sidebar">
+<div class="nav-title">Files</div>
+<a class="nav-item active" href="#" onclick="showHome();return false">All files</a>
+<a class="nav-item" href="#" onclick="showFolder('recent');return false">Recent</a>
+<a class="nav-item" href="#" onclick="showFolder('shared');return false">Shared</a>
+<a class="nav-item" href="#" onclick="showFolder('archive');return false">Archive</a>
+</aside>
+<main class="main">
+<section id="homePage">
+<div class="breadcrumb"><a onclick="showHome()">Home</a><span>/</span>Projects</div>
+<div class="toolbar"><div class="title">Projects</div><input class="search" type="text" placeholder="Search files..." oninput="filterFolders(this.value)"></div>
+<table class="file-table">
+<thead><tr><th class="name">Name</th><th>Modified</th><th>Type</th></tr></thead>
+<tbody id="folderList">
+<tr data-name="q1-2026"><td class="name"><a class="folder" onclick="showFolder('q1');return false"><span class="icon">▰</span>Q1-2026-NA</a></td><td class="modified">Mar 31, 2026</td><td class="type">Folder</td></tr>
+<tr data-name="q2-2026"><td class="name"><a class="folder" onclick="showFolder('q2');return false"><span class="icon">▰</span>Q2-2026-EU</a></td><td class="modified">Jun 30, 2026</td><td class="type">Folder</td></tr>
+<tr data-name="q3-2026-sea"><td class="name"><a class="folder" onclick="showFolder('q3');return false"><span class="icon">▰</span>Q3-2026-SEA</a></td><td class="modified">Sep 18, 2026</td><td class="type">Folder</td></tr>
+</tbody></table>
+<div class="summary">3 folders</div>
+</section>
+
+<section id="folderPage" class="hidden">
+<div class="folder-header">
+    <a class="back" onclick="showHome()">← BACK TO PROJECTS</a>
+    <div class="folder-page-title" id="folderTitle"></div>
+</div>
+<div class="file-list" id="photoList"></div>
+<div class="summary" id="folderSummary"></div>
+</section>
+<footer>LedgerVault · Internal document storage</footer>
+</main>
+</div>
+
+<div class="viewer" id="viewer" onclick="closeViewer(event)">
+<div class="close" onclick="closeViewer()">×</div>
+<div class="viewer-content"><img id="viewerImage" src="" alt=""><div class="viewer-name" id="viewerName"></div></div>
+</div>
+
+<script>
+const IMG={
+q1invoice:"./assets/q1-invoice.png",
+q1lockscreen:"./assets/q1-lockscreen.png",
+q1exterior:"./assets/q1-port-exterior.png",
+q1evidence:"./assets/q1-evidence.png",
+q1settlement:"./assets/q1-settlement.png",
+q2invoice:"./assets/q2-invoice.png",
+q2lockscreen:"./assets/q2-lockscreen.png",
+q2substation:"./assets/q2-substation.png",
+q2evidence:"./assets/q2-evidence.png",
+q2settlement:"./assets/q2-settlement.png",
+q3receipt:"./assets/q3-receipt.png",
+q3exterior:"./assets/q3-exterior.png",
+q3corridor:"./assets/q3-corridor.png",
+q3notice:"./assets/q3-notice.png",
+q3scheduling:"./assets/q3-scheduling.png",
+q3foundnote:"./assets/q3-foundnote.png",
+networkmap:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPm5ldHdvcmtfbWFwLnR4dDwvdGV4dD4KPGxpbmUgeDE9IjUwIiB5MT0iMTAwIiB4Mj0iODUwIiB5Mj0iMTAwIiBzdHJva2U9IiMyMjMiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCIgeT0iMTYwIiBmaWxsPSIjYzhkMGQ4IiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyMCI+TkVUV09SSyBNQVAgLS0gaW50ZXJuYWwgcmVmZXJlbmNlLCBkbyBub3QgZGlzdHJpYnV0ZTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjIwMCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnRhcmdldDogaG9zcGl0YWwgbmV0d29yaywgU0VBIHJlZ2lvbiAoc2VlIFJPVyAwNDE3KTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI0MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPmVudHJ5IHBvaW50OiBibGFja3dpcmUtbmV0d29yay5ta3QgLyBtZWQtc2VhLTA0MTcgbGlzdGluZzwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI4MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnByaW1hcnkgYWNjZXNzOiA3Ny45MS4xNC4yMDMgKG9wc2FkbWluKTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM0MCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPm5vdGVzOiBidXllciByZXF1ZXN0ZWQgcnVzaCBkZWxpdmVyeSwgbWFwIGZpbmFsaXplZDwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM2OCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPmFoZWFkIG9mIHNjaGVkdWxlPC90ZXh0Pgo8L3N2Zz4K",
+caseid:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmNhc2VfaWQudHh0PC90ZXh0Pgo8bGluZSB4MT0iNTAiIHkxPSIxMDAiIHgyPSI4NTAiIHkyPSIxMDAiIHN0cm9rZT0iIzIyMyIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjx0ZXh0IHg9IjQ1MCIgeT0iMjYwIiBmaWxsPSIjYzhkMGQ4IiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNBU0UtQTdYLTA0MTc8L3RleHQ+Cjwvc3ZnPgo=",
+foundnote:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmZvdW5kX25vdGUudHh0PC90ZXh0Pgo8bGluZSB4MT0iNTAiIHkxPSIxMDAiIHgyPSI4NTAiIHkyPSIxMDAiIHN0cm9rZT0iIzIyMyIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjx0ZXh0IHg9IjUwIiB5PSIyMjAiIGZpbGw9IiNjOGQwZDgiIGZvbnQtZmFtaWx5PSJDb25zb2xhcywgbW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij5RMy0yMDI2LVNFQSAtLSB3aGF0IGRvZXMgaXQgbWVhbj88L3RleHQ+Cjx0ZXh0IHg9IjUwIiB5PSIyNzAiIGZpbGw9IiNjOGQwZDgiIGZvbnQtZmFtaWx5PSJDb25zb2xhcywgbW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij4tLSBHPC90ZXh0Pgo8L3N2Zz4K"
+};
+const folders={
+q1:{title:"Q1-2026-NA",files:[
+["BLACKLEDGER decryption services invoice",IMG.q1invoice,"Mar 18, 2026","CASE"],
+["Port control room — BLACKLEDGER lockscreen",IMG.q1lockscreen,"Mar 12, 2026","SCAN"],
+["Terminal 2 — Northstar Port Authority",IMG.q1exterior,"Mar 12, 2026","JPG"],
+["Evidence EV-0147 — USB / access badge",IMG.q1evidence,"Mar 19, 2026","SCAN"],
+["Settlement confirmation — Northshore Trust & Banking",IMG.q1settlement,"Mar 18, 2026","SCAN"]
+]},
+q2:{title:"Q2-2026-EU",files:[
+["BLACKLEDGER decryption services invoice",IMG.q2invoice,"Jun 27, 2026","CASE"],
+["Control room — BLACKLEDGER lockscreen",IMG.q2lockscreen,"Jun 27, 2026","SCAN"],
+["Umspannwerk Nord — Rheinland Energie AG",IMG.q2substation,"Jun 24, 2026","JPG"],
+["Evidence — USB / staff access badge",IMG.q2evidence,"Jun 28, 2026","SCAN"],
+["Settlement confirmation — Rheinland Energie AG Treasury",IMG.q2settlement,"Jun 14, 2026","SCAN"]
+]},
+q3:{title:"Q3-2026-SEA",files:[
+["Escrow receipt — WRAITHTRADE → A7xC0DEFACE",IMG.q3receipt,"Aug 14, 2026","SCAN"],
+["PacificCare Health — main entrance",IMG.q3exterior,"Jul 09, 2026","JPG"],
+["Ward corridor — systems down",IMG.q3corridor,"Jul 26, 2026","JPG"],
+["BLACKLEDGER notice — Operating Theatre 3",IMG.q3notice,"Aug 14, 2026","SCAN"],
+["Surgical scheduling — locked",IMG.q3scheduling,"Aug 29, 2026","JPG"],
+["Evidence PC-IT-017 — USB / staff badge / memo",IMG.q3foundnote,"Sep 18, 2026","SCAN"],
+["network_map.txt",IMG.networkmap,"Sep 18, 2026","TXT"],
+["case_id.txt",IMG.caseid,"Sep 18, 2026","TXT"],
+["found_note.txt",IMG.foundnote,"Sep 18, 2026","TXT"]
+]},
+recent:{title:"Recent",files:[
+["found_note.txt",IMG.foundnote,"Sep 18, 2026","TXT"],
+["case_id.txt",IMG.caseid,"Sep 18, 2026","TXT"],
+["network_map.txt",IMG.networkmap,"Sep 18, 2026","TXT"],
+["Evidence PC-IT-017 — USB / staff badge / memo",IMG.q3foundnote,"Sep 18, 2026","SCAN"],
+["Surgical scheduling — locked",IMG.q3scheduling,"Aug 29, 2026","JPG"]
+]},
+shared:{title:"Shared",files:[
+["Escrow receipt — WRAITHTRADE → A7xC0DEFACE",IMG.q3receipt,"Aug 14, 2026","SCAN"],
+["Settlement confirmation — Rheinland Energie AG Treasury",IMG.q2settlement,"Jun 14, 2026","SCAN"],
+["Settlement confirmation — Northshore Trust & Banking",IMG.q1settlement,"Mar 18, 2026","SCAN"]
+]},
+archive:{title:"Archive",files:[
+["BLACKLEDGER decryption services invoice",IMG.q1invoice,"Mar 18, 2026","CASE"],
+["BLACKLEDGER decryption services invoice",IMG.q2invoice,"Jun 27, 2026","CASE"],
+["Terminal 2 — Northstar Port Authority",IMG.q1exterior,"Mar 12, 2026","JPG"],
+["Umspannwerk Nord — Rheinland Energie AG",IMG.q2substation,"Jun 24, 2026","JPG"]
+]}
+};
+function showHome(){
+document.getElementById("homePage").classList.remove("hidden");
+document.getElementById("folderPage").classList.add("hidden");
+}
+function showFolder(key){
+const folder=folders[key];if(!folder)return;
+document.getElementById("homePage").classList.add("hidden");
+document.getElementById("folderPage").classList.remove("hidden");
+document.getElementById("folderTitle").textContent=folder.title;
+document.getElementById("photoList").innerHTML=folder.files.map((file,i)=>`
+<div class="file-row" onclick="openViewer(${i},'${key}')">
+<img class="file-thumb" src="${file[1]}" alt="">
+<div class="file-name">${file[0]}</div>
+<div class="file-meta">${file[2]}</div>
+<div class="file-type">${file[3]}</div>
+</div>`).join("");
+document.getElementById("folderSummary").textContent=folder.files.length+" files";
+}
+function openViewer(index,key){
+const file=folders[key].files[index];
+document.getElementById("viewerImage").src=file[1];
+document.getElementById("viewerName").textContent=file[0]+" · "+file[2]+" · "+file[3];
+document.getElementById("viewer").classList.add("show");
+}
+function closeViewer(event){
+if(!event||event.target.id==="viewer"||event.target.className==="close")
+document.getElementById("viewer").classList.remove("show");
+}
+function filterFolders(value){
+value=value.toLowerCase();
+document.querySelectorAll("#folderList tr").forEach(row=>row.style.display=row.dataset.name.includes(value)?"":"none");
+}
+</script>
+</body>
+</html>

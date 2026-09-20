@@ -1,17 +1,16 @@
 import {
-    Http,
     Mail,
     Network,
     NetworkDeviceType,
     Quest,
     RegisterQuest,
     Shell,
+    Twotter,
     WeeChat,
 } from "@hotbunny/hackhub-content-sdk";
 
 import {
     M01_BROKER_LISTING_URL,
-    M01_BROKER_PASSWORD,
     M01_BROKER_USERNAME,
     M01_BUYER_ALIAS,
     M01_CASE_ID,
@@ -21,12 +20,30 @@ import {
     M01_DECOY_DOMAIN,
     M01_DECOY_IP,
     M01_DOMAIN,
+    M01_DOMAIN_RECORDS,
     M01_DUMMY_AUTH_LOG_CONTENT,
     M01_DUMMY_CRON_LOG_CONTENT,
     M01_DUMMY_README_CONTENT,
     M01_DUMMY_SYSTEM_LOG_CONTENT,
     M01_DUMMY_TODO_CONTENT,
+    M01_FIREWALL_IP,
+    M01_FIREWALL_LAN_IP,
+    M01_FIREWALL_NMAP_RESULT,
+    M01_FIREWALL_PASSWORD,
+    M01_FIREWALL_ROUTER_IP,
+    M01_FIREWALL_ROUTER_LAN_IP,
+    M01_FIREWALL_USERNAME,
+    M01_FRONT_IP,
+    M01_FRONT_LAN_IP,
+    M01_FRONT_NMAP_RESULT,
+    M01_FRONT_ROUTER_IP,
+    M01_FRONT_ROUTER_LAN_IP,
     M01_HIDDEN_PATH,
+    M01_LEGACY_CONTENT,
+    M01_LEGACY_IP,
+    M01_LEGACY_LAN_IP,
+    M01_LEGACY_PASSWORD,
+    M01_LEGACY_USERNAME,
     M01_IRC_CONVERSATION,
     M01_IRC_HOST,
     M01_IRC_NOTES_CONTENT,
@@ -35,6 +52,7 @@ import {
     M01_IRC_NOTES_FILE_NAME,
     M01_IRC_PASSWORD,
     M01_JWT_DECODER_SCRIPT_NAME,
+    M01_KIMAI_SCRIPT_NAME,
     M01_LEDGER_CONTENT,
     M01_LEDGER_FILE_EXTENSION,
     M01_LEDGER_FILE_NAME,
@@ -53,23 +71,49 @@ import {
     M01_REPORT_TEMPLATE_LABEL,
     M01_REWARDS,
     M01_ROUTER_IP,
-    M01_SESSION_COOKIE_NAME,
-    M01_SESSION_DECODE_CONTENT,
-    M01_SESSION_DECODE_SUBJECT,
-    M01_SESSION_JWT,
+    M01_ROUTER_LAN_IP,
     M01_TARGET_IP,
+    M01_TARGET_LAN_IP,
+    M01_TARGET_PASSWORD,
+    M01_TARGET_USERNAME,
     M01_TIPSTER_EMAIL,
     M01_TIP_CONTENT,
     M01_TIP_SUBJECT,
+    M01_TWOTTER_BROKER_AVATAR,
+    M01_TWOTTER_BROKER_BANNER,
+    M01_TWOTTER_BROKER_BIO,
+    M01_TWOTTER_BROKER_FIRST_NAME,
+    M01_TWOTTER_BROKER_HANDLE,
+    M01_TWOTTER_BROKER_LAST_NAME,
+    M01_TWOTTER_BROKER_POSTS,
+    M01_TWOTTER_CONTACT_AVATAR,
+    M01_TWOTTER_CONTACT_BANNER,
+    M01_TWOTTER_CONTACT_BIO,
+    M01_TWOTTER_CONTACT_FIRST_NAME,
+    M01_TWOTTER_CONTACT_HANDLE,
+    M01_TWOTTER_CONTACT_LAST_NAME,
+    M01_TWOTTER_CONTACT_POSTS,
+    M01_TWOTTER_DECOY_AVATAR,
+    M01_TWOTTER_DECOY_BANNER,
+    M01_TWOTTER_DECOY_BIO,
+    M01_TWOTTER_DECOY_HANDLE,
+    M01_TWOTTER_DECOY_POSTS,
 } from "../content/m01.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/dev-flag.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M01QuestData {
     readonly tipReviewed: boolean;
+    readonly domainResolved: boolean;
+    readonly frontScanned: boolean;
+    readonly subdomainsEnumerated: boolean;
+    readonly backendResolved: boolean;
+    readonly listingFound: boolean;
     readonly decoyRuledOut: boolean;
-    readonly storefrontInvestigated: boolean;
-    readonly sessionDecoded: boolean;
-    readonly brokerAccessed: boolean;
+    readonly kimaiRan: boolean;
+    readonly tokenDecoded: boolean;
+    readonly firewallBreached: boolean;
+    readonly pfsenseLoggedIn: boolean;
+    readonly backendAccessed: boolean;
     readonly suspiciousFileFound: boolean;
     readonly credentialsDecrypted: boolean;
     readonly chatConfirmed: boolean;
@@ -77,15 +121,28 @@ interface M01QuestData {
 }
 
 const resetM01ShellFixtures = (): void => {
-    Shell.removeCommandData("nslookup", M01_DOMAIN);
-    Shell.removeCommandData("nslookup", M01_DECOY_DOMAIN);
+    for (const record of M01_DOMAIN_RECORDS) {
+        Shell.removeCommandData("nslookup", record.name);
+    }
+
+    Shell.removeCommandData("nmap", M01_FRONT_IP);
+    Shell.removeCommandData("nmap", M01_LEGACY_IP);
     Shell.removeCommandData("nmap", M01_TARGET_IP);
+    Shell.removeCommandData("nmap", M01_FIREWALL_IP);
     Shell.removeCommandData("lynx", M01_DOMAIN);
+    Shell.removeCommandData("lynx", M01_BROKER_USERNAME);
+    Shell.removeCommandData("lynx", M01_DECOY_DOMAIN);
+    Shell.removeCommandData("lynx", M01_TWOTTER_CONTACT_HANDLE);
+    Shell.removeCommandData("lynx", M01_TWOTTER_DECOY_HANDLE);
     Shell.removeCommandData("whois", M01_DECOY_DOMAIN);
     Shell.removeCommandData("geoip", M01_DECOY_IP);
     Shell.removeCommandData("ssh", {
         host: M01_TARGET_IP,
-        key: M01_BROKER_PASSWORD,
+        key: M01_TARGET_PASSWORD,
+    });
+    Shell.removeCommandData("ssh", {
+        host: M01_LEGACY_IP,
+        key: M01_LEGACY_PASSWORD,
     });
     Shell.removeCommandData("weechat", {
         host: M01_IRC_HOST,
@@ -96,13 +153,37 @@ const resetM01ShellFixtures = (): void => {
 const registerM01ShellFixtures = (): void => {
     resetM01ShellFixtures();
 
-    Shell.addCommandData("nslookup", M01_DOMAIN, M01_TARGET_IP);
-    Shell.addCommandData("nslookup", M01_DECOY_DOMAIN, M01_DECOY_IP);
+    for (const record of M01_DOMAIN_RECORDS) {
+        Shell.addCommandData("nslookup", record.name, record.ip);
+    }
+
+    Shell.addCommandData("nmap", M01_FRONT_IP, M01_FRONT_NMAP_RESULT);
+    Shell.addCommandData("nmap", M01_LEGACY_IP, [{ port: 22, status: "OPEN", service: "ssh" }]);
     Shell.addCommandData("nmap", M01_TARGET_IP, M01_NMAP_RESULT);
+    Shell.addCommandData("nmap", M01_FIREWALL_IP, M01_FIREWALL_NMAP_RESULT);
     Shell.addCommandData("lynx", M01_DOMAIN, {
-        ips: [M01_TARGET_IP],
+        ips: [M01_FRONT_IP],
         address: [`https://${M01_DOMAIN}/`],
-        additional: ["Marketplace advertising illicitly obtained network access."],
+        additional: ["Marketplace advertising illicitly obtained network access. Fronted by a third-party CDN."],
+    });
+    Shell.addCommandData("lynx", M01_BROKER_USERNAME, {
+        socialMedia: [`@${M01_TWOTTER_BROKER_HANDLE}`],
+        additional: ["Partial match on an old alias. Current activity traces to a social handle, not this name."],
+    });
+    Shell.addCommandData("lynx", M01_TWOTTER_CONTACT_HANDLE, {
+        socialMedia: [`@${M01_TWOTTER_CONTACT_HANDLE}`],
+        additional: ["Low profile. Mostly reposts and complaints. No public real name on file."],
+    });
+    Shell.addCommandData("lynx", M01_TWOTTER_DECOY_HANDLE, {
+        socialMedia: [`@${M01_TWOTTER_DECOY_HANDLE}`],
+        additional: ["Day trader. High post volume, all crypto price talk. No connection to any of the above."],
+    });
+    Shell.addCommandData("lynx", M01_DECOY_DOMAIN, {
+        ips: [M01_DECOY_IP],
+        address: [`https://${M01_DECOY_DOMAIN}/`],
+        additional: [
+            `Crypto exchange front, heavy ad spend. Brand chatter mostly traces to a trader posting as @${M01_TWOTTER_DECOY_HANDLE}.`,
+        ],
     });
     Shell.addCommandData("whois", M01_DECOY_DOMAIN, {
         domain: M01_DECOY_DOMAIN,
@@ -117,8 +198,13 @@ const registerM01ShellFixtures = (): void => {
     });
     Shell.addCommandData(
         "ssh",
-        { host: M01_TARGET_IP, key: M01_BROKER_PASSWORD },
+        { host: M01_TARGET_IP, key: M01_TARGET_PASSWORD },
         { ip: M01_TARGET_IP, status: "OPEN" },
+    );
+    Shell.addCommandData(
+        "ssh",
+        { host: M01_LEGACY_IP, key: M01_LEGACY_PASSWORD },
+        { ip: M01_LEGACY_IP, status: "OPEN" },
     );
     Shell.addCommandData(
         "weechat",
@@ -127,16 +213,237 @@ const registerM01ShellFixtures = (): void => {
     );
 };
 
-const normalizeBrokerReference = (value: unknown): string =>
-    typeof value === "string" ? value.trim().replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
+const registerM01Network = (): void => {
+    Network.destroyNetwork(M01_ROUTER_IP);
+    Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
+    Network.destroyNetwork(M01_FRONT_ROUTER_IP);
 
-const sendSessionDecodeMail = (): void => {
-    Mail.send({
-        from: "jwt-decoder@system.void",
-        subject: M01_SESSION_DECODE_SUBJECT,
-        content: M01_SESSION_DECODE_CONTENT,
+    Network.createSubnetNetwork({
+        ip: M01_FIREWALL_ROUTER_IP,
+        lanIp: M01_FIREWALL_ROUTER_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M01_FIREWALL_IP,
+                lanIp: M01_FIREWALL_LAN_IP,
+                type: NetworkDeviceType.Firewall,
+                isIpHidden: true,
+                users: [
+                    Network.createUser({
+                        username: M01_FIREWALL_USERNAME,
+                        password: M01_FIREWALL_PASSWORD,
+                    }),
+                ],
+                ports: [{ external: 80, internal: 80, active: true, service: "http" }],
+                rules: [{ allowed: false, port: 22 }],
+            },
+        ],
+    });
+
+    Network.createSubnetNetwork({
+        ip: M01_FRONT_ROUTER_IP,
+        lanIp: M01_FRONT_ROUTER_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M01_FRONT_IP,
+                lanIp: M01_FRONT_LAN_IP,
+                type: NetworkDeviceType.Device,
+                users: [],
+                ports: [{ external: 443, internal: 443, active: true, service: "https" }],
+            },
+            {
+                ip: M01_LEGACY_IP,
+                lanIp: M01_LEGACY_LAN_IP,
+                type: NetworkDeviceType.Device,
+                users: [
+                    Network.createUser({
+                        username: M01_LEGACY_USERNAME,
+                        password: M01_LEGACY_PASSWORD,
+                    }),
+                ],
+                ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
+                rootFiles: [
+                    { name: "decommissioned", extension: "txt", data: M01_LEGACY_CONTENT },
+                ],
+            },
+        ],
+    });
+
+    Network.createSubnetNetwork({
+        ip: M01_ROUTER_IP,
+        lanIp: M01_ROUTER_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M01_TARGET_IP,
+                lanIp: M01_TARGET_LAN_IP,
+                type: NetworkDeviceType.Device,
+                isIpHidden: true,
+                users: [
+                    Network.createUser({
+                        username: M01_TARGET_USERNAME,
+                        password: M01_TARGET_PASSWORD,
+                    }),
+                ],
+                ports: [
+                    { external: 22, internal: 22, active: false, service: "ssh" },
+                    { external: 80, internal: 80, active: false, service: "http" },
+                    { external: 443, internal: 443, active: true, service: "https" },
+                ],
+                rootFiles: [
+                    {
+                        name: "home",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: M01_OPS_NOTES_FILE_NAME,
+                                extension: M01_OPS_NOTES_FILE_EXTENSION,
+                                data: M01_OPS_NOTES_CONTENT,
+                            },
+                            { name: "todo", extension: "txt", data: M01_DUMMY_TODO_CONTENT },
+                            { name: "readme", extension: "txt", data: M01_DUMMY_README_CONTENT },
+                        ],
+                    },
+                    {
+                        name: "logs",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: M01_LEDGER_FILE_NAME,
+                                extension: M01_LEDGER_FILE_EXTENSION,
+                                data: M01_LEDGER_CONTENT,
+                            },
+                            {
+                                name: M01_IRC_NOTES_FILE_NAME,
+                                extension: M01_IRC_NOTES_FILE_EXTENSION,
+                                data: M01_IRC_NOTES_FILE_CONTENT,
+                            },
+                            { name: "auth", extension: "log", data: M01_DUMMY_AUTH_LOG_CONTENT },
+                            { name: "cron", extension: "log", data: M01_DUMMY_CRON_LOG_CONTENT },
+                            { name: "system", extension: "log", data: M01_DUMMY_SYSTEM_LOG_CONTENT },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+
+    Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
+    Network.registerDomain(M01_LEDGERVAULT_DOMAIN, M01_LEDGERVAULT_IP);
+
+    for (const record of M01_DOMAIN_RECORDS) {
+        if (record.needsSubnet) {
+            Network.destroyNetwork(record.ip);
+            Network.createSubnetNetwork({
+                ip: record.ip,
+                type: NetworkDeviceType.Device,
+                users: [],
+                ports: [],
+            });
+        }
+
+        Network.removeDomain(record.name);
+        Network.registerDomain(record.name, record.ip);
+    }
+};
+
+const registerM01TwotterPersonas = (): void => {
+    const broker =
+        Twotter.getUserByUsername(M01_TWOTTER_BROKER_HANDLE) ??
+        Twotter.createUser({
+            username: M01_TWOTTER_BROKER_HANDLE,
+            firstName: M01_TWOTTER_BROKER_FIRST_NAME,
+            lastName: M01_TWOTTER_BROKER_LAST_NAME,
+            avatar: M01_TWOTTER_BROKER_AVATAR,
+            banner: M01_TWOTTER_BROKER_BANNER,
+            bio: M01_TWOTTER_BROKER_BIO,
+        });
+    if (!Twotter.getUserByUsername(M01_TWOTTER_BROKER_HANDLE)) {
+        Twotter.addUser(broker);
+    }
+    Twotter.updateUser(broker.id, {
+        name: M01_TWOTTER_BROKER_FIRST_NAME,
+        surname: M01_TWOTTER_BROKER_LAST_NAME,
+        avatar: M01_TWOTTER_BROKER_AVATAR,
+        banner: M01_TWOTTER_BROKER_BANNER,
+    });
+    M01_TWOTTER_BROKER_POSTS.forEach((post, index) => {
+        const id = `m01-broker-tweet-${index}`;
+        Twotter.removeTweet(id);
+        Twotter.postTweet({
+            id,
+            userId: broker.id,
+            content: post.content,
+            interaction: post.interaction,
+        });
+    });
+
+    const contact =
+        Twotter.getUserByUsername(M01_TWOTTER_CONTACT_HANDLE) ??
+        Twotter.createUser({
+            username: M01_TWOTTER_CONTACT_HANDLE,
+            firstName: M01_TWOTTER_CONTACT_FIRST_NAME,
+            lastName: M01_TWOTTER_CONTACT_LAST_NAME,
+            avatar: M01_TWOTTER_CONTACT_AVATAR,
+            banner: M01_TWOTTER_CONTACT_BANNER,
+            bio: M01_TWOTTER_CONTACT_BIO,
+        });
+    if (!Twotter.getUserByUsername(M01_TWOTTER_CONTACT_HANDLE)) {
+        Twotter.addUser(contact);
+    }
+    Twotter.updateUser(contact.id, {
+        name: M01_TWOTTER_CONTACT_FIRST_NAME,
+        surname: M01_TWOTTER_CONTACT_LAST_NAME,
+        avatar: M01_TWOTTER_CONTACT_AVATAR,
+        banner: M01_TWOTTER_CONTACT_BANNER,
+    });
+    M01_TWOTTER_CONTACT_POSTS.forEach((post, index) => {
+        const id = `m01-contact-tweet-${index}`;
+        Twotter.removeTweet(id);
+        Twotter.postTweet({
+            id,
+            userId: contact.id,
+            content: post.content,
+            interaction: post.interaction,
+        });
+    });
+
+    const decoy =
+        Twotter.getUserByUsername(M01_TWOTTER_DECOY_HANDLE) ??
+        Twotter.createUser({
+            username: M01_TWOTTER_DECOY_HANDLE,
+            avatar: M01_TWOTTER_DECOY_AVATAR,
+            banner: M01_TWOTTER_DECOY_BANNER,
+            bio: M01_TWOTTER_DECOY_BIO,
+        });
+    if (!Twotter.getUserByUsername(M01_TWOTTER_DECOY_HANDLE)) {
+        Twotter.addUser(decoy);
+    }
+    Twotter.updateUser(decoy.id, {
+        avatar: M01_TWOTTER_DECOY_AVATAR,
+        banner: M01_TWOTTER_DECOY_BANNER,
+    });
+    M01_TWOTTER_DECOY_POSTS.forEach((post, index) => {
+        const id = `m01-decoy-tweet-${index}`;
+        Twotter.removeTweet(id);
+        Twotter.postTweet({
+            id,
+            userId: decoy.id,
+            content: post.content,
+            interaction: post.interaction,
+        });
     });
 };
+
+const normalizeBrokerReference = (value: unknown): string =>
+    typeof value === "string" ? value.trim().replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
 
 @RegisterQuest
 export class FlatlineM01Quest extends Quest<M01QuestData> {
@@ -147,17 +454,24 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     override AutoStart = true;
     override AutoComplete = true;
     override QuestsToComplete = questGate("m01", []);
-    override Rewards = isQuestDevFocus("m01") ? { money: 0, xp: 0 } : M01_REWARDS;
+    override Rewards = (isQuestDevFocus("m01") || isQuestTesterFocus("m01")) ? { money: 0, xp: 0 } : M01_REWARDS;
 
     override Objectives = applyDevGating(M01_OBJECTIVES, isQuestDevFocus("m01"));
 
     override CreateData(): M01QuestData {
         return {
             tipReviewed: false,
+            domainResolved: false,
+            frontScanned: false,
+            subdomainsEnumerated: false,
+            backendResolved: false,
+            listingFound: false,
             decoyRuledOut: false,
-            storefrontInvestigated: false,
-            sessionDecoded: false,
-            brokerAccessed: false,
+            kimaiRan: false,
+            tokenDecoded: false,
+            firewallBreached: false,
+            pfsenseLoggedIn: false,
+            backendAccessed: false,
             suspiciousFileFound: false,
             credentialsDecrypted: false,
             chatConfirmed: false,
@@ -166,72 +480,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     }
 
     override OnStart() {
-        Network.destroyNetwork(M01_TARGET_IP);
-
-        Network.createSubnetNetwork({
-            ip: M01_ROUTER_IP,
-            type: NetworkDeviceType.Router,
-            users: [],
-            ports: [],
-            children: [
-                {
-                    ip: M01_TARGET_IP,
-                    type: NetworkDeviceType.Device,
-                    users: [
-                        Network.createUser({
-                            username: M01_BROKER_USERNAME,
-                            password: M01_BROKER_PASSWORD,
-                        }),
-                    ],
-                    ports: [
-                        { external: 22, internal: 22, active: true, service: "ssh" },
-                        { external: 80, internal: 80, active: false, service: "http" },
-                        { external: 443, internal: 443, active: true, service: "https" },
-                    ],
-                    rootFiles: [
-                        {
-                            name: "home",
-                            isFolder: true,
-                            children: [
-                                {
-                                    name: M01_OPS_NOTES_FILE_NAME,
-                                    extension: M01_OPS_NOTES_FILE_EXTENSION,
-                                    data: M01_OPS_NOTES_CONTENT,
-                                },
-                                { name: "todo", extension: "txt", data: M01_DUMMY_TODO_CONTENT },
-                                { name: "readme", extension: "txt", data: M01_DUMMY_README_CONTENT },
-                            ],
-                        },
-                        {
-                            name: "logs",
-                            isFolder: true,
-                            children: [
-                                {
-                                    name: M01_LEDGER_FILE_NAME,
-                                    extension: M01_LEDGER_FILE_EXTENSION,
-                                    data: M01_LEDGER_CONTENT,
-                                },
-                                {
-                                    name: M01_IRC_NOTES_FILE_NAME,
-                                    extension: M01_IRC_NOTES_FILE_EXTENSION,
-                                    data: M01_IRC_NOTES_FILE_CONTENT,
-                                },
-                                { name: "auth", extension: "log", data: M01_DUMMY_AUTH_LOG_CONTENT },
-                                { name: "cron", extension: "log", data: M01_DUMMY_CRON_LOG_CONTENT },
-                                { name: "system", extension: "log", data: M01_DUMMY_SYSTEM_LOG_CONTENT },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        });
-
-        Network.registerDomain(M01_DOMAIN, M01_TARGET_IP);
-        Network.registerDomain(M01_DECOY_DOMAIN, M01_DECOY_IP);
-        Network.registerDomain(M01_LEDGERVAULT_DOMAIN, M01_LEDGERVAULT_IP);
-
-        Http.setCookie(M01_DOMAIN, M01_SESSION_COOKIE_NAME, M01_SESSION_JWT, { httpOnly: false });
-
         WeeChat.removeServer(M01_IRC_HOST, M01_IRC_PASSWORD);
         WeeChat.createServer(M01_IRC_HOST, M01_IRC_PASSWORD);
 
@@ -242,6 +490,8 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
                 message: line.message,
             });
         }
+
+        registerM01TwotterPersonas();
 
         Mail.send({
             from: M01_DEAD_DROP_EMAIL,
@@ -257,7 +507,13 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     }
 
     override OnObjectivesStart() {
+        registerM01Network();
         registerM01ShellFixtures();
+
+        if (this.Data.firewallBreached) {
+            Network.removeFirewallRule(M01_FIREWALL_IP, 22);
+            Network.openPort(M01_TARGET_IP, 22);
+        }
 
         Mail.registerTemplate({
             id: M01_REPORT_TEMPLATE_ID,
@@ -272,7 +528,30 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.from !== M01_TIPSTER_EMAIL || data.subject !== M01_TIP_SUBJECT) return;
 
             this.SetData("tipReviewed", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.reviewTip);
+        });
+
+        this.Events.on("Terminal.Nslookup", (data) => {
+            if (!this.Data.domainResolved && data.domain === M01_DOMAIN) {
+                this.SetData("domainResolved", true);
+            }
+
+            if (!this.Data.backendResolved && data.domain === `gateway.${M01_DOMAIN}`) {
+                this.SetData("backendResolved", true);
+            }
+        });
+
+        this.Events.on("Terminal.NmapScan", (data) => {
+            if (this.Data.frontScanned) return;
+            if (data.ip !== M01_FRONT_IP) return;
+
+            this.SetData("frontScanned", true);
+        });
+
+        this.Events.on("Subfinder.Results", (data) => {
+            if (this.Data.subdomainsEnumerated) return;
+            if (data.domain !== M01_DOMAIN) return;
+
+            this.SetData("subdomainsEnumerated", true);
         });
 
         this.Events.on("Terminal.Geoip", (data) => {
@@ -280,33 +559,56 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data !== M01_DECOY_IP) return;
 
             this.SetData("decoyRuledOut", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.ruleOutDecoy);
         });
 
         this.Events.on("Browser.Meta", (data) => {
-            if (this.Data.storefrontInvestigated) return;
+            if (this.Data.listingFound) return;
             if (data.protocol !== "https:" || data.hostname !== M01_DOMAIN) return;
             if (data.pathname.replace(/\/$/, "") !== M01_HIDDEN_PATH.replace(/\/$/, "")) return;
 
-            this.SetData("storefrontInvestigated", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.investigateStorefront);
+            this.SetData("listingFound", true);
+            this.completeObjective(M01_OBJECTIVE_IDS.accessListing);
         });
 
         this.Events.on("Python3.ExecFile", (data) => {
-            if (this.Data.sessionDecoded) return;
-            if (data.file.name !== M01_JWT_DECODER_SCRIPT_NAME) return;
-            if (data.args[0] !== M01_SESSION_JWT) return;
+            if (data.file.name === M01_KIMAI_SCRIPT_NAME) {
+                if (this.Data.kimaiRan) return;
+                if (data.args[0] !== M01_FIREWALL_IP) return;
 
-            this.SetData("sessionDecoded", true);
-            sendSessionDecodeMail();
+                this.SetData("kimaiRan", true);
+                return;
+            }
+
+            if (data.file.name === M01_JWT_DECODER_SCRIPT_NAME) {
+                if (this.Data.tokenDecoded) return;
+                if (!this.Data.kimaiRan) return;
+                if (data.args.length !== 1) return;
+
+                this.SetData("tokenDecoded", true);
+            }
+        });
+
+        this.Events.on("PFSense.Login", (data) => {
+            if (data.ip !== M01_FIREWALL_IP) return;
+
+            this.SetData("pfsenseLoggedIn", true);
+        });
+
+        this.Events.on("PFSense.Changes", () => {
+            if (!this.Data.pfsenseLoggedIn) return;
+            if (this.Data.firewallBreached) return;
+
+            this.SetData("firewallBreached", true);
+            Network.removeFirewallRule(M01_FIREWALL_IP, 22);
+            Network.openPort(M01_TARGET_IP, 22);
         });
 
         this.Events.on("Terminal.SSH.Connected", (data) => {
-            if (this.Data.brokerAccessed) return;
             if (data !== M01_TARGET_IP) return;
+            if (this.Data.backendAccessed) return;
 
-            this.SetData("brokerAccessed", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.accessBroker);
+            this.SetData("backendAccessed", true);
+            this.completeObjective(M01_OBJECTIVE_IDS.accessBackend);
         });
 
         this.Events.on("Terminal.Cat", (data) => {
@@ -314,7 +616,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.name !== M01_IRC_NOTES_FILE_NAME || data.data !== M01_IRC_NOTES_FILE_CONTENT) return;
 
             this.SetData("suspiciousFileFound", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.findLedgerEntry);
         });
 
         this.Events.on("Terminal.Openssl", (data) => {
@@ -322,7 +623,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.type !== "dec" || data.output !== M01_IRC_NOTES_CONTENT) return;
 
             this.SetData("credentialsDecrypted", true);
-            this.completeObjective(M01_OBJECTIVE_IDS.decryptFindings);
         });
 
         this.Events.on("WeeChat.Connected", (data) => {
@@ -345,18 +645,26 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
     override OnComplete() {
         resetM01ShellFixtures();
-        Network.removeDomain(M01_DOMAIN);
-        Network.removeDomain(M01_DECOY_DOMAIN);
         Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
+        for (const record of M01_DOMAIN_RECORDS) {
+            Network.removeDomain(record.name);
+            if (record.needsSubnet) Network.destroyNetwork(record.ip);
+        }
         Network.destroyNetwork(M01_ROUTER_IP);
+        Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
+        Network.destroyNetwork(M01_FRONT_ROUTER_IP);
     }
 
     override OnAbandon() {
         resetM01ShellFixtures();
-        Network.removeDomain(M01_DOMAIN);
-        Network.removeDomain(M01_DECOY_DOMAIN);
         Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
+        for (const record of M01_DOMAIN_RECORDS) {
+            Network.removeDomain(record.name);
+            if (record.needsSubnet) Network.destroyNetwork(record.ip);
+        }
         Network.destroyNetwork(M01_ROUTER_IP);
+        Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
+        Network.destroyNetwork(M01_FRONT_ROUTER_IP);
     }
 
     private isReport(subject: string, content: string): boolean {

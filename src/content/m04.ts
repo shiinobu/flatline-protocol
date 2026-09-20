@@ -4,7 +4,37 @@ import { DEAD_DROP_CONTACT } from "./characters.js";
 import { M03_PARENT_ENTITY_NAME } from "./m03.js";
 
 export const M04_ARCHITECT_VPN_IP = "203.0.113.160";
-export const M04_ARCHITECT_IP = "203.0.113.161";
+export const M04_ROUTER_LAN_IP = "172.16.0.1";
+
+export const M04_FIREWALL_IP = "194.60.38.12";
+export const M04_FIREWALL_LAN_IP = "172.16.0.2";
+
+export const M04_SPLITTER_IP = "45.76.180.9";
+export const M04_SPLITTER_LAN_IP = "172.16.0.3";
+
+export const M04_C2_IP = "203.0.113.161";
+export const M04_C2_LAN_IP = "172.16.0.4";
+
+export const M04_NULLCROWN_IP = "185.220.101.42";
+export const M04_NULLCROWN_LAN_IP = "172.16.0.5";
+export const M04_NULLCROWN_CODENAME = "Null-Crown";
+
+export const M04_ASHVECTOR_IP = "146.70.44.18";
+export const M04_ASHVECTOR_LAN_IP = "172.16.0.6";
+export const M04_ASHVECTOR_CODENAME = "Ash-Vector";
+
+export const M04_HONEYPOT_USERNAME = "admin";
+export const M04_HONEYPOT_PASSWORD = "admin";
+export const M04_HONEYPOT_DECOY_FILE_NAME = "backup_old";
+export const M04_HONEYPOT_DECOY_FILE_EXTENSION = "bak";
+export const M04_HONEYPOT_DECOY_CONTENT = "cleaned this up months ago, nothing left on this box";
+
+export const M04_HONEYPOT_ALERT_SUBJECT = "SYSTEM ALERT — decoy host touched";
+export const M04_HONEYPOT_ALERT_CONTENT = [
+    "Someone just poked one of the dead boxes. Real infrastructure doesn't sit that open.",
+    "Whoever it is, they're not as careful as they think.",
+].join("\n");
+export const M04_HONEYPOT_ALERT_FROM = "watchdog@architect-c2.dark";
 
 export const M04_LEGACY_CMS_PATH = "/legacy-cms/";
 
@@ -134,57 +164,46 @@ export const M04_OBJECTIVES: QuestObjectiveDefinition[] = [
     {
         name: M04_OBJECTIVE_IDS.traceVpnIp,
         description: "Trace the recurring VPN IP",
-        hint: "whois and geoip it.",
         unlocksAfter: [M04_OBJECTIVE_IDS.reviewLead],
     },
     {
         name: M04_OBJECTIVE_IDS.scanC2Dashboard,
         description: "Version-scan the hardened C2 dashboard",
-        terminalCommand: "nmap",
-        hint: "Bare scan won't cut it here either. Use -sV.",
         unlocksAfter: [M04_OBJECTIVE_IDS.traceVpnIp],
     },
     {
         name: M04_OBJECTIVE_IDS.findHiddenDashboard,
         description: "Enumerate hidden paths on the C2 dashboard",
-        terminalCommand: "dirhunter",
         unlocksAfter: [M04_OBJECTIVE_IDS.scanC2Dashboard],
     },
     {
         name: M04_OBJECTIVE_IDS.findFrameworkCve,
         description: "Find a known CVE in the dashboard's old web framework",
-        terminalCommand: "nuclei",
         unlocksAfter: [M04_OBJECTIVE_IDS.findHiddenDashboard],
     },
     {
         name: M04_OBJECTIVE_IDS.initialShellAccess,
         description: "Get an initial shell on the C2 dashboard",
-        terminalCommand: "metasploit",
         unlocksAfter: [M04_OBJECTIVE_IDS.findFrameworkCve],
     },
     {
         name: M04_OBJECTIVE_IDS.escalatePrivileges,
         description: "Escalate to a privileged session",
-        terminalCommand: "metasploit",
         unlocksAfter: [M04_OBJECTIVE_IDS.initialShellAccess],
     },
     {
         name: M04_OBJECTIVE_IDS.discoverIdentityFile,
         description: "Find the suspicious identity backup file",
-        terminalCommand: "ls",
         unlocksAfter: [M04_OBJECTIVE_IDS.escalatePrivileges],
     },
     {
         name: M04_OBJECTIVE_IDS.revealBoobyTrap,
-        description: "Check the file for hidden attributes before touching it",
-        terminalCommand: "attrcheck",
-        hint: "Whatever you do, don't cat it first.",
+        description: "Something about that identity backup doesn't sit right — check what's really on it before you do anything else.",
         unlocksAfter: [M04_OBJECTIVE_IDS.discoverIdentityFile],
     },
     {
         name: M04_OBJECTIVE_IDS.extractSafely,
         description: "Extract the file without triggering the trap",
-        hint: "Download it directly instead of reading it in place.",
         unlocksAfter: [M04_OBJECTIVE_IDS.revealBoobyTrap],
     },
     {

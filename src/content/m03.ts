@@ -5,13 +5,23 @@ import { M02_SHELL_COMPANY_NAME } from "./m02.js";
 
 export const M03_SKYNET_DOMAIN = "skynet-importexport.biz";
 export const M03_SKYNET_IP = "203.0.113.150";
+
 export const M03_PFSENSE_IP = "203.0.113.151";
-export const M03_FINANCE_IP = "10.50.0.5";
+export const M03_PFSENSE_LAN_IP = "10.50.0.1";
+export const M03_SPLITTER_IP = "10.50.0.2";
+
+export const M03_COINDRIFT_IP = "10.50.0.3";
+export const M03_COINDRIFT_CODENAME = "Coin-Drift";
+
+export const M03_ACCOMPLICE_IP = "10.50.0.4";
+export const M03_ACCOMPLICE_CODENAME = "Faded-Ledger";
+export const M03_ACCOMPLICE_USERNAME = "d.reyes";
+export const M03_ACCOMPLICE_PASSWORD = "Reyes_Family2024";
 
 export const M03_MX_HOST = "mail.skynet-importexport.biz";
 
 export const M03_FINANCE_EMPLOYEE_HANDLE = "@d.reyes";
-export const M03_LEAK_PATTERN_HINT = "company name + year, always ends in an exclamation mark";
+export const M03_LEAK_PATTERN = "company name + year, always ends in an exclamation mark";
 
 export const M03_PFSENSE_USERNAME = "admin";
 export const M03_PFSENSE_PASSWORD = "SknTrade2024!";
@@ -90,33 +100,26 @@ export const M03_OBJECTIVES: QuestObjectiveDefinition[] = [
     {
         name: M03_OBJECTIVE_IDS.scanPublicSite,
         description: "Scan the shell company's public site",
-        terminalCommand: "nmap",
         unlocksAfter: [M03_OBJECTIVE_IDS.reviewLead],
     },
     {
         name: M03_OBJECTIVE_IDS.reconPublicSite,
         description: "Run OSINT on the shell company's domain",
-        terminalCommand: "lynx",
         unlocksAfter: [M03_OBJECTIVE_IDS.scanPublicSite],
     },
     {
         name: M03_OBJECTIVE_IDS.mapEmailFormat,
         description: "Map the company's mail infrastructure",
-        terminalCommand: "mxlookup",
         unlocksAfter: [M03_OBJECTIVE_IDS.reconPublicSite],
     },
     {
         name: M03_OBJECTIVE_IDS.findPasswordLeak,
-        description: "Find the finance employee's leaked password pattern",
-        terminalCommand: "lynx",
-        hint: `Look up ${M03_FINANCE_EMPLOYEE_HANDLE}.`,
+        description: "A finance employee has been careless about what they post publicly — see what turns up.",
         unlocksAfter: [M03_OBJECTIVE_IDS.mapEmailFormat],
     },
     {
         name: M03_OBJECTIVE_IDS.crackPfsenseLogin,
         description: "Brute-force the company's pfSense admin login",
-        terminalCommand: "hydra",
-        hint: `Pattern: ${M03_LEAK_PATTERN_HINT}`,
         unlocksAfter: [M03_OBJECTIVE_IDS.findPasswordLeak],
     },
     {
@@ -127,20 +130,16 @@ export const M03_OBJECTIVES: QuestObjectiveDefinition[] = [
     {
         name: M03_OBJECTIVE_IDS.captureInternalTraffic,
         description: "Capture internal traffic on the finance VLAN",
-        terminalCommand: "wireshark",
         unlocksAfter: [M03_OBJECTIVE_IDS.pivotViaNat],
     },
     {
         name: M03_OBJECTIVE_IDS.dumpFinanceLedger,
         description: "Dump the internal wire-transfer ledger",
-        terminalCommand: "sqlmap",
         unlocksAfter: [M03_OBJECTIVE_IDS.captureInternalTraffic],
     },
     {
         name: M03_OBJECTIVE_IDS.bonusExploreShare,
-        description: "Browse the finance shared drive",
-        terminalCommand: "explorer",
-        hint: "Optional, but worth the look.",
+        description: "There's a chance something else worth seeing sits on the same shared drive.",
         unlocksAfter: [M03_OBJECTIVE_IDS.captureInternalTraffic],
     },
     {

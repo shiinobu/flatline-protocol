@@ -22,6 +22,7 @@ import {
     M02_DEPLOY_LOG_FILE_NAME,
     M02_DEV_IP,
     M02_DEV_NMAP_RESULT,
+    M02_DEV_ROUTER_IP,
     M02_DEV_SUBDOMAIN,
     M02_FINANCIAL_DOC_CONTENT,
     M02_FINANCIAL_DOC_FILE_EXTENSION,
@@ -40,9 +41,14 @@ import {
     M02_TIP_CONTENT,
     M02_TIP_SUBJECT,
     M02_SHELL_COMPANY_NAME,
+    M02_WORKSTATION_CODENAME,
     M02_WORKSTATION_IP,
+    M02_WORKSTATION_LAN_IP,
+    M02_WORKSTATION_WIFI_IP,
+    M02_WORKSTATION_WIFI_PASSWORD,
+    M02_WORKSTATION_WIFI_SSID,
 } from "../content/m02.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/dev-flag.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M02QuestData {
     readonly leadReviewed: boolean;
@@ -50,10 +56,16 @@ interface M02QuestData {
     readonly adminDecoyFound: boolean;
     readonly devSubdomainFound: boolean;
     readonly devServerScanned: boolean;
+    readonly reconRootDomainCompleted: boolean;
     readonly panelDumped: boolean;
     readonly adminHashCracked: boolean;
+    readonly affiliatePanelBreached: boolean;
     readonly devServerAccessed: boolean;
     readonly deployLogFound: boolean;
+    readonly devServerObjectiveCompleted: boolean;
+    readonly wifiPasswordFound: boolean;
+    readonly wifiJoined: boolean;
+    readonly workstationWifiBreached: boolean;
     readonly workstationRooted: boolean;
     readonly financialDocDownloaded: boolean;
     readonly reportSent: boolean;
@@ -85,30 +97,77 @@ const registerM02ShellFixtures = (): void => {
 
 const registerM02Database = (): string => {
     const existing = Database.getByHost(M02_DEV_IP);
-    if (existing) return existing.id;
+    const databaseId =
+        existing?.id ??
+        Database.create({
+            host: M02_DEV_IP,
+            user: M02_DB_USER,
+            password: M02_DB_PASSWORD,
+            tables: {},
+        });
 
-    return Database.create({
-        host: M02_DEV_IP,
-        user: M02_DB_USER,
-        password: M02_DB_PASSWORD,
-        tables: {
-            [M02_AFFILIATE_TABLE]: [
-                {
-                    id: { value: 1, type: "number" },
-                    client: { value: "hospital-sea-01", type: "string" },
-                    ransomAmount: { value: 42000, type: "number" },
-                    settledAt: { value: "2024-03-11", type: "string" },
-                },
-            ],
-            [M02_ADMINS_TABLE]: [
-                {
-                    id: { value: 1, type: "number" },
-                    username: { value: M02_ADMIN_USERNAME, type: "string" },
-                    passwordHash: { value: M02_ADMIN_HASH, type: "string" },
-                },
-            ],
+    Database.setTable(databaseId, M02_AFFILIATE_TABLE, [
+        {
+            id: { value: 1, type: "number" },
+            client: { value: "hospital-sea-01", type: "string" },
+            ransomAmount: { value: 42000, type: "number" },
+            settledAt: { value: "2024-03-11", type: "string" },
         },
+    ]);
+    Database.setTable(databaseId, M02_ADMINS_TABLE, [
+        {
+            id: { value: 1, type: "number" },
+            username: { value: M02_ADMIN_USERNAME, type: "string" },
+            passwordHash: { value: M02_ADMIN_HASH, type: "string" },
+        },
+    ]);
+
+    return databaseId;
+};
+
+const registerM02WorkstationWifi = (): void => {
+    Network.destroyNetwork(M02_WORKSTATION_WIFI_IP);
+
+    Network.createWifiNetwork({
+        ssid: M02_WORKSTATION_WIFI_SSID,
+        password: M02_WORKSTATION_WIFI_PASSWORD,
+        ip: M02_WORKSTATION_WIFI_IP,
+        children: [
+            {
+                ip: M02_WORKSTATION_IP,
+                lanIp: M02_WORKSTATION_LAN_IP,
+                type: NetworkDeviceType.Device,
+                name: M02_WORKSTATION_CODENAME,
+                users: [Network.createUser({ username: "a7xcodeface", online: true })],
+                ports: [
+                    {
+                        external: 3389,
+                        internal: 3389,
+                        active: true,
+                        service: "rdp",
+                        version: "FreeRDP 1.0.0",
+                    },
+                ],
+                rootFiles: [
+                    {
+                        name: M02_FINANCIAL_DOC_FILE_NAME,
+                        extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
+                        data: M02_FINANCIAL_DOC_CONTENT,
+                    },
+                ],
+            },
+        ],
     });
+
+    Network.removePort(M02_WORKSTATION_IP, 3389);
+    Network.addPort(M02_WORKSTATION_IP, {
+        external: 3389,
+        internal: 3389,
+        active: true,
+        service: "rdp",
+        version: "FreeRDP 1.0.0",
+    });
+    Network.setVulnerabilities(M02_WORKSTATION_IP, [{ type: "RCE", version: "FreeRDP 1.0.0" }]);
 };
 
 @RegisterQuest
@@ -120,7 +179,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     override AutoStart = true;
     override AutoComplete = true;
     override QuestsToComplete = questGate("m02", ["flatline.m01"]);
-    override Rewards = isQuestDevFocus("m02") ? { money: 0, xp: 0 } : M02_REWARDS;
+    override Rewards = (isQuestDevFocus("m02") || isQuestTesterFocus("m02")) ? { money: 0, xp: 0 } : M02_REWARDS;
 
     override Objectives = applyDevGating(M02_OBJECTIVES, isQuestDevFocus("m02"));
 
@@ -133,10 +192,16 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             adminDecoyFound: false,
             devSubdomainFound: false,
             devServerScanned: false,
+            reconRootDomainCompleted: false,
             panelDumped: false,
             adminHashCracked: false,
+            affiliatePanelBreached: false,
             devServerAccessed: false,
             deployLogFound: false,
+            devServerObjectiveCompleted: false,
+            wifiPasswordFound: false,
+            wifiJoined: false,
+            workstationWifiBreached: false,
             workstationRooted: false,
             financialDocDownloaded: false,
             reportSent: false,
@@ -164,47 +229,53 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
         });
 
         Network.createSubnetNetwork({
-            ip: M02_DEV_IP,
+            ip: M02_DEV_ROUTER_IP,
             type: NetworkDeviceType.Router,
-            users: [
-                Network.createUser({
-                    username: M02_ADMIN_USERNAME,
-                    password: M02_ADMIN_PASSWORD,
-                }),
-            ],
-            ports: [
-                { external: 22, internal: 22, active: true, service: "ssh" },
-                { external: 443, internal: 443, active: true, service: "https" },
-            ],
-            rootFiles: [
+            users: [],
+            ports: [],
+            children: [
                 {
-                    name: M02_DEPLOY_LOG_FILE_NAME,
-                    extension: M02_DEPLOY_LOG_FILE_EXTENSION,
-                    data: M02_DEPLOY_LOG_CONTENT,
+                    ip: M02_DEV_IP,
+                    type: NetworkDeviceType.Device,
+                    domain: {
+                        name: M02_DEV_SUBDOMAIN,
+                        vulnerabilities: [{ type: "SQL_INJECTION" }],
+                    },
+                    users: [
+                        Network.createUser({
+                            username: M02_ADMIN_USERNAME,
+                            password: M02_ADMIN_PASSWORD,
+                        }),
+                    ],
+                    ports: [
+                        { external: 22, internal: 22, active: true, service: "ssh" },
+                        { external: 443, internal: 443, active: true, service: "https" },
+                        { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
+                    ],
+                    rootFiles: [
+                        {
+                            name: M02_DEPLOY_LOG_FILE_NAME,
+                            extension: M02_DEPLOY_LOG_FILE_EXTENSION,
+                            data: M02_DEPLOY_LOG_CONTENT,
+                        },
+                    ],
                 },
             ],
-            children: [],
         });
 
-        Network.createSubnetNetwork({
-            ip: M02_WORKSTATION_IP,
-            type: NetworkDeviceType.Device,
-            users: [Network.createUser({ username: "a7xcodeface" })],
-            ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
-            rootFiles: [
-                {
-                    name: M02_FINANCIAL_DOC_FILE_NAME,
-                    extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
-                    data: M02_FINANCIAL_DOC_CONTENT,
-                },
-            ],
+        Network.removePort(M02_DEV_IP, 3306);
+        Network.addPort(M02_DEV_IP, {
+            external: 3306,
+            internal: 3306,
+            active: true,
+            service: "mysql",
+            version: "mariadb",
         });
+        Network.setVulnerabilities(M02_DEV_IP, [{ type: "SQL_INJECTION" }]);
+
+        registerM02WorkstationWifi();
 
         Network.registerDomain(M02_ROOT_DOMAIN, M02_ROOT_IP);
-        Network.registerDomain(M02_DEV_SUBDOMAIN, M02_DEV_IP);
-
-        Network.setVulnerabilities(M02_DEV_IP, [{ type: "SQL_INJECTION" }]);
-        Network.setVulnerabilities(M02_WORKSTATION_IP, [{ type: "RCE" }]);
 
         registerM02ShellFixtures();
         this.databaseId = registerM02Database();
@@ -230,7 +301,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.domain !== M02_ROOT_DOMAIN) return;
 
             this.SetData("rootWhoisDone", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.whoisRoot);
+            this.tryCompleteReconRootDomain();
         });
 
         this.Events.on("Terminal.Dirhunter", (data) => {
@@ -240,7 +311,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (host !== M02_ROOT_DOMAIN) return;
 
             this.SetData("adminDecoyFound", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.exploreAdminDecoy);
+            this.tryCompleteReconRootDomain();
         });
 
         this.Events.on("Subfinder.Results", (data) => {
@@ -249,7 +320,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (!data.subdomains.some((subdomain) => subdomain.name === M02_DEV_SUBDOMAIN)) return;
 
             this.SetData("devSubdomainFound", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.discoverDevSubdomain);
+            this.tryCompleteReconRootDomain();
         });
 
         this.Events.on("Terminal.NmapScan", (data) => {
@@ -257,7 +328,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.ip !== M02_DEV_IP || !data.versionScan) return;
 
             this.SetData("devServerScanned", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.scanDevServer);
+            this.tryCompleteReconRootDomain();
         });
 
         this.Events.on("Sqlmap.DumpTable", (data) => {
@@ -265,7 +336,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.host !== M02_DEV_IP || data.tableName !== M02_ADMINS_TABLE) return;
 
             this.SetData("panelDumped", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.dumpAffiliatePanel);
+            this.tryCompleteBreachAffiliatePanel();
         });
 
         this.Events.on("John.DecryptHash", (data) => {
@@ -273,7 +344,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.hash !== M02_ADMIN_HASH) return;
 
             this.SetData("adminHashCracked", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.crackAdminHash);
+            this.tryCompleteBreachAffiliatePanel();
         });
 
         this.Events.on("Terminal.SSH.Connected", (data) => {
@@ -281,7 +352,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data !== M02_DEV_IP) return;
 
             this.SetData("devServerAccessed", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.accessDevServer);
+            this.tryCompleteAccessDevServer();
         });
 
         this.Events.on("Terminal.Cat", (data) => {
@@ -289,7 +360,23 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.name !== M02_DEPLOY_LOG_FILE_NAME || data.data !== M02_DEPLOY_LOG_CONTENT) return;
 
             this.SetData("deployLogFound", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.findDeploymentLogs);
+            this.tryCompleteAccessDevServer();
+        });
+
+        this.Events.on("Fern.FindPassword", (data) => {
+            if (this.Data.wifiPasswordFound) return;
+            if (data.subnet.ip !== M02_WORKSTATION_WIFI_IP) return;
+
+            this.SetData("wifiPasswordFound", true);
+            this.tryCompleteBreachWorkstationWifi();
+        });
+
+        this.Events.on("Network.WifiConnected", (data) => {
+            if (this.Data.wifiJoined) return;
+            if (data.ip !== M02_WORKSTATION_WIFI_IP) return;
+
+            this.SetData("wifiJoined", true);
+            this.tryCompleteBreachWorkstationWifi();
         });
 
         this.Events.on("Metasploit.Rootgrab", (data) => {
@@ -318,6 +405,45 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
         });
     }
 
+    private tryCompleteReconRootDomain(): void {
+        if (this.Data.reconRootDomainCompleted) return;
+        if (
+            !this.Data.rootWhoisDone ||
+            !this.Data.adminDecoyFound ||
+            !this.Data.devSubdomainFound ||
+            !this.Data.devServerScanned
+        ) {
+            return;
+        }
+
+        this.SetData("reconRootDomainCompleted", true);
+        this.completeObjective(M02_OBJECTIVE_IDS.reconRootDomain);
+    }
+
+    private tryCompleteBreachAffiliatePanel(): void {
+        if (this.Data.affiliatePanelBreached) return;
+        if (!this.Data.panelDumped || !this.Data.adminHashCracked) return;
+
+        this.SetData("affiliatePanelBreached", true);
+        this.completeObjective(M02_OBJECTIVE_IDS.breachAffiliatePanel);
+    }
+
+    private tryCompleteAccessDevServer(): void {
+        if (this.Data.devServerObjectiveCompleted) return;
+        if (!this.Data.devServerAccessed || !this.Data.deployLogFound) return;
+
+        this.SetData("devServerObjectiveCompleted", true);
+        this.completeObjective(M02_OBJECTIVE_IDS.accessDevServer);
+    }
+
+    private tryCompleteBreachWorkstationWifi(): void {
+        if (this.Data.workstationWifiBreached) return;
+        if (!this.Data.wifiPasswordFound || !this.Data.wifiJoined) return;
+
+        this.SetData("workstationWifiBreached", true);
+        this.completeObjective(M02_OBJECTIVE_IDS.breachWorkstationWifi);
+    }
+
     override OnComplete() {
         this.teardown();
     }
@@ -331,8 +457,8 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
         Network.removeDomain(M02_ROOT_DOMAIN);
         Network.removeDomain(M02_DEV_SUBDOMAIN);
         Network.destroyNetwork(M02_ROOT_IP);
-        Network.destroyNetwork(M02_DEV_IP);
-        Network.destroyNetwork(M02_WORKSTATION_IP);
+        Network.destroyNetwork(M02_DEV_ROUTER_IP);
+        Network.destroyNetwork(M02_WORKSTATION_WIFI_IP);
         if (this.databaseId) Database.remove(this.databaseId);
     }
 

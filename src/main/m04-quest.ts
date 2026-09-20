@@ -9,19 +9,36 @@ import {
 
 import { ATTRCHECK_REVEALED_EVENT } from "../commands/attrcheck.js";
 import {
-    M04_ARCHITECT_IP,
     M04_ARCHITECT_NMAP_RESULT,
     M04_ARCHITECT_REAL_NAME,
     M04_ARCHITECT_VPN_IP,
+    M04_ASHVECTOR_CODENAME,
+    M04_ASHVECTOR_IP,
+    M04_ASHVECTOR_LAN_IP,
+    M04_C2_IP,
+    M04_C2_LAN_IP,
     M04_CHOICE_DESTROY,
     M04_CHOICE_EXPOSE,
     M04_CHOICE_HANDOFF,
     M04_DEAD_DROP_EMAIL,
     M04_DIALOG,
+    M04_FIREWALL_IP,
+    M04_FIREWALL_LAN_IP,
+    M04_HONEYPOT_ALERT_CONTENT,
+    M04_HONEYPOT_ALERT_FROM,
+    M04_HONEYPOT_ALERT_SUBJECT,
+    M04_HONEYPOT_DECOY_CONTENT,
+    M04_HONEYPOT_DECOY_FILE_EXTENSION,
+    M04_HONEYPOT_DECOY_FILE_NAME,
+    M04_HONEYPOT_PASSWORD,
+    M04_HONEYPOT_USERNAME,
     M04_IDENTITY_FILE_CONTENT,
     M04_IDENTITY_FILE_EXTENSION,
     M04_IDENTITY_FILE_NAME,
     M04_LEGACY_CMS_PATH,
+    M04_NULLCROWN_CODENAME,
+    M04_NULLCROWN_IP,
+    M04_NULLCROWN_LAN_IP,
     M04_OBJECTIVES,
     M04_OBJECTIVE_IDS,
     M04_REPORT_BODY_DESTROY,
@@ -32,13 +49,16 @@ import {
     M04_REPORT_TEMPLATE_ID,
     M04_REPORT_TEMPLATE_LABEL,
     M04_REWARDS,
+    M04_ROUTER_LAN_IP,
+    M04_SPLITTER_IP,
+    M04_SPLITTER_LAN_IP,
     M04_TIP_CONTENT,
     M04_TIP_SUBJECT,
     M04_TRAP_WARNING_CONTENT,
     M04_TRAP_WARNING_FROM,
     M04_TRAP_WARNING_SUBJECT,
 } from "../content/m04.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/dev-flag.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M04QuestData {
     readonly leadReviewed: boolean;
@@ -54,13 +74,16 @@ interface M04QuestData {
     readonly boobyTrapRevealed: boolean;
     readonly safelyExtracted: boolean;
     readonly dialogStarted: boolean;
+    readonly honeypotAlertSent: boolean;
     readonly reportSent: boolean;
 }
 
 const resetM04ShellFixtures = (): void => {
     Shell.removeCommandData("whois", M04_ARCHITECT_VPN_IP);
     Shell.removeCommandData("geoip", M04_ARCHITECT_VPN_IP);
-    Shell.removeCommandData("nmap", M04_ARCHITECT_IP);
+    Shell.removeCommandData("nmap", M04_C2_IP);
+    Shell.removeCommandData("ssh", { host: M04_NULLCROWN_IP, key: M04_HONEYPOT_PASSWORD });
+    Shell.removeCommandData("ssh", { host: M04_ASHVECTOR_IP, key: M04_HONEYPOT_PASSWORD });
 };
 
 const registerM04ShellFixtures = (): void => {
@@ -77,7 +100,105 @@ const registerM04ShellFixtures = (): void => {
         latitude: "0.0000",
         longitude: "0.0000",
     });
-    Shell.addCommandData("nmap", M04_ARCHITECT_IP, M04_ARCHITECT_NMAP_RESULT);
+    Shell.addCommandData("nmap", M04_C2_IP, M04_ARCHITECT_NMAP_RESULT);
+    Shell.addCommandData(
+        "ssh",
+        { host: M04_NULLCROWN_IP, key: M04_HONEYPOT_PASSWORD },
+        { ip: M04_NULLCROWN_IP, status: "OPEN" },
+    );
+    Shell.addCommandData(
+        "ssh",
+        { host: M04_ASHVECTOR_IP, key: M04_HONEYPOT_PASSWORD },
+        { ip: M04_ASHVECTOR_IP, status: "OPEN" },
+    );
+};
+
+const registerM04Network = (): void => {
+    Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
+
+    Network.createSubnetNetwork({
+        ip: M04_ARCHITECT_VPN_IP,
+        lanIp: M04_ROUTER_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M04_FIREWALL_IP,
+                lanIp: M04_FIREWALL_LAN_IP,
+                type: NetworkDeviceType.Firewall,
+                users: [],
+                rules: [
+                    { allowed: false, port: 22, destination: M04_C2_IP },
+                    { allowed: false, port: 3389, destination: M04_C2_IP },
+                ],
+            },
+            {
+                ip: M04_SPLITTER_IP,
+                lanIp: M04_SPLITTER_LAN_IP,
+                type: NetworkDeviceType.Splitter,
+                users: [],
+                children: [
+                    {
+                        ip: M04_C2_IP,
+                        lanIp: M04_C2_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        users: [Network.createUser({ username: "root" })],
+                        ports: [{ external: 443, internal: 443, active: true, service: "https", version: "LegacyCMS 2.1" }],
+                        rootFiles: [
+                            {
+                                name: M04_IDENTITY_FILE_NAME,
+                                extension: M04_IDENTITY_FILE_EXTENSION,
+                                data: M04_IDENTITY_FILE_CONTENT,
+                            },
+                        ],
+                    },
+                    {
+                        ip: M04_NULLCROWN_IP,
+                        lanIp: M04_NULLCROWN_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M04_NULLCROWN_CODENAME,
+                        users: [
+                            Network.createUser({
+                                username: M04_HONEYPOT_USERNAME,
+                                password: M04_HONEYPOT_PASSWORD,
+                            }),
+                        ],
+                        ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
+                        rootFiles: [
+                            {
+                                name: M04_HONEYPOT_DECOY_FILE_NAME,
+                                extension: M04_HONEYPOT_DECOY_FILE_EXTENSION,
+                                data: M04_HONEYPOT_DECOY_CONTENT,
+                            },
+                        ],
+                    },
+                    {
+                        ip: M04_ASHVECTOR_IP,
+                        lanIp: M04_ASHVECTOR_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M04_ASHVECTOR_CODENAME,
+                        users: [
+                            Network.createUser({
+                                username: M04_HONEYPOT_USERNAME,
+                                password: M04_HONEYPOT_PASSWORD,
+                            }),
+                        ],
+                        ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
+                        rootFiles: [
+                            {
+                                name: M04_HONEYPOT_DECOY_FILE_NAME,
+                                extension: M04_HONEYPOT_DECOY_FILE_EXTENSION,
+                                data: M04_HONEYPOT_DECOY_CONTENT,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+
+    Network.setVulnerabilities(M04_C2_IP, [{ type: "RCE", version: "LegacyCMS 2.1" }]);
 };
 
 @RegisterQuest
@@ -89,7 +210,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     override AutoStart = true;
     override AutoComplete = true;
     override QuestsToComplete = questGate("m04", ["flatline.m03"]);
-    override Rewards = isQuestDevFocus("m04") ? { money: 0, xp: 0 } : M04_REWARDS;
+    override Rewards = (isQuestDevFocus("m04") || isQuestTesterFocus("m04")) ? { money: 0, xp: 0 } : M04_REWARDS;
 
     override Objectives = applyDevGating(M04_OBJECTIVES, isQuestDevFocus("m04"));
     override Dialog = M04_DIALOG;
@@ -111,6 +232,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
             boobyTrapRevealed: false,
             safelyExtracted: false,
             dialogStarted: false,
+            honeypotAlertSent: false,
             reportSent: false,
         };
     }
@@ -124,23 +246,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     override OnObjectivesStart() {
-        Network.createSubnetNetwork({
-            ip: M04_ARCHITECT_IP,
-            type: NetworkDeviceType.Router,
-            users: [Network.createUser({ username: "root" })],
-            ports: [{ external: 443, internal: 443, active: true, service: "https" }],
-            rootFiles: [
-                {
-                    name: M04_IDENTITY_FILE_NAME,
-                    extension: M04_IDENTITY_FILE_EXTENSION,
-                    data: M04_IDENTITY_FILE_CONTENT,
-                },
-            ],
-            children: [],
-        });
-
-        Network.setVulnerabilities(M04_ARCHITECT_IP, [{ type: "RCE", version: "LegacyCMS 2.1" }]);
-
+        registerM04Network();
         registerM04ShellFixtures();
 
         Mail.registerTemplate({
@@ -173,7 +279,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
 
         this.Events.on("Terminal.NmapScan", (data) => {
             if (this.Data.dashboardScanned) return;
-            if (data.ip !== M04_ARCHITECT_IP || !data.versionScan) return;
+            if (data.ip !== M04_C2_IP || !data.versionScan) return;
 
             this.SetData("dashboardScanned", true);
             this.completeObjective(M04_OBJECTIVE_IDS.scanC2Dashboard);
@@ -183,7 +289,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
             if (this.Data.hiddenDashboardFound) return;
 
             const host = data.host.toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
-            if (host !== M04_ARCHITECT_IP) return;
+            if (host !== M04_C2_IP) return;
             if (!data.results.includes(M04_LEGACY_CMS_PATH)) return;
 
             this.SetData("hiddenDashboardFound", true);
@@ -192,7 +298,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
 
         this.Events.on("Nuclei.Results", (data) => {
             if (this.Data.frameworkCveFound) return;
-            if (!data.hosts.includes(M04_ARCHITECT_IP)) return;
+            if (!data.hosts.includes(M04_C2_IP)) return;
 
             this.SetData("frameworkCveFound", true);
             this.completeObjective(M04_OBJECTIVE_IDS.findFrameworkCve);
@@ -200,7 +306,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
 
         this.Events.on("Metasploit.Meterpreter.Connected", (data) => {
             if (this.Data.initialShellObtained) return;
-            if (data.ip !== M04_ARCHITECT_IP) return;
+            if (data.ip !== M04_C2_IP) return;
 
             this.SetData("initialShellObtained", true);
             this.completeObjective(M04_OBJECTIVE_IDS.initialShellAccess);
@@ -208,7 +314,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
 
         this.Events.on("Metasploit.Rootgrab", (data) => {
             if (this.Data.privilegesEscalated) return;
-            if (data.ip !== M04_ARCHITECT_IP) return;
+            if (data.ip !== M04_C2_IP) return;
             if (!this.Data.initialShellObtained) return;
 
             this.SetData("privilegesEscalated", true);
@@ -216,11 +322,24 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
         });
 
         this.Events.on("Terminal.SSH.Connected", (data) => {
-            if (data === M04_ARCHITECT_IP) this.connectedToArchitect = true;
+            if (data === M04_C2_IP) {
+                this.connectedToArchitect = true;
+                return;
+            }
+
+            if (data !== M04_NULLCROWN_IP && data !== M04_ASHVECTOR_IP) return;
+            if (this.Data.honeypotAlertSent) return;
+
+            this.SetData("honeypotAlertSent", true);
+            Mail.send({
+                from: M04_HONEYPOT_ALERT_FROM,
+                subject: M04_HONEYPOT_ALERT_SUBJECT,
+                content: M04_HONEYPOT_ALERT_CONTENT,
+            });
         });
 
         this.Events.on("Terminal.SSH.Disconnected", (data) => {
-            if (data === M04_ARCHITECT_IP) this.connectedToArchitect = false;
+            if (data === M04_C2_IP) this.connectedToArchitect = false;
         });
 
         this.Events.on("Terminal.Ls", (data) => {
@@ -283,7 +402,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
 
     private teardown(): void {
         resetM04ShellFixtures();
-        Network.destroyNetwork(M04_ARCHITECT_IP);
+        Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
     }
 
     private tryCompleteVpnTrace(): void {

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blackwire Network — Storefront</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b0b0f;color:#c9d6d0;font-family:Consolas,Monaco,"Courier New",monospace;padding:28px 24px}
+  header{border:1px solid #223330;background:#0e1512;padding:18px 22px;margin-bottom:18px}
+  h1{margin:0;color:#7fffd4;letter-spacing:2px;font-size:22px}
+  .tag{color:#7c8b85;font-size:12px;margin-top:6px}
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  input,select{background:#0a0f0d;border:1px solid #223330;color:#b7c4bd;padding:10px 12px;font:12px inherit;outline:none}
+  input{flex:1;min-width:180px}input:focus,select:focus{border-color:#3f6f5c}
+  .stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{border:1px solid #1c2b27;background:#0a0f0d;padding:8px 12px;font-size:11px;color:#7c8b85}
+  .stat b{color:#c9d6d0}
+  table{width:100%;border-collapse:collapse;background:#0a0f0d;border:1px solid #223330}
+  th{text-align:left;color:#59695f;font-size:10px;font-weight:normal;letter-spacing:1px;padding:11px;border-bottom:1px solid #223330}
+  td{padding:12px 11px;border-bottom:1px solid #151f1b;font-size:12px}
+  tr:hover td{background:#0d1512}
+  .label{color:#d7e4de;font-weight:bold}
+  .cat{color:#7c8b85}
+  .desc{color:#6d7c76}
+  .sold{color:#586158}
+  .active-status{color:#6ef2b0}
+  a.open{color:#7fffd4;text-decoration:none;border:1px solid #274a3d;padding:5px 10px;font-size:10px}
+  a.open:hover{background:#122019;border-color:#3f6f5c}
+  footer{margin-top:16px;color:#405147;font-size:10px}
+  @media(max-width:700px){
+    table,thead,tbody,tr,th,td{display:block}
+    thead{display:none}
+    tr{border-bottom:1px solid #1c2b27;padding:10px 0}
+    td{border:0;padding:3px 0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>BLACKWIRE NETWORK</h1>
+  <div class="tag">verified network access, sold as-is. no refunds. contact through usual channels.</div>
+</header>
+
+<div class="toolbar">
+  <input id="search" placeholder="search listing, region, sector...">
+  <select id="category">
+    <option value="ALL">ALL CATEGORIES</option>
+    <option>RETAIL</option><option>ISP</option><option>LOGISTICS</option>
+    <option>EDU</option><option>GOV</option><option>FIN</option><option>MED</option>
+  </select>
+</div>
+
+<div class="stats">
+  <div class="stat">LISTINGS <b id="total">0</b></div>
+  <div class="stat">ACTIVE <b id="active">0</b></div>
+</div>
+
+<table>
+  <thead><tr><th>LISTING</th><th>CATEGORY</th><th>DETAIL</th><th>STATUS</th><th></th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<footer>BLACKWIRE NETWORK // FICTIONAL NETWORK NODE</footer>
+
+<script>
+const LOTS = [
+  { slug: "listings/retail-eu-2231", label: "RETAIL-EU-2231", cat: "RETAIL", desc: "Retail chain, EU region" },
+  { slug: "listings/isp-apac-6604", label: "ISP-APAC-6604", cat: "ISP", desc: "Regional ISP, APAC" },
+  { slug: "listings/logistics-na-1187", label: "LOGISTICS-NA-1187", cat: "LOGISTICS", desc: "Logistics company, NA region" },
+  { slug: "listings/edu-eu-3390", label: "EDU-EU-3390", cat: "EDU", desc: "University network, EU" },
+  { slug: null, label: "RETAIL-NA-0552", cat: "RETAIL", desc: "no longer listed" },
+  { slug: null, label: "FIN-EU-7743", cat: "FIN", desc: "no longer listed" },
+  { slug: null, label: "LOGISTICS-APAC-2266", cat: "LOGISTICS", desc: "no longer listed" },
+  { slug: null, label: "GOV-NA-9981", cat: "GOV", desc: "no longer listed" },
+  { slug: null, label: "ISP-EU-4415", cat: "ISP", desc: "no longer listed" },
+  { slug: null, label: "MED-SEA-0417", cat: "MED", desc: "no longer listed" },
+];
+
+const shuffle = (arr) => {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+const DATA = shuffle(LOTS);
+
+const rows = document.getElementById("rows");
+
+function render() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const c = document.getElementById("category").value;
+  const data = DATA.filter(x =>
+    (c === "ALL" || x.cat === c) &&
+    [x.label, x.cat, x.desc].join(" ").toLowerCase().includes(q)
+  );
+  rows.innerHTML = data.map(x => `
+    <tr>
+      <td class="label">${x.label}</td>
+      <td class="cat">${x.cat}</td>
+      <td class="desc">${x.desc}</td>
+      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "ACTIVE" : "SOLD"}</td>
+      <td>${x.slug ? `<a class="open" href="/${x.slug}/">OPEN</a>` : ""}</td>
+    </tr>`).join("");
+  document.getElementById("total").textContent = data.length;
+  document.getElementById("active").textContent = data.filter(x => x.slug).length;
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("category").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>

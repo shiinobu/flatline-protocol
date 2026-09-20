@@ -1,262 +1,190 @@
 import {
+    Database,
+    type DynamicWebsitePageDefinition,
     Network,
     NetworkDeviceType,
     type NetworkVulnerability,
+    type PageContext,
+    type PageMetadata,
     Quest,
-    type QuestEvents,
     type QuestObjectiveDefinition,
     RegisterQuest,
-    Shell,
+    RegisterWebsite,
+    Website,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { isDebug } from "../guard/dev-flag.js";
+import { isDebug } from "../guard/flags.js";
 import { trace } from "../helpers/logger.js";
 
-const SCRATCH_USERNAME = "test";
-const SCRATCH_PASSWORD = "test";
-const SCRATCH_FTP_DATA = "230 Login successful. scratch.txt (12 bytes)";
+const SCRATCH_ROUTER_IP = "192.0.2.101";
+const SCRATCH_NESTED_IP = "192.0.2.102";
+const SCRATCH_NESTED_DOMAIN = "scratch-sqli-nested.corp";
+const SCRATCH_VULNS: NetworkVulnerability[] = [{ type: "SQL_INJECTION" }];
 
-const ACTIVE_EXPERIMENT: number = 9;
+const scratchPage = (label: string): DynamicWebsitePageDefinition => ({
+    path: "/",
+    metadata: (_context: PageContext): PageMetadata => ({
+        title: `Scratch — ${label}`,
+        description: "Debug-only placeholder page.",
+        html: `<h1>${label}</h1><p>Isolating whether a registered Website is required for sqlmap to detect Network vulnerabilities, independent of nesting.</p>`,
+    }),
+});
 
-const registerFtpFixture = (ip: string): void => {
-    Shell.addCommandData(
-        "ftp",
-        { host: ip, username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD },
-        SCRATCH_FTP_DATA,
-    );
-};
+@RegisterWebsite
+export class ScratchNestedWebsite extends Website {
+    override SiteName = "Scratch Nested";
+    override Host = SCRATCH_NESTED_DOMAIN;
+    override Icon = "";
+    override Pages: DynamicWebsitePageDefinition[] = [scratchPage("nested child Device")];
+}
 
-const runDiagnosticLogExperiment = (): void => {
-    const ip = "192.0.2.10";
-    Network.destroyNetwork(ip);
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Router,
-        users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-        ports: [{ external: 21, internal: 21, active: true, service: "ftp" }],
-        children: [],
-    });
-    Network.removeFirewallRule(ip, 21);
-    Network.addFirewallRule(ip, { allowed: true, port: 21 });
-    registerFtpFixture(ip);
-    trace("scratch-1-diagnostic", `ip=${ip} firewall=${JSON.stringify(Network.getFirewall(ip))}`);
-    trace("scratch-1-diagnostic", `isRequestBlocked(21)=${Network.isRequestBlocked(ip, 21)}`);
-};
-
-const runOpenPortExperiment = (): void => {
-    const ip = "192.0.2.20";
-    Network.destroyNetwork(ip);
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Router,
-        users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-        ports: [{ external: 21, internal: 21, active: false, service: "ftp" }],
-        children: [],
-    });
-    Network.openPort(ip, 21);
-    registerFtpFixture(ip);
-    trace("scratch-2-openport", `ip=${ip} openPort(21) called after create`);
-};
-
-const runDeviceChildExperiment = (): void => {
-    const routerIp = "192.0.2.30";
-    const deviceIp = "192.0.2.31";
-    Network.destroyNetwork(routerIp);
-    Network.createSubnetNetwork({
-        ip: routerIp,
-        type: NetworkDeviceType.Router,
-        users: [],
-        ports: [],
-        children: [
-            {
-                ip: deviceIp,
-                type: NetworkDeviceType.Device,
-                users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-                ports: [{ external: 21, internal: 21, active: true, service: "ftp" }],
-            },
-        ],
-    });
-    registerFtpFixture(deviceIp);
-    trace("scratch-3-device-child", `router=${routerIp} device=${deviceIp} (ftp against device ip)`);
-};
-
-const runRandomIpExperiment = (): void => {
-    const ip = Network.randomIp();
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Router,
-        users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-        ports: [{ external: 21, internal: 21, active: true, service: "ftp" }],
-        children: [],
-    });
-    registerFtpFixture(ip);
-    trace("scratch-4-random-ip", `generated ip=${ip} — use this exact ip in-game`);
-};
-
-const runSshControlExperiment = (): void => {
-    const ip = "192.0.2.50";
-    Network.destroyNetwork(ip);
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Router,
-        users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-        ports: [
-            { external: 21, internal: 21, active: true, service: "ftp" },
-            { external: 22, internal: 22, active: true, service: "ssh" },
-        ],
-        children: [],
-    });
-    registerFtpFixture(ip);
-    Shell.addCommandData(
-        "ssh",
-        { host: ip, key: SCRATCH_PASSWORD },
-        { ip, status: "OPEN" },
-    );
-    trace("scratch-5-ssh-control", `ip=${ip} — compare "ftp -h ${ip} -u ${SCRATCH_USERNAME} -p ${SCRATCH_PASSWORD}" vs "ssh -h ${SCRATCH_USERNAME}@${ip}"`);
-};
-
-const runRandomRouterDomainChildExperiment = (): void => {
-    const routerIp = Network.randomIp();
-    const deviceIp = Network.randomIp();
-    Network.createSubnetNetwork({
-        ip: routerIp,
-        type: NetworkDeviceType.Router,
-        users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-        ports: [{ external: 80, internal: 80, active: true, service: "http" }],
-        domain: { name: "scratch-test.corp" },
-        children: [
-            {
-                ip: deviceIp,
-                type: NetworkDeviceType.Device,
-                users: [Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD })],
-                ports: [{ external: 21, internal: 21, active: true, service: "ftp" }],
-            },
-        ],
-    });
-    registerFtpFixture(deviceIp);
-    trace("scratch-6-random-domain-child", `router=${routerIp} device=${deviceIp} domain=scratch-test.corp — ftp against device ip`);
-};
-
-const runMetasploitExperiment = (events: QuestEvents): void => {
-    const ip = "192.0.2.70";
-    Network.destroyNetwork(ip);
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Router,
-        users: [],
-        ports: [{ external: 21, internal: 21, active: true, service: "ftp" }],
-        children: [],
-    });
-    Network.setVulnerabilities(ip, [{ type: "RCE" }]);
-
-    events.on("Metasploit.Search", (data) => trace("scratch-7-metasploit", `Search: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Use", (data) => trace("scratch-7-metasploit", `Use: ${JSON.stringify(data)}`));
-    events.on("Metasploit.SetOption", (data) => trace("scratch-7-metasploit", `SetOption: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Event", (data) => trace("scratch-7-metasploit", `Event: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Rootgrab", (data) => trace("scratch-7-metasploit", `Rootgrab: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Meterpreter.Connected", (data) => trace("scratch-7-metasploit", `Meterpreter.Connected: ${JSON.stringify(data)}`));
-    events.on("Meterpreter.Download", (data) => trace("scratch-7-metasploit", `Meterpreter.Download: ${JSON.stringify(data)}`));
-
-    trace("scratch-7-metasploit", `ip=${ip} tagged RCE — search/use/set RHOST/run a metasploit module against it`);
-};
-
-const runFixedTargetExperiment = async (events: QuestEvents): Promise<void> => {
-    const ip = "192.0.2.80";
-    const domain = "scratch-fixed.corp";
-    const vulns: NetworkVulnerability[] = [{ type: "RCE" }];
-
-    await Network.destroyNetwork(ip);
-
-    Network.createSubnetNetwork({
-        ip,
-        type: NetworkDeviceType.Device,
-        name: "Scratch Fixed Target",
-        domain: { name: domain, vulnerabilities: vulns },
-        ports: [
-            { external: 21, internal: 21, active: true, service: "ftp", version: "vsftpd 2.3.4" },
-        ],
-        users: [
-            Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD, online: true }),
-        ],
-    });
-
-    Network.registerDomain(domain, ip, vulns);
-    Network.setVulnerabilities(ip, vulns);
-
-    registerFtpFixture(ip);
-
-    events.on("Metasploit.Rootgrab", (data) => trace("scratch-8-fixed-retest", `Rootgrab: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Event", (data) => trace("scratch-8-fixed-retest", `Event: ${JSON.stringify(data)}`));
-    events.on("Meterpreter.Download", (data) => trace("scratch-8-fixed-retest", `Meterpreter.Download: ${JSON.stringify(data)}`));
-
-    trace(
-        "scratch-8-fixed-retest",
-        `ip=${ip} domain=${domain} version-tagged + triple-vuln + awaited destroy — retry "ftp -h ${ip} -u ${SCRATCH_USERNAME} -p ${SCRATCH_PASSWORD}" and the vsftpd metasploit module`,
-    );
-};
-
-const runGuardedNoDestroyExperiment = (events: QuestEvents): void => {
-    const ip = "192.0.2.90";
-    const domain = "scratch-guarded.corp";
-    const vulns: NetworkVulnerability[] = [{ type: "RCE" }];
-
-    if (!Network.getSubnet(ip)) {
-        Network.createSubnetNetwork({
-            ip,
-            type: NetworkDeviceType.Device,
-            name: "Scratch Guarded Target",
-            domain: { name: domain, vulnerabilities: vulns },
-            ports: [
-                { external: 21, internal: 21, active: true, service: "ftp", version: "vsftpd 2.3.4" },
-            ],
-            users: [
-                Network.createUser({ username: SCRATCH_USERNAME, password: SCRATCH_PASSWORD, online: true }),
-            ],
-        });
-    }
-
-    Network.registerDomain(domain, ip, vulns);
-    Network.setVulnerabilities(ip, vulns);
-
-    registerFtpFixture(ip);
-
-    events.on("Metasploit.Rootgrab", (data) => trace("scratch-9-guarded", `Rootgrab: ${JSON.stringify(data)}`));
-    events.on("Metasploit.Event", (data) => trace("scratch-9-guarded", `Event: ${JSON.stringify(data)}`));
-    events.on("Meterpreter.Download", (data) => trace("scratch-9-guarded", `Meterpreter.Download: ${JSON.stringify(data)}`));
-
-    trace("scratch-9-guarded", `ip=${ip} existed=${Boolean(Network.getSubnet(ip))} — never destroyed, guarded create, domain/vuln reattached every call`);
-};
+const SCRATCH_FIREWALL_ROUTER_IP = "192.0.2.211";
+const SCRATCH_FIREWALL_IP = "192.0.2.210";
+const SCRATCH_FIREWALL_LAN_IP = "10.99.0.1";
+const SCRATCH_FIREWALL_USERNAME = "scratchadmin";
+const SCRATCH_FIREWALL_PASSWORD = "kimai-test-pw";
 
 interface ScratchQuestData {
     readonly ready: boolean;
+    readonly kimaiRan: boolean;
 }
 
 @RegisterQuest
 export class FlatlineScratchQuest extends Quest<ScratchQuestData> {
     override Name = "flatline.scratch";
-    override Title = "Scratch — network isolation test";
-    override Description = "Debug-only quest for isolating the ftp routing issue. Not part of the story.";
+    override Title = "Scratch — SQL_INJECTION detection isolation";
+    override Description =
+        "Debug-only quest isolating whether a nested-child Network device supports sqlmap SQL_INJECTION detection the same as a flat top-level device, now that both are backed by a real registered Website. Also isolates the REAL built-in Kimai tool against a scratch Firewall-type device, ahead of relying on it for M01 (no custom capture logic needed — Kimai only works against type:Firewall targets and leaks that node's own users[0] credential as a signed token).";
     override AutoStart = isDebug;
     override AutoComplete = false;
     override Objectives: QuestObjectiveDefinition[] = [
         { name: "scratch.ready", description: "Scratch test environment" },
+        {
+            name: "scratch.kimai-ran",
+            description:
+                `Get kimai.py the normal way, open Wireshark and start capturing, then run: python3 kimai.py ${SCRATCH_FIREWALL_IP}`,
+        },
+        {
+            name: "scratch.kimai-decoded",
+            description:
+                `Find the "Cookie" packet in Wireshark, copy its token, then run: python3 jwt_decoder.py <token> — should reveal ${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD}`,
+        },
     ];
 
     override CreateData(): ScratchQuestData {
-        return { ready: true };
+        return { ready: true, kimaiRan: false };
     }
 
     override OnObjectivesStart() {
-        trace("scratch-quest", `OnObjectivesStart running experiment=${ACTIVE_EXPERIMENT}`);
+        try {
+            Network.createSubnetNetwork({
+                ip: SCRATCH_ROUTER_IP,
+                type: NetworkDeviceType.Router,
+                users: [],
+                ports: [],
+                children: [
+                    {
+                        ip: SCRATCH_NESTED_IP,
+                        type: NetworkDeviceType.Device,
+                        name: "Scratch Nested Target",
+                        domain: { name: SCRATCH_NESTED_DOMAIN, vulnerabilities: SCRATCH_VULNS },
+                        ports: [
+                            { external: 443, internal: 443, active: true, service: "https" },
+                            { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
+                        ],
+                        users: [],
+                    },
+                ],
+            });
+            trace("scratch-quest", "step=createSubnetNetwork:done (no-op if address already existed)");
 
-        if (ACTIVE_EXPERIMENT === 1) runDiagnosticLogExperiment();
-        if (ACTIVE_EXPERIMENT === 2) runOpenPortExperiment();
-        if (ACTIVE_EXPERIMENT === 3) runDeviceChildExperiment();
-        if (ACTIVE_EXPERIMENT === 4) runRandomIpExperiment();
-        if (ACTIVE_EXPERIMENT === 5) runSshControlExperiment();
-        if (ACTIVE_EXPERIMENT === 6) runRandomRouterDomainChildExperiment();
-        if (ACTIVE_EXPERIMENT === 7) runMetasploitExperiment(this.Events);
-        if (ACTIVE_EXPERIMENT === 8) void runFixedTargetExperiment(this.Events);
-        if (ACTIVE_EXPERIMENT === 9) runGuardedNoDestroyExperiment(this.Events);
+            Network.removePort(SCRATCH_ROUTER_IP, 3306);
+            Network.addPort(SCRATCH_NESTED_IP, {
+                external: 3306,
+                internal: 3306,
+                active: true,
+                service: "mysql",
+                version: "mariadb",
+            });
+            Network.setVulnerabilities(SCRATCH_NESTED_IP, SCRATCH_VULNS);
+            trace("scratch-quest", "step=reconcile:done (forced port+vuln to current desired state)");
+
+            trace("scratch-quest", `router-state=${JSON.stringify(Network.getSubnet(SCRATCH_ROUTER_IP))}`);
+            trace("scratch-quest", `nested-state=${JSON.stringify(Network.getSubnet(SCRATCH_NESTED_IP))}`);
+
+            Database.create({
+                host: SCRATCH_NESTED_IP,
+                user: "test",
+                password: "test",
+                tables: {
+                    users: [
+                        { id: { value: 1, type: "number" }, username: { value: "admin", type: "string" } },
+                    ],
+                },
+            });
+            trace("scratch-quest", "step=Database.create:done");
+
+            trace(
+                "scratch-quest",
+                `flat=nested=${SCRATCH_NESTED_DOMAIN} ` +
+                    `(${SCRATCH_NESTED_IP} under router ${SCRATCH_ROUTER_IP}) — both now have a real Website. ` +
+                    `Test: sqlmap -u https://${SCRATCH_NESTED_DOMAIN}/ -tables`,
+            );
+
+            Network.destroyNetwork(SCRATCH_FIREWALL_ROUTER_IP);
+            Network.createSubnetNetwork({
+                ip: SCRATCH_FIREWALL_ROUTER_IP,
+                type: NetworkDeviceType.Router,
+                users: [],
+                ports: [],
+                children: [
+                    {
+                        ip: SCRATCH_FIREWALL_IP,
+                        lanIp: SCRATCH_FIREWALL_LAN_IP,
+                        type: NetworkDeviceType.Firewall,
+                        users: [
+                            Network.createUser({
+                                username: SCRATCH_FIREWALL_USERNAME,
+                                password: SCRATCH_FIREWALL_PASSWORD,
+                            }),
+                        ],
+                        rules: [{ allowed: false, port: 9999 }],
+                    },
+                ],
+            });
+            trace(
+                "scratch-quest",
+                `step=kimai-setup:done firewall=${SCRATCH_FIREWALL_IP} type=Firewall users[0]=${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD} — ` +
+                    `get kimai.py the normal way, open Wireshark and start capturing FIRST, then run: python3 kimai.py ${SCRATCH_FIREWALL_IP}`,
+            );
+            trace("scratch-quest", `firewall-router-state=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_ROUTER_IP))}`);
+            trace("scratch-quest", `firewall-state=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_IP))}`);
+        } catch (error) {
+            trace("scratch-quest", `step=ERROR ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`);
+        }
+
+        this.Events.on("Python3.ExecFile", (data) => {
+            if (data.file.name === "kimai" && data.args[0] === SCRATCH_FIREWALL_IP) {
+                this.SetData("kimaiRan", true);
+                this.completeObjective("scratch.kimai-ran");
+                trace(
+                    "scratch-quest",
+                    "step=kimai-ran:file+args matched — this only proves the command was invoked, not that Kimai found the target. " +
+                        `firewall-state-at-run-time=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_IP))}`,
+                );
+                return;
+            }
+
+            if (data.file.name === "jwt_decoder" && data.args.length === 1) {
+                if (!this.Data.kimaiRan) return;
+
+                this.completeObjective("scratch.kimai-decoded");
+                trace(
+                    "scratch-quest",
+                    `step=kimai-decoded:ran jwt_decoder.py ${data.args[0]} — confirm the printed output shows ` +
+                        `${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD}`,
+                );
+            }
+        });
     }
 }
