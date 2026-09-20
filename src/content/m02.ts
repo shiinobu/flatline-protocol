@@ -1,4 +1,4 @@
-import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
+import type { QuestDialogDefinition, QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
 import { DEAD_DROP_CONTACT } from "./characters.js";
 import { M01_BUYER_ALIAS } from "./m01.js";
@@ -34,11 +34,31 @@ export const M02_DEPLOY_LOG_CONTENT = [
     "DEPLOY LOG — build-affiliate-panel",
     "===================================",
     "",
-    "2024-03-11 02:14 UTC — pushed payload_v9 to affiliate mirror.",
-    "2024-03-11 02:41 UTC — client hospital-sea-01 confirmed lock, ransom note delivered.",
-    "2024-03-11 09:02 UTC — client escrow released, payout queued.",
-    "2024-03-11 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
+    "2026-08-14 02:14 UTC — pushed payload_v9 to affiliate mirror.",
+    "2026-08-14 02:41 UTC — client MED-SEA-0417 confirmed lock, ransom note delivered.",
+    "2026-08-14 09:02 UTC — client escrow released, payout queued.",
+    "2026-08-14 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
 ].join("\n");
+
+export const M02_DEPLOY_LOG_DIALOG: QuestDialogDefinition = {
+    default: [
+        {
+            speaker: "GHOSTWIRE",
+            text: "MED-SEA-0417. August 14th, 2026.",
+            timeout: 1800,
+        },
+        {
+            speaker: "GHOSTWIRE",
+            text: "Same case. Same day my sibling never came out of surgery.",
+            timeout: 1800,
+        },
+        {
+            speaker: "GHOSTWIRE",
+            text: "This is the log. This is the person who actually deployed it.",
+            isEnd: true,
+        },
+    ],
+};
 
 export const M02_FINANCIAL_DOC_FILE_NAME = "wire_authorization";
 export const M02_FINANCIAL_DOC_FILE_EXTENSION = "pdf";
@@ -58,7 +78,9 @@ export const M02_TIP_CONTENT = [
     `Good work on ${M01_BUYER_ALIAS}. That alias traces back to a toolkit developer`,
     "who also runs an affiliate panel for the ransomware itself.",
     "",
-    `Start with the root domain: ${M02_ROOT_DOMAIN}`,
+    "You've already got a lead on this from the vault -- check what else",
+    "was archived there.",
+    "",
     "Whatever you find, send it the same way as before.",
 ].join("\n");
 

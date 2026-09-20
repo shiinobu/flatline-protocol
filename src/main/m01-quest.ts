@@ -458,7 +458,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     override Title = "First Trace";
     override Description = "Trace the initial access broker who sold out the hospital's network.";
     override Group = "storyline" as const;
-    override AutoStart = false;
+    override AutoStart = isQuestDevFocus("m01");
     override AutoComplete = true;
     override QuestsToComplete = questGate("m01", []);
     override Rewards = (isQuestDevFocus("m01") || isQuestTesterFocus("m01")) ? { money: 0, xp: 0 } : M01_REWARDS;

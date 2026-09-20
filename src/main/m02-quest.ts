@@ -18,6 +18,7 @@ import {
     M02_DB_USER,
     M02_DEAD_DROP_EMAIL,
     M02_DEPLOY_LOG_CONTENT,
+    M02_DEPLOY_LOG_DIALOG,
     M02_DEPLOY_LOG_FILE_EXTENSION,
     M02_DEPLOY_LOG_FILE_NAME,
     M02_DEV_IP,
@@ -109,9 +110,9 @@ const registerM02Database = (): string => {
     Database.setTable(databaseId, M02_AFFILIATE_TABLE, [
         {
             id: { value: 1, type: "number" },
-            client: { value: "hospital-sea-01", type: "string" },
-            ransomAmount: { value: 42000, type: "number" },
-            settledAt: { value: "2024-03-11", type: "string" },
+            client: { value: "MED-SEA-0417", type: "string" },
+            ransomAmount: { value: 2850000, type: "number" },
+            settledAt: { value: "2026-08-14", type: "string" },
         },
     ]);
     Database.setTable(databaseId, M02_ADMINS_TABLE, [
@@ -180,6 +181,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     override AutoComplete = true;
     override QuestsToComplete = questGate("m02", ["flatline.m01"]);
     override Rewards = (isQuestDevFocus("m02") || isQuestTesterFocus("m02")) ? { money: 0, xp: 0 } : M02_REWARDS;
+    override Dialog = M02_DEPLOY_LOG_DIALOG;
 
     override Objectives = applyDevGating(M02_OBJECTIVES, isQuestDevFocus("m02"));
 
@@ -360,6 +362,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.name !== M02_DEPLOY_LOG_FILE_NAME || data.data !== M02_DEPLOY_LOG_CONTENT) return;
 
             this.SetData("deployLogFound", true);
+            this.createDialog("default");
             this.tryCompleteAccessDevServer();
         });
 

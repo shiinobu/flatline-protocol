@@ -5,6 +5,7 @@
     "apiVersion": 2,
     "author": "shiinobu",
     "description": "GHOSTWIRE hunts the BLACKLEDGER ransomware syndicate across four missions, from its access broker to the architect behind it.",
+    "cover": "cover.png",
     "permissions": ["filesystem", "network", "events", "mail", "bank", "shell", "ui"],
     "dependencies": []
 }
