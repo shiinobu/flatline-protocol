@@ -340,7 +340,7 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   name to `A7xDEFACE9`.** The listing page's Vendor field said
   `WRAITHTRADE` — unique to this one listing, not a reused marketplace
   filler — which never matched `docs/story.md`'s "A7x" codename family
-  (`A7xC0DEFACE` is M2's target). Fixed in `opn-102.html`'s Vendor field
+  (`TR4C3#404` is M2's target). Fixed in `opn-102.html`'s Vendor field
   and the matching LedgerVault caption; the `Broker` report field now
   validates against `A7xDEFACE9` instead of the listing URL. Known
   leftover: the LedgerVault receipt photo's own pixels still print

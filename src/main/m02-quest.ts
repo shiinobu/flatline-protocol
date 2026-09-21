@@ -139,7 +139,7 @@ const registerM02WorkstationWifi = (): void => {
                 lanIp: M02_WORKSTATION_LAN_IP,
                 type: NetworkDeviceType.Device,
                 name: M02_WORKSTATION_CODENAME,
-                users: [Network.createUser({ username: "a7xcodeface", online: true })],
+                users: [Network.createUser({ username: "tr4c3404", online: true })],
                 ports: [
                     {
                         external: 3389,

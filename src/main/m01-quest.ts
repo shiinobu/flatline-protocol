@@ -105,7 +105,7 @@ import {
     M01_TWOTTER_DECOY_HANDLE,
     M01_TWOTTER_DECOY_POSTS,
 } from "../content/m01.js";
-import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M01QuestData {
     readonly tipReviewed: boolean;
@@ -221,9 +221,11 @@ const registerM01ShellFixtures = (): void => {
 };
 
 const registerM01Network = (): void => {
-    Network.destroyNetwork(M01_ROUTER_IP);
-    Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
-    Network.destroyNetwork(M01_FRONT_ROUTER_IP);
+    if (isDev) {
+        Network.destroyNetwork(M01_ROUTER_IP);
+        Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
+        Network.destroyNetwork(M01_FRONT_ROUTER_IP);
+    }
 
     Network.createSubnetNetwork({
         ip: M01_FIREWALL_ROUTER_IP,
@@ -347,7 +349,9 @@ const registerM01Network = (): void => {
 
     for (const record of M01_DOMAIN_RECORDS) {
         if (record.needsSubnet) {
-            Network.destroyNetwork(record.ip);
+            if (isDev) {
+                Network.destroyNetwork(record.ip);
+            }
             Network.createSubnetNetwork({
                 ip: record.ip,
                 type: NetworkDeviceType.Device,

@@ -140,7 +140,7 @@ export const M01_JWT_DECODER_SCRIPT_NAME = "jwt_decoder";
 
 export const M01_LEDGER_FILE_NAME = "sales_ledger";
 export const M01_LEDGER_FILE_EXTENSION = "log";
-export const M01_BUYER_ALIAS = "A7xC0DEFACE";
+export const M01_BUYER_ALIAS = "TR4C3#404";
 export const M01_LEDGER_CONTENT = [
     "TRANSACTION LOG — VERIFIED ACCESS SALES",
     "==========================================",
@@ -236,7 +236,7 @@ export const M01_IRC_CONVERSATION: M01IrcLine[] = [
     { username: M01_IRC_USERNAME, message: "heads up, new build client wants it fast this time" },
     { username: M01_IRC_USERNAME, message: "don't drop the ball like last quarter" },
     { username: M01_IRC_CONTACT_USERNAME, message: "which one, the SEA hospital thing?" },
-    { username: M01_IRC_USERNAME, message: "yeah. buyer's already confirmed — A7xC0DEFACE" },
+    { username: M01_IRC_USERNAME, message: "yeah. buyer's already confirmed — TR4C3#404" },
     { username: M01_IRC_CONTACT_USERNAME, message: "escrow's clean on our side" },
     { username: M01_IRC_USERNAME, message: "good. keep it off the main listing once it clears" },
     { username: M01_IRC_CONTACT_USERNAME, message: "already flagged it no longer listed like the others" },

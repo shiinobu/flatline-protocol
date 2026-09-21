@@ -3,7 +3,7 @@ import { Bootstrap, RegisterModPackage } from "@hotbunny/hackhub-content-sdk";
 import "./commands/attrcheck.js";
 import "./debug/scratch.js";
 import "./websites/m01/blackwire-network/index.js";
-import "./websites/m02/a7xcodeface/index.js";
+import "./websites/m02/tr4c3404/index.js";
 import "./websites/m03/skynet-importexport/index.js";
 import "./websites/m04/architect-c2/index.js";
 import "./websites/m01/frostgate-exchange/index.js";

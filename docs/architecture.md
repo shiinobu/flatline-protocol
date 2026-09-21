@@ -31,7 +31,7 @@ src/
                  booby-trapped file).
   websites/    — Website page registrations (@RegisterWebsite/Host/Pages)
                  + their HTML, one subfolder per site (A7xDEFACE9's
-                 storefront, A7xC0DEFACE's panel, Skynet Import-Export's
+                 storefront, TR4C3#404's panel, Skynet Import-Export's
                  public site, etc.).
   guard/       — dev/prod gating helpers with no story content of their
                  own (currently dev-flag.ts — isDev/questGate/

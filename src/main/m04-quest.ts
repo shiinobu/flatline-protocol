@@ -58,7 +58,7 @@ import {
     M04_TRAP_WARNING_FROM,
     M04_TRAP_WARNING_SUBJECT,
 } from "../content/m04.js";
-import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M04QuestData {
     readonly leadReviewed: boolean;
@@ -114,7 +114,9 @@ const registerM04ShellFixtures = (): void => {
 };
 
 const registerM04Network = (): void => {
-    Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
+    if (isDev) {
+        Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
+    }
 
     Network.createSubnetNetwork({
         ip: M04_ARCHITECT_VPN_IP,

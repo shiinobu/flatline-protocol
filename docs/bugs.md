@@ -724,3 +724,182 @@ uniformly across `NetworkDeviceType` values — `ssh` is `Device`-only,
 When a command's type-gating isn't documented, decompile the real command
 class (`.reverse/extracted/index.js`) instead of inferring it from
 symptoms or from another command's behavior.
+
+---
+
+## 18. `subfinder` never lists a domain living on an address that gets a same-tick `destroyNetwork`+`createSubnetNetwork` — fire-and-forget destroy is now dev-only
+
+**Status: WORKAROUND (dev/tester split, not a root-cause engine fix)**
+Found: M01 tester feedback, 2026-09-21 — `subfinder -d blackwire-network.mkt`
+(the bare root domain) always returned "No subdomains found", while
+`subfinder -d www.blackwire-network.mkt` correctly found itself. `nslookup`
+resolved both correctly, which is what made this confusing — `nslookup` is
+a `Shell.addCommandData("nslookup", record.name, record.ip)` static fixture
+(`m01-quest.ts`) with zero dependency on real `Network` state, so it kept
+"working" even while the underlying subnet was gone.
+
+**Root cause (ground truth, from `.reverse/extracted/index.js`, the real
+`subfinder` command):**
+```js
+async Exec(n) {
+    if (!Ki().Network.find(h => h.domain?.name === n)) {
+        const h = tr.number(3e3, 6e3);
+        return await this.sleep(h), { subDomains: [], timeout: h };
+    }
+    const s = Ki().Network.filter(h => h.domain?.name.endsWith(n));
+    ...
+}
+```
+It does a flat exact-match scan over `Ki().Network` first; if that fails,
+it returns empty immediately — it never gets to the `endsWith` filter that
+would list real subdomains. This only succeeds if some `Network` entry's
+`.domain.name` is *exactly* the queried string at the moment of the query.
+
+`registerM01Network()` fires `Network.destroyNetwork(M01_FRONT_ROUTER_IP)`
+(and the other two routers) without awaiting it — correctly, per entries 6/
+12/15, since awaiting it breaks mod-context and throws a permission error,
+which is strictly worse. But `destroyNetwork` is genuinely async
+(`Promise<boolean>`, worker/`postMessage`-based per the decompiled
+engine). Because it's fire-and-forget, the synchronous
+`createSubnetNetwork` immediately after it is guaranteed to run *before*
+the destroy resolves (JS can't interleave a pending microtask into an
+already-running synchronous call stack) — so on any run where that address
+already held a network (i.e. every run except the very first), the create
+is a "left alone" no-op (entries 3/6/15) and `registerDomain` attaches the
+domain to the *pre-existing* node. Then, some indeterminate time later
+(after `OnObjectivesStart()` has already returned), the earlier
+fire-and-forget destroy finally resolves and tears down that same router —
+wiping the domain that had just been reconciled onto it a moment before.
+A player who runs `subfinder` a few seconds after mission start (the
+realistic case, not an edge case) queries after the delayed wipe has
+already happened. `www.blackwire-network.mkt` survived in testing because
+its own record is a bare standalone `Device` with no `children`/
+`rootFiles` to tear down, so its own fire-and-forget destroy resolves
+fast enough to rarely lose this race in practice.
+
+**Why this isn't "just await it" (again):** entries 6/12/15 already
+falsified that fix for this engine build — it trades a domain-discovery
+gap for a hard permission-error crash, which is worse. The generic SDK
+`.d.ts` doc comment recommending `await destroyNetwork(ip)` first does not
+apply here; per entry 15, this file's empirical findings win over that
+comment for this project.
+
+**Fix — stop destroying these addresses outside of active development:**
+added `isDev` (from `src/guard/flags.ts`) as a guard around every
+same-tick `destroyNetwork` call that immediately precedes a
+`createSubnetNetwork`/`registerDomain` at that same address:
+`m01-quest.ts` (`registerM01Network`'s 3 router destroys, plus the
+per-domain `record.needsSubnet` destroy in the `M01_DOMAIN_RECORDS` loop),
+`m03-quest.ts` (`registerM03FinanceVlan`'s `M03_PFSENSE_IP` destroy),
+`m04-quest.ts` (`registerM04Network`'s `M04_ARCHITECT_VPN_IP` destroy).
+`M02_ROOT_IP`/`M02_DEV_ROUTER_IP`/`M02_DEV_SUBDOMAIN` and
+`M03_SKYNET_IP` were already create-only in `OnObjectivesStart()` (their
+only `destroyNetwork` calls live in `teardown()`/`OnComplete`/`OnAbandon`,
+a different lifecycle point with no same-tick race), so they needed no
+change. With `isDev=false` (tester/production builds), these addresses are
+created exactly once and never torn down again — `createSubnetNetwork`'s
+own "left alone" no-op behavior makes every later `OnObjectivesStart()`
+call safe and idempotent, and the domain/port/rule reconcile calls that
+already run unconditionally every load (entries 3/7/12/14) keep mutable
+state fresh without ever touching `destroyNetwork`.
+
+**Trade-off accepted — read before restructuring any network topology
+post-release:** with `isDev=false`, `createSubnetNetwork` can never apply
+a structural change (a new/removed `children` entry, a changed `ports`
+list, a renamed device) to a save that already has a network at that
+address. If a released version's network topology (not just mutable
+fields like ports/domains/rules, which already reconcile unconditionally)
+ever needs to change post-launch, that change will silently never reach
+players who already progressed past that mission on an earlier build —
+there is currently no version-gated migration path for this. `isDev=true`
+sidesteps this by always tearing down and rebuilding, which is exactly why
+it stays on for active development and off for anything shipped to
+testers or players.
+
+**Takeaway for future missions:** never add a `destroyNetwork` call
+immediately before a same-address `createSubnetNetwork`/`registerDomain`
+in `OnObjectivesStart()` without gating it behind `isDev` — it does not
+fail loudly like the await mistake (entries 6/12/15) does, it fails
+silently and intermittently, hours or missions later, in a way that looks
+like an unrelated tool (`subfinder`, `net_tree.py`) is broken.
+
+---
+
+## 19. `Files.create()` (and other permissioned SDK calls) only keep mod identity inside a `Command.Run()` or an `Events.on()` handler — every other invocation path loses it to `Mod "null"`, including the SDK's own "safe" async hooks
+
+**Status: RESOLVED (real fix found — `Events.emit`/`Events.on` bridge)**
+Found: `src/debug/scratch.ts`, 2026-09-21, while investigating whether `ftp`
+could hand a player a real downloadable wordlist file for a hydra-crack
+step (M01 SSH-credential-discovery gap). Six invocation paths for
+`Files.create()` were tried, live-tested one at a time via the HackHub log
+(`%APPDATA%/hackhub/logs/hackhub-<date>.log`, `[FP][...]` lines), not
+guessed:
+
+| # | Where `Files.create()` was called | Result |
+|---|---|---|
+| 1 | Fire-and-forget `void (async () => {...})()` inside `OnObjectivesStart()`, placed *after* all `Network.*` setup | `Mod "null" tried to use Files.create without "filesystem" permission` — despite `"filesystem"` already being declared in `manifest.json` |
+| 2 | `async OnStart()` — the one lifecycle hook the SDK's own `.d.ts` explicitly types as `void \| Promise<void>` | Same `Mod "null"` error, first call |
+| 3 | `rootFiles` on a synchronously-created `Device` (no `await` anywhere) | No permission error, but the built-in `ftp` command's own `Ur.GetById(fixtureData)` returned nothing for that ID — see below |
+| 4 | Custom `@RegisterCommand`-registered `Command`'s own `async Run(tools)` | **Worked. Real file created, no error.** |
+| 5 | `Website.Exports` function invoked by an `onclick` in the page's own HTML (a genuine player click, re-tested twice in fully isolated scratch files to rule out confounds) | Same `Mod "null"` error, reproduced 3 times cleanly |
+| 6 | `Website.Exports` function that only does a synchronous `Events.emit("some.event")`, with the actual `await Files.create(...)` moved into a **top-level `Events.on("some.event", async () => {...})` handler** (registered once at module load, not inside any class/lifecycle method) | **Worked. Real file created, confirmed via log `SUCCESS` lines across multiple repeated clicks.** |
+
+**Root cause (inferred from the pattern, not decompiled — the minified
+engine bundle doesn't expose whatever internal "current mod" tracking
+causes this):** permission checks on SDK calls like `Files.create`
+resolve the calling mod's identity from *how the call was dispatched*,
+not from which module's code is executing. The two invocation shapes that
+work (`Command.Run()`, and an `Events.on()` callback fired by
+`Events.emit()`) are both cases where the **engine's own dispatcher**
+directly invokes the mod's function fresh, callback-style. Every failing
+shape — a detached `async` IIFE, `OnStart()`, and a `Website.Exports`
+function reached across the page's iframe/sandbox boundary — is a case
+where *our own code* (or a cross-boundary bridge the engine doesn't
+attribute to us) is what resumes execution after a suspension point,
+and that resumption doesn't carry mod identity with it. This generalizes
+entries 6/12/15 (which only ever tested this for `Network.createSubnetNetwork`
+specifically) to every permissioned namespace, and disproves the
+implicit assumption that `OnStart()`'s `Promise<void>`-typed signature
+makes it a safe place to await SDK calls — it does not, empirically.
+
+Entry 3's `rootFiles` result is a **separate, unrelated finding**, not
+the same bug: it fully avoids the permission error (no `await` at all),
+but the built-in `ftp` command's own decompiled `Run()`
+(`.reverse/extracted/index.js`) does a flat `Ur.GetById(fixtureData)` —
+the same generic-purpose ID space `Files.create()`/`Files.getById()` use
+for the player's own local filesystem, not the per-device nested tree
+`rootFiles` populates. A device's own filesystem (browsable once you
+`ssh` into it) and the flat `Ur` store `ftp`'s fixture reads from are two
+different data structures; an IP address is not a valid `Ur` id no matter
+how the device was created. This means `ftp`'s own file-delivery
+mechanism is unusable by mods on this engine build regardless of the
+`Files.*` permission issue — there is no known way to populate the exact
+ID shape it reads.
+
+**The fix — route real file creation through the `Events` bridge:**
+```ts
+Events.on("mymod.some-download", async () => {
+    const folder = await Files.create({ name: "...", isFolder: true, parentPath: "/" });
+    await Files.create({ name: "...", extension: "...", parentPath: "/...", data: "..." });
+});
+```
+called from wherever the player-facing trigger lives (a `Website.Exports`
+function, an `this.Events.on(...)` handler, anywhere) via a plain
+synchronous `Events.emit("mymod.some-download")` — never `await` the
+`Files.*` call directly at the trigger site itself.
+
+**Takeaway for future missions:** any mod code that needs to create or
+write a real file (`Files.create`, `Files.createTree`, and probably
+`Database.create`/`Network.createSubnetNetwork` too, though those already
+have their own established safe patterns per earlier entries) must do so
+either inside a custom `Command`'s own `Run()`, or inside a top-level
+`Events.on()` handler reached via `Events.emit()` — never inside a quest
+lifecycle hook (sync or async), never inside a detached promise, and
+never inside a `Website.Exports` function directly. When a generic AI
+suggestion (Gemini, ChatGPT, etc.) proposes an SDK API by name, verify it
+actually exists in `node_modules/@hotbunny/hackhub-content-sdk/index.d.ts`
+before writing any code against it — `EventSystem.emit`/`EventSystem.on`
+was suggested and does not exist anywhere in this SDK; the real API
+(`Events.emit`/`Events.on`, a documented cross-mod pub/sub) happened to
+make the *same underlying idea* work, but only after checking the actual
+type declarations instead of trusting the suggested names.

@@ -61,7 +61,7 @@ conspiracy unraveling gradually rather than four disconnected jobs.
 | Victim | GHOSTWIRE's younger sibling | Died in the hospital ransomware incident that starts the story |
 | Syndicate | **BLACKLEDGER** | Ransomware-as-a-service chain |
 | M1 target | **A7xDEFACE9** | Initial access broker — hex/leet-styled codename family, `A7x` prefix |
-| M2 target | **A7xC0DEFACE** | Ransomware toolkit developer / affiliate-panel admin |
+| M2 target | **TR4C3#404** | Ransomware toolkit developer / affiliate-panel admin |
 | M3 target | **Skynet Import-Export Co.** | Shell company laundering ransom payments — deliberate cross-mod easter egg, echoing "Skynet Logistics" from entity-resolution-mods' Q04 (separate stories, same recurring fictional corporate name) |
 | M3/M4 entity | **SKN Capital Nominees** | Parent holding entity behind the shell company |
 | M4 target | **"The Architect"** | BLACKLEDGER's kingpin, owner of SKN Capital Nominees |
@@ -149,7 +149,7 @@ get their own objective checkpoint anymore.
    IRC host/password.
 7. **Access the IRC channel** — `weechat` into the recovered channel; a
    seeded conversation between the broker and a contact confirms the
-   buyer alias (**A7xC0DEFACE**) and, near the end, casually reveals the
+   buyer alias (**TR4C3#404**) and, near the end, casually reveals the
    LedgerVault domain split across two lines ("mirror's still on
    x7k2m9vdlq4wnyt3, right?" / "the .dark one? yeah, hasn't moved in
    months") — moved here in the 2026-09-21 pass specifically so the vault
@@ -165,7 +165,7 @@ get their own objective checkpoint anymore.
    (Northstar Port Authority 2020, Rheinland Energie AG 2023, this
    hospital case).
 9. **Report** — GoMail to the Custodian with 6 fields: `Listing`
-   (`MED-SEA-0417`), `Broker` (`A7xDEFACE9`), `Buyer` (`A7xC0DEFACE`),
+   (`MED-SEA-0417`), `Broker` (`A7xDEFACE9`), `Buyer` (`TR4C3#404`),
    `Case` (`CASE-A7X-0417`), `Project` (`Q3-2026-SEA`), `Vault`
    (`x7k2m9vdlq4wnyt3.dark`).
 
@@ -178,7 +178,7 @@ home Wi-Fi network cracked via `bettercap`+`fern` instead of being a
 second internet-facing router, adding one objective (7 → 8). Pre-redesign
 implementation kept at `src/content/m02.original.ts`/`src/main/m02-quest.original.ts`.
 
-**Target:** A7xC0DEFACE, the ransomware toolkit developer / affiliate-panel
+**Target:** TR4C3#404, the ransomware toolkit developer / affiliate-panel
 admin.
 
 **Chain:**
@@ -389,7 +389,7 @@ to code:
   exception, there is no separate Wi-Fi-specific permission scope in the
   SDK. No manifest change needed.
 - [x] Websites needed: A7xDEFACE9's storefront/panel (M1),
-  A7xC0DEFACE's dev-notes site + decoy `/admin/` (M2), Skynet
+  TR4C3#404's dev-notes site + decoy `/admin/` (M2), Skynet
   Import-Export's public site (M3 — the internal finance portal is
   reached by pivot + `sqlmap`/`explorer`, not a browsable `Website`), The
   Architect's C2 dashboard + hidden `/legacy-cms/` (M4). All built.

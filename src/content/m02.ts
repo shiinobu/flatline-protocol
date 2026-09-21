@@ -3,9 +3,9 @@ import type { QuestDialogDefinition, QuestObjectiveDefinition, Shell } from "@ho
 import { DEAD_DROP_CONTACT } from "./characters.js";
 import { M01_BUYER_ALIAS } from "./m01.js";
 
-export const M02_ROOT_DOMAIN = "a7xcodeface.dev";
+export const M02_ROOT_DOMAIN = "tr4c3404.dev";
 export const M02_ROOT_IP = "203.0.113.140";
-export const M02_DEV_SUBDOMAIN = "devbox.a7xcodeface.dev";
+export const M02_DEV_SUBDOMAIN = "devbox.tr4c3404.dev";
 export const M02_DEV_IP = "203.0.113.141";
 export const M02_DEV_ROUTER_IP = "66.0.34.201";
 

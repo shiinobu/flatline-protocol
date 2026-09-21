@@ -1,149 +1,206 @@
-# M01 "Jejak Pertama" — Playtest Script
+# M01 "First Trace" — Playtest Script
 
-Status: **use once, disposable** — a step-by-step script for the first live
-playthrough of Mission 1, after running `.\build-install.ps1` and
-restarting HackHub (or `mods.reset flatline-protocol`). Delete or archive
-this file once M01 reaches FINAL LOCK; it is not a permanent design doc
-(that's `docs/story.md`).
+Status: **use once, disposable** — a step-by-step script for a full live
+playthrough of Mission 1 as currently implemented, after running
+`.\build-install.ps1` and restarting HackHub (or `mods.reset
+flatline-protocol`). Delete or archive this file once M01 reaches FINAL
+LOCK; it is not a permanent design doc (that's `docs/story.md`).
 
-Three steps below are marked **[CHECKPOINT]** — these map directly to the
-open SDK-accuracy questions in `docs/scratch.md`. Everything else is
-expected to just work; report back immediately if anything below doesn't
-match, with the exact command typed and whatever error/output appeared.
+This mission is **full mechanic, not full objective**: every step below is
+tracked internally (`this.Events.on(...)` in `m01-quest.ts`) and gates the
+next step, but the player only ever sees **one** objective — "Track down
+the broker... then report what you find to the dead drop." Nothing below
+shows up as its own checkpoint in-game; this script exists so a tester can
+verify the full chain still works end to end, not just the final mail.
+
+## 0. Entry point
+
+With `isDev=true` + `DEV_FOCUS_QUEST.m01=true` (the current dev config in
+`src/guard/flags.ts`), `AutoStart=true` — the mission claims itself and
+the tip mail is waiting immediately, no HackHub feed post to click.
+
+To test the real production entry point instead (GHOSTWIRE's HackHub feed
+post), flip to `isTester=true` + `TESTER_FOCUS_QUEST.m01=true` (or a full
+`isDev=false`/`isTester=false` production build) and claim the mission by
+opening the post in the HackHub feed.
+
+**Important for this specific playtest:** `registerM01Network()`'s router
+destroy calls (and the per-domain destroy in the `M01_DOMAIN_RECORDS`
+loop) only run when `isDev=true` (see `docs/bugs.md` entry 18). If you're
+testing with `isDev=true`, the old subfinder race can still show up
+intermittently — that's expected, not a regression. To actually confirm
+entry 18's fix, step 4 below needs to be tested with `isDev=false`.
 
 ---
 
-## 0. Claim the mission
+## 1. Tip & primary domain recon
 
-The quest (`flatline.m01`, "Jejak Pertama") should auto-start
-(`AutoStart = true`). An incoming mail from an unknown sender should
-already be waiting.
+1. Open Mail, read the message from `ghost.tip@ghost.index`, subject
+   **"you should look into this"**. Points at a handle close to
+   "opsadmin" — no domain named outright.
+2. `nslookup blackwire-network.mkt` → should resolve to `198.51.100.77`.
+3. `nmap 198.51.100.77` → only port 443 (https) OPEN.
+4. `subfinder -d blackwire-network.mkt` → should list, among others,
+   `gateway.blackwire-network.mkt` and `failover.blackwire-network.mkt`.
+   **[CHECKPOINT — entry 18 regression check]** If this comes back "No
+   subdomains found" while testing with `isDev=false`, the fix didn't
+   hold; report the exact command and build config used.
+5. `nslookup gateway.blackwire-network.mkt` → resolves to `77.91.14.203`
+   (the real backend target, hidden behind the firewall for now).
 
-1. Open Mail, read the message with subject **"you should look into this"**.
-   → Completes objective 00 (Review the anonymous tip).
-   → It names two domains: `verifiedaccess.mkt` (primary) and
-     `shadowline-exchange.mkt` ("probably nothing" — the decoy).
+## 2. Listing & decoy
 
-## 1. Resolve and scan the primary lead
+6. `dirhunter blackwire-network.mkt` → should surface
+   `/listings/med-sea-0417/` among the results.
+7. Browser → `https://blackwire-network.mkt/listings/med-sea-0417/` →
+   healthcare-sector listing, marked SOLD.
+8. `nslookup frostgate-exchange.mkt` (the decoy storefront) →
+   `168.100.9.44`.
+9. `geoip 168.100.9.44` → Iceland/Reykjavik. Rules out the decoy (no
+   in-game confirmation beyond the geoip result itself — there's nothing
+   further to chase on this domain).
 
-2. `nslookup verifiedaccess.mkt` → should resolve to `203.0.113.90`.
-   → Completes objective 01 (Resolve the primary lead's domain).
-3. `nmap 203.0.113.90` → should show port 22 (ssh) OPEN, port 80 (http)
-   CLOSE, port 443 (https) OPEN.
-   → Completes objective 02 (Scan the resolved IP).
-4. `dirhunter verifiedaccess.mkt` (or however `dirhunter` is invoked against
-   a host in this build) → should surface `/internal-ops/` among the
-   results.
-   → Completes objective 03 (Enumerate hidden paths).
+## 3. Firewall breach via Kimai + JWT — **[CHECKPOINT]**
 
-## 2. Rule out the decoy (side path, any time after step 4)
+10. `nslookup failover.blackwire-network.mkt` → resolves to `45.132.11.87`
+    (the firewall).
+11. Download **kimai** from the HackDB catalog, then
+    `python3 kimai.py 45.132.11.87` → fires ~10 harmless Wireshark-visible
+    packets and leaks a signed JWT for the firewall's own user, with a
+    5%/iteration chance guaranteed by the 10th run.
+12. `python3 jwt_decoder.py <token>` (the JWT from step 11) → decodes to
+    credentials `failsafe` / `Gr1dLock#42`.
+13. Browser → `http://45.132.11.87/` → the engine's own pfSense login UI;
+    log in with `failsafe` / `Gr1dLock#42`.
+14. Make any change in pfSense and save it → this should automatically
+    lift the firewall rule blocking port 22 to the backend and open port
+    22 on `77.91.14.203`.
 
-5. `nslookup shadowline-exchange.mkt` → should resolve to `198.51.100.23`.
-   (This step itself completes nothing — it's just how you get the decoy's
-   IP for the next two commands.)
-6. `whois shadowline-exchange.mkt` → some registrar-privacy result.
-7. `geoip 198.51.100.23` → Iceland/Reykjavik.
-   → Once **both** whois and geoip are done, completes objective 04
-   (Rule out the decoy).
+    **Report back:** did kimai's leak chance feel reasonable (not an
+    obvious instant leak, not a frustrating long grind), and did the
+    pfSense login/save flow behave like a real admin panel?
 
-## 3. Identify the seller and read the listing — **[CHECKPOINT 1]**
+## 4. Into the backend, find the IRC trail
 
-8. `lynx verifiedaccess.mkt` → should return OSINT-style data (an IP
-   matching `203.0.113.90`, an address entry, no rendered page text).
-   → Completes objective 05 (Run OSINT on the storefront domain).
-9. Open the in-game browser, navigate to
-   `https://verifiedaccess.mkt/internal-ops/` → should show the
-   "Internal Ops — not indexed" page, with the healthcare-sector listing
-   naming the hospital-sector sale as SOLD, plus a mention of an FTP share
-   with anonymous login.
-   → Completes objective 06 (Read the verified-access listing).
+15. `ssh root_4ae9c@77.91.14.203`, password `Tn8$rWq3yK1z` → should connect
+    now that port 22 is open.
+16. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — all
+    flavor/decoy, nothing load-bearing) and `/logs`
+    (`sales_ledger.log` → buyer alias **TR4C3#404**; `ops-relay.log` →
+    `[ENCRYPTED]` + a base64 blob; `auth.log`/`cron.log`/`system.log` are
+    dummy noise).
+17. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
+    reveals IRC host `relay.blkledger.dark` and channel key `n0ledger`.
 
-   **Report back:** did step 8 (lynx) and step 9 (browsing the page) feel
-   like two distinct, meaningful actions — or did it feel redundant, like
-   you were told to do the same "read the listing" thing twice? This
-   decides whether the two objectives stay separate or get merged.
+## 5. Confirm via IRC, find the vault
 
-## 4. Breach the FTP share — **[CHECKPOINT 2]**
+18. `weechat relay.blkledger.dark`, password `n0ledger` → connects, seeded
+    chat history confirms buyer **TR4C3#404** and leaks the LedgerVault
+    mirror domain `x7k2m9vdlq4wnyt3.dark` across two separate lines (not
+    posted as one obvious copy-pasteable string).
+19. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault's interactive file
+    browser) → open `case_id.txt` (**CASE-A7X-0417**), `network_map.txt`,
+    `found_note.txt`, and the quarterly report folders
+    (`Q3-2026-SEA` — this project code is required for the report;
+    `Q1-2020-NA`/`Q2-2023-EU` are context/flavor). `associate_infra.txt`
+    here is a teaser for M2, not required for M1's report.
 
-10. `ftp -h 203.0.113.90 -u anonymous -p anonymous` (real in-game syntax
-    confirmed 2026-09-18 — a bare `ftp <ip>` only prints usage; see
-    `docs/bugs.md` entry 1).
-    → Completes objective 07 (Access the leaked FTP share).
-    → **At the exact moment this connects**, a new mail should arrive:
-      subject "FTP Transfer Complete", with an attachment named
-      `wordlist.txt`.
-11. Open that mail, download the `wordlist.txt` attachment.
+---
 
-    **Report back:** does the attachment actually save as a real,
-    readable file on your system (something `hydra` can point at as a
-    wordlist argument)? Or does it fail to download / not behave like a
-    normal file? This is the biggest unknown — HackHub's `ftp` command
-    itself can't hand over a real file on this SDK version, so the
-    wordlist is delivered as a mail attachment instead. If that doesn't
-    work as a real file, this whole step needs a different delivery
-    mechanism.
+## 6. Report findings (the one objective the player sees)
 
-## 5. Crack the panel and get in — **[CHECKPOINT 3]**
+Compose a mail to `drop@drop.null` (the Custodian), either:
 
-12. `hydra` against `203.0.113.90`, user `opsadmin`, using the
-    downloaded `wordlist.txt` as the wordlist. The correct password
-    inside that wordlist is `verified_2024!`.
-    → Completes objective 08 (Brute-force the broker's SSH login) —
-    should print the found credentials (`opsadmin` / `verified_2024!`).
-13. `ssh -h opsadmin@203.0.113.90`, enter password `verified_2024!` when
-    prompted. **If that prints a usage message instead of connecting**
-    (like the bare `ftp <ip>` did — see `docs/bugs.md` entry 1), the game
-    is telling you the exact flag syntax it wants; match that instead
-    (e.g. it may want `-u`/`-p` flags like `ftp` did rather than
-    `user@ip`).
-    → Completes objective 09 (Connect to the broker's server).
+- The **"Mission 1 Findings"** template from the compose dropdown, fields:
+  `listingCode: MED-SEA-0417`, `broker: A7xDEFACE9`,
+  `buyer: TR4C3#404`, `caseId: CASE-A7X-0417`,
+  `project: Q3-2026-SEA`, `vaultUrl: x7k2m9vdlq4wnyt3.dark`, or
+- A freehand mail, subject **"Broker identified — buyer alias attached"**,
+  body matching `M01_REPORT_BODY` exactly.
 
-    **Report back:** did `ssh` actually prompt for a password and accept
-    `verified_2024!`? A `Shell.addCommandData("ssh", {host, key: password}, ...)`
-    fixture is registered (added preemptively after the `ftp` fixture
-    turned out to be required, `docs/bugs.md` entry 1), but it's
-    unconfirmed whether `key` means "the password" the way that fixture
-    assumes. If login fails, try the flag-based syntax `ftp` needed
-    (`-h`/`-u`/`-p`-style) instead of `user@ip`.
+**[CHECKPOINT — hard gate]** This mail is silently rejected (no
+`reportSent`, no objective completion) if step 19 (visiting LedgerVault)
+hasn't been recorded yet, regardless of whether the report content itself
+is correct — `vaultVisited` is checked before anything else in the
+`Mail.Sent` handler. If you send a perfectly correct report before
+visiting the vault, it should do nothing; confirm it works immediately
+after a vault visit with no other changes.
 
-## 6. Find the ledger entry
-
-14. Once connected, `ls` then `cat sales_ledger.log` (should be at the
-    remote root, no subfolder).
-    → Should show a transaction log row naming buyer alias
-      **A7xC0DEFACE**.
-    → Completes objective 10 (Find the sales ledger entry).
-
-## 7. Confirm via IRC
-
-15. `weechat relay.blkledger.dark` (password `n0ledger`) — again, if this
-    prints a usage message, match whatever flag syntax it shows.
-    → Completes objective 11 (Confirm the lead via IRC) as soon as the
-    connection succeeds.
-    → The chat history should include a stored line about "the new
-    build's client" wanting it fast.
-
-    **Report back (same checkpoint as step 13):** did `weechat` connect
-    and accept the password the same way `ssh` did (or didn't)? Same
-    underlying concern — a fixture is registered but unconfirmed live.
-
-## 8. Report findings
-
-16. Compose a mail to `drop@ashline.void`. Either:
-    - Use the **"Mission 1 Findings"** template from the compose dropdown
-      and fill in `broker: verifiedaccess.mkt`, `buyer: A7xC0DEFACE`, or
-    - Send a freehand mail with subject **"Broker identified — buyer
-      alias attached"** and body matching the exact report text (broker +
-      buyer alias lines).
-    → Completes objective 12 (Send findings to the dead drop) and finishes
-    the mission — reward `250` money / `60` xp should be granted
-    automatically.
+Once accepted: objective "Track down the broker..." completes,
+`AutoComplete` finishes the mission, reward 250 money / 60 xp (0/0 while
+still in dev-focus or tester-focus mode).
 
 ---
 
 ## What to report back overall
 
-For each of the 3 checkpoints above: **worked as expected**, or **broke —
-here's exactly what happened** (command typed, what the game showed/didn't
-show, any error text). Anything outside the 3 checkpoints that also breaks
-is worth reporting too, but those are the known risk areas.
+For the 2 checkpoints above (subfinder regression in section 1, and the
+vault-visit gate in section 6): **worked as expected**, or **broke — exact
+command typed, exact output/error, and whether `isDev`/`isTester` was on**.
+Anything else that breaks along the way is also worth a note, but those
+two are the known risk areas coming out of this session's network-timing
+fix (`docs/bugs.md` entry 18).
+
+---
+
+## Appendix — network topology reference
+
+### Layer 1 — real network tree (3 routers, actually traversable)
+
+```
+M01_ROUTER_IP            91.198.174.3   (Router)
+└─ M01_TARGET_IP          77.91.14.203   (Device) [gateway.blackwire-network.mkt]
+   user: root_4ae9c / Tn8$rWq3yK1z
+   ports: 22 ssh (CLOSED until pfSense breach) · 80 http (closed) · 443 https (open)
+   files: /home/{ops_notes,todo,readme}, /logs/{sales_ledger,ops-relay,auth,cron,system}
+
+M01_FIREWALL_ROUTER_IP   45.132.11.1    (Router)
+└─ M01_FIREWALL_IP        45.132.11.87   (Firewall) [failover.blackwire-network.mkt]
+   user: failsafe / Gr1dLock#42 (leaked via kimai -> jwt_decoder)
+   ports: 80 http (open, pfSense UI) · rule blocking 22->target (removed on PFSense.Changes)
+
+M01_FRONT_ROUTER_IP      198.51.100.1   (Router)
+├─ M01_FRONT_IP           198.51.100.77  (Device) [blackwire-network.mkt -- root domain]
+│  ports: 443 https (open, storefront + /listings/med-sea-0417/)
+└─ M01_LEGACY_IP          198.51.100.212 (Device) [legacy.blackwire-network.mkt]
+   user: admin / admin123
+   ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
+```
+
+### Layer 2 — flat domain overlay (`M01_DOMAIN_RECORDS`, 40 entries)
+
+Read by `subfinder`/`nslookup`. Some ride on the real nodes above
+(`needsSubnet: false`), the rest are standalone empty `Device` nodes that
+exist purely to be a discoverable domain (`needsSubnet: true`).
+
+| Cluster | Root domain | Root IP | Standalone subdomains |
+| --- | --- | --- | --- |
+| Target (real) | `blackwire-network.mkt` -> `.77`\* | rides FRONT | `www`.78, `mail`.140, `api`.63, `status`.201, `legacy`.212\*, `gateway`.203\* (-> target), `failover`.87\* (-> firewall) |
+| Decoy | `frostgate-exchange.mkt` -> `168.100.9.44` | standalone | `www`/`trade`/`api`/`support`/`status`/`gateway`/`wallet` @ `91.243.67.x` |
+| Flavor only | `swiftedge.cloud` -> `172.98.44.19` | standalone | `www`/`cdn1`/`cdn2`/`status`/`api`/`billing`/`gateway` @ `172.98.44.x` |
+| Flavor only | `clearescrow.io` -> `46.29.115.63` | standalone | `www`/`app`/`api`/`support`/`status`/`gateway`/`partners` @ `46.29.115.x` |
+| Flavor only | `pacificcare-health.org` -> `103.87.62.145` | standalone | `www`/`patientportal`/`careers`/`news`/`mail`/`status`/`gateway` @ `103.87.62.x` |
+| Flavor only | `obsidian-access.mkt` -> `5.188.94.117` | standalone | `www`/`gateway` @ `5.188.94.x` |
+
+(`\*` = rides a real Layer 1 node, not a separate node.) The 4 "flavor
+only" clusters are pure recon noise mentioned only in the broker's Twotter
+posts — no mechanic behind them, they just make the 40-domain layer feel
+real without 40 real devices.
+
+### Known gap — LedgerVault is not on the Network tree at all
+
+`x7k2m9vdlq4wnyt3.dark` (`185.220.31.6`) never gets a
+`Network.createSubnetNetwork()` call — only a direct
+`Network.registerDomain(M01_LEDGERVAULT_DOMAIN, M01_LEDGERVAULT_IP)` with
+no subnet behind it. Per the same "left alone"/no-op mechanism as entries
+3 and 18, this registration is likely a no-op. The page still loads in
+browser because it's served through a completely separate system
+(`@RegisterWebsite`, `Host = M01_LEDGERVAULT_DOMAIN` in
+`src/websites/m01/ledgervault/index.ts`), independent of `Network`
+entirely. Expected practical effect: browsing to LedgerVault should work
+fine, but `nslookup x7k2m9vdlq4wnyt3.dark` likely fails/returns nothing,
+since (unlike every `M01_DOMAIN_RECORDS` entry) there is no
+`Shell.addCommandData("nslookup", ...)` fixture for this domain either.
+**Not yet confirmed live** — if you test this during the playtest, report
+back what `nslookup x7k2m9vdlq4wnyt3.dark` actually does, and it'll get
+its own `docs/bugs.md` entry.

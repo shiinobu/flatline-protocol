@@ -2,16 +2,512 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ClearEscrow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClearEscrow — Public Transaction Board</title>
 <style>
-    body { background:#0d1013; color:#d6dde2; font-family: Arial, sans-serif; padding: 40px; }
-    h1 { color:#c9a24b; }
-    .tag { color:#8a939a; }
+:root{
+  --bg:#060809;
+  --panel:#0c1012;
+  --panel-2:#101517;
+  --line:#1d2528;
+  --text:#e8edef;
+  --muted:#7f8b90;
+  --gold:#d0ae58;
+  --green:#52d39a;
+  --amber:#e5bd5c;
+  --red:#ef7777;
+  --blue:#70b5ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  letter-spacing:.1px;
+}
+button,input{font:inherit}
+.header{
+  height:88px;
+  border-bottom:1px solid var(--line);
+  background:#080b0c;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 38px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{
+  width:38px;height:38px;border:1px solid var(--gold);
+  border-radius:7px;display:grid;place-items:center;
+  color:var(--gold);font-weight:800;font-size:11px;
+  transform:rotate(45deg);
+}
+.logo span{transform:rotate(-45deg)}
+.brand-name{
+  font-size:17px;font-weight:780;letter-spacing:1.1px;
+}
+.brand-sub{
+  color:var(--muted);font-size:9px;text-transform:uppercase;
+  letter-spacing:1.4px;margin-top:2px;
+}
+.header-right{display:flex;align-items:center;gap:22px}
+.public{
+  display:flex;align-items:center;gap:8px;
+  color:#adb6ba;font-size:13px;text-transform:uppercase;letter-spacing:1px;
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 4px rgba(82,211,154,.08);
+}
+.clock{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:14px;letter-spacing:.8px;color:#fff;
+}
+.wrap{max-width:1480px;margin:0 auto;padding:30px 28px 45px}
+.board-top{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:20px;margin-bottom:17px;
+}
+h1{
+  margin:0;font-size:28px;line-height:1.1;
+  letter-spacing:-.7px;
+}
+.kicker{
+  color:var(--gold);font-size:10px;text-transform:uppercase;
+  letter-spacing:1.6px;margin-bottom:7px;
+}
+.description{color:var(--muted);font-size:14px;margin-top:7px}
+.meta{text-align:right}
+.meta-line{font-size:12px;color:#667277;text-transform:uppercase;letter-spacing:.9px}
+.meta-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;margin-top:3px}
+.tabs{
+  display:flex;gap:5px;border-bottom:1px solid var(--line);margin-bottom:12px;
+}
+.tab{
+  border:0;background:transparent;color:#778388;
+  padding:10px 13px;cursor:pointer;font-size:13px;
+}
+.tab.active{color:#fff;border-bottom:2px solid var(--gold)}
+.board{
+  border:1px solid var(--line);
+  background:var(--panel);
+  overflow:hidden;
+}
+.board-head,.row{
+  display:grid;
+  grid-template-columns:92px 138px 130px 1fr 1fr 128px 120px;
+  align-items:center;
+}
+.board-head{
+  min-height:44px;background:#101517;
+  color:#738085;text-transform:uppercase;
+  letter-spacing:1px;font-size:11px;font-weight:750;
+  border-bottom:1px solid var(--line);
+}
+.board-head>div,.row>div{padding:0 16px}
+.row{
+  min-height:64px;
+  border-bottom:1px solid #151d20;
+  transition:background .15s ease;
+}
+.row:last-child{border-bottom:0}
+.row:hover{background:#0f1517}
+.row.updated{animation:flash 1.1s ease}
+@keyframes flash{
+  0%{background:rgba(208,174,88,.13)}
+  100%{background:transparent}
+}
+.time{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:#d8dfe1;font-size:14px;
+}
+.ref{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px;color:#fff;
+}
+.listing{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px;color:#a9b3b7;
+}
+.party-main{font-size:13px;color:#eef1f2}
+.party-sub{font-size:11px;color:#677378;margin-top:2px}
+.amount{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px;color:#69747a;text-align:right;
+}
+.status{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:750;
+  text-transform:uppercase;letter-spacing:.7px;
+}
+.status-dot{width:6px;height:6px;border-radius:50%}
+.held{color:var(--amber)} .held .status-dot{background:var(--amber)}
+.released{color:var(--green)} .released .status-dot{background:var(--green)}
+.pending{color:var(--blue)} .pending .status-dot{background:var(--blue)}
+.disputed{color:var(--red)} .disputed .status-dot{background:var(--red)}
+.note{
+  margin-top:12px;display:flex;align-items:center;
+  justify-content:space-between;gap:20px;
+  color:#5f696d;font-size:12px;
+}
+.note-left{display:flex;align-items:center;gap:7px}
+.lock{color:#8a969b}
+.search{
+  width:235px;
+  background:#0c1012;
+  border:1px solid var(--line);border-radius:5px;
+  color:#fff;padding:8px 10px;font-size:13px;outline:none;
+}
+.search:focus{border-color:#66552d}
+.toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+.toolbar .tabs{
+  margin-bottom:0;
+  flex:1;
+}
+.search{
+  margin-left:auto;
+  width:235px;
+  flex:0 0 235px;
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:12px;
+}
+.stat-card{
+  background:#0a0e10;
+  border:1px solid var(--line);
+  border-radius:7px;
+  padding:15px 18px;
+  min-height:78px;
+}
+.summary-label{
+  color:#6e797d;font-size:11px;text-transform:uppercase;letter-spacing:1px;
+}
+.summary-value{
+  margin-top:5px;font-size:23px;font-weight:760;
+}
+.rows-scroll{
+  max-height:645px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#374247 #0b1012;
+}
+.rows-scroll::-webkit-scrollbar{width:8px}
+.rows-scroll::-webkit-scrollbar-track{background:#0b1012}
+.rows-scroll::-webkit-scrollbar-thumb{background:#374247;border-radius:8px}
+.pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:12px;
+  padding:9px 0;
+}
+.page-info{
+  color:#697478;
+  font-size:12px;
+}
+.page-controls{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.page-btn,.page-number{
+  min-width:32px;
+  height:32px;
+  border:1px solid var(--line);
+  background:#0c1012;
+  color:#859095;
+  border-radius:5px;
+  cursor:pointer;
+  font-size:12px;
+}
+.page-btn:hover,.page-number:hover{
+  border-color:#455156;
+  color:#fff;
+}
+.page-number.active{
+  border-color:var(--gold);
+  color:var(--gold);
+  background:#15130d;
+}
+.page-btn:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+
+@media(max-width:1050px){
+  .board-head,.row{
+    grid-template-columns:78px 120px 110px 1fr 1fr 105px 105px;
+  }
+  .board-head>div,.row>div{padding:0 11px}
+}
+@media(max-width:850px){
+  .header{padding:0 18px}
+  .wrap{padding:24px 14px 35px}
+  .toolbar{flex-direction:column;align-items:stretch}
+  .toolbar .tabs{overflow-x:auto}
+  .search{width:100%;flex:1 1 auto}
+  .board{overflow-x:auto}
+  .board-head,.row{min-width:910px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .header{height:72px}
+  .brand-sub,.public{display:none}
+  .header-right{margin-left:auto}
+  .board-top{align-items:flex-start;flex-direction:column}
+  .meta{text-align:left}
+  .note{align-items:flex-start;flex-direction:column}
+}
 </style>
 </head>
 <body>
-<h1>ClearEscrow</h1>
-<p class="tag">Third-party escrow and payment settlement for marketplace transactions.</p>
-<p class="tag">Partner dashboard access by invitation only.</p>
+
+<header class="header">
+  <div class="brand">
+    <div class="logo"><span>CE</span></div>
+    <div>
+      <div class="brand-name">ClearEscrow</div>
+      <div class="brand-sub">Independent Escrow Service</div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="public"><span class="live-dot"></span> Public transaction board</div>
+    <div class="clock" id="clock">--:--:-- UTC</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="board-top">
+    <div>
+      <div class="kicker">Settlement activity</div>
+      <h1>Transaction Board</h1>
+      <div class="description">Public transaction references and settlement status. Amounts, personal and banking details are not displayed.</div>
+    </div>
+    <div class="meta">
+      <div class="meta-line">Last board update</div>
+      <div class="meta-value" id="updated">--:--:-- UTC</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tabs">
+      <button class="tab active" data-filter="all">All transactions</button>
+      <button class="tab" data-filter="held">Funds held</button>
+      <button class="tab" data-filter="released">Released</button>
+      <button class="tab" data-filter="pending">Pending</button>
+    </div>
+    <input class="search" id="search" type="search" placeholder="Search reference..." aria-label="Search reference">
+  </div>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="summary-label">Visible transactions</div>
+      <div class="summary-value" id="total">18</div>
+    </div>
+    <div class="stat-card">
+      <div class="summary-label">Funds currently held</div>
+      <div class="summary-value" id="heldCount">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="summary-label">Released</div>
+      <div class="summary-value" id="releasedCount">18</div>
+    </div>
+    <div class="stat-card">
+      <div class="summary-label">Pending</div>
+      <div class="summary-value" id="pendingCount">0</div>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="board-head">
+      <div>Time</div>
+      <div>Escrow Ref</div>
+      <div>Listing Ref</div>
+      <div>Buyer</div>
+      <div>Seller / Vendor</div>
+      <div style="text-align:right">Amount</div>
+      <div>Status</div>
+    </div>
+    <div class="rows-scroll" id="rows"></div>
+  </section>
+
+  <div class="pagination">
+    <div class="page-info" id="pageInfo"></div>
+    <div class="page-controls">
+      <button class="page-btn" id="prevPage">←</button>
+      <div id="pageNumbers"></div>
+      <button class="page-btn" id="nextPage">→</button>
+    </div>
+  </div>
+
+  <div class="note">
+    <div class="note-left"><span class="lock">▣</span> ClearEscrow operates as an independent third-party escrow service. All references shown are transaction metadata.</div>
+    <div>Board refresh: automatic</div>
+  </div>
+</main>
+
+<script>
+const transactions = [
+  ["23:58","ESC-88201","BW-9981","—","DUSKFENCE","UNDISCLOSED","released"],
+  ["23:41","ESC-88202","OA-9915","—","DARKINDEX","UNDISCLOSED","released"],
+  ["23:27","ESC-88203","FG-7710","—","GRAYWATCH","UNDISCLOSED","released"],
+  ["23:12","ESC-88204","BW-4415","—","REDLINE_OPS","UNDISCLOSED","released"],
+  ["22:58","ESC-88205","FG-2244","—","VOIDCARTEL","UNDISCLOSED","released"],
+  ["22:44","ESC-88206","OA-3387","—","MIRRORVAULT","UNDISCLOSED","released"],
+  ["22:31","ESC-88207","BW-0552","—","NULLROUTE99","UNDISCLOSED","released"],
+  ["22:15","ESC-88208","FG-9042","—","PALEWIRE","UNDISCLOSED","released"],
+  ["21:58","ESC-88209","BW-2266","—","COALVEIN","UNDISCLOSED","released"],
+  ["21:40","ESC-88210","FG-3302","—","CINDERLOCK","UNDISCLOSED","released"],
+  ["21:23","ESC-88211","BW-7743","—","IRONVEIL","UNDISCLOSED","released"],
+  ["21:07","ESC-88212","FG-1183","—","KILOWATT_X","UNDISCLOSED","released"],
+  ["20:52","ESC-88213","OA-1120","—","GRIMLEDGER","UNDISCLOSED","released"],
+  ["20:36","ESC-88214","BW-0417","TR4C3#404","A7xDEFACE9","UNDISCLOSED","released"],
+  ["20:19","ESC-88215","FG-6650","—","ASHFALL_TRD","UNDISCLOSED","released"],
+  ["20:03","ESC-88216","OA-4420","—","NIGHTMARKET7","UNDISCLOSED","released"],
+  ["19:47","ESC-88217","OA-8802","—","HOLLOWPIPE","UNDISCLOSED","released"],
+  ["19:30","ESC-88218","OA-4471","—","EMBERSTOCK","UNDISCLOSED","released"]
+];
+
+let filter = "all";
+let currentPage = 1;
+const pageSize = 10;
+
+function rowTemplate(t){
+  const [time,ref,listing,buyer,seller,amount,status] = t;
+  const label = status === "held" ? "Funds held" :
+                status === "released" ? "Released" :
+                status === "pending" ? "Pending" : "Disputed";
+  return `
+    <div class="row" data-status="${status}" data-search="${(ref+" "+listing+" "+buyer+" "+seller).toLowerCase()}">
+      <div class="time">${time}</div>
+      <div class="ref">${ref}</div>
+      <div class="listing">${listing}</div>
+      <div>
+        <div class="party-main">${buyer}</div>
+        <div class="party-sub">anonymous buyer</div>
+      </div>
+      <div>
+        <div class="party-main">${seller}</div>
+        <div class="party-sub">anonymous vendor</div>
+      </div>
+      <div class="amount">${amount}</div>
+      <div><span class="status ${status}"><span class="status-dot"></span>${label}</span></div>
+    </div>
+  `;
+}
+
+function getVisibleTransactions(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  return transactions.filter(t => {
+    const matchesFilter = filter === "all" || t[6] === filter;
+    const matchesSearch = !q || t.join(" ").toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
+}
+
+function renderPagination(total){
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  currentPage = Math.min(currentPage, pages);
+
+  const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, total);
+  document.getElementById("pageInfo").textContent =
+    total === 0 ? "Showing 0 of 0" : `Showing ${start}–${end} of ${total}`;
+
+  const pageNumbers = document.getElementById("pageNumbers");
+  pageNumbers.innerHTML = "";
+  for(let i=1;i<=pages;i++){
+    const btn = document.createElement("button");
+    btn.className = "page-number" + (i === currentPage ? " active" : "");
+    btn.textContent = i;
+    btn.addEventListener("click",()=>{
+      currentPage = i;
+      render();
+      document.getElementById("rows").scrollTop = 0;
+    });
+    pageNumbers.appendChild(btn);
+  }
+
+  document.getElementById("prevPage").disabled = currentPage === 1;
+  document.getElementById("nextPage").disabled = currentPage === pages;
+}
+
+function render(){
+  const visible = getVisibleTransactions();
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageRows = visible.slice(startIndex, startIndex + pageSize);
+
+  document.getElementById("rows").innerHTML =
+    pageRows.map(rowTemplate).join("");
+
+  document.getElementById("total").textContent = visible.length;
+
+  const held = transactions.filter(t=>t[6]==="held").length;
+  const released = transactions.filter(t=>t[6]==="released").length;
+  const pending = transactions.filter(t=>t[6]==="pending").length;
+  document.getElementById("heldCount").textContent = held;
+  document.getElementById("releasedCount").textContent = released;
+  document.getElementById("pendingCount").textContent = pending;
+
+  renderPagination(visible.length);
+}
+
+function updateClock(){
+  const now = new Date();
+  const time = new Intl.DateTimeFormat("en-GB",{
+    hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:"UTC"
+  }).format(now);
+  document.getElementById("clock").textContent = time + " UTC";
+  document.getElementById("updated").textContent = time + " UTC";
+}
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    tab.classList.add("active");
+    filter = tab.dataset.filter;
+    currentPage = 1;
+    render();
+  });
+});
+
+document.getElementById("search").addEventListener("input",()=>{
+  currentPage = 1;
+  render();
+});
+
+document.getElementById("prevPage").addEventListener("click",()=>{
+  if(currentPage > 1){
+    currentPage--;
+    render();
+    document.getElementById("rows").scrollTop = 0;
+  }
+});
+
+document.getElementById("nextPage").addEventListener("click",()=>{
+  const total = getVisibleTransactions().length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  if(currentPage < pages){
+    currentPage++;
+    render();
+    document.getElementById("rows").scrollTop = 0;
+  }
+});
+
+render();
+updateClock();
+setInterval(updateClock,1000);
+</script>
 </body>
 </html>

@@ -1,190 +1,116 @@
 import {
-    Database,
     type DynamicWebsitePageDefinition,
-    Network,
-    NetworkDeviceType,
-    type NetworkVulnerability,
+    Events,
+    Files,
     type PageContext,
     type PageMetadata,
-    Quest,
-    type QuestObjectiveDefinition,
-    RegisterQuest,
     RegisterWebsite,
     Website,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { isDebug } from "../guard/flags.js";
 import { trace } from "../helpers/logger.js";
 
-const SCRATCH_ROUTER_IP = "192.0.2.101";
-const SCRATCH_NESTED_IP = "192.0.2.102";
-const SCRATCH_NESTED_DOMAIN = "scratch-sqli-nested.corp";
-const SCRATCH_VULNS: NetworkVulnerability[] = [{ type: "SQL_INJECTION" }];
+const SCRATCH_DL_DOMAIN = "scratch-dl.corp";
+const SCRATCH_DL_PATH = "/scratch-dl";
+const SCRATCH_DL_NAME = "probe";
+const SCRATCH_DL_EXTENSION = "lst";
+const SCRATCH_DL_CONTENT = "hello-from-events-bridge";
+const SCRATCH_DL_EVENT_TRIGGER = "scratch.dl.trigger";
+const SCRATCH_DL_EVENT_DONE = "scratch.dl.done";
 
-const scratchPage = (label: string): DynamicWebsitePageDefinition => ({
-    path: "/",
-    metadata: (_context: PageContext): PageMetadata => ({
-        title: `Scratch — ${label}`,
-        description: "Debug-only placeholder page.",
-        html: `<h1>${label}</h1><p>Isolating whether a registered Website is required for sqlmap to detect Network vulnerabilities, independent of nesting.</p>`,
-    }),
-});
-
-@RegisterWebsite
-export class ScratchNestedWebsite extends Website {
-    override SiteName = "Scratch Nested";
-    override Host = SCRATCH_NESTED_DOMAIN;
-    override Icon = "";
-    override Pages: DynamicWebsitePageDefinition[] = [scratchPage("nested child Device")];
+interface ScratchDlResult {
+    readonly ok: boolean;
+    readonly path?: string;
+    readonly error?: string;
 }
 
-const SCRATCH_FIREWALL_ROUTER_IP = "192.0.2.211";
-const SCRATCH_FIREWALL_IP = "192.0.2.210";
-const SCRATCH_FIREWALL_LAN_IP = "10.99.0.1";
-const SCRATCH_FIREWALL_USERNAME = "scratchadmin";
-const SCRATCH_FIREWALL_PASSWORD = "kimai-test-pw";
-
-interface ScratchQuestData {
-    readonly ready: boolean;
-    readonly kimaiRan: boolean;
-}
-
-@RegisterQuest
-export class FlatlineScratchQuest extends Quest<ScratchQuestData> {
-    override Name = "flatline.scratch";
-    override Title = "Scratch — SQL_INJECTION detection isolation";
-    override Description =
-        "Debug-only quest isolating whether a nested-child Network device supports sqlmap SQL_INJECTION detection the same as a flat top-level device, now that both are backed by a real registered Website. Also isolates the REAL built-in Kimai tool against a scratch Firewall-type device, ahead of relying on it for M01 (no custom capture logic needed — Kimai only works against type:Firewall targets and leaks that node's own users[0] credential as a signed token).";
-    override AutoStart = isDebug;
-    override AutoComplete = false;
-    override Objectives: QuestObjectiveDefinition[] = [
-        { name: "scratch.ready", description: "Scratch test environment" },
-        {
-            name: "scratch.kimai-ran",
-            description:
-                `Get kimai.py the normal way, open Wireshark and start capturing, then run: python3 kimai.py ${SCRATCH_FIREWALL_IP}`,
-        },
-        {
-            name: "scratch.kimai-decoded",
-            description:
-                `Find the "Cookie" packet in Wireshark, copy its token, then run: python3 jwt_decoder.py <token> — should reveal ${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD}`,
-        },
-    ];
-
-    override CreateData(): ScratchQuestData {
-        return { ready: true, kimaiRan: false };
-    }
-
-    override OnObjectivesStart() {
-        try {
-            Network.createSubnetNetwork({
-                ip: SCRATCH_ROUTER_IP,
-                type: NetworkDeviceType.Router,
-                users: [],
-                ports: [],
-                children: [
-                    {
-                        ip: SCRATCH_NESTED_IP,
-                        type: NetworkDeviceType.Device,
-                        name: "Scratch Nested Target",
-                        domain: { name: SCRATCH_NESTED_DOMAIN, vulnerabilities: SCRATCH_VULNS },
-                        ports: [
-                            { external: 443, internal: 443, active: true, service: "https" },
-                            { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
-                        ],
-                        users: [],
-                    },
-                ],
-            });
-            trace("scratch-quest", "step=createSubnetNetwork:done (no-op if address already existed)");
-
-            Network.removePort(SCRATCH_ROUTER_IP, 3306);
-            Network.addPort(SCRATCH_NESTED_IP, {
-                external: 3306,
-                internal: 3306,
-                active: true,
-                service: "mysql",
-                version: "mariadb",
-            });
-            Network.setVulnerabilities(SCRATCH_NESTED_IP, SCRATCH_VULNS);
-            trace("scratch-quest", "step=reconcile:done (forced port+vuln to current desired state)");
-
-            trace("scratch-quest", `router-state=${JSON.stringify(Network.getSubnet(SCRATCH_ROUTER_IP))}`);
-            trace("scratch-quest", `nested-state=${JSON.stringify(Network.getSubnet(SCRATCH_NESTED_IP))}`);
-
-            Database.create({
-                host: SCRATCH_NESTED_IP,
-                user: "test",
-                password: "test",
-                tables: {
-                    users: [
-                        { id: { value: 1, type: "number" }, username: { value: "admin", type: "string" } },
-                    ],
-                },
-            });
-            trace("scratch-quest", "step=Database.create:done");
-
-            trace(
-                "scratch-quest",
-                `flat=nested=${SCRATCH_NESTED_DOMAIN} ` +
-                    `(${SCRATCH_NESTED_IP} under router ${SCRATCH_ROUTER_IP}) — both now have a real Website. ` +
-                    `Test: sqlmap -u https://${SCRATCH_NESTED_DOMAIN}/ -tables`,
-            );
-
-            Network.destroyNetwork(SCRATCH_FIREWALL_ROUTER_IP);
-            Network.createSubnetNetwork({
-                ip: SCRATCH_FIREWALL_ROUTER_IP,
-                type: NetworkDeviceType.Router,
-                users: [],
-                ports: [],
-                children: [
-                    {
-                        ip: SCRATCH_FIREWALL_IP,
-                        lanIp: SCRATCH_FIREWALL_LAN_IP,
-                        type: NetworkDeviceType.Firewall,
-                        users: [
-                            Network.createUser({
-                                username: SCRATCH_FIREWALL_USERNAME,
-                                password: SCRATCH_FIREWALL_PASSWORD,
-                            }),
-                        ],
-                        rules: [{ allowed: false, port: 9999 }],
-                    },
-                ],
-            });
-            trace(
-                "scratch-quest",
-                `step=kimai-setup:done firewall=${SCRATCH_FIREWALL_IP} type=Firewall users[0]=${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD} — ` +
-                    `get kimai.py the normal way, open Wireshark and start capturing FIRST, then run: python3 kimai.py ${SCRATCH_FIREWALL_IP}`,
-            );
-            trace("scratch-quest", `firewall-router-state=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_ROUTER_IP))}`);
-            trace("scratch-quest", `firewall-state=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_IP))}`);
-        } catch (error) {
-            trace("scratch-quest", `step=ERROR ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`);
+Events.on(SCRATCH_DL_EVENT_TRIGGER, async () => {
+    try {
+        let folder = await Files.getByPath(SCRATCH_DL_PATH);
+        if (!folder) {
+            folder = await Files.create({ name: "scratch-dl", isFolder: true, parentPath: "/" });
         }
 
-        this.Events.on("Python3.ExecFile", (data) => {
-            if (data.file.name === "kimai" && data.args[0] === SCRATCH_FIREWALL_IP) {
-                this.SetData("kimaiRan", true);
-                this.completeObjective("scratch.kimai-ran");
-                trace(
-                    "scratch-quest",
-                    "step=kimai-ran:file+args matched — this only proves the command was invoked, not that Kimai found the target. " +
-                        `firewall-state-at-run-time=${JSON.stringify(Network.getSubnet(SCRATCH_FIREWALL_IP))}`,
-                );
-                return;
-            }
+        const filePath = `${SCRATCH_DL_PATH}/${SCRATCH_DL_NAME}.${SCRATCH_DL_EXTENSION}`;
+        let file = await Files.getByPath(filePath);
+        if (!file) {
+            file = await Files.create({
+                name: SCRATCH_DL_NAME,
+                extension: SCRATCH_DL_EXTENSION,
+                parentPath: SCRATCH_DL_PATH,
+                data: SCRATCH_DL_CONTENT,
+            });
+        } else {
+            Files.write(file.id, SCRATCH_DL_CONTENT);
+        }
 
-            if (data.file.name === "jwt_decoder" && data.args.length === 1) {
-                if (!this.Data.kimaiRan) return;
-
-                this.completeObjective("scratch.kimai-decoded");
-                trace(
-                    "scratch-quest",
-                    `step=kimai-decoded:ran jwt_decoder.py ${data.args[0]} — confirm the printed output shows ` +
-                        `${SCRATCH_FIREWALL_USERNAME}/${SCRATCH_FIREWALL_PASSWORD}`,
-                );
-            }
-        });
+        trace("scratch-dl", `SUCCESS id=${file.id} path=${filePath}`);
+        Events.emit<typeof SCRATCH_DL_EVENT_DONE>(SCRATCH_DL_EVENT_DONE, { ok: true, path: filePath });
+    } catch (error) {
+        const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
+        trace("scratch-dl", `ERROR ${message}`);
+        Events.emit<typeof SCRATCH_DL_EVENT_DONE>(SCRATCH_DL_EVENT_DONE, { ok: false, error: message });
     }
+});
+
+const scratchDlPageHtml = `
+<style>
+    body { background:#0b0b0f; color:#d8d8d8; font-family: monospace; padding: 32px; }
+    h1 { color:#3ddc97; }
+    button { background:#122; color:#3ddc97; border:1px solid #3ddc97; padding:8px 16px; cursor:pointer; font-family: monospace; }
+    button:disabled { opacity:0.5; cursor:default; }
+    .bar { width: 320px; height: 14px; border: 1px solid #3ddc97; margin-top: 16px; background:#0b0b0f; }
+    .fill { height: 100%; width: 0%; background: #3ddc97; transition: width 1.6s linear; }
+    .status { margin-top: 10px; }
+    .done { color: #3ddc97; }
+    .fail { color: #ff5555; }
+</style>
+<h1>Scratch DL</h1>
+<button id="btn" onclick="startDownload()">Download probe.lst</button>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<div class="status" id="status"></div>
+<script>
+async function startDownload() {
+    const btn = document.getElementById("btn");
+    const fill = document.getElementById("fill");
+    const status = document.getElementById("status");
+    btn.disabled = true;
+    status.textContent = "Downloading...";
+    status.className = "status";
+    fill.style.width = "0%";
+    void fill.offsetWidth;
+    fill.style.width = "100%";
+    const result = await scratchDl();
+    status.textContent = result.ok ? ("Download complete: " + result.path) : ("Download failed: " + result.error);
+    status.className = "status " + (result.ok ? "done" : "fail");
+    btn.disabled = false;
+}
+</script>
+`;
+
+@RegisterWebsite
+export class ScratchDownloadWebsite extends Website {
+    override SiteName = "Scratch DL";
+    override Host = SCRATCH_DL_DOMAIN;
+    override Icon = "";
+    override Pages: DynamicWebsitePageDefinition[] = [
+        {
+            path: "/",
+            metadata: (_context: PageContext): PageMetadata => ({
+                title: "Scratch DL",
+                description: "Debug-only re-test: Events bridge + a real progress animation tied to actual completion.",
+                html: scratchDlPageHtml,
+            }),
+        },
+    ];
+    override Exports = {
+        scratchDl: (): Promise<ScratchDlResult> =>
+            new Promise((resolve) => {
+                const unsubscribe = Events.on<typeof SCRATCH_DL_EVENT_DONE>(SCRATCH_DL_EVENT_DONE, (result) => {
+                    unsubscribe();
+                    resolve(result as ScratchDlResult);
+                });
+                Events.emit(SCRATCH_DL_EVENT_TRIGGER);
+            }),
+    };
 }

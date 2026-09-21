@@ -46,7 +46,7 @@ import {
     M03_TIP_SUBJECT,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
-import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M03QuestData {
     readonly leadReviewed: boolean;
@@ -125,7 +125,9 @@ const registerM03Database = (): string => {
 };
 
 const registerM03FinanceVlan = (): void => {
-    Network.destroyNetwork(M03_PFSENSE_IP);
+    if (isDev) {
+        Network.destroyNetwork(M03_PFSENSE_IP);
+    }
 
     Network.createSubnetNetwork({
         ip: M03_PFSENSE_IP,
