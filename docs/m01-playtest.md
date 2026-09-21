@@ -80,25 +80,44 @@ entry 18's fix, step 4 below needs to be tested with `isDev=false`.
     obvious instant leak, not a frustrating long grind), and did the
     pfSense login/save flow behave like a real admin panel?
 
+## 3.5 Crack the backend SSH credentials
+
+15. Browser → `hackdb.net` (base-game tool marketplace, same store as
+    `kimai`/`jwt_decoder` in step 11) → buy/download **wordlist**
+    (`wordlist.lst`, ~15,000 passwords).
+16. `hydra -T 77.91.14.203:22 -l A7xDEFACE9 -P <path>/wordlist.lst` — the
+    username is the vendor alias from step 7's listing page, not the
+    "opsadmin" handle from the tip mail (that's a deliberate near-miss —
+    see the `lynx opsadmin` fixture's own "Partial match on an old alias"
+    text). Animated brute-force (a few seconds), then "Login information
+    matched!" with the real credentials, `Terminal.Hydra` fires.
+
+    **Report back:** did hydra's `-T`/`-l`/`-P` usage read clearly from the
+    in-game `hydra` help text alone, or did it need out-of-band guidance?
+
 ## 4. Into the backend, find the IRC trail
 
-15. `ssh root_4ae9c@77.91.14.203`, password `Tn8$rWq3yK1z` → should connect
-    now that port 22 is open.
-16. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — all
+17. `ssh A7xDEFACE9@77.91.14.203`, password from step 16's hydra output →
+    should connect now that port 22 is open.
+18. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — all
     flavor/decoy, nothing load-bearing) and `/logs`
     (`sales_ledger.log` → buyer alias **TR4C3#404**; `ops-relay.log` →
     `[ENCRYPTED]` + a base64 blob; `auth.log`/`cron.log`/`system.log` are
-    dummy noise).
-17. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
+    dummy noise — `auth.log`'s "Accepted password for opsadmin" line is
+    now a stale/historical entry from before the alias switch, not the
+    live account).
+19. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
     reveals IRC host `relay.blkledger.dark` and channel key `n0ledger`.
 
 ## 5. Confirm via IRC, find the vault
 
-18. `weechat relay.blkledger.dark`, password `n0ledger` → connects, seeded
-    chat history confirms buyer **TR4C3#404** and leaks the LedgerVault
-    mirror domain `x7k2m9vdlq4wnyt3.dark` across two separate lines (not
-    posted as one obvious copy-pasteable string).
-19. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault's interactive file
+20. `weechat relay.blkledger.dark`, password `n0ledger` → connects, seeded
+    chat history is the broker (`defc9`, i.e. A7xDEFACE9) talking directly
+    to the buyer (`t404`, who self-confirms as **TR4C3#404** in the first
+    exchange), and leaks the LedgerVault mirror domain
+    `x7k2m9vdlq4wnyt3.dark` across two separate lines (not posted as one
+    obvious copy-pasteable string).
+21. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault's interactive file
     browser) → open `case_id.txt` (**CASE-A7X-0417**), `network_map.txt`,
     `found_note.txt`, and the quarterly report folders
     (`Q3-2026-SEA` — this project code is required for the report;
@@ -119,7 +138,7 @@ Compose a mail to `drop@drop.null` (the Custodian), either:
   body matching `M01_REPORT_BODY` exactly.
 
 **[CHECKPOINT — hard gate]** This mail is silently rejected (no
-`reportSent`, no objective completion) if step 19 (visiting LedgerVault)
+`reportSent`, no objective completion) if step 21 (visiting LedgerVault)
 hasn't been recorded yet, regardless of whether the report content itself
 is correct — `vaultVisited` is checked before anything else in the
 `Mail.Sent` handler. If you send a perfectly correct report before
@@ -150,7 +169,9 @@ fix (`docs/bugs.md` entry 18).
 ```
 M01_ROUTER_IP            91.198.174.3   (Router)
 └─ M01_TARGET_IP          77.91.14.203   (Device) [gateway.blackwire-network.mkt]
-   user: root_4ae9c / Tn8$rWq3yK1z
+   user: A7xDEFACE9 / Tn8$rWq3yK1z (username is the vendor alias from the
+   listing page, password cracked via hydra, see 3.5 — wordlist bought
+   from hackdb.net. "opsadmin" from the tip mail is a deliberate near-miss)
    ports: 22 ssh (CLOSED until pfSense breach) · 80 http (closed) · 443 https (open)
    files: /home/{ops_notes,todo,readme}, /logs/{sales_ledger,ops-relay,auth,cron,system}
 
@@ -167,7 +188,7 @@ M01_FRONT_ROUTER_IP      198.51.100.1   (Router)
    ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
 ```
 
-### Layer 2 — flat domain overlay (`M01_DOMAIN_RECORDS`, 40 entries)
+### Layer 2 — flat domain overlay (`M01_DOMAIN_RECORDS`, 35 entries)
 
 Read by `subfinder`/`nslookup`. Some ride on the real nodes above
 (`needsSubnet: false`), the rest are standalone empty `Device` nodes that
@@ -177,15 +198,14 @@ exist purely to be a discoverable domain (`needsSubnet: true`).
 | --- | --- | --- | --- |
 | Target (real) | `blackwire-network.mkt` -> `.77`\* | rides FRONT | `www`.78, `mail`.140, `api`.63, `status`.201, `legacy`.212\*, `gateway`.203\* (-> target), `failover`.87\* (-> firewall) |
 | Decoy | `frostgate-exchange.mkt` -> `168.100.9.44` | standalone | `www`/`trade`/`api`/`support`/`status`/`gateway`/`wallet` @ `91.243.67.x` |
-| Flavor only | `swiftedge.cloud` -> `172.98.44.19` | standalone | `www`/`cdn1`/`cdn2`/`status`/`api`/`billing`/`gateway` @ `172.98.44.x` |
 | Flavor only | `clearescrow.io` -> `46.29.115.63` | standalone | `www`/`app`/`api`/`support`/`status`/`gateway`/`partners` @ `46.29.115.x` |
 | Flavor only | `pacificcare-health.org` -> `103.87.62.145` | standalone | `www`/`patientportal`/`careers`/`news`/`mail`/`status`/`gateway` @ `103.87.62.x` |
 | Flavor only | `obsidian-access.mkt` -> `5.188.94.117` | standalone | `www`/`gateway` @ `5.188.94.x` |
 
-(`\*` = rides a real Layer 1 node, not a separate node.) The 4 "flavor
-only" clusters are pure recon noise mentioned only in the broker's Twotter
-posts — no mechanic behind them, they just make the 40-domain layer feel
-real without 40 real devices.
+(`\*` = rides a real Layer 1 node, not a separate node.) The 3 "flavor
+only" clusters are pure recon noise mentioned only in the broker's
+Twotter posts — no mechanic behind them, they just make the domain
+layer feel real without a real device behind every entry.
 
 ### Known gap — LedgerVault is not on the Network tree at all
 

@@ -8,7 +8,6 @@ import "./websites/m03/skynet-importexport/index.js";
 import "./websites/m04/architect-c2/index.js";
 import "./websites/m01/frostgate-exchange/index.js";
 import "./websites/m01/obsidian-access/index.js";
-import "./websites/m01/swiftedge-cloud/index.js";
 import "./websites/m01/clearescrow-io/index.js";
 import "./websites/m01/pacificcare-health/index.js";
 import "./websites/m01/ledgervault/index.js";

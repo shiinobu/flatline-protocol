@@ -81,7 +81,6 @@ import {
     M01_TARGET_IP,
     M01_TARGET_LAN_IP,
     M01_TARGET_PASSWORD,
-    M01_TARGET_USERNAME,
     M01_TIPSTER_EMAIL,
     M01_TIP_CONTENT,
     M01_TIP_SUBJECT,
@@ -107,6 +106,8 @@ import {
 } from "../content/m01.js";
 import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
+const M01_TARGET_SSH_TARGET = `${M01_TARGET_IP}:22`;
+
 interface M01QuestData {
     readonly tipReviewed: boolean;
     readonly domainResolved: boolean;
@@ -119,6 +120,7 @@ interface M01QuestData {
     readonly tokenDecoded: boolean;
     readonly firewallBreached: boolean;
     readonly pfsenseLoggedIn: boolean;
+    readonly credentialsCracked: boolean;
     readonly backendAccessed: boolean;
     readonly suspiciousFileFound: boolean;
     readonly credentialsDecrypted: boolean;
@@ -146,6 +148,10 @@ const resetM01ShellFixtures = (): void => {
     Shell.removeCommandData("ssh", {
         host: M01_TARGET_IP,
         key: M01_TARGET_PASSWORD,
+    });
+    Shell.removeCommandData("hydra", {
+        user: M01_BROKER_ALIAS,
+        target: M01_TARGET_SSH_TARGET,
     });
     Shell.removeCommandData("ssh", {
         host: M01_LEGACY_IP,
@@ -207,6 +213,11 @@ const registerM01ShellFixtures = (): void => {
         "ssh",
         { host: M01_TARGET_IP, key: M01_TARGET_PASSWORD },
         { ip: M01_TARGET_IP, status: "OPEN" },
+    );
+    Shell.addCommandData(
+        "hydra",
+        { user: M01_BROKER_ALIAS, target: M01_TARGET_SSH_TARGET },
+        { credentials: { username: M01_BROKER_ALIAS, password: M01_TARGET_PASSWORD } },
     );
     Shell.addCommandData(
         "ssh",
@@ -297,7 +308,7 @@ const registerM01Network = (): void => {
                 isIpHidden: true,
                 users: [
                     Network.createUser({
-                        username: M01_TARGET_USERNAME,
+                        username: M01_BROKER_ALIAS,
                         password: M01_TARGET_PASSWORD,
                     }),
                 ],
@@ -487,6 +498,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             tokenDecoded: false,
             firewallBreached: false,
             pfsenseLoggedIn: false,
+            credentialsCracked: false,
             backendAccessed: false,
             suspiciousFileFound: false,
             credentialsDecrypted: false,
@@ -617,6 +629,14 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             this.SetData("firewallBreached", true);
             Network.removeFirewallRule(M01_FIREWALL_IP, 22);
             Network.openPort(M01_TARGET_IP, 22);
+        });
+
+        this.Events.on("Terminal.Hydra", (data) => {
+            if (this.Data.credentialsCracked) return;
+            if (data.ip !== M01_TARGET_IP) return;
+            if (data.credentials.username !== M01_BROKER_ALIAS) return;
+
+            this.SetData("credentialsCracked", true);
         });
 
         this.Events.on("Terminal.SSH.Connected", (data) => {

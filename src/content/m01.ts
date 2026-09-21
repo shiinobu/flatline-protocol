@@ -42,8 +42,6 @@ export const M01_OBSIDIAN_IP = "5.188.94.117";
 export const M01_LEDGERVAULT_DOMAIN = "x7k2m9vdlq4wnyt3.dark";
 export const M01_LEDGERVAULT_IP = "185.220.31.6";
 
-export const M01_HOSTING_DOMAIN = "swiftedge.cloud";
-export const M01_HOSTING_IP = "172.98.44.19";
 export const M01_ESCROW_DOMAIN = "clearescrow.io";
 export const M01_ESCROW_IP = "46.29.115.63";
 export const M01_ESCROW_APP_IP = "46.29.115.201";
@@ -75,15 +73,6 @@ export const M01_DOMAIN_RECORDS: M01DomainRecord[] = [
     { name: `gateway.${M01_DECOY_DOMAIN}`, ip: "91.243.67.61", needsSubnet: true },
     { name: `wallet.${M01_DECOY_DOMAIN}`, ip: "91.243.67.183", needsSubnet: true },
 
-    { name: M01_HOSTING_DOMAIN, ip: M01_HOSTING_IP, needsSubnet: true },
-    { name: `www.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.140", needsSubnet: true },
-    { name: `cdn1.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.203", needsSubnet: true },
-    { name: `cdn2.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.66", needsSubnet: true },
-    { name: `status.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.11", needsSubnet: true },
-    { name: `api.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.178", needsSubnet: true },
-    { name: `billing.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.92", needsSubnet: true },
-    { name: `gateway.${M01_HOSTING_DOMAIN}`, ip: "172.98.44.235", needsSubnet: true },
-
     { name: M01_ESCROW_DOMAIN, ip: M01_ESCROW_IP, needsSubnet: true },
     { name: `www.${M01_ESCROW_DOMAIN}`, ip: "46.29.115.14", needsSubnet: true },
     { name: `app.${M01_ESCROW_DOMAIN}`, ip: M01_ESCROW_APP_IP, needsSubnet: true },
@@ -112,7 +101,6 @@ export const M01_BROKER_USERNAME = "opsadmin";
 export const M01_FIREWALL_USERNAME = "failsafe";
 export const M01_FIREWALL_PASSWORD = "Gr1dLock#42";
 
-export const M01_TARGET_USERNAME = "root_4ae9c";
 export const M01_TARGET_PASSWORD = "Tn8$rWq3yK1z";
 
 export const M01_TWOTTER_BROKER_HANDLE = "cryp7net";
@@ -161,8 +149,8 @@ export const M01_OPS_NOTES_CONTENT =
 
 export const M01_IRC_HOST = "relay.blkledger.dark";
 export const M01_IRC_PASSWORD = "n0ledger";
-export const M01_IRC_USERNAME = "opsadmin";
-export const M01_IRC_CONTACT_USERNAME = "relay0";
+export const M01_IRC_USERNAME = "defc9";
+export const M01_IRC_CONTACT_USERNAME = "t404";
 
 export interface M01TwotterPost {
     readonly content: string;
@@ -233,24 +221,20 @@ export interface M01IrcLine {
 }
 
 export const M01_IRC_CONVERSATION: M01IrcLine[] = [
-    { username: M01_IRC_USERNAME, message: "heads up, new build client wants it fast this time" },
-    { username: M01_IRC_USERNAME, message: "don't drop the ball like last quarter" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "which one, the SEA hospital thing?" },
-    { username: M01_IRC_USERNAME, message: "yeah. buyer's already confirmed — TR4C3#404" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "escrow's clean on our side" },
-    { username: M01_IRC_USERNAME, message: "good. keep it off the main listing once it clears" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "already flagged it no longer listed like the others" },
-    { username: M01_IRC_USERNAME, message: "smart. don't want another leak like last time" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "speaking of, that admin portal still running the old session auth?" },
-    { username: M01_IRC_USERNAME, message: "yeah, haven't touched it. works fine, nobody's noticed" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "you sure? plain cookie like that is asking for trouble" },
-    { username: M01_IRC_USERNAME, message: "it's fine. just get the payment sorted before client gets impatient" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "copy. will confirm once escrow releases" },
-    { username: M01_IRC_USERNAME, message: "mirror's still on x7k2m9vdlq4wnyt3, right?" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "the .dark one? yeah, hasn't moved in months" },
-    { username: M01_IRC_USERNAME, message: "good, don't touch it then" },
-    { username: M01_IRC_CONTACT_USERNAME, message: "wasn't planning to. that thing's got years of receipts on it" },
-    { username: M01_IRC_USERNAME, message: "good. this one needs to go clean" },
+    { username: M01_IRC_USERNAME, message: "you're the SEA buyer, right? confirming the alias before we go further" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "yeah. t404. same as on the last two jobs" },
+    { username: M01_IRC_USERNAME, message: "good. listing's already off the main board on my end" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "escrow says released on their side too" },
+    { username: M01_IRC_USERNAME, message: "confirmed here as well. nothing left to argue about" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "how clean is this one going to be" },
+    { username: M01_IRC_USERNAME, message: "clean enough. nobody's traced the listing back yet" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "and the backup copy, still where it was?" },
+    { username: M01_IRC_USERNAME, message: "x7k2m9vdlq4wnyt3" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "the .dark one? that hasn't moved in months, right?" },
+    { username: M01_IRC_USERNAME, message: "hasn't. wouldn't touch it even if I wanted to" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "good. keep it that way" },
+    { username: M01_IRC_USERNAME, message: "this one needs to go clean. no loose ends this time" },
+    { username: M01_IRC_CONTACT_USERNAME, message: "copy that. talk when the next one's ready" },
 ];
 
 export const M01_IRC_NOTES_FILE_NAME = "ops-relay";
