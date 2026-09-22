@@ -1,7 +1,7 @@
 import type { QuestObjectiveDefinition } from "@hotbunny/hackhub-content-sdk";
 
 export const isDev = false;
-export const isDebug = true;
+export const isDebug = false;
 export const isTester = true;
 
 export const DEV_FOCUS_QUEST = {

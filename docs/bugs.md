@@ -903,3 +903,272 @@ was suggested and does not exist anywhere in this SDK; the real API
 (`Events.emit`/`Events.on`, a documented cross-mod pub/sub) happened to
 make the *same underlying idea* work, but only after checking the actual
 type declarations instead of trusting the suggested names.
+
+---
+
+## 20. `Website` `metadata()` can never read `SaveStorage` at all, and only sees `Variables`/`Storage` when they were written from a real game-event listener — not from a quest lifecycle hook's own body
+
+**Status: RESOLVED (real fix found — mirror through a `this.Events.on()` game-event listener, not a direct write)**
+Found: `src/debug/scratch.ts`, 2026-09-22, while investigating whether a
+`Website`'s `DynamicWebsitePageDefinition.metadata()` could read state a
+`Quest`'s `OnStart()`/`OnObjectivesStart()` had set — the mechanism the
+planned M01 "per-claim listing randomization" feature depends on (which
+of 10 candidate listings is the real one, resolved once and read back by
+that listing's own page). Live-tested step by step via the HackHub log
+(`%APPDATA%/hackhub/logs/hackhub-<date>.log`), not guessed:
+
+| # | Where the value was written | Where it was read | Result |
+|---|---|---|---|
+| 1 | `SaveStorage.set()` inside a `Website.Exports` function body | `metadata()`, same site | Write logged fine, read always `(none)`, even across multiple reloads minutes apart |
+| 2 | `SaveStorage.set()` inside a top-level `Events.on()` handler, triggered via `Events.emit()` from `Exports` | `metadata()` | Same failure. Also tested: a plain `@RegisterCommand`'s `Run()` reading the *same* key **succeeded** (`Command.Run() read SaveStorage: VALUE-ILqI1Y`, matching the write) — proving `SaveStorage` itself was fine, and the read failure was specific to `metadata()` |
+| 3 | Same `Events.on()` handler, now also writing `Storage` (global) and `Variables` (in-memory) alongside `SaveStorage` | `metadata()` | `metadata()` read `Storage` and `Variables` back correctly; `SaveStorage` alone stayed `(none)`. `metadata()` is not blind to all mod state — only to `SaveStorage` specifically |
+| 4 | `Variables.set()` called directly inside `Quest.OnObjectivesStart()`'s own body (mirroring an existing `SaveStorage` value) | `metadata()`, and later a plain `Command.Run()` | Both failed — `Command.Run() read SaveStorage=VALUE-FxOB3V Variables=(none)` despite `OnObjectivesStart()` having just logged "mirrored to Variables" with that exact value. The failure travels with *how the write was triggered*, not with who reads it |
+| 5 | Same write function, called instead from a `@RegisterCommand`'s `Run()` (a player-typed terminal command) | `metadata()` | **Worked.** Read back correctly and stayed consistent across 6+ separate page reads |
+| 6 | `OnObjectivesStart()` doing `Events.emit("custom.trigger")`, with the actual write in a top-level `Events.on("custom.trigger", ...)` handler (the exact bridge pattern that fixed entry 19) | `metadata()` | Still failed. This is a *different* bug shape from entry 19 — routing through the `Events` bridge does not help here |
+| 7 | `OnObjectivesStart()` registering `this.Events.on("Terminal.Nslookup", () => { ...write... })` (the same `QuestEvents` subscription mechanism every other M01 gate already uses, e.g. `domainResolved`) — write only actually runs later, whenever the player runs a real `nslookup` that resolves | `metadata()` | **Worked.** `this.Events(Terminal.Nslookup) mirrored to Variables: VALUE-gq3tbn` followed by `metadata() read Variables: VALUE-gq3tbn`, consistently |
+
+**Side finding while building attempt 7's trigger:** the built-in
+`nslookup` command's decompiled `Run()` (`.reverse/extracted/index.js`)
+only calls `Ot.Trigger("Terminal_Nslookup", ...)` on its two *success*
+branches; the `"No results found."` failure path returns before
+triggering anything. A `this.Events.on("Terminal.Nslookup", ...)`
+listener will never fire for a domain with no `Network`/`Shell` fixture
+behind it — confirmed live: `nslookup fuck.com` and `nslookup` on an
+unregistered scratch domain both printed "No results found." and left
+zero trace of the listener firing, until a real `Shell.addCommandData("nslookup", ...)`
+fixture was added for it.
+
+**Root cause (inferred, not decompiled — same caveat as entry 19):**
+`metadata()` appears to execute in a context that never gets attached to
+`SaveStorage`'s per-save backing store at all (no invocation path tried
+made it work), and only gets attached to `Variables`/`Storage`'s state
+*after* that state has been written by the engine's own event dispatcher
+calling directly into a `Command.Run()` or a real `QuestEvents`
+(`this.Events.on`) callback. A quest lifecycle hook's own synchronous
+body — even though it is also "the engine calling our code directly" in
+the same sense entry 19 relied on — runs too early in that lifecycle for
+whatever attaches `metadata()`'s context to be ready yet; deferring the
+actual write to a *later*, real, player-triggered game event sidesteps
+that window entirely. This is a different failure shape from entry 19
+(which was about permission/identity on `Files.*`, fixable with *any*
+`Events` bridge) — here the generic mod-to-mod `Events.emit`/`Events.on`
+bridge does not help at all; only a genuine `QuestEvents` game-event
+callback does.
+
+**The fix — never write `SaveStorage` for something `metadata()` needs
+directly inside a lifecycle hook; defer through a real game-event
+listener, and mirror into `Variables` for `metadata()` to read:**
+```ts
+override OnObjectivesStart() {
+    this.Events.on("Terminal.Nslookup", () => {
+        let value = SaveStorage.get<string>(KEY);
+        if (!value) {
+            value = Random.pick(candidates);
+            SaveStorage.set(KEY, value);   // survives save reload
+        }
+        Variables.set(KEY, value);          // what metadata() actually reads
+    });
+}
+```
+`SaveStorage` stays the persistent source of truth (safe to read/write
+from `Command.Run()`, `this.Events.on()` callbacks, and quest lifecycle
+hooks alike); `Variables` is a same-session read-side cache that
+`metadata()` can actually see, re-synced every time the mod loads because
+the listener re-registers on every `OnObjectivesStart()`. Pick a trigger
+event that is guaranteed to fire before the player could reach any page
+that needs the resolved value — for M01, the existing `Terminal.Nslookup`
+listener on `M01_DOMAIN` (already gating `domainResolved`, already the
+very first recon step) is a natural, no-extra-mechanic place to piggyback
+this on.
+
+**Takeaway for future missions:** any design where a `Website` page's
+`metadata()` needs to reflect state a `Quest` resolved must go through
+`Variables` (or `Storage`, if it should persist across every save file
+instead of just this one), never `SaveStorage` directly — and that
+state must be *written* from a real `this.Events.on()` game-event
+callback, never from a lifecycle hook's own body and never from a
+generic `Events.emit()`/`Events.on()` bridge alone. Verify this pattern
+live in `scratch.ts` again if a future mission needs the reverse
+direction (a `Website` writing state a `Quest` reads), since that has
+not been tested and may hit its own version of this same class of bug.
+
+---
+
+## 21. A structural network topology change (new child on an existing router, a device moved from standalone into a router's `children`) never reaches an already-progressed save — confirmed live, extends entry 18
+
+**Status: RESOLVED (workaround — new addresses, not destroy/await tricks)**
+Found: M01 tester feedback, 2026-09-22, during the router-consolidation
+redesign (folding each marketplace's storefront/gateway/legacy boxes under
+one dedicated `Router` per domain instead of standalone top-level
+devices).
+
+After the redesign shipped, `python3 net_tree.py <ip>` reported `"Subnet
+not found."` for `M01_FROSTGATE_IP`/`M01_OBSIDIAN_IP` (both moved from a
+standalone top-level `Device` into a new router's `children`), and later —
+after temporarily flipping `isDev=true` to try to force a rebuild — for
+`M01_BLACKWIRE_ROUTER_IP` itself too (an address that already existed
+under its old name `M01_FRONT_ROUTER_IP`, now with a third `children`
+entry, the gateway box, added to its definition).
+
+**What was tried and correctly rejected:** `await`-ing the fire-and-forget
+`Network.destroyNetwork(ip)` immediately before the matching
+`createSubnetNetwork(ip)` call, to force the destroy to finish before the
+recreate. Not attempted, per entries 6/12/15's already-confirmed finding
+that this crashes with `Mod "null" tried to use Network.createSubnetNetwork
+without "network" permission` — and since `registerM01Network()` runs
+synchronously at the top of `OnObjectivesStart()`, a throw there would
+also abort every `this.Events.on(...)` registration later in the same
+function body, breaking the whole quest's event wiring for that session,
+not just the network.
+
+**Root cause — this is entry 18's own explicitly-flagged trade-off,
+confirmed live for the first time:** entry 18 already documented that
+`isDev=false` makes `createSubnetNetwork` permanently unable to apply a
+*structural* change (a new/removed `children` entry, a device moved
+in/out of a router) to an address that already holds a network, and noted
+`isDev=true` "sidesteps this by always tearing down and rebuilding." That
+sidestep does not actually work as hoped: `isDev=true` re-enables the
+same-tick `destroyNetwork`(fire-and-forget)-then-`createSubnetNetwork`
+race entry 18 itself documents. The synchronous `createSubnetNetwork`
+call runs before the destroy resolves, sees the address still occupied by
+the *old* network, and is a "left alone" no-op; the destroy then resolves
+moments later and tears down that same (old, never-replaced) network —
+so the steady-state result of an `isDev=true` reload, once the async dust
+settles, is the address left **empty**, not rebuilt with the new
+structure. This matches "every run except the very first" from entry 18
+exactly: an address with prior history can never cleanly pick up a
+structural change, whether `isDev` is on or off.
+
+**The fix — assign the changed node(s) a brand-new IP address, never used
+in any prior build, instead of trying to migrate the old one:**
+a genuinely new address has no "already holds a network" history
+anywhere (in any player's save, old or new), so `createSubnetNetwork`
+succeeds as a clean first-ever creation immediately, with no race and no
+"left alone" freeze. Applied to all six addresses whose shape changed this
+redesign — `M01_BLACKWIRE_ROUTER_IP`, `M01_BLACKWIRE_GATEWAY_IP`,
+`M01_FROSTGATE_IP`, `M01_FROSTGATE_GATEWAY_IP`, `M01_OBSIDIAN_IP`,
+`M01_OBSIDIAN_GATEWAY_IP` — including the router itself, since gaining a
+*new* `children` entry is just as much a structural change as being moved
+into one. The two brand-new router addresses created earlier the same
+session (`M01_FROSTGATE_ROUTER_IP`, `M01_OBSIDIAN_ROUTER_IP`) needed no
+change, since they had no prior history to begin with. LAN IPs
+(`192.168.x.x`) did not need to change — they are scoped to their own
+subnet, not a global address registry, so reusing a LAN range under a new
+public IP carries no collision risk.
+
+**Takeaway for future missions:** whenever a mission's network topology
+changes *structurally* after it has already been live-tested or shipped
+(a new/removed child, a device moved between routers, a device promoted
+from standalone into a router's `children`), do not rely on `isDev` +
+`destroyNetwork` to migrate an already-progressed save — it cannot, per
+entry 18, and re-confirmed here that `isDev=true` does not actually
+rescue it either due to the same race. Give the changed node(s) a fresh
+IP address instead, and treat that as the standard migration path for any
+future `Network.createSubnetNetwork` shape change, not just a one-off
+workaround for this session.
+
+---
+
+## 22. `Localization.t()` returns the raw key (not even the English fallback) when called from inside a `Website`'s `metadata()` — extends entry 19's identity-loss pattern to a new API
+
+**Status: RESOLVED (workaround — pre-resolve strings from a trusted context, cache them, read the cache from `metadata()`)**
+Found: M01 Phase 2 (website localization), 2026-09-23, while wiring `Localization.t()`
+calls into `src/websites/shared/localize.ts` (a `{{t:KEY}}` token replacer meant to
+run inside every page's `metadata(context)`) and into `m01-listing-templates.ts`'s
+`renderM01ListingPage()` (also called from a website's `metadata()`).
+
+Live-tested step by step, not guessed:
+
+| # | Where `Localization.t()` was called | Key used | Result |
+|---|---|---|---|
+| 1 | `Command.Run()` (`scratchloc`) | a fresh test key registered in the same command file | Correct, matched `Localization.language()` |
+| 2 | `Quest.OnObjectivesStart()`'s own body (temporary trace) | `M01_I18N_KEY.MAIL_TIP_SUBJECT` | Correct — `language()` and `t()` both returned live `"zh"`/Chinese text |
+| 3 | `Website`'s `metadata(context)` (a debug banner rendered directly on the page, so no log access needed) | `Localization.language()` | Correct — returned `"zh"` |
+| 4 | Same `metadata(context)` call, same page load | `"M01.MAIL.TIP.SUBJECT"` — the **exact same key** already confirmed working in row 2 | **Wrong — returned the literal string `"M01.MAIL.TIP.SUBJECT"`**, the documented "nothing has it at all" fallback, not even the English text |
+
+Row 3 vs row 4 is the key result: `Localization.language()` (no mod-identity
+lookup needed, just reads a global player setting) works fine from
+`metadata()`. `Localization.t()` (which per its own docs is "scoped to the
+mod that registered them") does not — for a key **already proven registered
+and resolvable** from `Command.Run()`/`Quest` lifecycle contexts. This rules
+out every registration-side explanation that was checked first and
+falsified along the way: stale `dist/` build (ruled out — confirmed fresh
+manual build+copy), an orphaned/never-imported i18n module (a real,
+separate bug that was found and fixed this session, but fixing it did not
+change this result), and lazy/dead-code-eliminated `registerAll()` calls
+(ruled out by reading the actual bundled `dist/mod.js` — every
+`Localization.registerAll()` call for the new i18n files was present,
+correctly formed, and positioned in plain top-to-bottom eager execution
+order, no lazy wrapper).
+
+**Root cause (inferred, not decompiled — same caveat as entries 19/20):**
+this is the same failure class as entry 19's `Files.create()` finding —
+`Localization.t()`'s per-mod key lookup only keeps working "mod identity"
+inside a `Command.Run()` call or a real `QuestEvents` (`this.Events.on`)
+callback (and, newly confirmed here, a quest lifecycle hook's own
+synchronous body — see entry 20's `OnObjectivesStart` finding, which
+`Localization` does not seem to share the *narrower* restriction that
+entry 20 found for `SaveStorage`/`metadata()` specifically). A `Website`'s
+`metadata(context)` callback is a *different* invocation path the engine
+calls into directly, and per this finding it is **not** one of the paths
+that preserves whatever internal state `Localization.t()`'s mod-scoped
+lookup depends on — even though `SaveStorage`/`Variables`/`Random` (used
+by `ensureM01ListingResolution()`, called from this exact same
+`metadata()` path for the SOLD_LOTS random-listing feature) demonstrably
+do carry over correctly. The failure is specific to `Localization`, not a
+blanket "metadata() is a sandboxed/isolated realm" issue.
+
+**The fix — never call `Localization.t()`/`.language()`-dependent lookups
+directly inside `metadata()`; pre-resolve into a plain cache from a
+trusted context, and read the cache instead:**
+```ts
+// Inside Quest.OnObjectivesStart() (a trusted context, confirmed above) —
+// resolve every website string once per load and cache it where metadata()
+// can read it (Variables, same as entry 20's SaveStorage->Variables mirror):
+const M01_SITE_STRINGS_KEY = "m01.siteStrings";
+const cache: Record<string, string> = {};
+for (const key of allSiteKeys) cache[key] = Localization.t(key);
+Variables.set(M01_SITE_STRINGS_KEY, cache);
+
+// Inside localizeHtml() / any metadata(), read the cache instead of
+// calling Localization.t() directly, and do {{var}} substitution locally
+// (the cache holds resolved-but-not-yet-interpolated template strings):
+const cache = Variables.get<Record<string, string>>(M01_SITE_STRINGS_KEY) ?? {};
+const resolved = (cache[key] ?? key).replace(/\{\{(\w+)\}\}/g, (_m, v) => String(vars?.[v] ?? ""));
+```
+This mirrors entry 20's already-proven pattern exactly (persist from a
+trusted write path, read a `Variables` mirror from the read path that
+can't be trusted to do the lookup itself) — just applied to
+`Localization` instead of `SaveStorage`.
+
+**Takeaway for future missions:** treat `Localization.t()`/`.language()`
+the same as `Files.create()` (entry 19) for identity purposes — safe only
+inside `Command.Run()`, a real `QuestEvents` callback, or a quest
+lifecycle hook's own body. Never call it directly from a `Website`'s
+`metadata()`, `DynamicWebsitePageDefinition`, or any other
+engine-invoked-but-not-yet-tested path without live-confirming it first
+the way this entry did (a known-good key, called from the new path,
+compared against a call site already proven to work).
+
+---
+
+## 23. `WeeChat.createServer()` triggers a base-game `console.log` that prints the IRC host+password in plaintext — no way to suppress from mod side
+
+**Status: OPEN (engine limitation, no workaround possible from mod code)**
+Found: M01 live-test, 2026-09-22.
+
+Every call to `WeeChat.createServer(host, password)` — in M01 this fires every
+`OnStart()` (every quest apply/reset) — triggers a `console.log("CreateServer",
+host, password)` baked directly into the base game's own client code
+(`Lx.CreateServer`, decompiled `index.js:165932`), not the SDK wrapper. Anyone
+with DevTools open sees the IRC credentials in plaintext, bypassing the
+OSINT/decode puzzle the mission is built around.
+
+**Root cause:** base game engine instrumentation, not a mod or SDK-wrapper
+bug — cannot be patched or suppressed from content-mod code.
+
+**Mitigation considered:** reduce call frequency (check if the server already
+exists before `removeServer`+`createServer`) — reduces how often it re-logs,
+but does not eliminate the leak on first creation. Not implemented;
+documented as a known, accepted limitation of the WeeChat feature for any
+future mission using it.

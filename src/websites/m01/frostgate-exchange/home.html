@@ -46,26 +46,26 @@
 <body>
 <header>
   <h1>FROSTGATE EXCHANGE</h1>
-  <div class="tag">verified network access, mirror of the usual channels. serious buyers only.</div>
+  <div class="tag">{{t:M01.FG.HOME_TAGLINE}}</div>
 </header>
 
 <div class="toolbar">
-  <input id="search" placeholder="search listing, region, sector...">
+  <input id="search" placeholder="{{t:M01.SITE.SEARCH_PLACEHOLDER}}">
   <select id="category">
-    <option value="ALL">ALL CATEGORIES</option>
+    <option value="ALL">{{t:M01.SITE.ALL_CATEGORIES}}</option>
     <option>RETAIL</option><option>ISP</option><option>LOGISTICS</option>
     <option>EDU</option><option>GOV</option><option>FIN</option><option>TELECOM</option>
   </select>
 </div>
 
 <div class="stats">
-  <div class="stat">LISTINGS <b id="total">0</b></div>
-  <div class="stat">ACTIVE <b id="active">0</b></div>
+  <div class="stat">{{t:M01.SITE.STAT.LISTINGS}} <b id="total">0</b></div>
+  <div class="stat">{{t:M01.SITE.STAT.ACTIVE}} <b id="active">0</b></div>
 </div>
 
 <div class="layout">
   <table>
-    <thead><tr><th>LISTING</th><th>CATEGORY</th><th>DETAIL</th><th>STATUS</th><th></th></tr></thead>
+    <thead><tr><th>{{t:M01.SITE.TH.LISTING}}</th><th>{{t:M01.SITE.TH.CATEGORY}}</th><th>{{t:M01.SITE.TH.DETAIL}}</th><th>{{t:M01.SITE.TH.STATUS}}</th><th></th></tr></thead>
     <tbody id="rows"></tbody>
   </table>
   <aside class="side">
@@ -76,20 +76,28 @@
   </aside>
 </div>
 
-<footer>FROSTGATE EXCHANGE // FICTIONAL NETWORK NODE // payments secured via <a href="https://clearescrow.io/" style="color:#7fd0ff;">ClearEscrow</a></footer>
+<footer>{{t:M01.FG.HOME_FOOTER}} <a href="https://clearescrow.io/" style="color:#7fd0ff;">ClearEscrow</a></footer>
 
 <script>
+const ACTIVE_LOTS = [
+  { slug: "listings/l5o1-49rw", label: "TELECOM-EU-5518", cat: "TELECOM", desc: "{{t:M01.FG.DESC.TELECOM_EU}}" },
+  { slug: "listings/m8p4-72sx", label: "RETAIL-APAC-3390", cat: "RETAIL", desc: "{{t:M01.FG.DESC.RETAIL_APAC}}" },
+  { slug: "listings/n1q7-05ty", label: "ISP-NA-7734", cat: "ISP", desc: "{{t:M01.FG.DESC.ISP_NA}}" },
+  { slug: "listings/o4r0-38uz", label: "LOGISTICS-APAC-2261", cat: "LOGISTICS", desc: "{{t:M01.FG.DESC.LOGISTICS_APAC}}" },
+];
+
+const SOLD_LOTS = /*__M01_SOLD_LOTS__*/[
+  { label: "ISP-EU-3302", cat: "ISP" },
+  { label: "EDU-NA-7710", cat: "EDU" },
+  { label: "FIN-APAC-2244", cat: "FIN" },
+  { label: "RETAIL-NA-6650", cat: "RETAIL" },
+  { label: "LOGISTICS-EU-1183", cat: "LOGISTICS" },
+  { label: "GOV-APAC-9042", cat: "GOV" },
+];
+
 const LOTS = [
-  { slug: null, label: "ISP-EU-3302", cat: "ISP", desc: "Regional ISP, EU" },
-  { slug: null, label: "EDU-NA-7710", cat: "EDU", desc: "no longer listed" },
-  { slug: null, label: "FIN-APAC-2244", cat: "FIN", desc: "no longer listed" },
-  { slug: null, label: "RETAIL-NA-6650", cat: "RETAIL", desc: "no longer listed" },
-  { slug: null, label: "LOGISTICS-EU-1183", cat: "LOGISTICS", desc: "no longer listed" },
-  { slug: null, label: "GOV-APAC-9042", cat: "GOV", desc: "no longer listed" },
-  { slug: "telecom-eu-5518", label: "TELECOM-EU-5518", cat: "TELECOM", desc: "Telecom carrier, EU region" },
-  { slug: "retail-apac-3390", label: "RETAIL-APAC-3390", cat: "RETAIL", desc: "Retail chain, APAC region" },
-  { slug: "isp-na-7734", label: "ISP-NA-7734", cat: "ISP", desc: "Regional ISP, NA region" },
-  { slug: "logistics-apac-2261", label: "LOGISTICS-APAC-2261", cat: "LOGISTICS", desc: "Logistics company, APAC region" },
+  ...ACTIVE_LOTS,
+  ...SOLD_LOTS.map((lot) => ({ slug: null, label: lot.label, cat: lot.cat, desc: "{{t:M01.SITE.NO_LONGER_LISTED}}" })),
 ];
 
 const shuffle = (arr) => {
@@ -116,8 +124,8 @@ function render() {
       <td class="label">${x.label}</td>
       <td class="cat">${x.cat}</td>
       <td class="desc">${x.desc}</td>
-      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "ACTIVE" : "SOLD"}</td>
-      <td>${x.slug ? `<a class="open" href="/${x.slug}/">OPEN</a>` : ""}</td>
+      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "{{t:M01.SITE.STAT.ACTIVE}}" : "{{t:M01.SITE.SOLD}}"}</td>
+      <td>${x.slug ? `<a class="open" href="/${x.slug}/">{{t:M01.SITE.OPEN}}</a>` : ""}</td>
     </tr>`).join("");
   document.getElementById("total").textContent = data.length;
   document.getElementById("active").textContent = data.filter(x => x.slug).length;

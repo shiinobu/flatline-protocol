@@ -13,6 +13,18 @@ the broker... then report what you find to the dead drop." Nothing below
 shows up as its own checkpoint in-game; this script exists so a tester can
 verify the full chain still works end to end, not just the final mail.
 
+**This version is randomized per save.** Which of 18 SOLD listings (6 per
+marketplace) is "the real one" is picked once per playthrough
+(`src/content/m01-listing-pool.ts`, `Random.pick`, persisted via
+`SaveStorage` + mirrored to `Variables` — see `docs/bugs.md` entry 20 for
+why it has to work this way). Every listing's Category/Region/Code/Vendor
+label is regenerated too, not just the winner's. This script describes the
+*shape* of the flow — exact listing codes/domains will differ every test
+run. Use `scratchstorage` (from `src/debug/scratch.ts`, if still present)
+or just read the in-game log to see what got picked this run.
+
+---
+
 ## 0. Entry point
 
 With `isDev=true` + `DEV_FOCUS_QUEST.m01=true` (the current dev config in
@@ -24,126 +36,117 @@ post), flip to `isTester=true` + `TESTER_FOCUS_QUEST.m01=true` (or a full
 `isDev=false`/`isTester=false` production build) and claim the mission by
 opening the post in the HackHub feed.
 
-**Important for this specific playtest:** `registerM01Network()`'s router
-destroy calls (and the per-domain destroy in the `M01_DOMAIN_RECORDS`
-loop) only run when `isDev=true` (see `docs/bugs.md` entry 18). If you're
-testing with `isDev=true`, the old subfinder race can still show up
-intermittently — that's expected, not a regression. To actually confirm
-entry 18's fix, step 4 below needs to be tested with `isDev=false`.
-
 ---
 
-## 1. Tip & primary domain recon
+## 1. Tip mail & the "opsadmin" near-miss
 
 1. Open Mail, read the message from `ghost.tip@ghost.index`, subject
    **"you should look into this"**. Points at a handle close to
-   "opsadmin" — no domain named outright.
-2. `nslookup blackwire-network.mkt` → should resolve to `198.51.100.77`.
-3. `nmap 198.51.100.77` → only port 443 (https) OPEN.
-4. `subfinder -d blackwire-network.mkt` → should list, among others,
-   `gateway.blackwire-network.mkt` and `failover.blackwire-network.mkt`.
-   **[CHECKPOINT — entry 18 regression check]** If this comes back "No
-   subdomains found" while testing with `isDev=false`, the fix didn't
-   hold; report the exact command and build config used.
-5. `nslookup gateway.blackwire-network.mkt` → resolves to `77.91.14.203`
-   (the real backend target, hidden behind the firewall for now).
+   "opsadmin" and warns "the storefront's just the front door. Whatever
+   this guy actually runs lives somewhere deeper" — this line is the
+   foreshadowing payoff for step 8 below.
+2. `lynx opsadmin` → traces to Twotter handle `@cryp7net`, explicitly
+   flagged as "a partial match on an old alias" — a deliberate dead end,
+   not the real login.
 
-## 2. Listing & decoy
+## 2. Find the real listing among 18
 
-6. `dirhunter blackwire-network.mkt` → should surface
-   `/listings/med-sea-0417/` among the results.
-7. Browser → `https://blackwire-network.mkt/listings/med-sea-0417/` →
-   healthcare-sector listing, marked SOLD.
-8. `nslookup frostgate-exchange.mkt` (the decoy storefront) →
-   `168.100.9.44`.
-9. `geoip 168.100.9.44` → Iceland/Reykjavik. Rules out the decoy (no
-   in-game confirmation beyond the geoip result itself — there's nothing
-   further to chase on this domain).
+3. Twotter (`cryp7net`'s posts) name all three marketplaces:
+   `blackwire-network.mkt`, `frostgate-exchange.mkt`,
+   `obsidian-access.mkt`.
+4. Each marketplace has 6 delisted ("no longer listed") SOLD listings,
+   reachable via `dirhunter <domain>` (dirhunter lists every registered
+   page path for a domain — there is no engine-level way to hide a
+   mod-registered page from it, so all 18 show up, mixed in with the
+   ACTIVE ones).
+5. Open listings until you find the one that is **both**:
+   - `Region: SEA`, **and**
+   - `Vendor: X7xS3NTRY9`
+   Six of the 18 are region-SEA (diluted, not just the real one), so SEA
+   alone doesn't identify it — Vendor is the second, exclusive signal.
+   The winning page also carries the full "hospital network, rush job"
+   narrative and `data-m1-canonical-listing="true"` on `<body>`.
+6. `nslookup frostgate-exchange.mkt` → `geoip <ip>` → Iceland/Reykjavik.
+   Rules out frostgate as a whole storefront (unrelated to which single
+   listing on it might be the winner this run).
+
+   **Optional (not load-bearing):** each marketplace's `gateway.<domain>`
+   subdomain is a decommissioned SSH dead-end now (all three, uniformly —
+   see `docs/bugs.md` context from this session). `nmap`/`ssh` into any of
+   them just confirms "nothing here," no gate depends on it.
 
 ## 3. Firewall breach via Kimai + JWT — **[CHECKPOINT]**
 
-10. `nslookup failover.blackwire-network.mkt` → resolves to `45.132.11.87`
-    (the firewall).
-11. Download **kimai** from the HackDB catalog, then
-    `python3 kimai.py 45.132.11.87` → fires ~10 harmless Wireshark-visible
+7. `nslookup failover.blackwire-network.mkt` still resolves (now pure
+   flavor, no longer the firewall — kept for subdomain-count symmetry).
+8. `lynx X7xS3NTRY9` (the vendor name from step 5) → reveals
+   `x7xsentry9.tech`, described as a personal domain registered under a
+   near-identical handle, plus a note that this vendor reuses weak
+   passwords across other breach dumps (builds confidence for the hydra
+   step later, doesn't hand over the password).
+9. `subfinder -d x7xsentry9.tech` → `be7.x7xsentry9.tech` (backend) and
+   `fw7.x7xsentry9.tech` (firewall).
+10. Download **kimai** from the HackDB catalog, then
+    `python3 kimai.py <fw7 ip>` → fires ~10 harmless Wireshark-visible
     packets and leaks a signed JWT for the firewall's own user, with a
     5%/iteration chance guaranteed by the 10th run.
-12. `python3 jwt_decoder.py <token>` (the JWT from step 11) → decodes to
-    credentials `failsafe` / `Gr1dLock#42`.
-13. Browser → `http://45.132.11.87/` → the engine's own pfSense login UI;
-    log in with `failsafe` / `Gr1dLock#42`.
-14. Make any change in pfSense and save it → this should automatically
-    lift the firewall rule blocking port 22 to the backend and open port
-    22 on `77.91.14.203`.
+11. `python3 jwt_decoder.py <token>` → decodes to `failsafe` /
+    `Gr1dLock#42`.
+12. Browser → `http://<fw7 ip>/` → pfSense login with those credentials.
+13. Make any change in pfSense and save it → lifts the firewall rule
+    blocking port 22 to the backend and opens port 22 on the backend IP.
 
-    **Report back:** did kimai's leak chance feel reasonable (not an
-    obvious instant leak, not a frustrating long grind), and did the
-    pfSense login/save flow behave like a real admin panel?
+## 4. Crack the backend SSH credentials
 
-## 3.5 Crack the backend SSH credentials
+14. Browser → `hackdb.net` (base-game tool marketplace, same store as
+    `kimai`/`jwt_decoder`) → buy/download **wordlist** (`wordlist.lst`,
+    ~15,000 passwords).
+15. `hydra -T <be7 ip>:22 -l X7xS3NTRY9 -P <path>/wordlist.lst` — username
+    is the vendor name from the winning listing, not "opsadmin" (that
+    handle was the deliberate near-miss from step 1-2). Animated
+    brute-force, then "Login information matched!", `Terminal.Hydra`
+    fires.
 
-15. Browser → `hackdb.net` (base-game tool marketplace, same store as
-    `kimai`/`jwt_decoder` in step 11) → buy/download **wordlist**
-    (`wordlist.lst`, ~15,000 passwords).
-16. `hydra -T 77.91.14.203:22 -l A7xDEFACE9 -P <path>/wordlist.lst` — the
-    username is the vendor alias from step 7's listing page, not the
-    "opsadmin" handle from the tip mail (that's a deliberate near-miss —
-    see the `lynx opsadmin` fixture's own "Partial match on an old alias"
-    text). Animated brute-force (a few seconds), then "Login information
-    matched!" with the real credentials, `Terminal.Hydra` fires.
+## 5. Into the backend, find the IRC trail
 
-    **Report back:** did hydra's `-T`/`-l`/`-P` usage read clearly from the
-    in-game `hydra` help text alone, or did it need out-of-band guidance?
-
-## 4. Into the backend, find the IRC trail
-
-17. `ssh A7xDEFACE9@77.91.14.203`, password from step 16's hydra output →
-    should connect now that port 22 is open.
-18. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — all
-    flavor/decoy, nothing load-bearing) and `/logs`
-    (`sales_ledger.log` → buyer alias **TR4C3#404**; `ops-relay.log` →
-    `[ENCRYPTED]` + a base64 blob; `auth.log`/`cron.log`/`system.log` are
-    dummy noise — `auth.log`'s "Accepted password for opsadmin" line is
-    now a stale/historical entry from before the alias switch, not the
-    live account).
-19. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
+16. `ssh X7xS3NTRY9@<be7 ip>`, password from step 15's hydra output.
+17. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — flavor)
+    and `/logs` (`sales_ledger.log` → `ROW <winning listing code>`,
+    matches whatever code the winning slot resolved to this run;
+    `ops-relay.log` → `[ENCRYPTED]` + a base64 blob; `auth.log`/`cron.log`/
+    `system.log` are dummy noise).
+18. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
     reveals IRC host `relay.blkledger.dark` and channel key `n0ledger`.
 
-## 5. Confirm via IRC, find the vault
+## 6. Confirm via IRC, find the vault
 
-20. `weechat relay.blkledger.dark`, password `n0ledger` → connects, seeded
-    chat history is the broker (`defc9`, i.e. A7xDEFACE9) talking directly
-    to the buyer (`t404`, who self-confirms as **TR4C3#404** in the first
-    exchange), and leaks the LedgerVault mirror domain
-    `x7k2m9vdlq4wnyt3.dark` across two separate lines (not posted as one
-    obvious copy-pasteable string).
-21. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault's interactive file
-    browser) → open `case_id.txt` (**CASE-A7X-0417**), `network_map.txt`,
-    `found_note.txt`, and the quarterly report folders
-    (`Q3-2026-SEA` — this project code is required for the report;
-    `Q1-2020-NA`/`Q2-2023-EU` are context/flavor). `associate_infra.txt`
-    here is a teaser for M2, not required for M1's report.
+19. `weechat relay.blkledger.dark`, password `n0ledger` → connects, seeded
+    chat history is the broker (`defc9`) talking directly to the buyer
+    (`t404`, self-confirms as **TR4C3#404**), and leaks the LedgerVault
+    mirror domain `x7k2m9vdlq4wnyt3.dark` across two separate lines.
+20. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault) → `case_id.txt`
+    (**CASE-A7X-0417**, fixed, independent of the random listing code),
+    `network_map.txt` (a static evidence image — deliberately generic,
+    doesn't cite a specific listing code so it can never go stale from
+    randomization), `found_note.txt`, and `Q3-2026-SEA` (this project
+    code is required for the report; `Q1-2026-NA`/`Q2-2026-EU` are
+    context/flavor). `associate_infra.txt` is an M2 teaser.
 
 ---
 
-## 6. Report findings (the one objective the player sees)
+## 7. Report findings (the one objective the player sees)
 
 Compose a mail to `drop@drop.null` (the Custodian), either:
 
-- The **"Mission 1 Findings"** template from the compose dropdown, fields:
-  `listingCode: MED-SEA-0417`, `broker: A7xDEFACE9`,
-  `buyer: TR4C3#404`, `caseId: CASE-A7X-0417`,
+- The **"Mission 1 Findings"** template, fields: `listingCode` (the
+  winning listing's resolved code, e.g. what `sales_ledger.log` showed),
+  `broker: X7xS3NTRY9`, `buyer: TR4C3#404`, `caseId: CASE-A7X-0417`,
   `project: Q3-2026-SEA`, `vaultUrl: x7k2m9vdlq4wnyt3.dark`, or
-- A freehand mail, subject **"Broker identified — buyer alias attached"**,
-  body matching `M01_REPORT_BODY` exactly.
+- A freehand mail matching `buildM01ReportBody(<winning listing code>)`
+  exactly (see `src/content/m01.ts`).
 
-**[CHECKPOINT — hard gate]** This mail is silently rejected (no
-`reportSent`, no objective completion) if step 21 (visiting LedgerVault)
-hasn't been recorded yet, regardless of whether the report content itself
-is correct — `vaultVisited` is checked before anything else in the
-`Mail.Sent` handler. If you send a perfectly correct report before
-visiting the vault, it should do nothing; confirm it works immediately
-after a vault visit with no other changes.
+**[CHECKPOINT — hard gate]** Silently rejected if LedgerVault (step 20)
+hasn't been visited yet, regardless of report content correctness.
 
 Once accepted: objective "Track down the broker..." completes,
 `AutoComplete` finishes the mission, reward 250 money / 60 xp (0/0 while
@@ -151,76 +154,97 @@ still in dev-focus or tester-focus mode).
 
 ---
 
-## What to report back overall
+## Known follow-up (not fixed this pass)
 
-For the 2 checkpoints above (subfinder regression in section 1, and the
-vault-visit gate in section 6): **worked as expected**, or **broke — exact
-command typed, exact output/error, and whether `isDev`/`isTester` was on**.
-Anything else that breaks along the way is also worth a note, but those
-two are the known risk areas coming out of this session's network-timing
-fix (`docs/bugs.md` entry 18).
+`src/content/m02.ts` / `src/main/m02-quest.ts` still reference
+`"MED-SEA-0417"` as flavor data in an affiliate database table (a
+historical case-code callback, not something the player types back /
+gets validated against). Since M01's listing code is now randomized per
+save, this specific string may not match what M01 actually resolved to
+in a given playthrough. Low severity (pure flavor, no validation
+depends on it) — worth a look whenever M02 is touched next, out of scope
+for this M01-focused pass.
 
 ---
 
 ## Appendix — network topology reference
 
-### Layer 1 — real network tree (3 routers, actually traversable)
+### Layer 1 — real network tree (5 routers, one per chain + 3 uniform decoy boxes)
+
+Grouped by chain (each marketplace's storefront + its own decommissioned
+gateway decoy together), not by node type. The real backend is its own
+separate chain, found only via `lynx X7xS3NTRY9` — never through any
+marketplace's own subdomains.
 
 ```
+=== BLACKWIRE CHAIN (blackwire-network.mkt) ===
+
+M01_BLACKWIRE_ROUTER_IP  198.51.100.230 (Router)
+   ├─ M01_BLACKWIRE_IP          198.51.100.77  (Device) [blackwire-network.mkt -- root domain, storefront]
+   │  ports: 443 https (open) · 10 dirhunter-visible listing paths (4 ACTIVE + 6 SOLD)
+   ├─ M01_LEGACY_IP             198.51.100.212 (Device) [legacy.blackwire-network.mkt]
+   │  user: admin / admin123
+   │  ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
+   └─ M01_BLACKWIRE_GATEWAY_IP  198.51.100.245 (Device) [gateway.blackwire-network.mkt]
+      user: netops / netops2022 — decommissioned dead end (uniform with the other two below)
+
+=== FROSTGATE CHAIN (frostgate-exchange.mkt) ===
+
+M01_FROSTGATE_ROUTER_IP  91.243.67.1    (Router)
+   ├─ M01_FROSTGATE_IP          91.243.67.210  (Device) [frostgate-exchange.mkt -- root domain, storefront]
+   │  ports: 443 https (open) · 10 dirhunter-visible listing paths (4 ACTIVE + 6 SOLD)
+   ├─ M01_FROSTGATE_GATEWAY_IP  91.243.67.220  (Device) [gateway.frostgate-exchange.mkt]
+   │  user: support / support123 — decommissioned dead end
+   └─ M01_FROSTGATE_API_IP      91.243.67.235  (Device) [api.frostgate-exchange.mkt]
+      user: apiadmin / apiadmin99
+      ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
+
+=== OBSIDIAN CHAIN (obsidian-access.mkt) ===
+
+M01_OBSIDIAN_ROUTER_IP   5.188.94.1     (Router)
+   ├─ M01_OBSIDIAN_IP           5.188.94.130   (Device) [obsidian-access.mkt -- root domain, storefront]
+   │  ports: 443 https (open) · 10 dirhunter-visible listing paths (4 ACTIVE + 6 SOLD)
+   ├─ M01_OBSIDIAN_GATEWAY_IP   5.188.94.140   (Device) [gateway.obsidian-access.mkt]
+   │  user: mirror / mirror2023 — decommissioned dead end
+   └─ M01_OBSIDIAN_API_IP       5.188.94.155   (Device) [api.obsidian-access.mkt]
+      user: apisvc / svc2024api
+      ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
+
+=== REAL BACKEND CHAIN (x7xsentry9.tech -- found only via `lynx X7xS3NTRY9`) ===
+
+M01_BROKER_INFRA_IP      194.36.108.20  (Device, standalone, no ports/users) [x7xsentry9.tech -- root domain]
+   nothing runs on the root itself; it just exists to reveal be7./fw7. below
+   as addresses.
+
 M01_ROUTER_IP            91.198.174.3   (Router)
-└─ M01_TARGET_IP          77.91.14.203   (Device) [gateway.blackwire-network.mkt]
-   user: A7xDEFACE9 / Tn8$rWq3yK1z (username is the vendor alias from the
-   listing page, password cracked via hydra, see 3.5 — wordlist bought
-   from hackdb.net. "opsadmin" from the tip mail is a deliberate near-miss)
-   ports: 22 ssh (CLOSED until pfSense breach) · 80 http (closed) · 443 https (open)
-   files: /home/{ops_notes,todo,readme}, /logs/{sales_ledger,ops-relay,auth,cron,system}
+   └─ M01_TARGET_IP          77.91.14.203   (Device, IP hidden) [be7.x7xsentry9.tech]
+      user: X7xS3NTRY9 / Tn8$rWq3yK1z (username = vendor name off the
+      winning listing, password cracked via hydra — wordlist from hackdb.net)
+      ports: 22 ssh (CLOSED until pfSense breach) · 80 http (closed) · 443 https (open)
+      files: /home/{ops_notes,todo,readme}, /logs/{sales_ledger,ops-relay,auth,cron,system}
 
 M01_FIREWALL_ROUTER_IP   45.132.11.1    (Router)
-└─ M01_FIREWALL_IP        45.132.11.87   (Firewall) [failover.blackwire-network.mkt]
-   user: failsafe / Gr1dLock#42 (leaked via kimai -> jwt_decoder)
-   ports: 80 http (open, pfSense UI) · rule blocking 22->target (removed on PFSense.Changes)
-
-M01_FRONT_ROUTER_IP      198.51.100.1   (Router)
-├─ M01_FRONT_IP           198.51.100.77  (Device) [blackwire-network.mkt -- root domain]
-│  ports: 443 https (open, storefront + /listings/med-sea-0417/)
-└─ M01_LEGACY_IP          198.51.100.212 (Device) [legacy.blackwire-network.mkt]
-   user: admin / admin123
-   ports: 22 ssh · file: decommissioned.txt (dead end/flavor)
+   └─ M01_FIREWALL_IP        45.132.11.87   (Firewall, IP hidden) [fw7.x7xsentry9.tech]
+      user: failsafe / Gr1dLock#42 (leaked via kimai -> jwt_decoder)
+      ports: 80 http (open, pfSense UI) · rule blocking 22->target (removed on PFSense.Changes)
 ```
 
-### Layer 2 — flat domain overlay (`M01_DOMAIN_RECORDS`, 35 entries)
+18 total SOLD listings = 6 per marketplace × 3 marketplaces combined, not per-site.
 
-Read by `subfinder`/`nslookup`. Some ride on the real nodes above
-(`needsSubnet: false`), the rest are standalone empty `Device` nodes that
-exist purely to be a discoverable domain (`needsSubnet: true`).
+### Layer 2 — listing pool (`src/content/m01-listing-pool.ts`, 18 slots)
 
-| Cluster | Root domain | Root IP | Standalone subdomains |
-| --- | --- | --- | --- |
-| Target (real) | `blackwire-network.mkt` -> `.77`\* | rides FRONT | `www`.78, `mail`.140, `api`.63, `status`.201, `legacy`.212\*, `gateway`.203\* (-> target), `failover`.87\* (-> firewall) |
-| Decoy | `frostgate-exchange.mkt` -> `168.100.9.44` | standalone | `www`/`trade`/`api`/`support`/`status`/`gateway`/`wallet` @ `91.243.67.x` |
-| Flavor only | `clearescrow.io` -> `46.29.115.63` | standalone | `www`/`app`/`api`/`support`/`status`/`gateway`/`partners` @ `46.29.115.x` |
-| Flavor only | `pacificcare-health.org` -> `103.87.62.145` | standalone | `www`/`patientportal`/`careers`/`news`/`mail`/`status`/`gateway` @ `103.87.62.x` |
-| Flavor only | `obsidian-access.mkt` -> `5.188.94.117` | standalone | `www`/`gateway` @ `5.188.94.x` |
+6 SOLD listings per marketplace (blackwire/frostgate/obsidian), each with
+an opaque, non-semantic path (`/listings/a92d-3f21c/`-style — deliberately
+not derived from the listing's own regenerated label, so there's nothing
+for `dirhunter`'s raw path output to leak). Each slot's
+Category/Region/Code/Vendor combination is regenerated once per save:
 
-(`\*` = rides a real Layer 1 node, not a separate node.) The 3 "flavor
-only" clusters are pure recon noise mentioned only in the broker's
-Twotter posts — no mechanic behind them, they just make the domain
-layer feel real without a real device behind every entry.
+- Exactly 1 winner: Region forced `SEA`, Vendor forced `X7xS3NTRY9`.
+- 5 more slots forced `SEA` too (6 total region-SEA, diluting that signal).
+- Remaining 12 slots: Region random from `EU`/`NA`/`APAC`.
+- All 18: Category random from the 8-value list, Code a unique random
+  4-digit number, non-winner Vendor a random pick from the 17
+  `M01_DECOY_VENDOR_ALIASES` (the same names ClearEscrow's board uses).
 
-### Known gap — LedgerVault is not on the Network tree at all
-
-`x7k2m9vdlq4wnyt3.dark` (`185.220.31.6`) never gets a
-`Network.createSubnetNetwork()` call — only a direct
-`Network.registerDomain(M01_LEDGERVAULT_DOMAIN, M01_LEDGERVAULT_IP)` with
-no subnet behind it. Per the same "left alone"/no-op mechanism as entries
-3 and 18, this registration is likely a no-op. The page still loads in
-browser because it's served through a completely separate system
-(`@RegisterWebsite`, `Host = M01_LEDGERVAULT_DOMAIN` in
-`src/websites/m01/ledgervault/index.ts`), independent of `Network`
-entirely. Expected practical effect: browsing to LedgerVault should work
-fine, but `nslookup x7k2m9vdlq4wnyt3.dark` likely fails/returns nothing,
-since (unlike every `M01_DOMAIN_RECORDS` entry) there is no
-`Shell.addCommandData("nslookup", ...)` fixture for this domain either.
-**Not yet confirmed live** — if you test this during the playtest, report
-back what `nslookup x7k2m9vdlq4wnyt3.dark` actually does, and it'll get
-its own `docs/bugs.md` entry.
+The 12 still-ACTIVE listings (4 per marketplace) are unaffected —
+static content, opaque paths only for `dirhunter` consistency.

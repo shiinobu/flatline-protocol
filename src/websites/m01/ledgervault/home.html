@@ -502,16 +502,8 @@ footer{
 </head>
 <body>
 <div class="preload">
-<img src="./assets/q1-invoice.png" alt="">
-<img src="./assets/q1-lockscreen.png" alt="">
-<img src="./assets/q1-port-exterior.png" alt="">
 <img src="./assets/q1-evidence.png" alt="">
-<img src="./assets/q1-settlement.png" alt="">
-<img src="./assets/q2-invoice.png" alt="">
-<img src="./assets/q2-lockscreen.png" alt="">
-<img src="./assets/q2-substation.png" alt="">
 <img src="./assets/q2-evidence.png" alt="">
-<img src="./assets/q2-settlement.png" alt="">
 <img src="./assets/q3-receipt.png" alt="">
 <img src="./assets/q3-exterior.png" alt="">
 <img src="./assets/q3-corridor.png" alt="">
@@ -519,38 +511,38 @@ footer{
 <img src="./assets/q3-scheduling.png" alt="">
 <img src="./assets/q3-foundnote.png" alt="">
 </div>
-<div class="topbar"><div class="logo">LedgerVault</div><div class="user">internal</div></div>
+<div class="topbar"><div class="logo">LedgerVault</div><div class="user">{{t:M01.LV.USER_LABEL}}</div></div>
 <div class="layout">
 <aside class="sidebar">
-<div class="nav-title">Files</div>
-<a class="nav-item active" href="#" onclick="showHome();return false">All files</a>
-<a class="nav-item" href="#" onclick="showFolder('recent');return false">Recent</a>
-<a class="nav-item" href="#" onclick="showFolder('shared');return false">Shared</a>
-<a class="nav-item" href="#" onclick="showFolder('archive');return false">Archive</a>
+<div class="nav-title">{{t:M01.LV.NAV.FILES}}</div>
+<a class="nav-item active" href="#" onclick="showHome();return false">{{t:M01.LV.NAV.ALL_FILES}}</a>
+<a class="nav-item" href="#" onclick="showFolder('recent');return false">{{t:M01.LV.NAV.RECENT}}</a>
+<a class="nav-item" href="#" onclick="showFolder('shared');return false">{{t:M01.LV.NAV.SHARED}}</a>
+<a class="nav-item" href="#" onclick="showFolder('archive');return false">{{t:M01.LV.NAV.ARCHIVE}}</a>
 </aside>
 <main class="main">
 <section id="homePage">
-<div class="breadcrumb"><a onclick="showHome()">Home</a><span>/</span>Projects</div>
-<div class="toolbar"><div class="title">Projects</div><input class="search" type="text" placeholder="Search files..." oninput="filterFolders(this.value)"></div>
+<div class="breadcrumb"><a onclick="showHome()">{{t:M01.LV.BREADCRUMB.HOME}}</a><span>/</span>{{t:M01.LV.BREADCRUMB.PROJECTS}}</div>
+<div class="toolbar"><div class="title">{{t:M01.LV.BREADCRUMB.PROJECTS}}</div><input class="search" type="text" placeholder="{{t:M01.LV.SEARCH_PLACEHOLDER}}" oninput="filterFolders(this.value)"></div>
 <table class="file-table">
-<thead><tr><th class="name">Name</th><th>Modified</th><th>Type</th></tr></thead>
+<thead><tr><th class="name">{{t:M01.LV.TH.NAME}}</th><th>{{t:M01.LV.TH.MODIFIED}}</th><th>{{t:M01.LV.TH.TYPE}}</th></tr></thead>
 <tbody id="folderList">
 <tr data-name="q1-2026"><td class="name"><a class="folder" onclick="showFolder('q1');return false"><span class="icon">▰</span>Q1-2026-NA</a></td><td class="modified">Mar 31, 2026</td><td class="type">Folder</td></tr>
 <tr data-name="q2-2026"><td class="name"><a class="folder" onclick="showFolder('q2');return false"><span class="icon">▰</span>Q2-2026-EU</a></td><td class="modified">Jun 30, 2026</td><td class="type">Folder</td></tr>
 <tr data-name="q3-2026-sea"><td class="name"><a class="folder" onclick="showFolder('q3');return false"><span class="icon">▰</span>Q3-2026-SEA</a></td><td class="modified">Sep 18, 2026</td><td class="type">Folder</td></tr>
 </tbody></table>
-<div class="summary">3 folders</div>
+<div class="summary">{{t:M01.LV.SUMMARY_FOLDERS}}</div>
 </section>
 
 <section id="folderPage" class="hidden">
 <div class="folder-header">
-    <a class="back" onclick="showHome()">← BACK TO PROJECTS</a>
+    <a class="back" onclick="showHome()">{{t:M01.LV.BACK_TO_PROJECTS}}</a>
     <div class="folder-page-title" id="folderTitle"></div>
 </div>
 <div class="file-list" id="photoList"></div>
 <div class="summary" id="folderSummary"></div>
 </section>
-<footer>LedgerVault · Internal document storage</footer>
+<footer>{{t:M01.LV.FOOTER}}</footer>
 </main>
 </div>
 
@@ -561,71 +553,57 @@ footer{
 
 <script>
 const IMG={
-q1invoice:"./assets/q1-invoice.png",
-q1lockscreen:"./assets/q1-lockscreen.png",
-q1exterior:"./assets/q1-port-exterior.png",
 q1evidence:"./assets/q1-evidence.png",
-q1settlement:"./assets/q1-settlement.png",
-q2invoice:"./assets/q2-invoice.png",
-q2lockscreen:"./assets/q2-lockscreen.png",
-q2substation:"./assets/q2-substation.png",
 q2evidence:"./assets/q2-evidence.png",
-q2settlement:"./assets/q2-settlement.png",
 q3receipt:"./assets/q3-receipt.png",
 q3exterior:"./assets/q3-exterior.png",
 q3corridor:"./assets/q3-corridor.png",
 q3notice:"./assets/q3-notice.png",
 q3scheduling:"./assets/q3-scheduling.png",
 q3foundnote:"./assets/q3-foundnote.png",
-networkmap:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPm5ldHdvcmtfbWFwLnR4dDwvdGV4dD4KPGxpbmUgeDE9IjUwIiB5MT0iMTAwIiB4Mj0iODUwIiB5Mj0iMTAwIiBzdHJva2U9IiMyMjMiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCIgeT0iMTYwIiBmaWxsPSIjYzhkMGQ4IiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyMCI+TkVUV09SSyBNQVAgLS0gaW50ZXJuYWwgcmVmZXJlbmNlLCBkbyBub3QgZGlzdHJpYnV0ZTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjIwMCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnRhcmdldDogaG9zcGl0YWwgbmV0d29yaywgU0VBIHJlZ2lvbiAoc2VlIFJPVyAwNDE3KTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI0MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPmVudHJ5IHBvaW50OiBibGFja3dpcmUtbmV0d29yay5ta3QgLyBtZWQtc2VhLTA0MTcgbGlzdGluZzwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI4MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnByaW1hcnkgYWNjZXNzOiA3Ny45MS4xNC4yMDMgKG9wc2FkbWluKTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM0MCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPm5vdGVzOiBidXllciByZXF1ZXN0ZWQgcnVzaCBkZWxpdmVyeSwgbWFwIGZpbmFsaXplZDwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM2OCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPmFoZWFkIG9mIHNjaGVkdWxlPC90ZXh0Pgo8L3N2Zz4K",
+networkmap:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPm5ldHdvcmtfbWFwLnR4dDwvdGV4dD4KPGxpbmUgeDE9IjUwIiB5MT0iMTAwIiB4Mj0iODUwIiB5Mj0iMTAwIiBzdHJva2U9IiMyMjMiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCIgeT0iMTYwIiBmaWxsPSIjYzhkMGQ4IiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyMCI+TkVUV09SSyBNQVAgLS0gaW50ZXJuYWwgcmVmZXJlbmNlLCBkbyBub3QgZGlzdHJpYnV0ZTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjIwMCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnRhcmdldDogaG9zcGl0YWwgbmV0d29yaywgU0VBIHJlZ2lvbjwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI0MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPmVudHJ5IHBvaW50OiB4N3hzZW50cnk5LnRlY2ggLS0gcHJpdmF0ZSBpbmZyYSwgbm90IGEgc3RvcmVmcm9udDwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI4MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPnByaW1hcnkgYWNjZXNzOiBiZTcueDd4c2VudHJ5OS50ZWNoIChYN3hTM05UUlk5KTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM0MCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPm5vdGVzOiBidXllciByZXF1ZXN0ZWQgcnVzaCBkZWxpdmVyeSwgbWFwIGZpbmFsaXplZDwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjM2OCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPmFoZWFkIG9mIHNjaGVkdWxlPC90ZXh0Pgo8L3N2Zz4K",
 caseid:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmNhc2VfaWQudHh0PC90ZXh0Pgo8bGluZSB4MT0iNTAiIHkxPSIxMDAiIHgyPSI4NTAiIHkyPSIxMDAiIHN0cm9rZT0iIzIyMyIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjx0ZXh0IHg9IjQ1MCIgeT0iMjYwIiBmaWxsPSIjYzhkMGQ4IiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNBU0UtQTdYLTA0MTc8L3RleHQ+Cjwvc3ZnPgo=",
 foundnote:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmZvdW5kX25vdGUudHh0PC90ZXh0Pgo8bGluZSB4MT0iNTAiIHkxPSIxMDAiIHgyPSI4NTAiIHkyPSIxMDAiIHN0cm9rZT0iIzIyMyIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjx0ZXh0IHg9IjUwIiB5PSIyMjAiIGZpbGw9IiNjOGQwZDgiIGZvbnQtZmFtaWx5PSJDb25zb2xhcywgbW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij5RMy0yMDI2LVNFQSAtLSB3aGF0IGRvZXMgaXQgbWVhbj88L3RleHQ+Cjx0ZXh0IHg9IjUwIiB5PSIyNzAiIGZpbGw9IiNjOGQwZDgiIGZvbnQtZmFtaWx5PSJDb25zb2xhcywgbW9ub3NwYWNlIiBmb250LXNpemU9IjI0Ij4tLSBHPC90ZXh0Pgo8L3N2Zz4K",
-associateinfra:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmFzc29jaWF0ZV9pbmZyYS50eHQ8L3RleHQ+CjxsaW5lIHgxPSI1MCIgeTE9IjEwMCIgeDI9Ijg1MCIgeTI9IjEwMCIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjE2MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPkJMQUNLTEVER0VSIC0tIGtub3duIGFzc29jaWF0ZSBpbmZyYXN0cnVjdHVyZTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjIyMCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPnRvb2xraXQgLyBhZmZpbGlhdGUgcGFuZWwgZGV2OjwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI2MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj5hN3hjb2RlZmFjZS5kZXY8L3RleHQ+Cjwvc3ZnPgo="};
+associateinfra:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iNDYwIj4KPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI0NjAiIGZpbGw9IiMwZDBmMTIiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iODUyIiBoZWlnaHQ9IjQxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjgwIiBmaWxsPSIjN2ZiMGZmIiBmb250LWZhbWlseT0iQ29uc29sYXMsIG1vbm9zcGFjZSIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9ImJvbGQiPmFzc29jaWF0ZV9pbmZyYS50eHQ8L3RleHQ+CjxsaW5lIHgxPSI1MCIgeTE9IjEwMCIgeDI9Ijg1MCIgeTI9IjEwMCIgc3Ryb2tlPSIjMjIzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHRleHQgeD0iNTAiIHk9IjE2MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjAiPkJMQUNLTEVER0VSIC0tIGtub3duIGFzc29jaWF0ZSBpbmZyYXN0cnVjdHVyZTwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjIyMCIgZmlsbD0iIzdhOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTgiPnRvb2xraXQgLyBhZmZpbGlhdGUgcGFuZWwgZGV2OjwvdGV4dD4KPHRleHQgeD0iNTAiIHk9IjI2MCIgZmlsbD0iI2M4ZDBkOCIgZm9udC1mYW1pbHk9IkNvbnNvbGFzLCBtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIj50cjRjMzQwNC5kZXY8L3RleHQ+Cjwvc3ZnPgo="};
+const NAME={
+q1evidence:"{{t:M01.LV.NAME.Q1_EVIDENCE}}",
+q2evidence:"{{t:M01.LV.NAME.Q2_EVIDENCE}}",
+q3receipt:"{{t:M01.LV.NAME.Q3_RECEIPT}}",
+q3exterior:"{{t:M01.LV.NAME.Q3_EXTERIOR}}",
+q3corridor:"{{t:M01.LV.NAME.Q3_CORRIDOR}}",
+q3notice:"{{t:M01.LV.NAME.Q3_NOTICE}}",
+q3scheduling:"{{t:M01.LV.NAME.Q3_SCHEDULING}}",
+q3foundnote:"{{t:M01.LV.NAME.Q3_FOUNDNOTE_EVIDENCE}}"};
 const folders={
 q1:{title:"Q1-2026-NA",files:[
-["BLACKLEDGER decryption services invoice",IMG.q1invoice,"Mar 18, 2026","CASE"],
-["Port control room — BLACKLEDGER lockscreen",IMG.q1lockscreen,"Mar 12, 2026","SCAN"],
-["Terminal 2 — Northstar Port Authority",IMG.q1exterior,"Mar 12, 2026","JPG"],
-["Evidence EV-0147 — USB / access badge",IMG.q1evidence,"Mar 19, 2026","SCAN"],
-["Settlement confirmation — Northshore Trust & Banking",IMG.q1settlement,"Mar 18, 2026","SCAN"]
+[NAME.q1evidence,IMG.q1evidence,"Mar 19, 2026","SCAN"]
 ]},
 q2:{title:"Q2-2026-EU",files:[
-["BLACKLEDGER decryption services invoice",IMG.q2invoice,"Jun 27, 2026","CASE"],
-["Control room — BLACKLEDGER lockscreen",IMG.q2lockscreen,"Jun 27, 2026","SCAN"],
-["Umspannwerk Nord — Rheinland Energie AG",IMG.q2substation,"Jun 24, 2026","JPG"],
-["Evidence — USB / staff access badge",IMG.q2evidence,"Jun 28, 2026","SCAN"],
-["Settlement confirmation — Rheinland Energie AG Treasury",IMG.q2settlement,"Jun 14, 2026","SCAN"]
+[NAME.q2evidence,IMG.q2evidence,"Jun 28, 2026","SCAN"]
 ]},
 q3:{title:"Q3-2026-SEA",files:[
-["Escrow receipt — A7xDEFACE9 → TR4C3#404",IMG.q3receipt,"Aug 14, 2026","SCAN"],
-["PacificCare Health — main entrance",IMG.q3exterior,"Jul 09, 2026","JPG"],
-["Ward corridor — systems down",IMG.q3corridor,"Jul 26, 2026","JPG"],
-["BLACKLEDGER notice — Operating Theatre 3",IMG.q3notice,"Aug 14, 2026","SCAN"],
-["Surgical scheduling — locked",IMG.q3scheduling,"Aug 29, 2026","JPG"],
-["Evidence PC-IT-017 — USB / staff badge / memo",IMG.q3foundnote,"Sep 18, 2026","SCAN"],
+[NAME.q3receipt,IMG.q3receipt,"Aug 14, 2026","SCAN"],
+[NAME.q3exterior,IMG.q3exterior,"Jul 09, 2026","JPG"],
+[NAME.q3corridor,IMG.q3corridor,"Jul 26, 2026","JPG"],
+[NAME.q3notice,IMG.q3notice,"Aug 14, 2026","SCAN"],
+[NAME.q3scheduling,IMG.q3scheduling,"Aug 29, 2026","JPG"],
+[NAME.q3foundnote,IMG.q3foundnote,"Sep 18, 2026","SCAN"],
 ["network_map.txt",IMG.networkmap,"Sep 18, 2026","TXT"],
 ["case_id.txt",IMG.caseid,"Sep 18, 2026","TXT"],
 ["found_note.txt",IMG.foundnote,"Sep 18, 2026","TXT"],
 ["associate_infra.txt",IMG.associateinfra,"Sep 18, 2026","TXT"]
 ]},
-recent:{title:"Recent",files:[
+recent:{title:"{{t:M01.LV.NAV.RECENT}}",files:[
 ["found_note.txt",IMG.foundnote,"Sep 18, 2026","TXT"],
 ["case_id.txt",IMG.caseid,"Sep 18, 2026","TXT"],
 ["network_map.txt",IMG.networkmap,"Sep 18, 2026","TXT"],
-["Evidence PC-IT-017 — USB / staff badge / memo",IMG.q3foundnote,"Sep 18, 2026","SCAN"],
-["Surgical scheduling — locked",IMG.q3scheduling,"Aug 29, 2026","JPG"]
+[NAME.q3foundnote,IMG.q3foundnote,"Sep 18, 2026","SCAN"],
+[NAME.q3scheduling,IMG.q3scheduling,"Aug 29, 2026","JPG"]
 ]},
-shared:{title:"Shared",files:[
-["Escrow receipt — A7xDEFACE9 → TR4C3#404",IMG.q3receipt,"Aug 14, 2026","SCAN"],
-["Settlement confirmation — Rheinland Energie AG Treasury",IMG.q2settlement,"Jun 14, 2026","SCAN"],
-["Settlement confirmation — Northshore Trust & Banking",IMG.q1settlement,"Mar 18, 2026","SCAN"]
+shared:{title:"{{t:M01.LV.NAV.SHARED}}",files:[
+[NAME.q3receipt,IMG.q3receipt,"Aug 14, 2026","SCAN"]
 ]},
-archive:{title:"Archive",files:[
-["BLACKLEDGER decryption services invoice",IMG.q1invoice,"Mar 18, 2026","CASE"],
-["BLACKLEDGER decryption services invoice",IMG.q2invoice,"Jun 27, 2026","CASE"],
-["Terminal 2 — Northstar Port Authority",IMG.q1exterior,"Mar 12, 2026","JPG"],
-["Umspannwerk Nord — Rheinland Energie AG",IMG.q2substation,"Jun 24, 2026","JPG"]
-]}
+archive:{title:"{{t:M01.LV.NAV.ARCHIVE}}",files:[]}
 };
 function showHome(){
 document.getElementById("homePage").classList.remove("hidden");
@@ -643,7 +621,7 @@ document.getElementById("photoList").innerHTML=folder.files.map((file,i)=>`
 <div class="file-meta">${file[2]}</div>
 <div class="file-type">${file[3]}</div>
 </div>`).join("");
-document.getElementById("folderSummary").textContent=folder.files.length+" files";
+document.getElementById("folderSummary").textContent="{{t:M01.LV.SUMMARY_FILES_TEMPLATE}}".replace("{{n}}",folder.files.length);
 }
 function openViewer(index,key){
 const file=folders[key].files[index];

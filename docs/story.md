@@ -323,6 +323,17 @@ not four separate jobs.
   insider/agent POV options; single-org and single-individual plot-
   structure options; "leans toward revenge" and "leans toward public
   exposure" ending options.
+- **M1's LedgerVault (`x7k2m9vdlq4wnyt3.dark`) is deliberately left with
+  no `Network.createSubnetNetwork`/`nmap` fixture** — modeled as a Tor-style
+  hidden service that ordinary IP-based scanning can't reach, not an
+  oversight. Confirmed explicitly by the user (2026-09-22/23) rather than
+  fixed under the new port-443-realism rule (`docs/implementation-rules.md`
+  §12).
+- **M1's PacificCare Health (`pacificcare-health.org`) website exists in
+  source (`src/websites/m01/pacificcare-health/`) but is deliberately not
+  wired into the quest's network at all yet** — its domain is unreachable
+  in-game on purpose; confirmed by the user (2026-09-22/23) as "not used
+  yet," not a bug, and left for a future pass.
 
 ## 7. Open items for implementation
 

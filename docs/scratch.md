@@ -10,10 +10,116 @@ this file goes back to empty (or gets reused for whichever mission is
 active next). See `docs/implementation-rules.md` §9 for the full policy
 this file exists to support (zero comments in `src/`).
 
-**Currently scoped to: M02-M04, all in active development.** M01 reached
-FINAL LOCK on 2026-09-19 — all its findings have been folded into
-`docs/bugs.md` (entries 1-11) and `docs/story.md` (section 4). M02-M04
-are implemented but not yet live-tested.
+**Currently scoped to: M02-M04, plus a reopened M01 localization pass.**
+M01 reached FINAL LOCK on 2026-09-19 (findings folded into `docs/bugs.md`
+entries 1-11 and `docs/story.md` section 4) but was reopened for a
+Localization pass (EN + Simplified Chinese, `zh` — confirmed via
+`Localization.languages()` live, not `zh-CN`) before the real final lock.
+M02-M04 are implemented but not yet live-tested.
+
+---
+
+**M01 Localization, Phase 1 (quest-level text) — implemented, not yet
+live-tested.** New `src/content/m01-i18n.ts` holds every EN/`zh` string
+pair and calls `Localization.registerAll()`; `m01.ts`/`m01-quest.ts` now
+read strings via `Localization.t(KEY, vars?)` instead of literals.
+Deliberate scope exclusions, decided while doing this pass:
+
+1. **`M01_DUMMY_AUTH_LOG_CONTENT`/`CRON_LOG`/`SYSTEM_LOG`** — left
+   English-only. These are raw log-format output (usernames, IPs, cron
+   job names), which reads as technical/system content conventionally
+   left untranslated regardless of locale, same as a real server's logs.
+2. **`whois` contact `"Registrar Privacy Service"`** — left
+   English-only for the same reason: a real WHOIS privacy-proxy service
+   name is a proper noun, not prose, and wouldn't change with the
+   viewer's language in reality.
+3. **`M01_IRC_NOTES_CONTENT`/`M01_IRC_NOTES_ENCRYPTED`/
+   `M01_IRC_NOTES_FILE_CONTENT`** — deliberately NOT localized. The
+   `Terminal.Openssl` handler (`m01-quest.ts` line ~911) does
+   `data.output !== M01_IRC_NOTES_CONTENT` as an exact-match objective
+   gate against the base64-decoded file. If the plain-text constant were
+   localized but the pre-computed `M01_IRC_NOTES_ENCRYPTED` base64
+   blob still decoded to the old English text (or vice versa), the
+   decode objective would silently break for non-English players. Fixing
+   this properly means deriving the base64 from the live localized text
+   at read time instead of a frozen constant — out of scope for this
+   pass, revisit if it matters.
+4. **IRC line `"x7k2m9vdlq4wnyt3"`** — left untranslated; it is a literal
+   address fragment, not prose.
+5. **Twotter bios/posts (`M01_TWOTTER_BROKER/CONTACT/DECOY_BIO`+`_POSTS`,
+   ~41 tweets total)** — deferred to Phase 2 alongside the HTML website
+   work, not included in this Phase 1 batch. They render through the
+   Twotter app's own UI (conceptually closer to "site content" than
+   quest/mail/IRC text) and are high-volume enough that bundling them
+   with the smaller quest-level batch risked lowering translation
+   quality/review quality for both.
+
+**Verified live (2026-09-23):** `Localization.t(key)` called with no
+`vars` leaves an unmatched `{{token}}` untouched instead of
+stripping/breaking it (`scratchloc` output: `noVars: Listing:
+{{listingCode}} done.`) — confirms `M01_REPORT_TEMPLATE_CONTENT`'s raw
+`{{listingCode}}`/etc. tokens survive `Localization.t()` intact for
+GoMail's own templating to fill in later.
+
+**Confirmed bug + fix (2026-09-23): `Title`/`Description`/`HackhubPost`/
+`Objectives` must stay plain fields, resolved once — not getters, and
+not assigned inside `OnObjectivesStart()`.** Two failure modes found
+live, both explained by decompiling `.reverse/extracted/index.js`:
+
+- **`export const X = Localization.t(KEY)` at module scope** (the
+  original Phase 1 mistake) froze every string at whatever language was
+  active when the mod module first loaded — confirmed via a `scratchloc`
+  three-way check (`Localization.language()` and a live `t()` call both
+  correctly returned `"zh"`, but the pre-resolved module constant still
+  read English). Fixed by turning these into functions called at actual
+  use time inside `OnStart()`/`OnObjectivesStart()`, which a temporary
+  trace confirmed does see the correct live language.
+- **That fix does not extend to `Title`, `Description`, `HackhubPost`,
+  or `Objectives`.** Converting `Title`/`Objectives` to `get` accessors
+  and assigning `Description`/`HackhubPost` inside `OnObjectivesStart()`
+  broke the HackHub recruitment post entirely (it never appeared) and
+  showed raw `M01.QUEST.TITLE`-style keys in the quest tracker instead of
+  text. Root cause, confirmed in the decompiled client:
+  - `Oa.Manager.HandleQuestHackhubPosts()` decides whether to create a
+    quest's recruitment post by constructing a **throwaway probe
+    instance** (`const J = new U`) and checking `J.HackhubPost` —
+    `OnObjectivesStart()` is a claimed-quest lifecycle hook and never
+    runs on this probe, so anything set only there is always `undefined`
+    here, regardless of Localization timing.
+  - `Quests.Claim()` calls `Se.Objectives.Start()` right after
+    construction — a plain array has no `.Start()`, so the engine must
+    be internally replacing `this.Objectives` with its own manager
+    object after reading the mod's initial value. A getter-only
+    `Objectives` (no setter) silently blocks that reassignment.
+  - Net rule: `Title`/`Description`/`HackhubPost`/`Objectives` are all
+    read/rewritten through plain, writable instance fields at points the
+    mod does not control (throwaway probes, post-construction
+    reassignment) — they must be assigned once, synchronously, at class
+    construction, same as before Phase 1 touched them. Only content
+    reached through `OnStart()`/`OnObjectivesStart()`'s own body (mail,
+    IRC, device files, OSINT `lynx`/`nmap` flavor) is safe to resolve
+    per-language on every load. Net effect: those four "quest chrome"
+    fields stay frozen at whichever language was active when the mod
+    first loaded that session (the original Phase-1-era limitation,
+    now understood and accepted rather than incorrectly "fixed").
+
+**M01 Localization, Phase 2 (website content) — architecture corrected
+after a confirmed SDK bug (bugs.md entry 22).** `Localization.t()` cannot
+be called directly from inside a `Website`'s `metadata(context)` — it
+returns the raw key there even for keys already proven registered and
+working from `Command.Run()`/`Quest` lifecycle contexts. Fix in place:
+`src/content/m01-site-strings-cache.ts` exports `refreshM01SiteStrings()`
+(calls the real `Localization.t()` from `OnObjectivesStart()`, a trusted
+context, and caches every key's resolved text into `Variables`) and
+`siteT(key, vars?)` (reads that cache and does `{{var}}` substitution
+itself). `localizeHtml()` and `m01-listing-templates.ts` both call
+`siteT()`, never `Localization.t()` directly. **Any future website
+localization work (frostgate, obsidian, clearescrow, ledgervault, or any
+other mission) must add its key object's `Object.values(...)` into
+`M01_ALL_SITE_KEYS` in `m01-site-strings-cache.ts` and use `siteT()`, not
+repeat the `Localization.t()`-in-`metadata()` mistake.** Blackwire-network
+is implemented against this corrected architecture and typechecks clean;
+not yet re-live-tested since the pivot as of this note.
 
 ---
 

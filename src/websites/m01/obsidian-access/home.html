@@ -46,52 +46,60 @@
 <body>
 <header>
   <h1>OBSIDIAN ACCESS</h1>
-  <div class="tag">verified network access, mirror listings. serious buyers only.</div>
+  <div class="tag">{{t:M01.OA.HOME_TAGLINE}}</div>
 </header>
 
 <div class="toolbar">
-  <input id="search" placeholder="search listing, region, sector...">
+  <input id="search" placeholder="{{t:M01.SITE.SEARCH_PLACEHOLDER}}">
   <select id="category">
-    <option value="ALL">ALL CATEGORIES</option>
+    <option value="ALL">{{t:M01.SITE.ALL_CATEGORIES}}</option>
     <option>RETAIL</option><option>ISP</option><option>LOGISTICS</option>
     <option>EDU</option><option>GOV</option><option>FIN</option>
   </select>
 </div>
 
 <div class="stats">
-  <div class="stat">LISTINGS <b id="total">0</b></div>
-  <div class="stat">ACTIVE <b id="active">0</b></div>
+  <div class="stat">{{t:M01.SITE.STAT.LISTINGS}} <b id="total">0</b></div>
+  <div class="stat">{{t:M01.SITE.STAT.ACTIVE}} <b id="active">0</b></div>
 </div>
 
 <div class="layout">
   <aside class="side">
     <div class="side-logo">OBSIDIAN</div>
-    <div class="side-section">DIRECTORY</div>
-    <a class="side-link active">Mirror Index</a>
-    <a class="side-link">Archived</a>
-    <div class="side-section">SYSTEM</div>
-    <a class="side-link">Status</a>
+    <div class="side-section">{{t:M01.OA.SIDE.DIRECTORY}}</div>
+    <a class="side-link active">{{t:M01.OA.SIDE.MIRROR_INDEX}}</a>
+    <a class="side-link">{{t:M01.OA.SIDE.ARCHIVED}}</a>
+    <div class="side-section">{{t:M01.OA.SIDE.SYSTEM}}</div>
+    <a class="side-link">{{t:M01.OA.SIDE.STATUS}}</a>
   </aside>
   <table>
-    <thead><tr><th>LISTING</th><th>CATEGORY</th><th>DETAIL</th><th>STATUS</th><th></th></tr></thead>
+    <thead><tr><th>{{t:M01.SITE.TH.LISTING}}</th><th>{{t:M01.SITE.TH.CATEGORY}}</th><th>{{t:M01.SITE.TH.DETAIL}}</th><th>{{t:M01.SITE.TH.STATUS}}</th><th></th></tr></thead>
     <tbody id="rows"></tbody>
   </table>
 </div>
 
-<footer>OBSIDIAN ACCESS // FICTIONAL NETWORK NODE // payments secured via <a href="https://clearescrow.io/" style="color:#c48aff;">ClearEscrow</a></footer>
+<footer>{{t:M01.OA.HOME_FOOTER}} <a href="https://clearescrow.io/" style="color:#c48aff;">ClearEscrow</a></footer>
 
 <script>
+const ACTIVE_LOTS = [
+  { slug: "listings/p7s3-61va", label: "ISP-NA-2207", cat: "ISP", desc: "{{t:M01.OA.DESC.ISP_NA}}" },
+  { slug: "listings/q0t6-94wb", label: "EDU-APAC-6641", cat: "EDU", desc: "{{t:M01.OA.DESC.EDU_APAC}}" },
+  { slug: "listings/r3u9-27xc", label: "RETAIL-NA-5528", cat: "RETAIL", desc: "{{t:M01.OA.DESC.RETAIL_NA}}" },
+  { slug: "listings/s6v2-50yd", label: "GOV-EU-7793", cat: "GOV", desc: "{{t:M01.OA.DESC.GOV_EU}}" },
+];
+
+const SOLD_LOTS = /*__M01_SOLD_LOTS__*/[
+  { label: "RETAIL-EU-4471", cat: "RETAIL" },
+  { label: "GOV-APAC-1120", cat: "GOV" },
+  { label: "LOG-NA-8802", cat: "LOGISTICS" },
+  { label: "FIN-NA-3387", cat: "FIN" },
+  { label: "EDU-EU-9915", cat: "EDU" },
+  { label: "ISP-APAC-4420", cat: "ISP" },
+];
+
 const LOTS = [
-  { slug: null, label: "RETAIL-EU-4471", cat: "RETAIL", desc: "Retail chain, EU region" },
-  { slug: null, label: "GOV-APAC-1120", cat: "GOV", desc: "no longer listed" },
-  { slug: null, label: "LOG-NA-8802", cat: "LOGISTICS", desc: "no longer listed" },
-  { slug: null, label: "FIN-NA-3387", cat: "FIN", desc: "no longer listed" },
-  { slug: null, label: "EDU-EU-9915", cat: "EDU", desc: "no longer listed" },
-  { slug: null, label: "ISP-APAC-4420", cat: "ISP", desc: "no longer listed" },
-  { slug: "isp-na-2207", label: "ISP-NA-2207", cat: "ISP", desc: "Regional ISP, NA region" },
-  { slug: "edu-apac-6641", label: "EDU-APAC-6641", cat: "EDU", desc: "University network, APAC region" },
-  { slug: "retail-na-5528", label: "RETAIL-NA-5528", cat: "RETAIL", desc: "Retail chain, NA region" },
-  { slug: "gov-eu-7793", label: "GOV-EU-7793", cat: "GOV", desc: "Government network, EU region" },
+  ...ACTIVE_LOTS,
+  ...SOLD_LOTS.map((lot) => ({ slug: null, label: lot.label, cat: lot.cat, desc: "{{t:M01.SITE.NO_LONGER_LISTED}}" })),
 ];
 
 const shuffle = (arr) => {
@@ -118,8 +126,8 @@ function render() {
       <td class="label">${x.label}</td>
       <td class="cat">${x.cat}</td>
       <td class="desc">${x.desc}</td>
-      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "ACTIVE" : "SOLD"}</td>
-      <td>${x.slug ? `<a class="open" href="/${x.slug}/">OPEN</a>` : ""}</td>
+      <td class="${x.slug ? "active-status" : "sold"}">${x.slug ? "{{t:M01.SITE.STAT.ACTIVE}}" : "{{t:M01.SITE.SOLD}}"}</td>
+      <td>${x.slug ? `<a class="open" href="/${x.slug}/">{{t:M01.SITE.OPEN}}</a>` : ""}</td>
     </tr>`).join("");
   document.getElementById("total").textContent = data.length;
   document.getElementById("active").textContent = data.filter(x => x.slug).length;

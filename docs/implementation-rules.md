@@ -190,15 +190,35 @@ duplicate it on every restart.
 ## 6. Website protocol-gating
 
 Every `Website`'s HTTP behavior follows the target's own nmap-fixture port
-80 status:
+80/443 status. Shared, mission-agnostic building blocks for this live in
+`src/websites/shared/page-guards.ts` (`requireHttps`/`securePage`/
+`notFoundPage`) plus their two error templates in the same folder — every
+mission imports from there rather than keeping its own local
+`http-error.html` copy and inline protocol check.
 
 - **Port 80 `OPEN`** → plain `http://` allowed, serves real content.
-- **Port 80 `CLOSE` or absent** → `http://` must return a "400 Bad
-  Request" page (absent defaults to `CLOSE`); only `https://` serves real
-  content. Use a `DynamicWebsitePageDefinition` (its `metadata(context)`
-  runs mod-side and sees the real `context.url`) rather than a static
-  page for this case — a client-side script inside the sandboxed page
-  cannot reliably see the requested protocol.
+- **Port 80 `CLOSE` or absent** → `http://` must return the shared 400
+  "Bad Request" page (absent defaults to `CLOSE`); only `https://` serves
+  real content. Every page on the site calls `requireHttps(context)` (or
+  is built with the `securePage(...)` convenience wrapper) and returns
+  early on a non-null result.
+- **Port 443 `CLOSE`** → any `https://` request to that domain must
+  return the shared 404 page instead of real content — nothing is
+  actually there to serve, so build affected pages with `notFoundPage(...)`
+  rather than leaving the domain's `Website` un-gated. If the domain has
+  no `Website` registered at all, this is out of the mod's reach entirely
+  (native engine behavior takes over) — nothing to build.
+- **Port 443 `OPEN` but a specific path has no real content** (a
+  retired/rotated slug, a stale cross-reference) → also use
+  `notFoundPage(...)` for that exact path. The SDK has no wildcard/
+  catch-all `path`, so this only covers paths we know about and register
+  explicitly, never arbitrary unregistered routes.
+
+Use a `DynamicWebsitePageDefinition` (its `metadata(context)` runs
+mod-side and sees the real `context.url`) rather than a static
+`WebsitePageDefinition` for any page that needs this gating — a
+client-side script inside the sandboxed page cannot reliably see the
+requested protocol, and a static page has no `metadata()` hook at all.
 
 Relevant here: Mission 3's pfSense/finance-VLAN pivot and Mission 4's C2
 dashboard both plausibly need this gating — confirm each target's intended
@@ -260,3 +280,23 @@ built strictly on its primitives (`Shell.addCommandData`/`Files.*`/
 `@RegisterCommand`). Anything outside that requires stopping to discuss
 with the user first — this was explicit and repeated in the original
 project brief.
+
+## 12. Nmap port 443 realism — pairs with rule #6
+
+A domain's `nmap` fixture must reflect whether it actually serves a page:
+
+- **Has a real `Website` registered** (the player can browse real content
+  there) → its nmap fixture must include `{ port: 443, status: "OPEN",
+  service: "https" }`.
+- **No `Website` registered** (nothing to serve) → its nmap fixture must
+  explicitly show port 443 `CLOSE`, not be left unregistered. An
+  unregistered IP and an explicit `CLOSE` read differently to a careful
+  player; only the explicit form is correct.
+
+Decorative subdomains with no page of their own (e.g. `api.`/`support.`/
+`gateway.` aliases used only for OSINT/whois flavor) are exempt either way.
+A deliberate exception to this rule (e.g. a Tor/`.dark` address modeled as
+unreachable by ordinary scanning) must be written down — in
+`docs/scratch.md` while the mission is still under active development, or
+in `docs/story.md`/`docs/bugs.md` once it has reached FINAL LOCK — never
+left as an unexplained gap.

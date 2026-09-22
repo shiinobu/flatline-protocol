@@ -1,105 +1,81 @@
-import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/hackhub-content-sdk";
+import {
+    RegisterWebsite,
+    Website,
+    type DynamicWebsitePageDefinition,
+    type PageContext,
+    type PageMetadata,
+} from "@hotbunny/hackhub-content-sdk";
 
-import { M01_DECOY_DOMAIN } from "../../../content/m01.js";
+import { buildM01HomeSoldLots, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
+import { renderM01ListingPage } from "../../../content/m01-listing-templates.js";
+import { M01_FROSTGATE_DOMAIN } from "../../../content/m01.js";
+import { localizeHtml } from "../../shared/localize.js";
+import { requireHttps, securePage } from "../../shared/page-guards.js";
 
 import adminPage from "./admin.html";
-import eduPageNa7710 from "./edu-na-7710.html";
-import finPageApac2244 from "./fin-apac-2244.html";
-import govPageApac9042 from "./gov-apac-9042.html";
 import homePage from "./home.html";
-import isPageEu3302 from "./isp-eu-3302.html";
 import isPageNa7734 from "./isp-na-7734.html";
 import logisticsPageApac2261 from "./logistics-apac-2261.html";
-import logisticsPageEu1183 from "./logistics-eu-1183.html";
 import retailPageApac3390 from "./retail-apac-3390.html";
-import retailPageNa6650 from "./retail-na-6650.html";
 import telecomPageEu5518 from "./telecom-eu-5518.html";
 import vendorPortalPage from "./vendor-portal.html";
+
+const page = securePage;
+
+const homeListing = (path: string, html: string, title: string, description: string): DynamicWebsitePageDefinition => ({
+    path,
+    metadata: (context: PageContext): PageMetadata => {
+        const denied = requireHttps(context);
+        if (denied) return denied;
+
+        const soldLots = buildM01HomeSoldLots("frostgate");
+        const injectedHtml = html.replace(
+            /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
+            `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
+        );
+
+        return { title, description, html: localizeHtml(injectedHtml) };
+    },
+});
+
+const soldListing = (path: string, slotId: string): DynamicWebsitePageDefinition => ({
+    path,
+    metadata: (context: PageContext): PageMetadata => {
+        const denied = requireHttps(context);
+        if (denied) return denied;
+
+        const resolution = ensureM01ListingResolution();
+        const resolved = resolution.slots[slotId];
+        const isWinner = resolution.winnerId === slotId;
+        const slot = { id: slotId, site: "frostgate" as const, domain: M01_FROSTGATE_DOMAIN, path, nodeLabel: "FG-00" };
+
+        return {
+            title: `Frostgate Exchange — ${resolved.category}-${resolved.region}-${resolved.code}`,
+            description: "No longer listed.",
+            html: renderM01ListingPage({ slot, resolved, isWinner }),
+        };
+    },
+});
 
 @RegisterWebsite
 export class FrostgateExchangeWebsite extends Website {
     SiteName = "Frostgate Exchange";
-    Host = M01_DECOY_DOMAIN;
+    Host = M01_FROSTGATE_DOMAIN;
     Icon = "";
 
-    Pages: WebsitePageDefinition[] = [
-        {
-            path: "/",
-            title: "Frostgate Exchange",
-            html: homePage,
-            description: "Verified network access, sold as-is.",
-        },
-        {
-            path: "/telecom-eu-5518/",
-            title: "Frostgate Exchange — TELECOM-EU-5518",
-            html: telecomPageEu5518,
-            description: "Telecom carrier, EU region.",
-        },
-        {
-            path: "/retail-apac-3390/",
-            title: "Frostgate Exchange — RETAIL-APAC-3390",
-            html: retailPageApac3390,
-            description: "Retail chain, APAC region.",
-        },
-        {
-            path: "/isp-na-7734/",
-            title: "Frostgate Exchange — ISP-NA-7734",
-            html: isPageNa7734,
-            description: "Regional ISP, NA region.",
-        },
-        {
-            path: "/logistics-apac-2261/",
-            title: "Frostgate Exchange — LOGISTICS-APAC-2261",
-            html: logisticsPageApac2261,
-            description: "Logistics company, APAC region.",
-        },
-        {
-            path: "/isp-eu-3302/",
-            title: "Frostgate Exchange — ISP-EU-3302",
-            html: isPageEu3302,
-            description: "No longer listed.",
-        },
-        {
-            path: "/edu-na-7710/",
-            title: "Frostgate Exchange — EDU-NA-7710",
-            html: eduPageNa7710,
-            description: "No longer listed.",
-        },
-        {
-            path: "/fin-apac-2244/",
-            title: "Frostgate Exchange — FIN-APAC-2244",
-            html: finPageApac2244,
-            description: "No longer listed.",
-        },
-        {
-            path: "/retail-na-6650/",
-            title: "Frostgate Exchange — RETAIL-NA-6650",
-            html: retailPageNa6650,
-            description: "No longer listed.",
-        },
-        {
-            path: "/logistics-eu-1183/",
-            title: "Frostgate Exchange — LOGISTICS-EU-1183",
-            html: logisticsPageEu1183,
-            description: "No longer listed.",
-        },
-        {
-            path: "/gov-apac-9042/",
-            title: "Frostgate Exchange — GOV-APAC-9042",
-            html: govPageApac9042,
-            description: "No longer listed.",
-        },
-        {
-            path: "/admin/",
-            title: "Frostgate Exchange — Admin",
-            html: adminPage,
-            description: "Restricted.",
-        },
-        {
-            path: "/vendor-portal/",
-            title: "Frostgate Exchange — Vendor Portal",
-            html: vendorPortalPage,
-            description: "Reseller access.",
-        },
+    Pages: DynamicWebsitePageDefinition[] = [
+        homeListing("/", homePage, "Frostgate Exchange", "Verified network access, sold as-is."),
+        page("/listings/l5o1-49rw/", telecomPageEu5518, "Frostgate Exchange — TELECOM-EU-5518", "Telecom carrier, EU region."),
+        page("/listings/m8p4-72sx/", retailPageApac3390, "Frostgate Exchange — RETAIL-APAC-3390", "Retail chain, APAC region."),
+        page("/listings/n1q7-05ty/", isPageNa7734, "Frostgate Exchange — ISP-NA-7734", "Regional ISP, NA region."),
+        page("/listings/o4r0-38uz/", logisticsPageApac2261, "Frostgate Exchange — LOGISTICS-APAC-2261", "Logistics company, APAC region."),
+        soldListing("/listings/v8y4-15gb/", "frostgate.ispeu3302"),
+        soldListing("/listings/w3z7-52hc/", "frostgate.eduna7710"),
+        soldListing("/listings/x6a2-38id/", "frostgate.finapac2244"),
+        soldListing("/listings/y9b5-71je/", "frostgate.retailna6650"),
+        soldListing("/listings/z4c8-04kf/", "frostgate.logisticseu1183"),
+        soldListing("/listings/a7d1-67lg/", "frostgate.govapac9042"),
+        page("/admin/", adminPage, "Frostgate Exchange — Admin", "Restricted."),
+        page("/vendor-portal/", vendorPortalPage, "Frostgate Exchange — Vendor Portal", "Reseller access."),
     ];
 }

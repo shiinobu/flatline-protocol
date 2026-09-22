@@ -6,24 +6,23 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M01_DOMAIN, M01_HIDDEN_PATH } from "../../../content/m01.js";
+import { buildM01HomeSoldLots, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
+import { renderM01ListingPage } from "../../../content/m01-listing-templates.js";
+import { M01_DOMAIN } from "../../../content/m01.js";
+import { localizeHtml } from "../../shared/localize.js";
+import { requireHttps, securePage } from "../../shared/page-guards.js";
 
-import accPage19 from "./acc-19.html";
 import accPage52 from "./acc-52.html";
 import adminPage from "./admin.html";
 import homePage from "./home.html";
-import httpErrorPage from "./http-error.html";
-import lotPage05 from "./lot-05.html";
 import lotPage88 from "./lot-88.html";
 import lotPage91 from "./lot-91.html";
-import lotPage94 from "./lot-94.html";
 import opnPage14 from "./opn-14.html";
-import opnPage102 from "./opn-102.html";
-import pkgPage77 from "./pkg-77.html";
-import reqPage33 from "./req-33.html";
 import vendorPortalPage from "./vendor-portal.html";
 
-const page = (
+const page = securePage;
+
+const homeListing = (
     path: string,
     html: string,
     title: string,
@@ -31,15 +30,35 @@ const page = (
 ): DynamicWebsitePageDefinition => ({
     path,
     metadata: (context: PageContext): PageMetadata => {
-        if (!context.url.startsWith("https:")) {
-            return {
-                title: "400 Bad Request",
-                description: "Insecure request rejected.",
-                html: httpErrorPage,
-            };
-        }
+        const denied = requireHttps(context);
+        if (denied) return denied;
 
-        return { title, description, html };
+        const soldLots = buildM01HomeSoldLots("blackwire");
+        const injectedHtml = html.replace(
+            /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
+            `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
+        );
+
+        return { title, description, html: localizeHtml(injectedHtml) };
+    },
+});
+
+const soldListing = (path: string, slotId: string): DynamicWebsitePageDefinition => ({
+    path,
+    metadata: (context: PageContext): PageMetadata => {
+        const denied = requireHttps(context);
+        if (denied) return denied;
+
+        const resolution = ensureM01ListingResolution();
+        const resolved = resolution.slots[slotId];
+        const isWinner = resolution.winnerId === slotId;
+        const slot = { id: slotId, site: "blackwire" as const, domain: M01_DOMAIN, path, nodeLabel: "BW-00" };
+
+        return {
+            title: `Blackwire Network — ${resolved.category}-${resolved.region}-${resolved.code}`,
+            description: "No longer listed.",
+            html: renderM01ListingPage({ slot, resolved, isWinner }),
+        };
     },
 });
 
@@ -50,22 +69,17 @@ export class BlackwireNetworkWebsite extends Website {
     Icon = "";
 
     Pages: DynamicWebsitePageDefinition[] = [
-        page("/", homePage, "Blackwire Network — Storefront", "Verified network access, sold as-is."),
-        page("/listings/retail-eu-2231/", lotPage88, "Blackwire Network — RETAIL-EU-2231", "Retail chain, EU region."),
-        page("/listings/isp-apac-6604/", lotPage91, "Blackwire Network — ISP-APAC-6604", "Regional ISP, APAC."),
-        page("/listings/logistics-na-1187/", opnPage14, "Blackwire Network — LOGISTICS-NA-1187", "Logistics company, NA region."),
-        page("/listings/edu-eu-3390/", accPage52, "Blackwire Network — EDU-EU-3390", "University network, EU."),
-        page("/listings/retail-na-0552/", lotPage94, "Blackwire Network — RETAIL-NA-0552", "No longer listed."),
-        page("/listings/fin-eu-7743/", reqPage33, "Blackwire Network — FIN-EU-7743", "No longer listed."),
-        page("/listings/logistics-apac-2266/", pkgPage77, "Blackwire Network — LOGISTICS-APAC-2266", "No longer listed."),
-        page("/listings/gov-na-9981/", accPage19, "Blackwire Network — GOV-NA-9981", "No longer listed."),
-        page("/listings/isp-eu-4415/", lotPage05, "Blackwire Network — ISP-EU-4415", "No longer listed."),
-        page(
-            M01_HIDDEN_PATH,
-            opnPage102,
-            "Blackwire Network — MED-SEA-0417",
-            "No longer listed.",
-        ),
+        homeListing("/", homePage, "Blackwire Network — Storefront", "Verified network access, sold as-is."),
+        page("/listings/h3k8-27ns/", lotPage88, "Blackwire Network — RETAIL-EU-2231", "Retail chain, EU region."),
+        page("/listings/i6l2-50ot/", lotPage91, "Blackwire Network — ISP-APAC-6604", "Regional ISP, APAC."),
+        page("/listings/j9m5-83pu/", opnPage14, "Blackwire Network — LOGISTICS-NA-1187", "Logistics company, NA region."),
+        page("/listings/k2n8-16qv/", accPage52, "Blackwire Network — EDU-EU-3390", "University network, EU."),
+        soldListing("/listings/n4k2-88c1/", "blackwire.lot94"),
+        soldListing("/listings/p7v9-22de/", "blackwire.req33"),
+        soldListing("/listings/q1m5-77af/", "blackwire.pkg77"),
+        soldListing("/listings/r8t3-41bd/", "blackwire.acc19"),
+        soldListing("/listings/s2w6-90ce/", "blackwire.lot05"),
+        soldListing("/listings/u5x1-63fa/", "blackwire.opn102"),
         page("/admin/", adminPage, "Blackwire Network — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Blackwire Network — Vendor Portal", "Reseller access."),
     ];

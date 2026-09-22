@@ -277,12 +277,12 @@ h1{
     <div class="logo"><span>CE</span></div>
     <div>
       <div class="brand-name">ClearEscrow</div>
-      <div class="brand-sub">Independent Escrow Service</div>
+      <div class="brand-sub">{{t:M01.ESCROW.BRAND_SUB}}</div>
     </div>
   </div>
 
   <div class="header-right">
-    <div class="public"><span class="live-dot"></span> Public transaction board</div>
+    <div class="public"><span class="live-dot"></span> {{t:M01.ESCROW.PUBLIC_LABEL}}</div>
     <div class="clock" id="clock">--:--:-- UTC</div>
   </div>
 </header>
@@ -290,54 +290,54 @@ h1{
 <main class="wrap">
   <div class="board-top">
     <div>
-      <div class="kicker">Settlement activity</div>
-      <h1>Transaction Board</h1>
-      <div class="description">Public transaction references and settlement status. Amounts, personal and banking details are not displayed.</div>
+      <div class="kicker">{{t:M01.ESCROW.KICKER}}</div>
+      <h1>{{t:M01.ESCROW.TITLE}}</h1>
+      <div class="description">{{t:M01.ESCROW.DESCRIPTION}}</div>
     </div>
     <div class="meta">
-      <div class="meta-line">Last board update</div>
+      <div class="meta-line">{{t:M01.ESCROW.META_LINE}}</div>
       <div class="meta-value" id="updated">--:--:-- UTC</div>
     </div>
   </div>
 
   <div class="toolbar">
     <div class="tabs">
-      <button class="tab active" data-filter="all">All transactions</button>
-      <button class="tab" data-filter="held">Funds held</button>
-      <button class="tab" data-filter="released">Released</button>
-      <button class="tab" data-filter="pending">Pending</button>
+      <button class="tab active" data-filter="all">{{t:M01.ESCROW.TAB.ALL}}</button>
+      <button class="tab" data-filter="held">{{t:M01.ESCROW.TAB.HELD}}</button>
+      <button class="tab" data-filter="released">{{t:M01.ESCROW.TAB.RELEASED}}</button>
+      <button class="tab" data-filter="pending">{{t:M01.ESCROW.TAB.PENDING}}</button>
     </div>
-    <input class="search" id="search" type="search" placeholder="Search reference..." aria-label="Search reference">
+    <input class="search" id="search" type="search" placeholder="{{t:M01.ESCROW.SEARCH_PLACEHOLDER}}" aria-label="{{t:M01.ESCROW.SEARCH_PLACEHOLDER}}">
   </div>
 
   <section class="stats-grid">
     <div class="stat-card">
-      <div class="summary-label">Visible transactions</div>
+      <div class="summary-label">{{t:M01.ESCROW.STAT.VISIBLE}}</div>
       <div class="summary-value" id="total">18</div>
     </div>
     <div class="stat-card">
-      <div class="summary-label">Funds currently held</div>
+      <div class="summary-label">{{t:M01.ESCROW.STAT.HELD}}</div>
       <div class="summary-value" id="heldCount">0</div>
     </div>
     <div class="stat-card">
-      <div class="summary-label">Released</div>
+      <div class="summary-label">{{t:M01.ESCROW.STAT.RELEASED}}</div>
       <div class="summary-value" id="releasedCount">18</div>
     </div>
     <div class="stat-card">
-      <div class="summary-label">Pending</div>
+      <div class="summary-label">{{t:M01.ESCROW.STAT.PENDING}}</div>
       <div class="summary-value" id="pendingCount">0</div>
     </div>
   </section>
 
   <section class="board">
     <div class="board-head">
-      <div>Time</div>
-      <div>Escrow Ref</div>
-      <div>Listing Ref</div>
-      <div>Buyer</div>
-      <div>Seller / Vendor</div>
-      <div style="text-align:right">Amount</div>
-      <div>Status</div>
+      <div>{{t:M01.ESCROW.COL.TIME}}</div>
+      <div>{{t:M01.ESCROW.COL.ESCROW_REF}}</div>
+      <div>{{t:M01.ESCROW.COL.LISTING_REF}}</div>
+      <div>{{t:M01.ESCROW.COL.BUYER}}</div>
+      <div>{{t:M01.ESCROW.COL.SELLER}}</div>
+      <div style="text-align:right">{{t:M01.ESCROW.COL.AMOUNT}}</div>
+      <div>{{t:M01.ESCROW.COL.STATUS}}</div>
     </div>
     <div class="rows-scroll" id="rows"></div>
   </section>
@@ -352,42 +352,30 @@ h1{
   </div>
 
   <div class="note">
-    <div class="note-left"><span class="lock">▣</span> ClearEscrow operates as an independent third-party escrow service. All references shown are transaction metadata.</div>
-    <div>Board refresh: automatic</div>
+    <div class="note-left"><span class="lock">▣</span> {{t:M01.ESCROW.NOTE_LEFT}}</div>
+    <div>{{t:M01.ESCROW.NOTE_RIGHT}}</div>
   </div>
 </main>
 
 <script>
-const transactions = [
-  ["23:58","ESC-88201","BW-9981","—","DUSKFENCE","UNDISCLOSED","released"],
-  ["23:41","ESC-88202","OA-9915","—","DARKINDEX","UNDISCLOSED","released"],
-  ["23:27","ESC-88203","FG-7710","—","GRAYWATCH","UNDISCLOSED","released"],
-  ["23:12","ESC-88204","BW-4415","—","REDLINE_OPS","UNDISCLOSED","released"],
-  ["22:58","ESC-88205","FG-2244","—","VOIDCARTEL","UNDISCLOSED","released"],
-  ["22:44","ESC-88206","OA-3387","—","MIRRORVAULT","UNDISCLOSED","released"],
-  ["22:31","ESC-88207","BW-0552","—","NULLROUTE99","UNDISCLOSED","released"],
-  ["22:15","ESC-88208","FG-9042","—","PALEWIRE","UNDISCLOSED","released"],
-  ["21:58","ESC-88209","BW-2266","—","COALVEIN","UNDISCLOSED","released"],
-  ["21:40","ESC-88210","FG-3302","—","CINDERLOCK","UNDISCLOSED","released"],
-  ["21:23","ESC-88211","BW-7743","—","IRONVEIL","UNDISCLOSED","released"],
-  ["21:07","ESC-88212","FG-1183","—","KILOWATT_X","UNDISCLOSED","released"],
-  ["20:52","ESC-88213","OA-1120","—","GRIMLEDGER","UNDISCLOSED","released"],
-  ["20:36","ESC-88214","BW-0417","—","A7xDEFACE9","UNDISCLOSED","released"],
-  ["20:19","ESC-88215","FG-6650","—","ASHFALL_TRD","UNDISCLOSED","released"],
-  ["20:03","ESC-88216","OA-4420","—","NIGHTMARKET7","UNDISCLOSED","released"],
-  ["19:47","ESC-88217","OA-8802","—","HOLLOWPIPE","UNDISCLOSED","released"],
-  ["19:30","ESC-88218","OA-4471","—","EMBERSTOCK","UNDISCLOSED","released"]
+const transactions = /*__M01_TRANSACTIONS__*/[
+  ["23:58","ESC-88201","BW-9981","—","DUSKFENCE","UNDISCLOSED","released"]
 ];
 
 let filter = "all";
 let currentPage = 1;
 const pageSize = 10;
 
+const STATUS_LABEL = {
+  held: "{{t:M01.ESCROW.STATUS.HELD}}",
+  released: "{{t:M01.ESCROW.STATUS.RELEASED}}",
+  pending: "{{t:M01.ESCROW.STATUS.PENDING}}",
+  disputed: "{{t:M01.ESCROW.STATUS.DISPUTED}}",
+};
+
 function rowTemplate(t){
   const [time,ref,listing,buyer,seller,amount,status] = t;
-  const label = status === "held" ? "Funds held" :
-                status === "released" ? "Released" :
-                status === "pending" ? "Pending" : "Disputed";
+  const label = STATUS_LABEL[status] ?? STATUS_LABEL.disputed;
   return `
     <div class="row" data-status="${status}" data-search="${(ref+" "+listing+" "+buyer+" "+seller).toLowerCase()}">
       <div class="time">${time}</div>
@@ -395,11 +383,11 @@ function rowTemplate(t){
       <div class="listing">${listing}</div>
       <div>
         <div class="party-main">${buyer}</div>
-        <div class="party-sub">anonymous buyer</div>
+        <div class="party-sub">{{t:M01.ESCROW.PARTY.ANON_BUYER}}</div>
       </div>
       <div>
         <div class="party-main">${seller}</div>
-        <div class="party-sub">anonymous vendor</div>
+        <div class="party-sub">{{t:M01.ESCROW.PARTY.ANON_VENDOR}}</div>
       </div>
       <div class="amount">${amount}</div>
       <div><span class="status ${status}"><span class="status-dot"></span>${label}</span></div>
@@ -423,7 +411,9 @@ function renderPagination(total){
   const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, total);
   document.getElementById("pageInfo").textContent =
-    total === 0 ? "Showing 0 of 0" : `Showing ${start}–${end} of ${total}`;
+    total === 0
+      ? "{{t:M01.ESCROW.PAGE_INFO_EMPTY}}"
+      : "{{t:M01.ESCROW.PAGE_INFO_TEMPLATE}}".replace("{{start}}", start).replace("{{end}}", end).replace("{{total}}", total);
 
   const pageNumbers = document.getElementById("pageNumbers");
   pageNumbers.innerHTML = "";
