@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BACKTRACE — FLATLINE PROTOCOL</title>
+<style>
+:root{
+  --bg:#090a0b; --bg2:#0d0f11; --panel:#111315; --panel2:#15181a;
+  --line:#2a2e31; --line-soft:#1e2225; --text:#f0f1f1; --text2:#c7c9c9;
+  --muted:#73787b; --muted2:#545a5e; --red:#f0202b; --red2:#b80f18; --green:#aeb9b1;
+  --header:56px; --sidebar:232px; --sidebar-expanded:232px; --ease:170ms cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Arial Narrow","Roboto Condensed","Inter Tight","Segoe UI",Arial,sans-serif;font-size:14px;overflow:hidden}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
+
+.app{position:relative;height:100vh;width:100vw;display:grid;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:var(--header) 1fr;overflow:hidden;background:#090a0b}
+.app::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(rgba(255,255,255,.013) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.013) 1px,transparent 1px);
+  background-size:64px 64px;opacity:.22;z-index:0}
+.app::after{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(90deg,rgba(240,32,43,.08),transparent 18%,transparent 82%,rgba(240,32,43,.06)),
+  radial-gradient(circle at 50% 42%,rgba(255,255,255,.025),transparent 34%),
+  linear-gradient(rgba(0,0,0,.05),rgba(0,0,0,.28));z-index:0}
+
+.app.nav-expanded{grid-template-columns:var(--sidebar-expanded) 1fr}
+.sidebar{transition:width 180ms ease}
+.sidebar-toggle{position:absolute;top:12px;right:8px;width:22px;height:22px;border:1px solid var(--line-soft);background:#0d0f10;color:var(--muted);font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;cursor:pointer;z-index:8;display:flex;align-items:center;justify-content:center}
+.sidebar-toggle:hover{color:var(--text);border-color:#3b4044}
+.side-head{padding:0 18px;transition:padding 180ms ease}.side-head .side-case{white-space:nowrap;overflow:hidden}
+.sidebar:not(.expanded) .side-head{padding:0 0;text-align:center}
+.sidebar:not(.expanded) .side-head .kicker{font-size:9px;letter-spacing:1.2px}
+.sidebar:not(.expanded) .side-head .side-case,.sidebar:not(.expanded) .section-label,.sidebar:not(.expanded) .nav-name,.sidebar:not(.expanded) .nav-status,.sidebar:not(.expanded) .side-bottom-row{display:none}
+.sidebar:not(.expanded) .side-section{margin-top:30px}
+.sidebar:not(.expanded) .nav-item{padding:12px 0;display:flex;justify-content:center}
+.sidebar:not(.expanded) .nav-main{justify-content:center;gap:0}
+.sidebar:not(.expanded) .nav-num{width:auto;font-size:12px}
+.sidebar:not(.expanded) .nav-item.active::before{left:0;right:auto;width:3px}
+.sidebar:not(.expanded) .caseboard-nav .nav-item{padding:14px 0}
+.sidebar:not(.expanded) .caseboard-nav .nav-num{font-size:11px;color:var(--muted)}
+.sidebar.expanded .sidebar-toggle{right:8px}
+.sidebar:not(.expanded) .sidebar-toggle{right:25px}
+.nav-item{overflow:visible}
+.nav-item[data-view]::after{content:attr(data-label);position:absolute;left:58px;top:50%;transform:translateY(-50%) translateX(-4px);padding:7px 9px;border:1px solid #2b3034;background:#111416;color:#d9dcdd;white-space:nowrap;font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity 120ms ease,transform 120ms ease;z-index:30}
+.sidebar:not(.expanded) .nav-item[data-view]:hover::after{opacity:1;transform:translateY(-50%) translateX(0)}
+.sidebar:not(.expanded) .caseboard-nav .nav-item[data-view]::after{top:50%}
+
+.topbar{grid-column:1/-1;grid-row:1;position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line-soft);background:rgba(9,10,11,.9);backdrop-filter:blur(8px)}
+.topbar-left,.topbar-right{display:flex;align-items:center}
+.topbar-left{gap:16px;width:calc(var(--sidebar) - 18px);flex:none;align-self:stretch;box-sizing:border-box;padding-right:16px;border-right:1px solid var(--line-soft);margin-right:16px}
+.brand-block{display:flex;align-items:baseline;gap:12px}
+.brand{font-size:14px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:1.7px;text-transform:uppercase}
+.heartbeat{width:66px;height:20px;position:relative;overflow:hidden;opacity:.9}
+.heartbeat::before{content:"";position:absolute;left:0;right:0;top:10px;height:1px;background:var(--red);box-shadow:0 0 12px rgba(240,32,43,.18)}
+.heartbeat::after{content:"";position:absolute;left:21px;top:2px;width:24px;height:16px;border-bottom:1px solid var(--red);transform:skewX(-28deg) rotate(-40deg);opacity:.85}
+.topbar-title-wave{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(900px,64vw);height:40px;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.85) 18%,rgba(0,0,0,.85) 82%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.85) 18%,rgba(0,0,0,.85) 82%,transparent 100%)}
+.topbar-title-wave svg{position:absolute;left:0;top:0;width:200%;height:100%;animation:titleWaveScroll 9s linear infinite}
+.topbar-title-wave .tw-line{fill:none;stroke:#b9bdbe;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;opacity:.22}
+.topbar-title-wave .tw-glow{fill:none;stroke:var(--red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.16;filter:blur(1px)}
+@keyframes titleWaveScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.topbar-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1}
+.topbar-title-text{font-family:"Cascadia Mono",Consolas,monospace;font-size:22px;font-weight:700;letter-spacing:6px;color:var(--text)}
+.case-meta{gap:18px}
+.case-status{display:flex;align-items:center;gap:7px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+.case-status .dot{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 10px rgba(240,32,43,.35);animation:statusPulse 2.2s ease-in-out infinite}
+@keyframes statusPulse{0%,100%{transform:scale(1);box-shadow:0 0 10px rgba(240,32,43,.35)}50%{transform:scale(1.35);box-shadow:0 0 16px rgba(240,32,43,.7)}}
+
+.sidebar{position:relative;z-index:50;isolation:isolate;grid-column:1;grid-row:2;min-height:0;padding:18px 0 0;border-right:1px solid var(--line-soft);background:#08090a !important;display:flex;flex-direction:column;overflow:hidden}.sidebar::before{content:"";position:absolute;inset:0;z-index:-1;background:#08090a;pointer-events:none}
+.side-head{padding:0 18px}.kicker{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.side-case{margin-top:5px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text2);letter-spacing:.45px}
+.side-section{margin-top:4px}
+.side-section-head{padding:0 18px 12px;text-align:center}
+.section-label{font:16px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;letter-spacing:2px;color:var(--text);text-transform:uppercase}
+.section-rule{height:1px;background:var(--line-soft);margin:0 18px 14px}
+@keyframes lineSweep{0%{background-position:-60% 0}100%{background-position:160% 0}}
+.nav-list{display:flex;flex-direction:column}.nav-item{position:relative;width:100%;border:0;border-top:1px solid transparent;border-bottom:1px solid transparent;background:transparent;text-align:left;padding:13px 18px 13px 22px;cursor:pointer;transition:background var(--ease),color var(--ease),border-color var(--ease);display:flex;align-items:center;gap:14px}
+.nav-item:hover{background:rgba(255,255,255,.022)}.nav-item.active{background:#17191a;border-top-color:#25282b;border-bottom-color:#25282b}
+.nav-item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);box-shadow:0 0 12px rgba(240,32,43,.22)}
+.nav-num{flex:none;font:22px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;color:var(--muted2)}
+.nav-item.active .nav-num{color:var(--red)}
+.nav-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.nav-name{font-size:15px;font-weight:700;letter-spacing:.85px;text-transform:uppercase}
+.nav-status{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.45px;text-transform:uppercase;color:var(--muted2)}
+.nav-status.complete{color:#3ddc6f}.nav-status.is-locked{color:var(--red)}.nav-status.in-progress{color:#f0c419}.status-open,.status-locked,.status-pending{display:inline-flex;align-items:center;gap:7px}
+.status-open::before,.status-locked::before,.status-pending::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.nav-status.complete .status-open::before{animation:statusPulseGreen 2.2s ease-in-out infinite}
+.nav-status.is-locked .status-locked::before{animation:statusPulseRed 2.2s ease-in-out infinite}
+.nav-status.in-progress .status-pending::before{animation:statusPulseYellow 2.2s ease-in-out infinite}
+@keyframes statusPulseGreen{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(61,220,111,.4)}50%{transform:scale(1.4);box-shadow:0 0 14px rgba(61,220,111,.85)}}
+@keyframes statusPulseRed{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(240,32,43,.4)}50%{transform:scale(1.4);box-shadow:0 0 14px rgba(240,32,43,.85)}}
+@keyframes statusPulseYellow{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(240,196,25,.4)}50%{transform:scale(1.4);box-shadow:0 0 14px rgba(240,196,25,.85)}}
+.nav-icon-progress::before{content:"";position:absolute;left:3px;top:3px;width:10px;height:10px;border:1.5px solid #f0c419;border-top-color:transparent;border-radius:50%;box-sizing:border-box;animation:iconSpin 1.4s linear infinite}
+@keyframes iconSpin{to{transform:rotate(360deg)}}
+.is-hidden{display:none!important}
+.view[data-report="ready"]>.locked{display:none}
+.view[data-report="none"]>.report-scroll,.view[data-report="none"]>.report-link{display:none}
+.board-empty{position:absolute;inset:0;z-index:3;display:grid;place-items:center;pointer-events:none;text-align:center}
+.board-empty>div{padding:18px 30px;border:1px solid var(--line);background:rgba(14,16,17,.92)}
+.board-empty-title{font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2px;color:var(--text2);text-transform:uppercase}
+.board-empty-copy{margin-top:9px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+.nav-item[data-view="prologue"] .nav-name::after{content:"_";display:inline-block;margin-left:3px;color:var(--red);animation:prologueCursor 1.1s steps(1) infinite}
+.nav-item[data-view="prologue"] .nav-num{animation:prologueGlitch 3s linear infinite}
+@keyframes prologueCursor{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+@keyframes prologueGlitch{0%,90%,100%{opacity:1;transform:none;text-shadow:none}91%{opacity:.35;transform:translateX(-2px);text-shadow:2px 0 rgba(240,32,43,.7)}93%{opacity:1;transform:translateX(2px);text-shadow:-2px 0 rgba(90,200,255,.5)}95%{opacity:.6;transform:none;text-shadow:none}97%{opacity:1}}
+#prologue .report{display:flex;flex-direction:column;min-height:100%}
+#prologue .report-top,#prologue .rule{flex:none}
+.prologue{max-width:760px;margin:0 auto;flex:1;display:flex;flex-direction:column;justify-content:center;color:#d0d2d2;font-size:18px;line-height:1.9;letter-spacing:.1px}
+.prologue p{margin:0;text-align:justify;}
+.prologue-mark{color:var(--muted);font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:26px}
+.prologue-sign{margin-top:26px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;text-align: right;}
+.nav-icon{flex:none;width:16px;height:16px;position:relative}
+.nav-icon-check::before{content:"";position:absolute;left:2px;top:8px;width:5px;height:2px;background:#3ddc6f;transform:rotate(45deg);border-radius:1px}
+.nav-icon-check::after{content:"";position:absolute;left:4.5px;top:4px;width:9px;height:2px;background:#3ddc6f;transform:rotate(-45deg);border-radius:1px}
+.nav-icon-lock::before{content:"";position:absolute;left:1px;top:6px;width:10px;height:7px;border:1.5px solid var(--red);border-radius:2px;box-sizing:border-box}
+.nav-icon-lock::after{content:"";position:absolute;left:3px;top:1px;width:6px;height:6px;border:1.5px solid var(--red);border-bottom:none;border-radius:6px 6px 0 0;box-sizing:border-box}
+.nav-icon-board{display:flex;align-items:center;justify-content:center;gap:2px}
+.nav-icon-board .node{width:4px;height:4px;border-radius:50%;background:var(--red);opacity:.35;animation:nodeSweep 1.8s ease-in-out infinite}
+.nav-icon-board .node:nth-child(2){animation-delay:.3s}
+.nav-icon-board .node:nth-child(3){animation-delay:.6s}
+@keyframes nodeSweep{0%,60%,100%{opacity:.35;box-shadow:none}30%{opacity:1;box-shadow:0 0 6px rgba(240,32,43,.7)}}
+.sidebar-grow{flex:1;min-height:18px}.caseboard-nav .nav-item{border-top:1px solid var(--line-soft);border-bottom:0;padding-top:15px;padding-bottom:15px}
+.caseboard-nav .nav-name{letter-spacing:1.7px}.side-bottom{padding:12px 18px 13px;border-top:1px solid var(--line-soft)}
+.side-bottom-row{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.35px;text-transform:uppercase;color:var(--muted2);line-height:1.65}
+
+.workspace{position:relative;z-index:1;grid-column:2;grid-row:2;min-width:0;min-height:0;overflow:hidden;background:transparent}
+.workspace::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(rgba(255,255,255,.010) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.010) 1px,transparent 1px);
+  background-size:64px 64px;opacity:.24;z-index:0}
+.workspace::after{content:"";position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse at 50% 50%,rgba(9,10,11,.03) 0%,rgba(9,10,11,.20) 58%,rgba(9,10,11,.56) 100%),
+  linear-gradient(180deg,rgba(0,0,0,.20),transparent 22%,transparent 78%,rgba(0,0,0,.24));z-index:0}
+
+.workspace-art{position:absolute;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.workspace-art svg{width:100%;height:100%;overflow:visible;opacity:.14}
+.wave-primary{fill:none;stroke:#f2f2f0;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.wave-primary-red{fill:none;stroke:#f5222d;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.wave-secondary{fill:none;stroke:#b9bdbe;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.30}
+.wave-secondary-red{fill:none;stroke:#ef1d2d;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.22}
+.wave-glow{fill:none;stroke:#ef1d2d;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.08;filter:url(#waveGlow)}
+.view{display:none;position:absolute;inset:0;overflow:hidden;z-index:1}.view.active{display:flex;flex-direction:column}
+.report-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}.report-scroll::-webkit-scrollbar{display:none}
+
+.report{position:relative;z-index:2;width:100%;padding:34px 38px 30px}
+.report-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.report-code{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2.1px;color:var(--muted);text-transform:uppercase}
+.report-title{margin:7px 0 2px;font-size:21px;line-height:1;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.report-sub{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.8px;color:var(--muted);text-transform:uppercase}
+.report-accent{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--red);letter-spacing:1.8px;text-transform:uppercase;white-space:nowrap}
+.rule{height:1px;background:var(--line);margin:20px 0 22px;position:relative}.rule::before{content:"";position:absolute;left:0;top:-1px;width:118px;height:2px;background:var(--red);box-shadow:0 0 8px rgba(240,32,43,.12)}
+.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}.meta-box{min-width:0}.meta-label{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:1.7px;text-transform:uppercase}
+.meta-value{margin-top:5px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text2);letter-spacing:.35px}.meta-value.red{color:var(--red)}
+.report-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(380px,.88fr);gap:34px;margin-top:31px}
+.report-section{margin:0 0 30px}.section-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}.section-title{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:2px;color:var(--text2);text-transform:uppercase;white-space:nowrap}
+.section-head::after{content:"";height:1px;flex:1;background:var(--line-soft)}
+.body-copy{max-width:900px;margin:0;color:#d0d2d2;font-size:14px;line-height:1.75;letter-spacing:.12px}
+.findings{display:flex;flex-direction:column;gap:14px}.finding{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center}
+.finding-num{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--red);letter-spacing:1px}.finding-text{font-size:14px;line-height:1.65;color:#d4d5d5}
+.code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#f0f1f1}
+.evidence{border:1px solid var(--line);background:rgba(12,13,14,.78);cursor:pointer;transition:border-color var(--ease),background var(--ease)}.evidence:hover{border-color:#4b5054;background:rgba(16,18,20,.92)}
+.evidence-visual{min-height:286px;position:relative;overflow:hidden;background:
+  radial-gradient(circle at 70% 45%,rgba(240,32,43,.10),transparent 28%),
+  linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),#0d0f10;background-size:100% 100%,32px 32px,32px 32px,auto}
+.evidence-ui{position:absolute;inset:0;padding:17px;font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#b5b8ba}
+.evidence-bar{display:flex;justify-content:space-between;padding-bottom:9px;border-bottom:1px solid var(--line-soft);font-size:9px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+.evidence-log{margin-top:26px;line-height:1.95}.red{color:var(--red)}.white{color:#f0f1f1}
+.evidence-stamp{position:absolute;right:16px;bottom:15px;border:1px solid #3d4245;padding:5px 7px;color:#989da0;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.2px;text-transform:uppercase}
+.evidence-meta{display:flex;justify-content:space-between;gap:14px;padding:10px 1px 0;color:var(--muted);font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.7px;text-transform:uppercase}.evidence-meta strong{color:var(--text2);font-weight:500}
+.entity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.entity-card{border:1px solid var(--line);background:rgba(13,15,16,.78);padding:13px;text-align:left;cursor:pointer;transition:border-color var(--ease),background var(--ease)}
+.entity-card:hover{border-color:#4b5054;background:#17191a}.entity-type{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.6px;color:var(--muted);text-transform:uppercase}
+.entity-name{margin-top:7px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#eef0f0;line-height:1.45}.entity-source{margin-top:8px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;color:var(--muted2);text-transform:uppercase}
+.report-link{flex:none;margin:0;padding:20px 38px 19px;border-top:1px solid var(--line-soft);background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:16px}.report-link-copy{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.7;letter-spacing:.7px;color:var(--muted);text-transform:uppercase}
+.text-btn{border:0;background:transparent;padding:0;cursor:pointer;color:#c7caca;font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.25px;text-transform:uppercase}.text-btn:hover{color:var(--red)}
+.report-link .text-btn{padding:8px 20px;border:1px solid #3a3f43;background:rgba(255,255,255,.02);font-size:11px;line-height:13px;letter-spacing:1.8px;font-weight:700;transition:color var(--ease),border-color var(--ease),background var(--ease)}.report-link .text-btn:hover{border-color:var(--red);background:rgba(240,32,43,.07)}
+
+.locked{position:relative;z-index:2;flex:1;min-height:0;display:grid;place-items:center;padding:28px}.locked-card{width:min(480px,90%);border:1px solid var(--line);background:rgba(14,16,17,.92);padding:34px;text-align:center}
+.locked-glyph{font:19px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted)}.locked-title{margin-top:13px;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.locked-status{margin-top:7px;font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.7px;text-transform:uppercase;color:var(--muted)}.locked-copy{margin:13px auto 0;max-width:360px;color:#8f9598;font-size:13px;line-height:1.7}
+
+.caseboard{position:relative;z-index:2;width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
+.board-head{flex:none;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:22px 26px 15px;border-bottom:1px solid var(--line-soft);background:linear-gradient(180deg,rgba(9,10,11,.86),rgba(9,10,11,.42))}
+.board-heading{display:flex;align-items:center;gap:14px}.board-mark{width:40px;height:2px;background:var(--red);box-shadow:0 0 12px rgba(240,32,43,.20)}
+.board-title{font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase}.board-sub{margin-top:4px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:1.8px;text-transform:uppercase}
+.board-meta{display:flex;gap:16px;align-items:center;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;color:var(--muted);text-transform:uppercase}.board-meta strong{color:var(--text2);font-weight:500}
+
+.board-viewport{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;background:
+  linear-gradient(rgba(255,255,255,.008) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.008) 1px,transparent 1px);
+  background-size:48px 48px}
+.board-viewport.dragging{cursor:grabbing}.board-viewport::before{content:"";position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(90deg,rgba(240,32,43,.055),transparent 22%,transparent 78%,rgba(240,32,43,.04)),
+  radial-gradient(circle at 50% 50%,rgba(255,255,255,.018),transparent 32%);z-index:1}
+.board-canvas{position:absolute;width:1500px;height:760px;left:0;top:0;transform-origin:0 0;z-index:2}
+.board-svg{position:absolute;inset:0;width:1500px;height:760px;overflow:visible;pointer-events:none}
+.trace-line{stroke:#4f5558;stroke-width:1.4;fill:none}.trace-line.active{stroke:var(--red);stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(240,32,43,.15))}
+.trace-dot{fill:var(--red)}.trace-label{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;fill:#7a8083;text-transform:uppercase}
+.board-node{position:absolute;width:220px;min-height:108px;padding:15px 16px 14px;border:1px solid #3b4043;background:rgba(17,19,20,.96);color:var(--text);text-align:left;cursor:pointer;transition:border-color var(--ease),background var(--ease),transform var(--ease)}
+.board-node:hover{border-color:#70767a;background:#1a1d1f;transform:translateY(-2px)}.board-node.selected{border-color:var(--red);background:#1c1315}.board-node.selected::before{content:"";position:absolute;left:14px;right:14px;top:-1px;height:2px;background:var(--red);box-shadow:0 0 8px rgba(240,32,43,.15)}
+.node-index{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.8px;color:var(--muted2);text-transform:uppercase}.node-type{margin-top:8px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.node-id{margin-top:6px;font:14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#eff0f0;line-height:1.45}.node-foot{margin-top:10px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted2);letter-spacing:.8px;text-transform:uppercase}.node-foot.red{color:var(--red)}
+.board-annotation{position:absolute;left:42px;top:36px;padding:7px 9px;border-left:2px solid var(--red);background:rgba(10,11,12,.78)}
+.annotation-kicker{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.6px;color:var(--muted);text-transform:uppercase}.annotation-main{margin-top:5px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text2)}
+.board-hint{position:absolute;left:26px;bottom:17px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted2);letter-spacing:.9px;text-transform:uppercase}.board-legend{position:absolute;right:24px;bottom:17px;display:flex;gap:14px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted2);letter-spacing:1px;text-transform:uppercase}
+.legend-item{display:flex;align-items:center;gap:6px}.legend-dot{width:5px;height:5px;background:var(--red);border-radius:50%}.legend-line{width:18px;height:1px;background:#61676a}
+.board-controls{position:absolute;right:20px;top:18px;display:flex;align-items:center;gap:3px;z-index:5;padding:3px;border:1px solid var(--line-soft);background:rgba(10,11,12,.85)}
+.tool{width:27px;height:23px;border:0;background:transparent;color:#9aa0a3;cursor:pointer}.tool:hover{background:#181b1d;color:#f0f1f1}.zoom-label{min-width:44px;text-align:center;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:.8px}
+
+.detail-drawer{position:absolute;z-index:20;top:0;right:0;bottom:0;width:340px;border-left:1px solid var(--line);background:rgba(14,16,17,.97);transform:translateX(102%);transition:transform 190ms var(--ease);display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(0,0,0,.34)}
+.detail-drawer.open{transform:translateX(0)}.drawer-head{padding:18px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;gap:16px}
+.drawer-kicker{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.7px;color:var(--muted);text-transform:uppercase}.drawer-title{margin-top:7px;font-size:17px;font-weight:700;letter-spacing:1px;text-transform:uppercase}.drawer-id{margin-top:5px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text2)}
+.close{border:0;background:transparent;color:#757b7e;font-size:20px;line-height:1;cursor:pointer;padding:0 2px}.close:hover{color:var(--red)}.drawer-body{padding:18px;overflow:auto}.detail-block{margin-bottom:22px}
+.detail-label{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.7px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}.detail-value{font-size:13px;color:#d0d3d4;line-height:1.65}.detail-code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#e8eaea}
+.related-list{display:flex;flex-direction:column}.related-item{padding:9px 0;border-top:1px solid rgba(255,255,255,.055)}.related-item:first-child{border-top:0;padding-top:0}
+.related-type{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase}.related-name{margin-top:4px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#dedfdf}.drawer-link{border-top:1px solid var(--line-soft);padding-top:14px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted2);letter-spacing:1px;text-transform:uppercase}
+
+.lightbox{position:fixed;inset:0;z-index:100;background:rgba(2,3,3,.94);display:none;align-items:center;justify-content:center;padding:28px}.lightbox.open{display:flex}
+.lightbox-card{width:min(1120px,92vw);border:1px solid var(--line);background:#0f1112}.lightbox-head{padding:11px 13px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between}.lightbox-head strong{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.2px;color:var(--text2);text-transform:uppercase}
+.lightbox-body{padding:12px}.lightbox .evidence-visual{min-height:460px}.hint{margin-top:8px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.8px;color:var(--muted2);text-transform:uppercase}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand-block">
+      <div class="brand">FLATLINE PROTOCOL</div>
+    </div>
+    <div class="heartbeat" aria-hidden="true"></div>
+  </div>
+  <div class="topbar-title-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 40" preserveAspectRatio="none">
+      <path class="tw-line" d="M0 20 L60 20 L72 20 L84 15 L96 20 L110 20 L120 20 L128 24 L136 2 L144 36 L152 20 L166 20 L178 12 L192 20 L360 20 L420 20 L432 20 L444 15 L456 20 L470 20 L480 20 L488 24 L496 2 L504 36 L512 20 L526 20 L538 12 L552 20 L720 20 L780 20 L792 20 L804 15 L816 20 L830 20 L840 20 L848 24 L856 2 L864 36 L872 20 L886 20 L898 12 L912 20 L1080 20 L1140 20 L1152 20 L1164 15 L1176 20 L1190 20 L1200 20 L1208 24 L1216 2 L1224 36 L1232 20 L1246 20 L1258 12 L1272 20 L1440 20"/>
+      <path class="tw-glow" d="M0 20 L60 20 L72 20 L84 15 L96 20 L110 20 L120 20 L128 24 L136 2 L144 36 L152 20 L166 20 L178 12 L192 20 L360 20 L420 20 L432 20 L444 15 L456 20 L470 20 L480 20 L488 24 L496 2 L504 36 L512 20 L526 20 L538 12 L552 20 L720 20 L780 20 L792 20 L804 15 L816 20 L830 20 L840 20 L848 24 L856 2 L864 36 L872 20 L886 20 L898 12 L912 20 L1080 20 L1140 20 L1152 20 L1164 15 L1176 20 L1190 20 L1200 20 L1208 24 L1216 2 L1224 36 L1232 20 L1246 20 L1258 12 L1272 20 L1440 20"/>
+    </svg>
+  </div>
+  <div class="topbar-title">
+    <span class="topbar-title-text">BACKTRACE</span>
+  </div>
+  <div class="topbar-right case-meta">
+    <div class="case-status"><span class="dot"></span> GHOSTWIRE</div>
+  </div>
+</header>
+
+<aside class="sidebar expanded">
+
+  <div class="side-section">
+    <div class="side-section-head"><div class="section-label">Missions</div></div>
+    <div class="section-rule"></div>
+    <nav class="nav-list">
+      <button class="nav-item" data-view="prologue" data-label="PROLOGUE">
+        <span class="nav-num">#0</span>
+        <div class="nav-main">
+          <span class="nav-name">THE STORY</span>
+        </div>
+      </button>
+      <button class="nav-item" data-view="m1" data-label="01 — FIRST TRACE">
+        <span class="nav-num">#1</span>
+        <div class="nav-main">
+          <span class="nav-name">FIRST TRACE</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m2" data-label="02 — THE MAKER">
+        <span class="nav-num">#2</span>
+        <div class="nav-main">
+          <span class="nav-name">THE MAKER</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m3" data-label="03 — MONEY TRAIL">
+        <span class="nav-num">#3</span>
+        <div class="nav-main">
+          <span class="nav-name">MONEY TRAIL</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m4" data-label="04 — THE ARCHITECT">
+        <span class="nav-num">#4</span>
+        <div class="nav-main">
+          <span class="nav-name">THE ARCHITECT</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="sidebar-grow"></div>
+
+  <div class="caseboard-nav">
+    <button class="nav-item active" data-view="board" data-label="CASEBOARD">
+      <span class="nav-num">—</span>
+      <div class="nav-main"><span class="nav-name">CASEBOARD</span></div>
+      <span class="nav-icon nav-icon-board" aria-hidden="true"><span class="node"></span><span class="node"></span><span class="node"></span></span>
+    </button>
+  </div>
+
+  <div class="side-bottom">
+    <div class="side-bottom-row">INVESTIGATE // TRACE // CORRELATE // EXPOSE</div>
+    <div class="side-bottom-row">GHOSTWIRE // LOCAL INSTANCE</div>
+  </div>
+</aside>
+
+<main class="workspace">
+<section id="prologue" class="view">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
+    <div><div class="report-code">PERSONAL LOG</div><h1 class="report-title">THE STORY</h1><div class="report-sub">WHY THIS CASE EXISTS</div></div>
+    <div class="report-accent">TRACE // CORRELATE // EXPOSE</div>
+  </div>
+  <div class="rule"></div>
+  <div class="prologue">
+    <div class="prologue-mark">// ENTRY LOGGED HERE</div>
+    <p>Eight months ago my sibling went into surgery. Should have been routine. Mid-procedure, the hospital's systems locked up — ransomware, dropped clean and fast. Whoever did it knew exactly what they were doing. The hospital paid to get the systems back online. My sibling never came out of that operating room. The official investigation ran for three weeks, then just stopped. Nobody explained why. I stopped waiting for an explanation and started tracing the money instead. I'm not police. I'm not press. I don't have a client, a badge, or a deadline. I have one name — BLACKLEDGER — and I'm not stopping until I have every name behind it.</p>
+    <div class="prologue-sign">— GHOSTWIRE</div>
+  </div>
+</div></div>
+</section>
+
+<section id="m1" class="view" data-report="none">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
+    <div><div class="report-code">MISSION 01</div><h1 class="report-title">FIRST TRACE</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-accent">TRACE // CORRELATE // EXPOSE</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M1</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
+  </div>
+
+  <div class="report-grid">
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Summary</div></div><p class="body-copy">A preliminary trace isolated a broker identity embedded in the transaction trail. The recovered record also exposed a buyer identifier, establishing the first usable connection inside the case.</p></section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Key Findings</div></div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">Broker account identified as <span class="code" data-fact="m1.broker">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">Buyer identifier <span class="code" data-fact="m1.buyer">—</span> is directly linked to the broker trail.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">Case reference confirmed: <span class="code" data-fact="m1.caseId">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">The sale is recorded under listing <span class="code" data-fact="m1.listing">—</span> (project <span class="code" data-fact="m1.project">—</span>).</div></div>
+        </div>
+      </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Entities Discovered</div></div>
+        <div class="entity-grid">
+          <button class="entity-card" data-entity="broker"><div class="entity-type">Broker</div><div class="entity-name" data-fact="m1.broker">—</div><div class="entity-source">DISCOVERED // M1</div></button>
+          <button class="entity-card" data-entity="buyer"><div class="entity-type">Buyer</div><div class="entity-name" data-fact="m1.buyer">—</div><div class="entity-source">DISCOVERED // M1</div></button>
+        </div>
+      </section>
+    </div>
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Evidence</div></div>
+        <div class="evidence" data-evidence="EV-M1-01">
+          <div class="evidence-visual"><div class="evidence-ui">
+            <div class="evidence-bar"><span>RECOVERED TRANSACTION LOG</span><span>EV-M1-01</span></div>
+            <div class="evidence-log" data-log="EV-M1-01"></div>
+            <div class="evidence-stamp">RECOVERED // M1</div>
+          </div></div>
+          <div class="evidence-meta"><strong>EV-M1-01</strong><span>Recovered transaction record</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div></div>
+<div class="report-link"><div class="report-link-copy">2 ENTITIES // 1 CONNECTION<br>CASEBOARD REFLECTS THE CURRENT INVESTIGATION.</div><button class="text-btn" data-view="board">VIEW CASEBOARD →</button></div>
+<div class="locked"></div>
+</section>
+
+<section id="m2" class="view" data-report="none">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
+    <div><div class="report-code">MISSION 02</div><h1 class="report-title">THE MAKER</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-accent">TRACE // CORRELATE // EXPOSE</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M2</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
+  </div>
+
+  <div class="report-grid">
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Summary</div></div><p class="body-copy">A deeper trace tied the buyer identifier to a shell-company layer, extending the investigation from an account-level clue into an organizational relationship.</p></section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Key Findings</div></div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text"><span class="code" data-fact="m2.buyer,m1.buyer">—</span> is associated with <span data-fact="m2.shellCompany">—</span></div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">The company appears to function as a shell layer within the transaction chain.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">Ties directly back to case <span class="code" data-fact="m2.caseId">—</span> — a second-level relationship now exposed.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">Toolkit developer traced to <span class="code" data-fact="m2.developer">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">The case matches a payout of <span class="code" data-fact="m2.ransom">—</span>, settled <span class="code" data-fact="m2.settled">—</span>; the pattern is not isolated (<span class="code" data-fact="m2.victims">—</span>).</div></div>
+        </div>
+      </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Entities Discovered</div></div>
+        <div class="entity-grid">
+          <button class="entity-card" data-entity="buyer"><div class="entity-type">Buyer</div><div class="entity-name" data-fact="m2.buyer,m1.buyer">—</div><div class="entity-source">DISCOVERED // M1</div></button>
+          <button class="entity-card" data-entity="shell"><div class="entity-type">Shell Company</div><div class="entity-name" data-fact="m2.shellCompany">—</div><div class="entity-source">DISCOVERED // M2</div></button>
+        </div>
+      </section>
+    </div>
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Evidence</div></div>
+        <div class="evidence" data-evidence="EV-M2-01">
+          <div class="evidence-visual"><div class="evidence-ui">
+            <div class="evidence-bar"><span>CORPORATE ENTITY RECORD</span><span>EV-M2-01</span></div>
+            <div class="evidence-log" data-log="EV-M2-01"></div>
+            <div class="evidence-stamp">RECOVERED // M2</div>
+          </div></div>
+          <div class="evidence-meta"><strong>EV-M2-01</strong><span>Corporate entity record</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div></div>
+<div class="report-link"><div class="report-link-copy">3 ENTITIES // 2 CONNECTIONS<br>CASEBOARD EXPANDED WITH THE M2 DISCOVERY.</div><button class="text-btn" data-view="board">VIEW CASEBOARD →</button></div>
+<div class="locked"></div>
+</section>
+
+<section id="m3" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">MONEY TRAIL</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE ARCHITECT</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+
+<section id="board" class="view active">
+<div class="caseboard">
+  <div class="workspace-art" aria-hidden="true">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="none" role="presentation">
+      <defs>
+        <filter id="waveGlow" x="-20%" y="-50%" width="140%" height="200%">
+          <feGaussianBlur stdDeviation="4"/>
+        </filter>
+      </defs>
+      <path class="wave-secondary" d="M0 170 H90 L118 170 142 150 166 190 192 170 H350 L376 170 401 146 426 194 452 170 H610 L638 170 664 156 690 184 716 170 H890 L916 170 940 145 966 195 992 170 H1160 L1188 170 1212 150 1238 190 1264 170 H1420 L1448 170 1472 154 1498 186 1524 170 H1600"/>
+      <path class="wave-secondary-red" d="M0 260 H120 L144 260 168 242 190 278 214 260 H420 L448 260 472 238 496 282 520 260 H720 L748 260 772 245 796 275 820 260 H1040 L1068 260 1092 240 1116 280 1140 260 H1350 L1378 260 1402 244 1426 276 1450 260 H1600"/>
+      <path class="wave-primary" d="M0 450 H220 L255 450 290 405 325 495 362 450 H515 L552 450 590 340 628 560 666 450 H820 L860 450 895 412 930 488 968 450 H1120 L1160 450 1200 290 1240 610 1280 450 H1430 L1465 450 1498 420 1530 480 1560 450 H1600"/>
+      <path class="wave-glow" d="M0 450 H220 L255 450 290 405 325 495 362 450 H515 L552 450 590 340 628 560 666 450 H820 L860 450 895 412 930 488 968 450 H1120 L1160 450 1200 290 1240 610 1280 450 H1430 L1465 450 1498 420 1530 480 1560 450 H1600"/>
+      <path class="wave-primary-red" d="M0 620 H190 L220 620 250 600 280 640 310 620 H500 L530 620 560 600 590 640 620 620 H790 L820 620 850 590 880 650 910 620 H1080 L1115 620 1145 600 1175 640 1205 620 H1400 L1430 620 1460 596 1490 644 1520 620 H1600"/>
+      <path class="wave-secondary" d="M0 760 H140 L166 760 188 742 210 778 234 760 H410 L436 760 458 738 480 782 504 760 H690 L716 760 740 744 764 776 788 760 H980 L1006 760 1028 740 1050 780 1074 760 H1260 L1288 760 1310 744 1332 776 1356 760 H1500 L1528 760 1552 744 1576 776 1600 760"/>
+    </svg>
+  </div>
+  <div class="board-head">
+    <div class="board-heading"><span class="board-mark"></span><div><div class="board-title">CASEBOARD</div><div class="board-sub">LIVE INVESTIGATION MAP</div></div></div>
+    <div class="board-meta"><span><strong id="boardEntities">00</strong> ENTITIES</span><span><strong id="boardConnections">00</strong> CONNECTIONS</span><span><strong id="boardTrace">—</strong> CURRENT TRACE</span></div>
+  </div>
+
+  <div class="board-viewport" id="boardViewport">
+    <div class="board-empty is-hidden" id="boardEmpty"><div><div class="board-empty-title">NO ENTITIES LOGGED</div><div class="board-empty-copy">Complete a mission report to populate the caseboard.</div></div></div>
+    <div class="board-controls">
+      <button class="tool" id="zoomOut" aria-label="Zoom out">−</button>
+      <span class="zoom-label" id="zoomLabel">100%</span>
+      <button class="tool" id="zoomIn" aria-label="Zoom in">+</button>
+      <button class="tool" id="zoomReset" aria-label="Reset view">↺</button>
+    </div>
+
+    <div class="board-canvas" id="boardCanvas">
+      <svg class="board-svg" viewBox="0 0 1500 760" aria-hidden="true">
+        <line class="trace-line active" data-requires="m1" x1="405" y1="360" x2="645" y2="360"></line>
+        <line class="trace-line active" data-requires="m2" x1="865" y1="360" x2="1105" y2="360"></line>
+        <circle class="trace-dot" data-requires="m1" cx="645" cy="360" r="3"></circle>
+        <circle class="trace-dot" data-requires="m2" cx="865" cy="360" r="3"></circle>
+        <text class="trace-label" data-requires="m1" x="507" y="341">BUYER</text>
+        <text class="trace-label" data-requires="m2" x="950" y="341">SHELL COMPANY</text>
+      </svg>
+
+      <div class="board-annotation" data-requires="m1">
+        <div class="annotation-kicker">CURRENT TRACE</div>
+        <div class="annotation-main" id="boardAnnotationMain">—</div>
+      </div>
+
+      <button class="board-node" data-entity="broker" data-requires="m1" style="left:185px;top:306px">
+        <div class="node-index">ENTITY 01</div><div class="node-type">BROKER</div><div class="node-id" data-fact="m1.broker">—</div><div class="node-foot">DISCOVERED // M1</div>
+      </button>
+      <button class="board-node" data-entity="buyer" data-requires="m1" style="left:645px;top:306px">
+        <div class="node-index">ENTITY 02</div><div class="node-type">BUYER</div><div class="node-id" data-fact="m1.buyer,m2.buyer">—</div><div class="node-foot">DISCOVERED // M1</div>
+      </button>
+      <button class="board-node" data-entity="shell" data-requires="m2" style="left:1105px;top:306px">
+        <div class="node-index">ENTITY 03</div><div class="node-type">SHELL COMPANY</div><div class="node-id" data-fact="m2.shellCompany">—</div><div class="node-foot red">NEW // M2</div>
+      </button>
+    </div>
+
+    <div class="board-hint">DRAG TO PAN // WHEEL TO ZOOM // SELECT ENTITY FOR DETAIL</div>
+    <div class="board-legend"><div class="legend-item"><span class="legend-dot"></span>NEW / FLAGGED</div><div class="legend-item"><span class="legend-line"></span>RELATION</div></div>
+
+    <aside class="detail-drawer" id="detailDrawer">
+      <div class="drawer-head">
+        <div><div class="drawer-kicker">ENTITY DETAIL</div><div class="drawer-title" id="drawerType">BROKER</div><div class="drawer-id" id="drawerId">—</div></div>
+        <button class="close" id="drawerClose" aria-label="Close">×</button>
+      </div>
+      <div class="drawer-body">
+        <div class="detail-block"><div class="detail-label">Discovered</div><div class="detail-value detail-code" id="drawerMission">M1 — First Trace</div></div>
+        <div class="detail-block"><div class="detail-label">Case</div><div class="detail-value detail-code" id="drawerCase">—</div></div>
+        <div class="detail-block"><div class="detail-label">Related Entities</div><div class="related-list" id="drawerRelated"></div></div>
+        <div class="detail-block"><div class="detail-label">Evidence</div><div class="detail-value detail-code" id="drawerEvidence">EV-M1-01</div></div>
+        <div class="drawer-link">CASEBOARD // INVESTIGATION RECORD</div>
+      </div>
+    </aside>
+  </div>
+</div>
+</section>
+</main>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-card">
+    <div class="lightbox-head"><strong id="lightboxTitle">EV-M1-01</strong><button class="close" id="lightboxClose" aria-label="Close">×</button></div>
+    <div class="lightbox-body">
+      <div class="evidence-visual"><div class="evidence-ui">
+        <div class="evidence-bar"><span id="lightboxBar">RECOVERED TRANSACTION LOG</span><span id="lightboxRef">EV-M1-01</span></div>
+        <div class="evidence-log" id="lightboxLog"></div><div class="evidence-stamp">RECOVERED ARTIFACT</div>
+      </div></div>
+      <div class="hint">EVIDENCE PREVIEW // PRESS ESC TO CLOSE</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const views = [...document.querySelectorAll('.view')];
+  const navItems = [...document.querySelectorAll('.nav-item[data-view]')];
+  const drawer = document.getElementById('detailDrawer');
+  const drawerType = document.getElementById('drawerType');
+  const drawerId = document.getElementById('drawerId');
+  const drawerMission = document.getElementById('drawerMission');
+  const drawerEvidence = document.getElementById('drawerEvidence');
+  const drawerCase = document.getElementById('drawerCase');
+  const drawerRelated = document.getElementById('drawerRelated');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const lightboxRef = document.getElementById('lightboxRef');
+  const lightboxBar = document.getElementById('lightboxBar');
+  const lightboxLog = document.getElementById('lightboxLog');
+  const viewport = document.getElementById('boardViewport');
+  const canvas = document.getElementById('boardCanvas');
+  const zoomLabel = document.getElementById('zoomLabel');
+  const boardEntities = document.getElementById('boardEntities');
+  const boardConnections = document.getElementById('boardConnections');
+  const boardTrace = document.getElementById('boardTrace');
+  const boardAnnotationMain = document.getElementById('boardAnnotationMain');
+  const boardEmpty = document.getElementById('boardEmpty');
+
+  const STORAGE_KEY = 'backtrace';
+  const REFRESH_MS = 2000;
+  const STATUSES = ['locked','progress','complete'];
+  const MISSION_IDS = ['m1','m2','m3','m4'];
+  const REPORT_MISSIONS = ['m1','m2'];
+  const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'THE ARCHITECT'};
+  const MISSION_BOARD = {m1:{entities:2,connections:1},m2:{entities:1,connections:1}};
+  const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const PREVIEW_STATE = {
+    m1:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{broker:'X7xS3NTRY9',buyer:'TR4C3#404',caseId:'CASE-A7X-0417',listing:'MED-SEA-0417',project:'Q3-2026-SEA',vault:'x7k2m9vdlq4wnyt3.dark'}},
+    m2:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{buyer:'TR4C3#404',developer:'f3a91b7c04d8.tr4c3404.dev',shellCompany:'Skynet Import-Export Co.',caseId:'CASE-A7X-0417',ransom:'$2,850,000',settled:'2026-08-14',victims:'FIN-NA-0091, LOG-EU-2209'}}
+  };
+  const NAV_STATUS = {
+    locked:{cls:'is-locked',dot:'status-locked',label:'LOCKED',icon:'nav-icon-lock'},
+    progress:{cls:'in-progress',dot:'status-pending',label:'IN PROGRESS',icon:'nav-icon-progress'},
+    complete:{cls:'complete',dot:'status-open',label:'COMPLETE',icon:'nav-icon-check'}
+  };
+  const STATE_CARDS = {
+    locked:{glyph:'○',status:'ACCESS RESTRICTED',copy:'This casefile entry is currently locked. Further investigative records are unavailable.'},
+    progress:{glyph:'◐',status:'NO REPORT FILED',copy:'This case is still open. The report will appear here once the trace is complete.'},
+    pending:{glyph:'●',status:'REPORT PENDING',copy:'This case is closed. Its report has not been compiled yet.'}
+  };
+
+  let state = normalizeState(null);
+  let lastSerialized = null;
+
+  function isComplete(id){ return state[id].status === 'complete'; }
+
+  function sanitizeFacts(raw){
+    if(!raw || typeof raw !== 'object') return {};
+    return Object.fromEntries(Object.entries(raw).filter(([, value]) => typeof value === 'string' && value !== ''));
+  }
+
+  function normalizeState(raw){
+    return Object.fromEntries(MISSION_IDS.map(id => {
+      const entry = (raw && raw[id]) || {};
+      return [id, {
+        status: STATUSES.includes(entry.status) ? entry.status : 'locked',
+        completedAt: Number.isFinite(entry.completedAt) ? entry.completedAt : null,
+        facts: sanitizeFacts(entry.facts)
+      }];
+    }));
+  }
+
+  function readRawState(){
+    const store = window.HackhubSDK && window.HackhubSDK.SaveStorage;
+    if(!store) return window.location.protocol === 'file:' ? PREVIEW_STATE : {};
+    try{ return store.get(STORAGE_KEY) || {}; }catch(_e){ return {}; }
+  }
+
+  function formatDate(ms){
+    if(ms === null) return '—';
+    const d = new Date(ms);
+    return `${String(d.getUTCDate()).padStart(2,'0')} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  }
+
+  function fact(refs){
+    for(const ref of refs.split(',')){
+      const [mission, key] = ref.trim().split('.');
+      const value = state[mission] && state[mission].facts[key];
+      if(value) return value;
+    }
+    return null;
+  }
+
+  function esc(value){
+    return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function shortName(name){
+    return name ? name.split(/[\s-]/)[0].toUpperCase() : null;
+  }
+
+  const EVIDENCE = {
+    'EV-M1-01':{
+      bar:'RECOVERED TRANSACTION LOG',
+      flag:'[TRACE FLAG]',
+      rows:[['broker','m1.broker'],['buyer','m1.buyer'],['case','m1.caseId'],['listing','m1.listing'],['vault','m1.vault'],['status',null,'LINK CONFIRMED']]
+    },
+    'EV-M2-01':{
+      bar:'CORPORATE ENTITY RECORD',
+      rows:[['account','m2.buyer,m1.buyer'],['entity','m2.shellCompany'],['role',null,'SHELL CO.'],['developer','m2.developer'],['case','m2.caseId'],['payout','m2.ransom']]
+    }
+  };
+
+  function evidenceLogMarkup(id){
+    const evidence = EVIDENCE[id];
+    const flag = evidence.flag ? `<div class="red">${evidence.flag}</div>` : '';
+    const rows = evidence.rows.map(([label, refs, literal]) => {
+      const value = literal || (refs && fact(refs)) || '—';
+      return `<div>${label.padEnd(11,' ').replace(/ /g,'&nbsp;')}<span class="white">${esc(value)}</span></div>`;
+    }).join('');
+    return flag + rows;
+  }
+
+  function buildEntities(){
+    const broker = fact('m1.broker');
+    const buyer = fact('m1.buyer,m2.buyer');
+    const shell = fact('m2.shellCompany');
+    return {
+      broker:{type:'Broker',id:broker,mission:'M1 — First Trace',evidence:'EV-M1-01',caseId:fact('m1.caseId'),related:[[buyer,'Buyer','m1']]},
+      buyer:{type:'Buyer',id:buyer,mission:'M1 — First Trace',evidence:'EV-M1-01',caseId:fact('m1.caseId,m2.caseId'),related:[[broker,'Broker','m1'],[shell,'Shell Company','m2']]},
+      shell:{type:'Shell Company',id:shell,mission:'M2 — The Maker',evidence:'EV-M2-01',caseId:fact('m2.caseId'),related:[[buyer,'Buyer','m1']]}
+    };
+  }
+
+  function renderFacts(){
+    document.querySelectorAll('[data-fact]').forEach(el => { el.textContent = fact(el.dataset.fact) || '—'; });
+  }
+
+  function renderEvidence(){
+    document.querySelectorAll('[data-log]').forEach(el => { el.innerHTML = evidenceLogMarkup(el.dataset.log); });
+  }
+
+  function stateCardMarkup(id, status){
+    const card = STATE_CARDS[status === 'complete' ? 'pending' : status];
+    return `<div class="locked-card"><div class="locked-glyph">${card.glyph}</div><div class="locked-title">${MISSION_TITLES[id]}</div><div class="locked-status">${card.status}</div><div class="locked-copy">${card.copy}</div></div>`;
+  }
+
+  function currentTrace(){
+    const active = MISSION_IDS.find(id => state[id].status === 'progress');
+    const latest = MISSION_IDS.filter(isComplete).pop();
+    const id = active || latest;
+    return id ? id.toUpperCase() : '—';
+  }
+
+  function renderNav(){
+    navItems.filter(item => MISSION_IDS.includes(item.dataset.view)).forEach(item => {
+      const view = NAV_STATUS[state[item.dataset.view].status];
+      const status = item.querySelector('.nav-status');
+      status.className = 'nav-status ' + view.cls;
+      status.innerHTML = `<span class="${view.dot}">${view.label}</span>`;
+      item.querySelector('.nav-icon').className = 'nav-icon ' + view.icon;
+    });
+  }
+
+  function renderMissionViews(){
+    MISSION_IDS.forEach(id => {
+      const section = document.getElementById(id);
+      const {status, completedAt} = state[id];
+      section.dataset.report = status === 'complete' && REPORT_MISSIONS.includes(id) ? 'ready' : 'none';
+      section.querySelector('.locked').innerHTML = stateCardMarkup(id, status);
+      const completed = section.querySelector('[data-completed]');
+      if(completed) completed.textContent = formatDate(completedAt);
+    });
+  }
+
+  function renderCaseboard(){
+    const total = key => MISSION_IDS.filter(isComplete).reduce((sum, id) => sum + (MISSION_BOARD[id] ? MISSION_BOARD[id][key] : 0), 0);
+    document.querySelectorAll('[data-requires]').forEach(el => el.classList.toggle('is-hidden', !isComplete(el.dataset.requires)));
+    boardEntities.textContent = String(total('entities')).padStart(2,'0');
+    boardConnections.textContent = String(total('connections')).padStart(2,'0');
+    boardTrace.textContent = currentTrace();
+    const chain = [];
+    if(isComplete('m1')) chain.push(fact('m1.broker'), fact('m1.buyer,m2.buyer'));
+    if(isComplete('m2')) chain.push(shortName(fact('m2.shellCompany')));
+    boardAnnotationMain.textContent = chain.filter(Boolean).join(' → ') || '—';
+    boardEmpty.classList.toggle('is-hidden', total('entities') > 0);
+  }
+
+  function refresh(){
+    const raw = readRawState();
+    const serialized = JSON.stringify(raw);
+    if(serialized === lastSerialized) return;
+    lastSerialized = serialized;
+    state = normalizeState(raw);
+    renderNav();
+    renderMissionViews();
+    renderFacts();
+    renderEvidence();
+    renderCaseboard();
+  }
+
+  function showView(id){
+    views.forEach(v => v.classList.toggle('active', v.id === id));
+    navItems.forEach(b => b.classList.toggle('active', b.dataset.view === id));
+    drawer?.classList.remove('open');
+    document.querySelectorAll('.board-node').forEach(n => n.classList.remove('selected'));
+  }
+  navItems.forEach(btn => btn.addEventListener('click', () => showView(btn.dataset.view)));
+  document.querySelectorAll('[data-view]').forEach(el => {
+    if(!el.classList.contains('nav-item')) el.addEventListener('click', () => showView(el.dataset.view));
+  });
+
+  function openEntity(key){
+    const e = buildEntities()[key];
+    if(!e) return;
+    document.querySelectorAll('.board-node').forEach(n => n.classList.toggle('selected', n.dataset.entity === key));
+    drawerType.textContent = e.type.toUpperCase();
+    drawerId.textContent = e.id || '—';
+    drawerMission.textContent = e.mission;
+    drawerCase.textContent = e.caseId || '—';
+    drawerEvidence.textContent = e.evidence;
+    drawerRelated.innerHTML = e.related.filter(([name, , mission]) => name && isComplete(mission)).map(([name,type]) =>
+      `<div class="related-item"><div class="related-type">${type}</div><div class="related-name">${esc(name)}</div></div>`
+    ).join('');
+    drawer.classList.add('open');
+  }
+  document.querySelectorAll('[data-entity]').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation();
+    openEntity(el.dataset.entity);
+  }));
+  document.getElementById('drawerClose').addEventListener('click', () => {
+    drawer.classList.remove('open');
+    document.querySelectorAll('.board-node').forEach(n => n.classList.remove('selected'));
+  });
+
+  document.querySelectorAll('.evidence').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.evidence;
+    lightboxTitle.textContent = id;
+    lightboxRef.textContent = id;
+    lightboxBar.textContent = EVIDENCE[id].bar;
+    lightboxLog.innerHTML = evidenceLogMarkup(id);
+    lightbox.classList.add('open');
+  }));
+
+  function closeLightbox(){ lightbox.classList.remove('open'); }
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+
+  let zoom = 1;
+  let panX = 0, panY = 0;
+  let dragging = false;
+  let startX = 0, startY = 0, originX = 0, originY = 0;
+
+  function clampPan(){
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    const cw = 1500 * zoom, ch = 760 * zoom;
+    const minX = Math.min(0, vw - cw);
+    const minY = Math.min(0, vh - ch);
+    panX = Math.max(minX - 80, Math.min(80, panX));
+    panY = Math.max(minY - 80, Math.min(80, panY));
+  }
+  function renderBoard(){
+    clampPan();
+    canvas.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+    zoomLabel.textContent = `${Math.round(zoom*100)}%`;
+  }
+  function centerBoard(){
+    const vw = viewport.clientWidth, vh = viewport.clientHeight;
+    panX = (vw - 1500*zoom) / 2;
+    panY = (vh - 760*zoom) / 2;
+    renderBoard();
+  }
+
+  viewport.addEventListener('pointerdown', e => {
+    if(e.target.closest('.board-node,.board-controls,.detail-drawer')) return;
+    dragging = true; viewport.classList.add('dragging');
+    startX = e.clientX; startY = e.clientY; originX = panX; originY = panY;
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', e => {
+    if(!dragging) return;
+    panX = originX + (e.clientX - startX);
+    panY = originY + (e.clientY - startY);
+    renderBoard();
+  });
+  function endDrag(e){
+    dragging = false; viewport.classList.remove('dragging');
+    try{ viewport.releasePointerCapture(e.pointerId); }catch(_e){}
+  }
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+
+  function setZoom(next, focalX, focalY){
+    const prev = zoom;
+    zoom = Math.max(.72, Math.min(1.45, next));
+    const fx = focalX ?? viewport.clientWidth/2;
+    const fy = focalY ?? viewport.clientHeight/2;
+    const ratio = zoom / prev;
+    panX = fx - (fx - panX) * ratio;
+    panY = fy - (fy - panY) * ratio;
+    renderBoard();
+  }
+  document.getElementById('zoomIn').addEventListener('click', () => setZoom(zoom+.1));
+  document.getElementById('zoomOut').addEventListener('click', () => setZoom(zoom-.1));
+  document.getElementById('zoomReset').addEventListener('click', () => { zoom = 1; centerBoard(); });
+  viewport.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    setZoom(zoom + (e.deltaY < 0 ? .08 : -.08), e.clientX-rect.left, e.clientY-rect.top);
+  }, {passive:false});
+
+  window.addEventListener('resize', () => centerBoard());
+  centerBoard();
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      drawer?.classList.remove('open');
+      lightbox.classList.remove('open');
+      document.querySelectorAll('.board-node').forEach(n => n.classList.remove('selected'));
+    }
+  });
+})();
+</script>
+</body>
+</html>

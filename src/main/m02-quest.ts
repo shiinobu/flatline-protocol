@@ -8,6 +8,7 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { setBacktraceMission } from "../applications/backtrace-state.js";
 import { M01_CASE_ID } from "../content/m01.js";
 import type { M02EmptySubdomain } from "../content/m02.js";
 import {
@@ -529,6 +530,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     }
 
     override OnStart() {
+        setBacktraceMission("m2", "progress");
         Mail.send({
             from: M02_DEAD_DROP_EMAIL,
             subject: M02_TIP_SUBJECT,
@@ -622,10 +624,12 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     }
 
     override OnComplete() {
+        setBacktraceMission("m2", "complete");
         this.teardown();
     }
 
     override OnAbandon() {
+        setBacktraceMission("m2", "locked");
         this.teardown();
     }
 

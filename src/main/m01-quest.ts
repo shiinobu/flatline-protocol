@@ -10,6 +10,7 @@ import {
     WeeChat,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { setBacktraceMission } from "../applications/backtrace-state.js";
 import {
     ensureM01ListingResolution,
     getM01ListingSlot,
@@ -765,6 +766,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     }
 
     override OnStart() {
+        setBacktraceMission("m1", "progress");
         WeeChat.removeServer(M01_IRC_HOST, M01_IRC_PASSWORD);
         WeeChat.createServer(M01_IRC_HOST, M01_IRC_PASSWORD);
 
@@ -956,10 +958,12 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     }
 
     override OnComplete() {
+        setBacktraceMission("m1", "complete");
         this.teardown();
     }
 
     override OnAbandon() {
+        setBacktraceMission("m1", "locked");
         this.teardown();
     }
 

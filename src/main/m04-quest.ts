@@ -7,6 +7,7 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { setBacktraceMission } from "../applications/backtrace-state.js";
 import { ATTRCHECK_REVEALED_EVENT } from "../commands/attrcheck.js";
 import {
     M04_ARCHITECT_NMAP_RESULT,
@@ -240,6 +241,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     override OnStart() {
+        setBacktraceMission("m4", "progress");
         Mail.send({
             from: M04_DEAD_DROP_EMAIL,
             subject: M04_TIP_SUBJECT,
@@ -395,10 +397,12 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     override OnComplete() {
+        setBacktraceMission("m4", "complete");
         this.teardown();
     }
 
     override OnAbandon() {
+        setBacktraceMission("m4", "locked");
         this.teardown();
     }
 
