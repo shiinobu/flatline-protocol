@@ -8,28 +8,65 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { M01_CASE_ID } from "../content/m01.js";
+import type { M02EmptySubdomain } from "../content/m02.js";
 import {
     M02_ADMINS_TABLE,
     M02_ADMIN_HASH,
     M02_ADMIN_PASSWORD,
     M02_ADMIN_USERNAME,
+    M02_AFFILIATE_ENDPOINTS_CONTENT,
+    M02_AFFILIATE_ENDPOINTS_FILE_EXTENSION,
+    M02_AFFILIATE_ENDPOINTS_FILE_NAME,
     M02_AFFILIATE_TABLE,
+    M02_CAMERA_CODENAME,
+    M02_CAMERA_IP,
+    M02_CAMERA_LAN_IP,
+    M02_CASE_MATCH_RANSOM_AMOUNT,
+    M02_CASE_MATCH_SETTLED_AT,
+    M02_CLOSER_RIG_CODENAME,
+    M02_CLOSER_RIG_IP,
+    M02_CLOSER_RIG_ROUTER_IP,
     M02_DB_PASSWORD,
     M02_DB_USER,
     M02_DEAD_DROP_EMAIL,
+    M02_DECOY_SUBDOMAIN_1,
+    M02_DECOY_SUBDOMAIN_1_IP,
+    M02_DECOY_SUBDOMAIN_1_README_CONTENT,
+    M02_DECOY_SUBDOMAIN_1_ROUTER_IP,
+    M02_DECOY_SUBDOMAIN_2,
+    M02_DECOY_SUBDOMAIN_2_IP,
+    M02_DECOY_SUBDOMAIN_2_NOTES_CONTENT,
+    M02_DECOY_SUBDOMAIN_2_ROUTER_IP,
     M02_DEPLOY_LOG_CONTENT,
-    M02_DEPLOY_LOG_DIALOG,
     M02_DEPLOY_LOG_FILE_EXTENSION,
     M02_DEPLOY_LOG_FILE_NAME,
     M02_DEV_IP,
     M02_DEV_NMAP_RESULT,
     M02_DEV_ROUTER_IP,
     M02_DEV_SUBDOMAIN,
+    M02_DIALOG,
+    M02_EMPTY_SUBDOMAINS,
     M02_FINANCIAL_DOC_CONTENT,
     M02_FINANCIAL_DOC_FILE_EXTENSION,
     M02_FINANCIAL_DOC_FILE_NAME,
+    M02_FIREWALL_IP,
+    M02_FIREWALL_LAN_IP,
+    M02_GAME_CONSOLE_CODENAME,
+    M02_GAME_CONSOLE_IP,
+    M02_GAME_CONSOLE_LAN_IP,
+    M02_HOME_NAS_CODENAME,
+    M02_HOME_NAS_IP,
+    M02_HOME_NAS_LAN_IP,
+    M02_HOME_NAS_PASSWORD,
+    M02_HOME_NAS_USERNAME,
     M02_OBJECTIVES,
     M02_OBJECTIVE_IDS,
+    M02_PRINTER_IP,
+    M02_PRINTER_LAN_IP,
+    M02_QUOTA_REPORT_CONTENT,
+    M02_QUOTA_REPORT_FILE_EXTENSION,
+    M02_QUOTA_REPORT_FILE_NAME,
     M02_REPORT_BODY,
     M02_REPORT_SUBJECT,
     M02_REPORT_TEMPLATE_CONTENT,
@@ -39,36 +76,44 @@ import {
     M02_ROOT_DOMAIN,
     M02_ROOT_IP,
     M02_ROOT_NMAP_RESULT,
+    M02_ROUTING_NOTES_CONTENT,
+    M02_ROUTING_NOTES_FILE_EXTENSION,
+    M02_ROUTING_NOTES_FILE_NAME,
+    M02_SHELL_COMPANY_NAME,
+    M02_SMART_TV_CODENAME,
+    M02_SMART_TV_IP,
+    M02_SMART_TV_LAN_IP,
+    M02_SPLITTER_IP,
+    M02_SPLITTER_LAN_IP,
+    M02_SYNC_SCRIPT_CONTENT,
+    M02_SYNC_SCRIPT_FILE_EXTENSION,
+    M02_SYNC_SCRIPT_FILE_NAME,
     M02_TIP_CONTENT,
     M02_TIP_SUBJECT,
-    M02_SHELL_COMPANY_NAME,
+    M02_VICTIM_CASE_ID_EU,
+    M02_VICTIM_CASE_ID_NA,
+    M02_WIFI_EXTENDER_CODENAME,
+    M02_WIFI_EXTENDER_IP,
+    M02_WIFI_EXTENDER_LAN_IP,
     M02_WORKSTATION_CODENAME,
+    M02_WORKSTATION_ERRANDS_CONTENT,
+    M02_WORKSTATION_ERRANDS_FILE_EXTENSION,
+    M02_WORKSTATION_ERRANDS_FILE_NAME,
     M02_WORKSTATION_IP,
     M02_WORKSTATION_LAN_IP,
-    M02_WORKSTATION_WIFI_IP,
-    M02_WORKSTATION_WIFI_PASSWORD,
-    M02_WORKSTATION_WIFI_SSID,
+    M02_WORKSTATION_ROUTER_IP,
+    M02_WORKSTATION_ROUTER_LAN_IP,
+    M02_WORKSTATION_UNSENT_CONTENT,
+    M02_WORKSTATION_UNSENT_FILE_EXTENSION,
+    M02_WORKSTATION_UNSENT_FILE_NAME,
 } from "../content/m02.js";
 import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M02QuestData {
-    readonly leadReviewed: boolean;
-    readonly rootWhoisDone: boolean;
-    readonly adminDecoyFound: boolean;
-    readonly devSubdomainFound: boolean;
-    readonly devServerScanned: boolean;
-    readonly reconRootDomainCompleted: boolean;
-    readonly panelDumped: boolean;
-    readonly adminHashCracked: boolean;
-    readonly affiliatePanelBreached: boolean;
-    readonly devServerAccessed: boolean;
     readonly deployLogFound: boolean;
-    readonly devServerObjectiveCompleted: boolean;
-    readonly wifiPasswordFound: boolean;
-    readonly wifiJoined: boolean;
-    readonly workstationWifiBreached: boolean;
-    readonly workstationRooted: boolean;
-    readonly financialDocDownloaded: boolean;
+    readonly firewallLoggedIn: boolean;
+    readonly firewallBreached: boolean;
+    readonly aftermathShown: boolean;
     readonly reportSent: boolean;
 }
 
@@ -110,9 +155,21 @@ const registerM02Database = (): string => {
     Database.setTable(databaseId, M02_AFFILIATE_TABLE, [
         {
             id: { value: 1, type: "number" },
-            client: { value: "MED-SEA-0417", type: "string" },
-            ransomAmount: { value: 2850000, type: "number" },
-            settledAt: { value: "2026-08-14", type: "string" },
+            client: { value: M01_CASE_ID, type: "string" },
+            ransomAmount: { value: M02_CASE_MATCH_RANSOM_AMOUNT, type: "number" },
+            settledAt: { value: M02_CASE_MATCH_SETTLED_AT, type: "string" },
+        },
+        {
+            id: { value: 2, type: "number" },
+            client: { value: M02_VICTIM_CASE_ID_EU, type: "string" },
+            ransomAmount: { value: 1400000, type: "number" },
+            settledAt: { value: "2026-05-02", type: "string" },
+        },
+        {
+            id: { value: 3, type: "number" },
+            client: { value: M02_VICTIM_CASE_ID_NA, type: "string" },
+            ransomAmount: { value: 4100000, type: "number" },
+            settledAt: { value: "2026-02-19", type: "string" },
         },
     ]);
     Database.setTable(databaseId, M02_ADMINS_TABLE, [
@@ -126,49 +183,323 @@ const registerM02Database = (): string => {
     return databaseId;
 };
 
-const registerM02WorkstationWifi = (): void => {
-    Network.destroyNetwork(M02_WORKSTATION_WIFI_IP);
+interface M02DecoySubnetSpec {
+    readonly routerIp: string;
+    readonly deviceIp: string;
+    readonly subdomain: string;
+    readonly rootFileName: string;
+    readonly rootFileContent: string;
+}
 
-    Network.createWifiNetwork({
-        ssid: M02_WORKSTATION_WIFI_SSID,
-        password: M02_WORKSTATION_WIFI_PASSWORD,
-        ip: M02_WORKSTATION_WIFI_IP,
+const registerM02DecoySubnet = (spec: M02DecoySubnetSpec): void => {
+    Network.createSubnetNetwork({
+        ip: spec.routerIp,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
         children: [
             {
-                ip: M02_WORKSTATION_IP,
-                lanIp: M02_WORKSTATION_LAN_IP,
+                ip: spec.deviceIp,
                 type: NetworkDeviceType.Device,
-                name: M02_WORKSTATION_CODENAME,
-                users: [Network.createUser({ username: "tr4c3404", online: true })],
+                domain: { name: spec.subdomain, vulnerabilities: [{ type: "SQL_INJECTION" }] },
+                users: [],
                 ports: [
-                    {
-                        external: 3389,
-                        internal: 3389,
-                        active: true,
-                        service: "rdp",
-                        version: "FreeRDP 1.0.0",
-                    },
+                    { external: 22, internal: 22, active: true, service: "ssh" },
+                    { external: 443, internal: 443, active: true, service: "https" },
+                    { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
                 ],
                 rootFiles: [
                     {
-                        name: M02_FINANCIAL_DOC_FILE_NAME,
-                        extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
-                        data: M02_FINANCIAL_DOC_CONTENT,
+                        name: spec.rootFileName,
+                        extension: "txt",
+                        data: spec.rootFileContent,
                     },
                 ],
             },
         ],
     });
 
-    Network.removePort(M02_WORKSTATION_IP, 3389);
-    Network.addPort(M02_WORKSTATION_IP, {
-        external: 3389,
-        internal: 3389,
+    Network.removePort(spec.deviceIp, 3306);
+    Network.addPort(spec.deviceIp, {
+        external: 3306,
+        internal: 3306,
         active: true,
-        service: "rdp",
-        version: "FreeRDP 1.0.0",
+        service: "mysql",
+        version: "mariadb",
     });
-    Network.setVulnerabilities(M02_WORKSTATION_IP, [{ type: "RCE", version: "FreeRDP 1.0.0" }]);
+    Network.setVulnerabilities(spec.deviceIp, [{ type: "SQL_INJECTION" }]);
+
+    if (!Database.getByHost(spec.deviceIp)) {
+        Database.create({
+            host: spec.deviceIp,
+            user: "root",
+            password: "unknown",
+            tables: {},
+        });
+    }
+};
+
+const registerM02DevSubnet = (): void => {
+    Network.createSubnetNetwork({
+        ip: M02_DEV_ROUTER_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M02_DEV_IP,
+                type: NetworkDeviceType.Device,
+                domain: {
+                    name: M02_DEV_SUBDOMAIN,
+                    vulnerabilities: [{ type: "SQL_INJECTION" }],
+                },
+                users: [
+                    Network.createUser({
+                        username: M02_ADMIN_USERNAME,
+                        password: M02_ADMIN_PASSWORD,
+                    }),
+                ],
+                ports: [
+                    { external: 22, internal: 22, active: true, service: "ssh" },
+                    { external: 443, internal: 443, active: true, service: "https" },
+                    { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
+                ],
+                rootFiles: [
+                    {
+                        name: M02_DEPLOY_LOG_FILE_NAME,
+                        extension: M02_DEPLOY_LOG_FILE_EXTENSION,
+                        data: M02_DEPLOY_LOG_CONTENT,
+                    },
+                    {
+                        name: M02_SYNC_SCRIPT_FILE_NAME,
+                        extension: M02_SYNC_SCRIPT_FILE_EXTENSION,
+                        data: M02_SYNC_SCRIPT_CONTENT,
+                    },
+                ],
+            },
+        ],
+    });
+
+    Network.removePort(M02_DEV_IP, 3306);
+    Network.addPort(M02_DEV_IP, {
+        external: 3306,
+        internal: 3306,
+        active: true,
+        service: "mysql",
+        version: "mariadb",
+    });
+    Network.setVulnerabilities(M02_DEV_IP, [{ type: "SQL_INJECTION" }]);
+};
+
+const registerM02EmptySubdomain = (subdomain: M02EmptySubdomain): void => {
+    Network.createSubnetNetwork({ ip: subdomain.ip, type: NetworkDeviceType.Device, users: [], ports: [] });
+    Network.registerDomain(`${subdomain.label}.${M02_ROOT_DOMAIN}`, subdomain.ip);
+};
+
+const shuffled = <T,>(items: readonly T[]): T[] => {
+    const result = [...items];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+};
+
+const registerM02SubfinderDomains = (): void => {
+    const tasks: Array<() => void> = [
+        registerM02DevSubnet,
+        () =>
+            registerM02DecoySubnet({
+                routerIp: M02_DECOY_SUBDOMAIN_1_ROUTER_IP,
+                deviceIp: M02_DECOY_SUBDOMAIN_1_IP,
+                subdomain: M02_DECOY_SUBDOMAIN_1,
+                rootFileName: "README",
+                rootFileContent: M02_DECOY_SUBDOMAIN_1_README_CONTENT,
+            }),
+        () =>
+            registerM02DecoySubnet({
+                routerIp: M02_DECOY_SUBDOMAIN_2_ROUTER_IP,
+                deviceIp: M02_DECOY_SUBDOMAIN_2_IP,
+                subdomain: M02_DECOY_SUBDOMAIN_2,
+                rootFileName: "notes",
+                rootFileContent: M02_DECOY_SUBDOMAIN_2_NOTES_CONTENT,
+            }),
+        ...M02_EMPTY_SUBDOMAINS.map((subdomain) => () => registerM02EmptySubdomain(subdomain)),
+    ];
+
+    for (const task of shuffled(tasks)) task();
+};
+
+const registerM02CloserRigNetwork = (): void => {
+    // Network.destroyNetwork(M02_CLOSER_RIG_ROUTER_IP);
+
+    Network.createSubnetNetwork({
+        ip: M02_CLOSER_RIG_ROUTER_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M02_CLOSER_RIG_IP,
+                type: NetworkDeviceType.Device,
+                name: M02_CLOSER_RIG_CODENAME,
+                users: [Network.createUser({ username: "closer", online: true })],
+                ports: [
+                    {
+                        external: 3389,
+                        internal: 3389,
+                        active: true,
+                        service: "rdp",
+                        version: "FreeRDP 2.7.3",
+                    },
+                ],
+                rootFiles: [
+                    {
+                        name: M02_QUOTA_REPORT_FILE_NAME,
+                        extension: M02_QUOTA_REPORT_FILE_EXTENSION,
+                        data: M02_QUOTA_REPORT_CONTENT,
+                    },
+                    {
+                        name: M02_ROUTING_NOTES_FILE_NAME,
+                        extension: M02_ROUTING_NOTES_FILE_EXTENSION,
+                        data: M02_ROUTING_NOTES_CONTENT,
+                    },
+                ],
+            },
+        ],
+    });
+
+    Network.setVulnerabilities(M02_CLOSER_RIG_IP, [{ type: "RCE", version: "FreeRDP 2.7.3" }]);
+};
+
+const registerM02WorkstationNetwork = (): void => {
+    // Network.destroyNetwork(M02_WORKSTATION_ROUTER_IP);
+
+    Network.createSubnetNetwork({
+        ip: M02_WORKSTATION_ROUTER_IP,
+        lanIp: M02_WORKSTATION_ROUTER_LAN_IP,
+        type: NetworkDeviceType.Router,
+        users: [],
+        ports: [],
+        children: [
+            {
+                ip: M02_SPLITTER_IP,
+                lanIp: M02_SPLITTER_LAN_IP,
+                type: NetworkDeviceType.Splitter,
+                users: [],
+                children: [
+                    {
+                        ip: M02_FIREWALL_IP,
+                        lanIp: M02_FIREWALL_LAN_IP,
+                        type: NetworkDeviceType.Firewall,
+                        isIpHidden: true,
+                        users: [
+                            Network.createUser({
+                                username: M02_ADMIN_USERNAME,
+                                password: M02_ADMIN_PASSWORD,
+                            }),
+                        ],
+                        ports: [{ external: 80, internal: 80, active: true, service: "http" }],
+                        rules: [{ allowed: false, port: 3389 }],
+                    },
+                    {
+                        ip: M02_PRINTER_IP,
+                        lanIp: M02_PRINTER_LAN_IP,
+                        type: NetworkDeviceType.Printer,
+                        users: [],
+                        ports: [{ external: 9100, internal: 9100, active: false, service: "printer" }],
+                    },
+                    {
+                        ip: M02_WIFI_EXTENDER_IP,
+                        lanIp: M02_WIFI_EXTENDER_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_WIFI_EXTENDER_CODENAME,
+                        users: [],
+                        ports: [{ external: 23, internal: 23, active: true, service: "telnet" }],
+                    },
+                    {
+                        ip: M02_HOME_NAS_IP,
+                        lanIp: M02_HOME_NAS_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_HOME_NAS_CODENAME,
+                        users: [
+                            Network.createUser({
+                                username: M02_HOME_NAS_USERNAME,
+                                password: M02_HOME_NAS_PASSWORD,
+                            }),
+                        ],
+                        ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
+                        rootFiles: [
+                            {
+                                name: M02_AFFILIATE_ENDPOINTS_FILE_NAME,
+                                extension: M02_AFFILIATE_ENDPOINTS_FILE_EXTENSION,
+                                data: M02_AFFILIATE_ENDPOINTS_CONTENT,
+                            },
+                        ],
+                    },
+                    {
+                        ip: M02_SMART_TV_IP,
+                        lanIp: M02_SMART_TV_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_SMART_TV_CODENAME,
+                        users: [],
+                        ports: [{ external: 8008, internal: 8008, active: true, service: "http" }],
+                    },
+                    {
+                        ip: M02_CAMERA_IP,
+                        lanIp: M02_CAMERA_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_CAMERA_CODENAME,
+                        users: [],
+                        ports: [{ external: 554, internal: 554, active: true, service: "rtsp" }],
+                    },
+                    {
+                        ip: M02_WORKSTATION_IP,
+                        lanIp: M02_WORKSTATION_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_WORKSTATION_CODENAME,
+                        users: [Network.createUser({ username: "tr4c3404", online: true })],
+                        ports: [
+                            {
+                                external: 3389,
+                                internal: 3389,
+                                active: false,
+                                service: "rdp",
+                                version: "FreeRDP 7.1.9",
+                            },
+                        ],
+                        rootFiles: [
+                            {
+                                name: M02_FINANCIAL_DOC_FILE_NAME,
+                                extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
+                                data: M02_FINANCIAL_DOC_CONTENT,
+                            },
+                            {
+                                name: M02_WORKSTATION_ERRANDS_FILE_NAME,
+                                extension: M02_WORKSTATION_ERRANDS_FILE_EXTENSION,
+                                data: M02_WORKSTATION_ERRANDS_CONTENT,
+                            },
+                            {
+                                name: M02_WORKSTATION_UNSENT_FILE_NAME,
+                                extension: M02_WORKSTATION_UNSENT_FILE_EXTENSION,
+                                data: M02_WORKSTATION_UNSENT_CONTENT,
+                            },
+                        ],
+                    },
+                    {
+                        ip: M02_GAME_CONSOLE_IP,
+                        lanIp: M02_GAME_CONSOLE_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M02_GAME_CONSOLE_CODENAME,
+                        users: [],
+                        ports: [],
+                    },
+                ],
+            },
+        ],
+    });
+
+    Network.setVulnerabilities(M02_WORKSTATION_IP, [{ type: "RCE", version: "FreeRDP 7.1.9" }]);
 };
 
 @RegisterQuest
@@ -181,7 +512,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     override AutoComplete = true;
     override QuestsToComplete = questGate("m02", ["flatline.m01"]);
     override Rewards = (isQuestDevFocus("m02") || isQuestTesterFocus("m02")) ? { money: 0, xp: 0 } : M02_REWARDS;
-    override Dialog = M02_DEPLOY_LOG_DIALOG;
+    override Dialog = M02_DIALOG;
 
     override Objectives = applyDevGating(M02_OBJECTIVES, isQuestDevFocus("m02"));
 
@@ -189,23 +520,10 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
 
     override CreateData(): M02QuestData {
         return {
-            leadReviewed: false,
-            rootWhoisDone: false,
-            adminDecoyFound: false,
-            devSubdomainFound: false,
-            devServerScanned: false,
-            reconRootDomainCompleted: false,
-            panelDumped: false,
-            adminHashCracked: false,
-            affiliatePanelBreached: false,
-            devServerAccessed: false,
             deployLogFound: false,
-            devServerObjectiveCompleted: false,
-            wifiPasswordFound: false,
-            wifiJoined: false,
-            workstationWifiBreached: false,
-            workstationRooted: false,
-            financialDocDownloaded: false,
+            firewallLoggedIn: false,
+            firewallBreached: false,
+            aftermathShown: false,
             reportSent: false,
         };
     }
@@ -230,52 +548,18 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             children: [],
         });
 
-        Network.createSubnetNetwork({
-            ip: M02_DEV_ROUTER_IP,
-            type: NetworkDeviceType.Router,
-            users: [],
-            ports: [],
-            children: [
-                {
-                    ip: M02_DEV_IP,
-                    type: NetworkDeviceType.Device,
-                    domain: {
-                        name: M02_DEV_SUBDOMAIN,
-                        vulnerabilities: [{ type: "SQL_INJECTION" }],
-                    },
-                    users: [
-                        Network.createUser({
-                            username: M02_ADMIN_USERNAME,
-                            password: M02_ADMIN_PASSWORD,
-                        }),
-                    ],
-                    ports: [
-                        { external: 22, internal: 22, active: true, service: "ssh" },
-                        { external: 443, internal: 443, active: true, service: "https" },
-                        { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
-                    ],
-                    rootFiles: [
-                        {
-                            name: M02_DEPLOY_LOG_FILE_NAME,
-                            extension: M02_DEPLOY_LOG_FILE_EXTENSION,
-                            data: M02_DEPLOY_LOG_CONTENT,
-                        },
-                    ],
-                },
-            ],
-        });
+        // if (isDev) {
+        //     Network.destroyNetwork(M02_DEV_ROUTER_IP);
+        // }
+        registerM02SubfinderDomains();
 
-        Network.removePort(M02_DEV_IP, 3306);
-        Network.addPort(M02_DEV_IP, {
-            external: 3306,
-            internal: 3306,
-            active: true,
-            service: "mysql",
-            version: "mariadb",
-        });
-        Network.setVulnerabilities(M02_DEV_IP, [{ type: "SQL_INJECTION" }]);
+        registerM02WorkstationNetwork();
+        registerM02CloserRigNetwork();
 
-        registerM02WorkstationWifi();
+        if (this.Data.firewallBreached) {
+            Network.removeFirewallRule(M02_FIREWALL_IP, 3389);
+            Network.openPort(M02_WORKSTATION_IP, 3389);
+        }
 
         Network.registerDomain(M02_ROOT_DOMAIN, M02_ROOT_IP);
 
@@ -287,74 +571,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             label: M02_REPORT_TEMPLATE_LABEL,
             title: M02_REPORT_SUBJECT,
             content: M02_REPORT_TEMPLATE_CONTENT,
-            fields: ["developer", "shellCompany"],
-        });
-
-        this.Events.on("Mail.Read", (data) => {
-            if (this.Data.leadReviewed) return;
-            if (data.from !== M02_DEAD_DROP_EMAIL || data.subject !== M02_TIP_SUBJECT) return;
-
-            this.SetData("leadReviewed", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.reviewLead);
-        });
-
-        this.Events.on("Terminal.Whois", (data) => {
-            if (this.Data.rootWhoisDone) return;
-            if (data.domain !== M02_ROOT_DOMAIN) return;
-
-            this.SetData("rootWhoisDone", true);
-            this.tryCompleteReconRootDomain();
-        });
-
-        this.Events.on("Terminal.Dirhunter", (data) => {
-            if (this.Data.adminDecoyFound) return;
-
-            const host = data.host.toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
-            if (host !== M02_ROOT_DOMAIN) return;
-
-            this.SetData("adminDecoyFound", true);
-            this.tryCompleteReconRootDomain();
-        });
-
-        this.Events.on("Subfinder.Results", (data) => {
-            if (this.Data.devSubdomainFound) return;
-            if (data.domain !== M02_ROOT_DOMAIN) return;
-            if (!data.subdomains.some((subdomain) => subdomain.name === M02_DEV_SUBDOMAIN)) return;
-
-            this.SetData("devSubdomainFound", true);
-            this.tryCompleteReconRootDomain();
-        });
-
-        this.Events.on("Terminal.NmapScan", (data) => {
-            if (this.Data.devServerScanned) return;
-            if (data.ip !== M02_DEV_IP || !data.versionScan) return;
-
-            this.SetData("devServerScanned", true);
-            this.tryCompleteReconRootDomain();
-        });
-
-        this.Events.on("Sqlmap.DumpTable", (data) => {
-            if (this.Data.panelDumped) return;
-            if (data.host !== M02_DEV_IP || data.tableName !== M02_ADMINS_TABLE) return;
-
-            this.SetData("panelDumped", true);
-            this.tryCompleteBreachAffiliatePanel();
-        });
-
-        this.Events.on("John.DecryptHash", (data) => {
-            if (this.Data.adminHashCracked) return;
-            if (data.hash !== M02_ADMIN_HASH) return;
-
-            this.SetData("adminHashCracked", true);
-            this.tryCompleteBreachAffiliatePanel();
-        });
-
-        this.Events.on("Terminal.SSH.Connected", (data) => {
-            if (this.Data.devServerAccessed) return;
-            if (data !== M02_DEV_IP) return;
-
-            this.SetData("devServerAccessed", true);
-            this.tryCompleteAccessDevServer();
+            fields: ["developer_url", "shellCompany"],
         });
 
         this.Events.on("Terminal.Cat", (data) => {
@@ -363,39 +580,35 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
 
             this.SetData("deployLogFound", true);
             this.createDialog("default");
-            this.tryCompleteAccessDevServer();
         });
 
-        this.Events.on("Fern.FindPassword", (data) => {
-            if (this.Data.wifiPasswordFound) return;
-            if (data.subnet.ip !== M02_WORKSTATION_WIFI_IP) return;
+        this.Events.on("PFSense.Login", (data) => {
+            if (data.ip !== M02_FIREWALL_IP) return;
 
-            this.SetData("wifiPasswordFound", true);
-            this.tryCompleteBreachWorkstationWifi();
+            this.SetData("firewallLoggedIn", true);
         });
 
-        this.Events.on("Network.WifiConnected", (data) => {
-            if (this.Data.wifiJoined) return;
-            if (data.ip !== M02_WORKSTATION_WIFI_IP) return;
+        this.Events.on("PFSense.Changes", () => {
+            if (!this.Data.firewallLoggedIn) return;
+            if (this.Data.firewallBreached) return;
 
-            this.SetData("wifiJoined", true);
-            this.tryCompleteBreachWorkstationWifi();
+            this.SetData("firewallBreached", true);
+            Network.removeFirewallRule(M02_FIREWALL_IP, 3389);
+            Network.openPort(M02_WORKSTATION_IP, 3389);
         });
 
-        this.Events.on("Metasploit.Rootgrab", (data) => {
-            if (this.Data.workstationRooted) return;
-            if (data.ip !== M02_WORKSTATION_IP) return;
+        this.Events.on("Files.Transfer", (data) => {
+            if (this.Data.aftermathShown) return;
+            if (data.type !== "DOWNLOAD") return;
+            const workstationFiles: string[] = [
+                M02_FINANCIAL_DOC_FILE_NAME,
+                M02_WORKSTATION_ERRANDS_FILE_NAME,
+                M02_WORKSTATION_UNSENT_FILE_NAME,
+            ];
+            if (!workstationFiles.includes(data.file?.name ?? "")) return;
 
-            this.SetData("workstationRooted", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.rootgrabWorkstation);
-        });
-
-        this.Events.on("Meterpreter.Download", (data) => {
-            if (this.Data.financialDocDownloaded) return;
-            if (data.host !== M02_WORKSTATION_IP || data.file.name !== M02_FINANCIAL_DOC_FILE_NAME) return;
-
-            this.SetData("financialDocDownloaded", true);
-            this.completeObjective(M02_OBJECTIVE_IDS.downloadFinancialDoc);
+            this.SetData("aftermathShown", true);
+            this.createDialog("aftermath");
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -406,45 +619,6 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             this.SetData("reportSent", true);
             this.completeObjective(M02_OBJECTIVE_IDS.reportFindings);
         });
-    }
-
-    private tryCompleteReconRootDomain(): void {
-        if (this.Data.reconRootDomainCompleted) return;
-        if (
-            !this.Data.rootWhoisDone ||
-            !this.Data.adminDecoyFound ||
-            !this.Data.devSubdomainFound ||
-            !this.Data.devServerScanned
-        ) {
-            return;
-        }
-
-        this.SetData("reconRootDomainCompleted", true);
-        this.completeObjective(M02_OBJECTIVE_IDS.reconRootDomain);
-    }
-
-    private tryCompleteBreachAffiliatePanel(): void {
-        if (this.Data.affiliatePanelBreached) return;
-        if (!this.Data.panelDumped || !this.Data.adminHashCracked) return;
-
-        this.SetData("affiliatePanelBreached", true);
-        this.completeObjective(M02_OBJECTIVE_IDS.breachAffiliatePanel);
-    }
-
-    private tryCompleteAccessDevServer(): void {
-        if (this.Data.devServerObjectiveCompleted) return;
-        if (!this.Data.devServerAccessed || !this.Data.deployLogFound) return;
-
-        this.SetData("devServerObjectiveCompleted", true);
-        this.completeObjective(M02_OBJECTIVE_IDS.accessDevServer);
-    }
-
-    private tryCompleteBreachWorkstationWifi(): void {
-        if (this.Data.workstationWifiBreached) return;
-        if (!this.Data.wifiPasswordFound || !this.Data.wifiJoined) return;
-
-        this.SetData("workstationWifiBreached", true);
-        this.completeObjective(M02_OBJECTIVE_IDS.breachWorkstationWifi);
     }
 
     override OnComplete() {
@@ -459,10 +633,23 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
         resetM02ShellFixtures();
         Network.removeDomain(M02_ROOT_DOMAIN);
         Network.removeDomain(M02_DEV_SUBDOMAIN);
+        Network.removeDomain(M02_DECOY_SUBDOMAIN_1);
+        Network.removeDomain(M02_DECOY_SUBDOMAIN_2);
+        for (const subdomain of M02_EMPTY_SUBDOMAINS) {
+            Network.removeDomain(`${subdomain.label}.${M02_ROOT_DOMAIN}`);
+        }
         Network.destroyNetwork(M02_ROOT_IP);
         Network.destroyNetwork(M02_DEV_ROUTER_IP);
-        Network.destroyNetwork(M02_WORKSTATION_WIFI_IP);
+        Network.destroyNetwork(M02_DECOY_SUBDOMAIN_1_ROUTER_IP);
+        Network.destroyNetwork(M02_DECOY_SUBDOMAIN_2_ROUTER_IP);
+        Network.destroyNetwork(M02_WORKSTATION_ROUTER_IP);
+        Network.destroyNetwork(M02_CLOSER_RIG_ROUTER_IP);
         if (this.databaseId) Database.remove(this.databaseId);
+
+        const decoyDb1 = Database.getByHost(M02_DECOY_SUBDOMAIN_1_IP);
+        if (decoyDb1) Database.remove(decoyDb1.id);
+        const decoyDb2 = Database.getByHost(M02_DECOY_SUBDOMAIN_2_IP);
+        if (decoyDb2) Database.remove(decoyDb2.id);
     }
 
     private isReport(subject: string, content: string): boolean {
@@ -491,7 +678,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
 
         if (!fields || typeof fields !== "object") return false;
 
-        const { developer, shellCompany } = fields as Record<string, unknown>;
-        return developer === M02_DEV_SUBDOMAIN && shellCompany === M02_SHELL_COMPANY_NAME;
+        const { developer_url, shellCompany } = fields as Record<string, unknown>;
+        return developer_url === M02_DEV_SUBDOMAIN && shellCompany === M02_SHELL_COMPANY_NAME;
     }
 }

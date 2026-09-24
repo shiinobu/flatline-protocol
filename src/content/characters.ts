@@ -15,3 +15,5 @@ export const ANONYMOUS_TIPSTER: FlatlineContact = {
     name: "Unknown Sender",
     email: "ghost.tip@ghost.index",
 };
+
+export const M04_ARCHITECT_VPN_IP = "203.0.113.160";
