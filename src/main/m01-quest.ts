@@ -956,23 +956,16 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     }
 
     override OnComplete() {
-        resetM01ShellFixtures();
-        Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
-        for (const record of M01_DOMAIN_RECORDS) {
-            Network.removeDomain(record.name);
-            if (record.needsSubnet) Network.destroyNetwork(record.ip);
-        }
-        Network.destroyNetwork(M01_ROUTER_IP);
-        Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
-        Network.destroyNetwork(M01_BLACKWIRE_ROUTER_IP);
-        Network.destroyNetwork(M01_FROSTGATE_ROUTER_IP);
-        Network.destroyNetwork(M01_OBSIDIAN_ROUTER_IP);
+        this.teardown();
     }
 
     override OnAbandon() {
+        this.teardown();
+    }
+
+    private teardown(): void {
         resetM01ListingResolution();
         resetM01ShellFixtures();
-        Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
         for (const record of M01_DOMAIN_RECORDS) {
             Network.removeDomain(record.name);
             if (record.needsSubnet) Network.destroyNetwork(record.ip);
