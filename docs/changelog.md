@@ -371,3 +371,358 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   `docs/story.md` section 4 and its `## 7` checklist entry for the full
   before/after; nothing here has been personally live-tested by the
   developer since the 2026-09-19 FINAL LOCK it supersedes.
+- **[mechanic] Mod cover art added.** `cover.png` plus a `manifest.json`
+  `cover` field, so the mod shows its key art in the Local Mods lobby
+  instead of the default placeholder icon (commit `8d50a42`).
+- **[mechanic] M1's `AutoStart` now follows dev focus.**
+  `AutoStart = isQuestDevFocus("m01")` instead of a hardcoded `false`, so
+  a developer iterating locally does not have to claim the Hackhub post
+  every test cycle; testers and production still go through the feed post.
+- **[mechanic] M2's evidence synced with M1's locked canon.** The deploy
+  log and the affiliate-panel row now carry M1's real case
+  (`MED-SEA-0417`, 2026-08-14) instead of a generic 2024 client, and the
+  ransom amount is an actual figure ($2,850,000). A short GHOSTWIRE dialog
+  fires the first time the deploy log is read — the sibling-death beat
+  `docs/story.md` calls the story's main emotional beat. M2's entry point
+  also moved off a flat tip-mail reveal: the toolkit developer's domain is
+  now discoverable in LedgerVault (new `associate_infra.txt` card in the
+  Q3-2026-SEA folder).
+- **[bug] `subfinder` / `net_tree` lost M1's blackwire-network.mkt domains
+  after a same-tick destroy + create.** `registerM01Network()`'s
+  `destroyNetwork()` + `createSubnetNetwork()` pairs on the same address
+  raced the engine's async teardown and silently dropped domains after
+  `OnObjectivesStart` returned. Every same-address destroy call in
+  M01/M03/M04 is now gated behind `isDev`, so tester and production builds
+  never tear down addresses that already hold state. See `docs/bugs.md`
+  #18 (commit `76b8fb9`).
+- **[bug] `Files.create()` and other permissioned SDK calls lose mod
+  identity outside a `Command.Run()` or an `Events.on()` handler.** Found
+  while looking for a real downloadable file for a `hydra`-crack step:
+  from any quest lifecycle hook (sync or async), or from a
+  `Website.Exports` function reached by a button click, `Files.create()`
+  fails with `Mod "null"`; it works from a custom `Command`'s own `Run()`
+  and from a top-level `Events.on()` handler reached via `Events.emit()`.
+  Documented only, generalizing entries 6/12/15 beyond
+  `Network.createSubnetNetwork`. See `docs/bugs.md` #19.
+- **[mechanic] M2's buyer/target alias renamed `A7xC0DEFACE` →
+  `TR4C3#404`.** The old alias was too visually close to M1's broker
+  alias. Renamed across M1/M2 content, the M2 website folder
+  (`a7xcodeface` → `tr4c3404`), LedgerVault, and the docs.
+- **[mechanic] ClearEscrow reworked into a public transaction board.** It
+  was a single-tenant "Partner Dashboard", which implied the broker works
+  there. It now lists all 18 currently-SOLD listings across
+  blackwire/frostgate/obsidian with amounts UNDISCLOSED, matching the
+  marketplaces, and references the listing code instead of the
+  LedgerVault-only case ID. "Related Listings" was removed from every SOLD
+  listing page (18 pages), and the real listing's SEA region (3/3/4 across
+  the three sites) and Hospital access type (4 total) were diluted so
+  neither trait alone identifies it; `opn-102.html` carries a
+  `data-m1-canonical-listing` attribute for maintainers.
+
+## 2026-09-22
+
+- **[mechanic] M1's backend login reworked into a `hydra` crack.** The
+  backend SSH login is now the broker's real vendor alias (shown on the
+  storefront listing) instead of `opsadmin` from the tip mail, which stays
+  as a deliberate near-miss. The credential is cracked with a `hydra`
+  fixture whose wordlist comes from the base game's own HackDB catalog
+  (hackdb.net) — the same store already used for `kimai` / `jwt_decoder`,
+  so there is no mod-hosted download. The IRC conversation was reframed as
+  a direct broker ↔ buyer exchange; it used to be a broker and an
+  associate discussing a third-party buyer (commit `4da7208`).
+- **[mechanic] `swiftedge-cloud` leak-page mechanic dropped; ClearEscrow
+  made discoverable.** The site, its domain records and its `lynx` fixture
+  were removed once the HackDB / `hydra` route replaced it. The three
+  marketplace homepages now footer-link to clearescrow.io ("payments
+  secured via ClearEscrow"), giving it a discovery path before backend
+  access.
+- **[mechanic] Per-save listing randomization across all three
+  marketplaces.** 18 SOLD listings (6 per marketplace) get a fresh
+  Category/Region/Code/Vendor once per save, persisted in `SaveStorage`
+  and mirrored to `Variables`. Exactly one is the real one (Region SEA
+  plus the broker's vendor alias), diluted by 5 more forced-SEA listings;
+  the 17 decoys reuse ClearEscrow's existing seller names. Listing paths
+  are opaque tokens, since `dirhunter` prints every registered path. The
+  broker alias became `X7xS3NTRY9`, and the backend and firewall moved off
+  blackwire onto their own domain `x7xsentry9.tech`, found via
+  `lynx <alias>`; all three marketplaces' `gateway.*` subdomains are now
+  uniform decommissioned dead ends. See `src/content/m01-listing-pool.ts`.
+- **[bug] A `Website`'s `metadata()` can never read `SaveStorage`.**
+  Investigated in `src/debug/scratch.ts` over five iterations. `Variables`
+  written from a real `this.Events.on()` game-event callback are visible
+  to `metadata()`; `SaveStorage` never is, and neither are values written
+  directly inside a lifecycle hook's own body. The listing pool is
+  therefore resolved from a `this.Events.on()` callback and mirrored
+  `SaveStorage` → `Variables`. See `docs/bugs.md` #20.
+- **[mechanic] Listing-pool trigger moved from `Terminal.Nslookup` to
+  `Mail.Read`; M1 became abandonable.** The pool now resolves when the
+  mission's opening email is read, before any recon, which narrows the
+  fresh-save `PENDING-0000` risk. `Abandonable = true` with
+  `resetM01ListingResolution()` in `OnAbandon()`, so abandon-and-reclaim
+  rolls a fresh listing set. `isDebug` was flipped back to `false` (it had
+  locked every mission) for tester-mode gating.
+- **[bug] Structural network changes never reach an already-progressed
+  save.** Moving a device into a router's `children`, or adding a child,
+  is "left alone" on an existing save, and the fire-and-forget
+  `destroyNetwork()` races the recreate (`net_tree.py` → "Subnet not
+  found"). Every address whose shape changed now gets a brand-new IP
+  instead. M1 was consolidated to one Router per marketplace with three
+  hosts each (storefront, gateway, and new SSH-able `api.*` dead ends on
+  frostgate/obsidian shaped like `legacy.blackwire-network.mkt`), with
+  `M01_FRONT_*` / `M01_DECOY_*` renamed `M01_BLACKWIRE_*` /
+  `M01_FROSTGATE_*`. See `docs/bugs.md` #21.
+- **[bug] M1 marketplace pages: dead links and stale labels fixed.**
+  ACTIVE listings' "OPEN" links pointed at the old semantic slugs instead
+  of the registered opaque paths; the SOLD rows on each `home.html` were
+  hardcoded and are now injected per save (`buildM01HomeSoldLots()`);
+  frostgate's path format now matches blackwire/obsidian
+  (`/listings/xxxx/`); dead "ARCHIVED" Related Listings links were removed
+  and obsidian's regained their `/listings/` prefix; the winner's Vendor
+  is redacted to `—` on ClearEscrow.
+- **[mechanic] M1 recon gates and content fixes.** `lynx <alias>` and the
+  broker-domain `nslookup` now need the listing visited first (they leaked
+  the lead too early on replays). The decoy vendor `REDLINE_OPS` was
+  renamed `RUSTVEIN_9` because it collided with a real ACTIVE listing's
+  vendor. Two stale `a7xcodeface.dev` references in LedgerVault (an inline
+  SVG and the `q3-receipt.png` photo) were fixed.
+- **[docs] Nmap port-443 realism rule.** Any domain with a real `Website`
+  must show 443 OPEN in its nmap fixture, and any domain without one must
+  show it CLOSE; four fixtures (frostgate, obsidian, clearescrow, the
+  broker's root domain) were fixed. See `docs/implementation-rules.md`
+  §12.
+- **[mechanic] Shared 400/404 error pages.** `src/websites/shared/`
+  (`page-guards.ts` with `requireHttps` / `securePage` / `notFoundPage`,
+  plus two on-brand HTML templates) replaced the duplicated inline
+  `http-error.html` files of M01–M04. `docs/implementation-rules.md` §6
+  was rewritten to point at it.
+- **[milestone] M1 fully localized (English + Simplified Chinese).** Phase
+  1 covers quest text (mail, IRC, device files, terminal flavor, HackHub
+  post) through `Localization.t()` called from lazy functions. Phase 2
+  covers all five websites (blackwire, frostgate, obsidian, clearescrow,
+  ledgervault) through `{{t:KEY}}` tokens and a `siteT()` cache, plus the
+  Twotter bios and 46 tweets. `Twotter.updateUser()` never included `bio`,
+  so bios froze at first creation — fixed. Mail and HackHub post content
+  was reflowed into natural paragraphs. See `src/content/m01-i18n.ts`.
+- **[bug] Localization pitfalls found while doing it.** `Localization.t()`
+  returns the raw key inside a `Website`'s `metadata()`, so
+  `refreshM01SiteStrings()` resolves every site string from
+  `OnObjectivesStart()` into a `Variables` cache that `siteT()` reads
+  (`docs/bugs.md` #22). Module-scope `Localization.t()` freezes at the
+  mod-load language, hence the lazy functions. `Title` / `Description` /
+  `Objectives` / `HackhubPost` as getters make the HackHub post vanish and
+  the tracker show raw keys, so they stay plain fields frozen at the load
+  language (see `docs/scratch.md`).
+- **[mechanic] Twotter personas decoupled from the case.** The "broker"
+  and "decoy" accounts became "ops" and "trader" with ordinary human names
+  (Skylar Webb, Elena Cruz, Sarah Reyes), a `gender` on
+  `Twotter.createUser()`, and six generated avatar/banner photos.
+- **[bug] Native-UI images need `mod-asset://`, and the build tool only
+  copies `"./..."` literals.** Twotter avatars/banners and
+  `HackhubPost.author.avatar` need fully-qualified
+  `mod-asset://<manifest-id>/...` URLs (the bare `./assets/` form only
+  works inside `Website` / `App` HTML, where the SDK injects a `<base>`).
+  The SDK build's asset scanner only matches string literals starting with
+  `.`, so a literal `mod-asset://` URL silently stops the file being
+  copied into `dist/`. The `modAsset()` helper in `src/content/m01.ts`
+  keeps the `"./assets/..."` literal in source and returns the full URL at
+  runtime (asset copy count 33 → 39).
+- **[mechanic] LedgerVault and the HackHub post trimmed.** LedgerVault's
+  Q1/Q2 folders were cut to Evidence-only (8 PNGs, about 20 MB removed;
+  the Archive folder is now empty) and the HackHub post logo was swapped.
+- **[bug] `WeeChat.createServer()` prints the IRC host and password in
+  plaintext.** Base-game bug: the client does
+  `console.log("CreateServer", host, password)` on every call, so M1's IRC
+  credentials reach DevTools each time `OnStart()` fires. Not patchable
+  from mod code; documented as an accepted limitation in `docs/bugs.md`
+  #23.
+- **[docs] M1 docs kept in sync.** `docs/m01-playtest.md` was rewritten
+  for the hydra / randomization / topology flow, and `docs/story.md` and
+  `docs/scratch.md` gained the matching decisions and findings.
+- **[milestone] M1 "First Trace" LOCKED and committed.** Commit `c9c7337`
+  ("feat: finalize M1 — full EN/zh localization, Twotter rework,
+  LedgerVault trim", 95 files) bundles the day's work; M1 is not touched
+  again unless urgent. `.vscode/settings.json` was added and removed again
+  (`4b43554`), and `.vscode` is now gitignored.
+
+## 2026-09-23
+
+- **[mechanic] M2's eight player-facing objectives collapsed into one.**
+  Same "full mechanic, not full objective" pattern as M1: `M02_OBJECTIVES`
+  now exposes only `reportFindings`, `M02QuestData` shrank from 18 flags
+  to 2, and the intermediate `Events.on(...)` listeners and `tryComplete*`
+  helpers were removed. The `Terminal.Cat` dialog trigger and the
+  `Mail.Sent` report completion stay.
+- **[docs] `docs/m02-playtest.md` created.** Step-by-step live-test script
+  for M2, modeled on `docs/m01-playtest.md`, with a network-topology
+  appendix.
+- **[docs] M2 redesign plan and M3/M4 audit recorded.** Design only, in
+  `docs/scratch.md`. M2 plan: swap the dead `MED-SEA-0417` reference for
+  `M01_CASE_ID`, remove the tip-mail spoiler, grow the affiliate table
+  from 1 to 3 rows, replace the WiFi-crack mechanic (`createWifiNetwork` /
+  `bettercap` / `fern` are physical-proximity tools, implausible for a
+  remote hacker) with a devbox pivot, add a second GHOSTWIRE dialogue beat
+  after the download, and add silent domestic-texture files on the
+  workstation. M3/M4 audit findings (M3→M4's VPN-IP lead never surfaces
+  mechanically, the Architect has no characterization, the `bettercap`
+  ARP-spoof step has no code, and others) are logged and deferred until M2
+  is done.
+- **[bug] Two M1 gaps found during the M2 audit, deliberately left
+  unfixed.** After a game restart mid-mission the `Variables`-backed
+  `siteT()` cache stays empty until `OnObjectivesStart()` runs again, so
+  M1 websites can show raw `{{t:...}}` keys
+  (`src/content/m01-site-strings-cache.ts`). And the M1 report has no
+  field for the toolkit URL even though `associate_infra.txt` reveals
+  `tr4c3404.dev`. Both were investigated and the fix was declined; M1
+  stays locked.
+
+## 2026-09-24
+
+- **[mechanic] M2 redesign implemented (Tahap 1+2).** New IP scheme; the
+  devbox subdomain moved to the random hex label
+  `f3a91b7c04d8.tr4c3404.dev`; the dead `MED-SEA-0417` reference was
+  replaced by `M01_CASE_ID` (confirmed live: "CASE-A7X-0417. August 14th,
+  2026."); the affiliate table grew to three rows; the tip mail was
+  rewritten and the admin password rotated; one `M02_DIALOG` now carries
+  `default` and `aftermath` branches. The WiFi mechanic was replaced by a
+  `sync-home.txt` file on the rooted devbox that leaks the workstation's
+  address, plus domestic-texture files (`errands.txt`, `unsent.txt`); the
+  workstation became Router → Splitter → {Firewall, Workstation, Printer};
+  the website was rebranded `A7xCodeFace` → `TR4C3404`.
+- **[mechanic] 40-subdomain haystack for `subfinder` (Tahap 3).** 37 empty
+  decoys with fixed IPs from `192.0.2.0/24`, two populated decoys
+  (`9c71ff0362bb` and `40e9a8d1c256`, each with an empty-table `Database`)
+  and the real devbox. Registration order is Fisher-Yates shuffled on
+  every load so the three vulnerable hosts do not sort to the top, and
+  `nuclei` narrows the list to those three.
+- **[mechanic] Closer-Rig bonus thread (Tahap 4).** A second affiliate,
+  `Qu0taCl0ser` ("Closer-Rig", `FreeRDP 2.7.3`, the same Metasploit RDP
+  exploit as the workstation, no firewall gate). Its `quota_report.txt`
+  and `routing_notes.txt` plant `M04_ARCHITECT_VPN_IP` as real evidence
+  for M4.
+- **[bug] Splitter nodes cannot hold SSH, ports or content.** `ssh`
+  hard-requires target type `Device`, and the port aggregation behind
+  `nmap` never writes a Splitter's own `.ports`; a `Device` node also
+  cannot have `children`, so retyping in place is impossible. The Splitter
+  is now an empty pass-through (as in M3/M4) with the real NAS
+  `Rust-Bucket` (`admin` / `admin`) and four decoys (`Glass-Eye`,
+  `Night-Owl`, `Ghost-Relay`, `Dead-Pixel`) as sibling `Device` nodes. The
+  home LAN was renumbered to `192.168.1.x` (`IsLocalIp()` hardcodes that
+  prefix) with the Workstation deliberately not adjacent to the Firewall,
+  and the firewall rule's `destination` field was removed: the unlock
+  never read it, it only spoiled the LAN IP. See `docs/scratch.md`.
+- **[bug] Engine facts found while live-testing M2.**
+  `Meterpreter.Download` never fires reliably, so the aftermath dialogue
+  triggers on `Files.Transfer` filtered by file name. `cat` only reads
+  `.txt` and `.log`. The browser only opens a Firewall or Router page on
+  `port.internal === 80`. `sqlmap -u` needs a domain while `ssh -h` needs
+  an IP. `subfinder` only lists nodes that carry a domain, so empty decoys
+  need a backing node. `sqlmap -tables` needs a `Database` record keyed by
+  host IP. Chaining `.then()` on `destroyNetwork()` broke `subfinder` and
+  was reverted; the `destroyNetwork()` calls in `OnObjectivesStart` were
+  commented out for good. All logged in `docs/scratch.md`.
+- **[bug] Circular import leaked `undefined` into `routing_notes.txt`.**
+  `m02` → `m04` → `m03` → `m02` closed a cycle, so a module-level string
+  read `M04_ARCHITECT_VPN_IP` before it was assigned. The constant moved
+  into the leaf file `src/content/characters.ts` (`m04.ts` re-exports it),
+  leaving the import graph acyclic: `characters` ← `m01` ← `m02` ← `m03` ←
+  `m04`.
+- **[bug] Workstation `nmap` kept showing `FreeRDP 1.0.0`.** A leftover
+  `removePort` / `addPort` / `setVulnerabilities(1.0.0)` block after
+  `createSubnetNetwork()` re-added the port on every `OnObjectivesStart`.
+  It was removed; the workstation is `FreeRDP 7.1.9` and Closer-Rig
+  `FreeRDP 2.7.3`, with each port `version` matching its vulnerability
+  `version` (they are independent fields).
+- **[mechanic] M2 report enriched.** The "Mission 2 Findings" template
+  field `developer` became `developer_url` (validated against the devbox
+  subdomain), the template and the freehand report body gained an
+  "Unresolved" line about a second signer above the shell company, and the
+  collapsed objective's text no longer mentions Wi-Fi.
+- **[milestone] M2 live-tested end to end.** The main path (nodes 1–23)
+  and the Closer-Rig bonus (25–27) were confirmed working in-game by the
+  developer, including the report mail. `docs/m02-playtest.md` was
+  rewritten to 27 steps. Tester-mode flags (`isDev=false`,
+  `isTester=true`, `TESTER_FOCUS_QUEST.m02`) gave a clean test setup.
+- **[mechanic] M1 teardown consolidated; LedgerVault domain made
+  permanent.** `OnComplete` and `OnAbandon` now share one `teardown()`;
+  the two copies had drifted, and `OnComplete` never cleared the per-save
+  listing resolution. Neither removes the LedgerVault domain any more: it
+  is standing world content and must stay resolvable for the whole game.
+- **[mechanic] Desktop-app prototypes.** M1–M4 were audited for a
+  dedicated Flatline desktop app, and two samples (`scratchcase1`, a
+  per-mission list, and `scratchcase2`, a corkboard) were registered in
+  `src/debug/scratch.ts`. An app only shows under "Mod Applications" in
+  the AppStore once it has a `Store` object. Both samples were removed on
+  2026-09-25 in favour of BACKTRACE.
+- **[mechanic] `isDebug` switched on.** By the end of the day
+  `src/guard/flags.ts` had `isDebug = true`, which makes `questGate`
+  return the isolation lock for every quest, so no mission can be claimed
+  until it is flipped back to `false`.
+
+## 2026-09-25
+
+- **[mechanic] BACKTRACE case-file desktop app prototyped.** GHOSTWIRE's
+  in-game case file, built as a static mockup in `src/debug/scratch.html`
+  (imported by `scratch.ts`) and checked live in a browser: a mission
+  sidebar (a prologue page plus #1–#4 with locked / in-progress / complete
+  states), per-mission report views, and a CASEBOARD (pan/zoom entity map
+  over an animated waveform). The prologue page tells GHOSTWIRE's motive:
+  a sibling lost to the ransomware attack on a hospital.
+- **[mechanic] BACKTRACE desktop app wired to real mission state.** New
+  `src/applications/` folder holds the app (`backtrace.ts`,
+  `backtrace.html`) and its state helper (`backtrace-state.ts`). Each
+  `mNN-quest.ts` now records its mission's status — `locked` /
+  `progress` / `complete`, plus the in-game completion date — in
+  `SaveStorage` key `backtrace`, written from `OnStart` / `OnComplete` /
+  `OnAbandon`. The app's iframe reads it through `HackhubSDK.SaveStorage`
+  and polls every 2 s, driving the sidebar statuses, the M1/M2 report
+  views (a "NO REPORT FILED" card while a mission is open, "REPORT
+  PENDING" for a completed M3/M4), and the CASEBOARD (nodes,
+  connections, counts, empty state). Opened outside the game (`file:`
+  protocol, no SDK) it falls back to an M1+M2-complete preview. See
+  `src/applications/backtrace-state.ts`.
+- **[mechanic] BACKTRACE moved out of `src/debug/` and renamed.**
+  `AppName` `scratchcasev9` → `backtrace`, so it is a new AppStore item
+  and the old install entry can linger in existing saves. The prototype
+  class and the two abandoned CASEFILE sample apps (`scratchcase1` /
+  `scratchcase2`) were removed from `src/debug/scratch.ts`.
+- **[mechanic] `scratchbt` debug command added** (`src/debug/scratch.ts`).
+  `scratchbt <m1|m2|m3|m4> <locked|progress|complete>` sets a mission's
+  BACKTRACE state, `scratchbt` alone prints it, `scratchbt reset` clears
+  it. Setting a mission `complete` also moves the next locked mission to
+  `progress`, mirroring the real `AutoStart` chain.
+- **[milestone] BACKTRACE `SaveStorage` wiring live-tested with
+  `scratchbt`.** Progress → complete confirmed in-game, and the debug
+  flow (including the next-mission cascade) reported fine afterwards. An
+  App iframe can therefore read `SaveStorage`, unlike `Website`
+  `metadata()` (`docs/bugs.md` #20). Not yet tested: the real quest
+  lifecycle hooks — the installed build has `isDebug = true` in
+  `src/guard/flags.ts`, which isolation-locks every quest. Known limit:
+  a quest already started or finished before the hooks existed shows
+  `locked` until it is re-claimed.
+- **[docs] `docs/architecture.md` updated for `src/applications/`.** The
+  layer list, the bootstrap import list and a new "Applications:
+  BACKTRACE" section (the app's files, the `backtrace` state shape, who
+  writes it, how the iframe reads it) now describe the app; the old "no
+  `apps/` folder yet" note was replaced.
+- **[docs] Changelog backfilled for 2026-09-21 to 2026-09-24.** The file
+  had stopped at the first 09-21 entries. The missing entries were
+  rebuilt from the commit history (`8d50a42` to `4b43554`), the saved
+  session notes, `docs/bugs.md` and file modification times; 09-24 work
+  that is still uncommitted is included.
+- **[bug] BACKTRACE showed M1's old broker alias.** The mockup hardcoded
+  `A7xDEFACE9` in ten places, but M1's broker has been `X7xS3NTRY9` since
+  the 2026-09-22 rename. Fixed by the data-driven pass below, which
+  removed every hardcoded story fact from the HTML; the current-state
+  mentions in `docs/architecture.md` and `docs/story.md` were corrected
+  too, and `docs/story.md` gained a 2026-09-22 decision-log note.
+- **[mechanic] BACKTRACE reports are data-driven (Phase 2).** When a
+  mission completes it snapshots its `facts` into the `backtrace` state
+  (`src/applications/backtrace-facts.ts`, built from `content/m01.ts`,
+  `content/m02.ts` and the per-save winning M1 listing, read before the
+  quest's teardown clears it). The HTML binds findings, entity cards,
+  evidence records, CASEBOARD nodes and the entity drawer to them with
+  `data-fact`. M1's report now shows the per-save listing code, project
+  and vault; M2's shows the developer URL and a payout-and-pattern
+  finding. Values are inserted as text or escaped, and a state without
+  facts renders "—". Checked in a browser with a stubbed SDK (with facts,
+  without facts, and with HTML in the values); not yet tested in-game.

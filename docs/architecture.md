@@ -29,9 +29,14 @@ src/
   commands/    — custom @RegisterCommand terminal commands with no native
                  SDK equivalent (e.g. a future attrcheck for Mission 4's
                  booby-trapped file).
+  applications/ — custom desktop Apps: currently BACKTRACE, GHOSTWIRE's
+                  case file (the @RegisterApp class, its HTML, and the
+                  SaveStorage state + facts helpers the quests use). Flat,
+                  no per-app subfolders — see "Applications: BACKTRACE"
+                  below.
   websites/    — Website page registrations (@RegisterWebsite/Host/Pages)
-                 + their HTML, one subfolder per site (A7xDEFACE9's
-                 storefront, TR4C3#404's panel, Skynet Import-Export's
+                 + their HTML, one subfolder per site (M1's marketplaces
+                 and LedgerVault, TR4C3#404's panel, Skynet Import-Export's
                  public site, etc.).
   guard/       — dev/prod gating helpers with no story content of their
                  own (currently dev-flag.ts — isDev/questGate/
@@ -45,9 +50,11 @@ src/
   types.d.ts   — ambient module declarations (currently *.html strings).
 ```
 
-No `apps/` or `themes/` folders yet — nothing in the locked mission design
-needs a custom installed app or a UI theme. Add either only if a specific
-mission objective actually requires one; don't scaffold ahead of need.
+No `themes/` folder yet — nothing in the mission design needs a UI theme;
+add one only if a specific objective actually requires it, and don't
+scaffold ahead of need. `applications/` exists because BACKTRACE is a
+cross-mission feature that belongs to no single mission's `content/` or
+`main/` file.
 
 ## The one rule carried over from entity-resolution-mods
 
@@ -73,7 +80,56 @@ items) that `Shell`/`Files`/`SaveStorage` calls living directly in
 being true** (e.g. if cross-mission state tracking — the recurring
 dead-drop contact, the VPN-IP thread from M3→M4 — turns out to need more
 than a couple of shared flags) rather than assuming the flat structure is
-permanent no matter what.
+permanent no matter what. The first cross-mission state now exists —
+BACKTRACE's `backtrace` key, below — and it is still one helper and one
+key, so the flat structure holds.
+
+## Applications: BACKTRACE
+
+`src/applications/` holds the mod's one desktop App, BACKTRACE (GHOSTWIRE's
+case file), as four flat files:
+
+- `backtrace.ts` — the `@RegisterApp` class (`AppName = "backtrace"`,
+  `Unlocked = true`, an AppStore `Store` listing) that imports the HTML.
+- `backtrace.html` — the whole UI in one file. It reads mission state
+  through `HackhubSDK.SaveStorage`, polls it every 2 s, and drives the
+  sidebar statuses, the M1/M2 report views (a placeholder card while a
+  mission has no report yet) and the CASEBOARD. No story fact is hardcoded
+  in it: findings, entity cards, evidence records, CASEBOARD nodes and the
+  entity drawer are bound to the mission's `facts`. Outside the game
+  (`file:` protocol, no SDK) it falls back to an M1+M2-complete preview
+  with sample facts.
+- `backtrace-state.ts` — `setBacktraceMission(mission, status)`, the only
+  writer of the state, plus its types.
+- `backtrace-facts.ts` — `buildBacktraceFacts(mission)`, the only place
+  BACKTRACE reads mission canon (`content/m01.ts`, `content/m02.ts` and the
+  per-save winning M1 listing from `content/m01-listing-pool.ts`). This is
+  the one deliberate `applications/` → `content/` import; nothing in
+  `content/` imports back.
+
+State is one `SaveStorage` key, `backtrace`:
+
+```text
+{ m1..m4: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> } } }
+```
+
+Each `main/mNN-quest.ts` writes it from `OnStart` (`progress`), `OnComplete`
+(`complete`, stamped with `Time.now()`) and `OnAbandon` (`locked`); a mission
+that never starts stays `locked`. `facts` is a snapshot taken inside
+`OnComplete`, before the quest's teardown wipes per-save data such as the M1
+listing resolution: M1 carries `broker`, `buyer`, `caseId`, `listing`,
+`project`, `vault`; M2 carries `buyer`, `developer`, `shellCompany`,
+`caseId`, `ransom`, `settled`, `victims`; M3/M4 have none yet and show
+"REPORT PENDING". An App iframe can read `SaveStorage` — unlike a
+`Website`'s `metadata()` (`docs/bugs.md` #20) — confirmed in-game with the
+`scratchbt` debug command (`src/debug/scratch.ts`), which sets, prints and
+resets the state (facts included) and mirrors the real `AutoStart` chain.
+
+To show a new fact: add it to the mission's builder in `backtrace-facts.ts`,
+then bind it in `backtrace.html` with `data-fact="mN.key"` (comma-separated
+fallbacks are allowed, e.g. `m2.buyer,m1.buyer`) or use it in the script's
+evidence and entity configs. Values are inserted as text or escaped, and a
+missing fact renders as "—".
 
 ## Naming convention
 
@@ -88,6 +144,7 @@ reference: m01 "Jejak Pertama", m02 "Sang Pembuat", m03 "Jalur Uang", m04
 ```text
 src/index.ts
   imports (side-effect registration, decorator-driven):
+    applications/*.js
     commands/*.js
     websites/*/index.js
     main/m01-quest.js .. m04-quest.js

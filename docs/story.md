@@ -60,7 +60,7 @@ conspiracy unraveling gradually rather than four disconnected jobs.
 | Player | **GHOSTWIRE** | Independent hacktivist/vigilante |
 | Victim | GHOSTWIRE's younger sibling | Died in the hospital ransomware incident that starts the story |
 | Syndicate | **BLACKLEDGER** | Ransomware-as-a-service chain |
-| M1 target | **A7xDEFACE9** | Initial access broker — hex/leet-styled codename family, `A7x` prefix |
+| M1 target | **X7xS3NTRY9** | Initial access broker — hex/leet-styled codename, `X7x` prefix (renamed from `A7xDEFACE9` on 2026-09-22) |
 | M2 target | **TR4C3#404** | Ransomware toolkit developer / affiliate-panel admin |
 | M3 target | **Skynet Import-Export Co.** | Shell company laundering ransom payments — deliberate cross-mod easter egg, echoing "Skynet Logistics" from entity-resolution-mods' Q04 (separate stories, same recurring fictional corporate name) |
 | M3/M4 entity | **SKN Capital Nominees** | Parent holding entity behind the shell company |
@@ -106,14 +106,22 @@ purpose. What changed:
   page and its domain reveal was moved into the IRC chat (see step 7);
   and the mission now starts from a Hackhub feed post instead of
   auto-starting.
+- **2026-09-22 (broker rename / listing randomization):** the broker
+  alias was renamed **X7xS3NTRY9** and moved off blackwire onto its own
+  infrastructure (`x7xsentry9.tech`, found via `lynx <alias>`); the real
+  listing became one of 18 per-save randomized SOLD listings across three
+  marketplaces. Full detail in `docs/changelog.md` (2026-09-22) and
+  `docs/bugs.md` entries 20 and 21.
 
 The pre-redesign implementation is kept for reference at
 `src/content/m01.original.ts` / `src/main/m01-quest.original.ts`.
 
-**Target:** A7xDEFACE9 (storefront domain `blackwire-network.mkt`), the
-initial access broker who sold the hospital's network access. Their
-vendor handle is printed directly on the real listing page (`OPN-102` /
-`MED-SEA-0417`).
+**Target:** X7xS3NTRY9, the initial access broker who sold the hospital's
+network access. They sell through three marketplaces
+(`blackwire-network.mkt`, `frostgate-exchange.mkt`, `obsidian-access.mkt`)
+and run their own infrastructure on `x7xsentry9.tech`. Their vendor
+handle is printed on the one real listing page, hidden among 18
+per-save randomized SOLD listings (see the 2026-09-22 note above).
 
 **Entry point:** GHOSTWIRE's own Hackhub feed post is how the player
 discovers and claims this mission (`AutoStart` is off). Once claimed, a
@@ -165,7 +173,7 @@ get their own objective checkpoint anymore.
    (Northstar Port Authority 2020, Rheinland Energie AG 2023, this
    hospital case).
 9. **Report** — GoMail to the Custodian with 6 fields: `Listing`
-   (`MED-SEA-0417`), `Broker` (`A7xDEFACE9`), `Buyer` (`TR4C3#404`),
+   (the per-save winning listing code), `Broker` (`X7xS3NTRY9`), `Buyer` (`TR4C3#404`),
    `Case` (`CASE-A7X-0417`), `Project` (`Q3-2026-SEA`), `Vault`
    (`x7k2m9vdlq4wnyt3.dark`).
 
@@ -399,7 +407,7 @@ to code:
   7-permission set — `Network.createWifiNetwork`/`connectWifi` are no
   exception, there is no separate Wi-Fi-specific permission scope in the
   SDK. No manifest change needed.
-- [x] Websites needed: A7xDEFACE9's storefront/panel (M1),
+- [x] Websites needed: M1's marketplaces, ClearEscrow and LedgerVault,
   TR4C3#404's dev-notes site + decoy `/admin/` (M2), Skynet
   Import-Export's public site (M3 — the internal finance portal is
   reached by pivot + `sqlmap`/`explorer`, not a browsable `Website`), The
