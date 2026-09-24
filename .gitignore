@@ -8,3 +8,4 @@ build-install.ps1
 .claude
 .reverse/
 docs/basegame-reference/
+.vscode
