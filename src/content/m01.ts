@@ -334,6 +334,16 @@ export const buildM01ReportBody = (listingCode: string): string =>
         vaultUrl: M01_LEDGERVAULT_DOMAIN,
     });
 
+export const M01_LOG_DEFAULT = (): readonly string[] => [
+    Localization.t(M01_I18N_KEY.LOG_DEFAULT_1),
+    Localization.t(M01_I18N_KEY.LOG_DEFAULT_2),
+];
+export const M01_LOG_AFTERMATH = (): readonly string[] => [
+    Localization.t(M01_I18N_KEY.LOG_AFTERMATH_1),
+    Localization.t(M01_I18N_KEY.LOG_AFTERMATH_2),
+    Localization.t(M01_I18N_KEY.LOG_AFTERMATH_3),
+];
+
 export const M01_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M01_TIPSTER_EMAIL = ANONYMOUS_TIPSTER.email;
 

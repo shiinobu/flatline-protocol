@@ -8,7 +8,8 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { setBacktraceMission } from "../applications/backtrace-state.js";
+import { appendBacktraceLogs, setBacktraceMission, traceBacktraceFacts } from "../applications/backtrace-state.js";
+import { resetMissionNetworks } from "../helpers/network.js";
 import {
     M03_ACCOMPLICE_CODENAME,
     M03_ACCOMPLICE_IP,
@@ -21,7 +22,9 @@ import {
     M03_FINANCE_PASSWORD,
     M03_FINANCE_USERNAME,
     M03_LEAK_PATTERN,
+    M03_LEDGER_AMOUNT,
     M03_LEDGER_TABLE,
+    M03_LOG_ENTRIES,
     M03_MX_HOST,
     M03_OBJECTIVES,
     M03_OBJECTIVE_IDS,
@@ -47,7 +50,7 @@ import {
     M03_TIP_SUBJECT,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
-import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M03QuestData {
     readonly leadReviewed: boolean;
@@ -118,7 +121,7 @@ const registerM03Database = (): string => {
             id: { value: 1, type: "number" },
             beneficiary: { value: M02_SHELL_COMPANY_NAME, type: "string" },
             parentEntity: { value: M03_PARENT_ENTITY_NAME, type: "string" },
-            amount: { value: 42000, type: "number" },
+            amount: { value: M03_LEDGER_AMOUNT, type: "number" },
         },
     ]);
 
@@ -126,9 +129,7 @@ const registerM03Database = (): string => {
 };
 
 const registerM03FinanceVlan = (): void => {
-    if (isDev) {
-        Network.destroyNetwork(M03_PFSENSE_IP);
-    }
+    resetMissionNetworks([M03_PFSENSE_IP]);
 
     Network.createSubnetNetwork({
         ip: M03_PFSENSE_IP,
@@ -361,6 +362,8 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
             this.SetData("ledgerDumped", true);
             this.completeObjective(M03_OBJECTIVE_IDS.dumpFinanceLedger);
+            traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount"]);
+            appendBacktraceLogs("m3", M03_LOG_ENTRIES.default);
         });
 
         this.Events.on("Terminal.Explorer", (data) => {
@@ -369,6 +372,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
             this.SetData("shareExplored", true);
             this.completeObjective(M03_OBJECTIVE_IDS.bonusExploreShare);
+            traceBacktraceFacts("m3", ["caseId"]);
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -377,6 +381,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             if (data.to !== M03_DEAD_DROP_EMAIL) return;
 
             this.SetData("reportSent", true);
+            appendBacktraceLogs("m3", M03_LOG_ENTRIES.aftermath);
             this.completeObjective(M03_OBJECTIVE_IDS.reportFindings);
         });
     }

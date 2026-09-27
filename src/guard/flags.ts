@@ -6,15 +6,15 @@ export const isTester = false;
 
 export const DEV_FOCUS_QUEST = {
     m01: false,
-    m02: true,
-    m03: false,
+    m02: false,
+    m03: true,
     m04: false,
 } as const;
 
 export const TESTER_FOCUS_QUEST = {
     m01: false,
-    m02: true,
-    m03: false,
+    m02: false,
+    m03: true,
     m04: false,
 } as const;
 

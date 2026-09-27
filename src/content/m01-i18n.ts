@@ -13,6 +13,12 @@ export const M01_I18N_KEY = {
     MAIL_REPORT_TEMPLATE_CONTENT: "M01.MAIL.REPORT.TEMPLATE_CONTENT",
     MAIL_REPORT_BODY: "M01.MAIL.REPORT.BODY",
 
+    LOG_DEFAULT_1: "M01.LOG.DEFAULT.1",
+    LOG_DEFAULT_2: "M01.LOG.DEFAULT.2",
+    LOG_AFTERMATH_1: "M01.LOG.AFTERMATH.1",
+    LOG_AFTERMATH_2: "M01.LOG.AFTERMATH.2",
+    LOG_AFTERMATH_3: "M01.LOG.AFTERMATH.3",
+
     LEDGER_CONTENT: "M01.LEDGER.CONTENT",
     HACKHUB_POST_CONTENT: "M01.HACKHUB.POST_CONTENT",
 
@@ -93,6 +99,8 @@ Localization.registerAll({
             "",
             "Summary: initial access into a healthcare network was sold through this storefront, confirmed via the broker's own backend and cross-referenced against a separate ledger tied to the buyer's larger operation. This isn't an isolated listing -- the same buyer alias shows up across multiple past incidents on record.",
             "",
+            "Notice at the scene was signed BLACKLEDGER. Broker's just the front door.",
+            "",
             "Source: storefront listing, broker backend access, IRC confirmation, and the broker's LedgerVault archive.",
         ].join("\n"),
         [M01_I18N_KEY.MAIL_REPORT_BODY]: [
@@ -107,8 +115,16 @@ Localization.registerAll({
             "",
             "Summary: initial access into a healthcare network was sold through this storefront, confirmed via the broker's own backend and cross-referenced against a separate ledger tied to the buyer's larger operation. This isn't an isolated listing -- the same buyer alias shows up across multiple past incidents on record.",
             "",
+            "Notice at the scene was signed BLACKLEDGER. Broker's just the front door.",
+            "",
             "Source: storefront listing, broker backend access, IRC confirmation, and the broker's LedgerVault archive.",
         ].join("\n"),
+
+        [M01_I18N_KEY.LOG_DEFAULT_1]: "Found the listing. Found the alias.",
+        [M01_I18N_KEY.LOG_DEFAULT_2]: "This is where it started. Somewhere, a stranger sold this like inventory.",
+        [M01_I18N_KEY.LOG_AFTERMATH_1]: "That's the hallway. That's the door.",
+        [M01_I18N_KEY.LOG_AFTERMATH_2]: "BLACKLEDGER signed it like a receipt. Like this was routine.",
+        [M01_I18N_KEY.LOG_AFTERMATH_3]: "It probably was.",
 
         [M01_I18N_KEY.LEDGER_CONTENT]: [
             "TRANSACTION LOG — VERIFIED ACCESS SALES",
@@ -217,6 +233,8 @@ Localization.registerAll({
             "",
             "摘要：一份医疗网络的初始访问权限通过这个商城售出，已通过中间人自己的后端确认，并与另一份记录了买家更大规模行动的账本交叉核实。这不是一起孤立的挂牌交易——同一个买家别名在多起以往记录的事件中反复出现。",
             "",
+            "现场留下的通知署名为BLACKLEDGER。中间人只是前门而已。",
+            "",
             "来源：商城挂牌信息、中间人后端访问记录、IRC确认对话，以及中间人的LedgerVault档案库。",
         ].join("\n"),
         [M01_I18N_KEY.MAIL_REPORT_BODY]: [
@@ -231,8 +249,16 @@ Localization.registerAll({
             "",
             "摘要：一份医疗网络的初始访问权限通过这个商城售出，已通过中间人自己的后端确认，并与另一份记录了买家更大规模行动的账本交叉核实。这不是一起孤立的挂牌交易——同一个买家别名在多起以往记录的事件中反复出现。",
             "",
+            "现场留下的通知署名为BLACKLEDGER。中间人只是前门而已。",
+            "",
             "来源：商城挂牌信息、中间人后端访问记录、IRC确认对话，以及中间人的LedgerVault档案库。",
         ].join("\n"),
+
+        [M01_I18N_KEY.LOG_DEFAULT_1]: "找到挂牌了。找到别名了。",
+        [M01_I18N_KEY.LOG_DEFAULT_2]: "一切从这里开始。某个陌生人把这个当作库存卖掉。",
+        [M01_I18N_KEY.LOG_AFTERMATH_1]: "那就是那条走廊。那就是那扇门。",
+        [M01_I18N_KEY.LOG_AFTERMATH_2]: "BLACKLEDGER的签名就像开收据一样，仿佛这只是例行公事。",
+        [M01_I18N_KEY.LOG_AFTERMATH_3]: "可能真的是这样。",
 
         [M01_I18N_KEY.LEDGER_CONTENT]: [
             "交易记录——已核实访问权限销售",

@@ -21,6 +21,58 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 
 ---
 
+## 2026-09-28
+
+- **[bug] M1-M4 network state silently survived `mods.reset` and rebuilds
+  forever.** `Network.createSubnetNetwork()` is "create, not replace" per
+  the SDK's own docs — an address that already holds a network is left
+  alone, so a firewall rule removed / port opened once (M1 SSH, M2 RDP,
+  M3 pfSense, M4 VPN) stayed open across every future reset or rebuild,
+  letting a player skip the firewall-breach step entirely. Fixed with a
+  shared `resetMissionNetworks(ips)` helper (`src/helpers/network.ts`)
+  called per-mission with only that mission's own router IP(s) — not one
+  global "destroy everything" call, which would have destroyed M01's
+  permanent LedgerVault domain. Full root-cause writeup and the
+  `if (isDev)`-gated dead code this replaced: `docs/scratch.md`. Dev
+  focus (`flags.ts`) moved from `m02` to `m03` to start M3's first-ever
+  live-test. Not yet live-tested.
+- **[mechanic] BLACKLEDGER (the story's RaaS syndicate) is now a real,
+  findable presence, not just a name in one M1 notice.** New static
+  `Website` at `blkledger.dark` (`src/websites/m02/blkledger/`) lists 3
+  "claims" (Northstar Port Authority 2020, Rheinland Energie AG 2023,
+  PacificCare Health 2026), discoverable via a new line in M2's
+  `deploy.log`. M1's LedgerVault `Q1`/`Q2` evidence folders — previously
+  unnamed and both incorrectly dated 2026 — now correctly show Northstar/
+  Rheinland with real 2020/2023 dates, matching the site. Explicit
+  "chain of roles" lines naming BLACKLEDGER added to all three mission
+  reports (M1/M2/M3, template + freehand forms kept in sync); M3's
+  ledger note now references `CASE-A7X-0417` and a date, tying M3 back to
+  M1. `A7xCodeFace` (M2's toolkit-dev persona) renamed to `TR4C3404` to
+  match M1's established buyer alias. Full gap analysis and connection
+  tables: `docs/scratch.md`.
+- **[mechanic] BACKTRACE personal-log entries added for M1 and M3;
+  M3 gained backtrace facts for the first time.** M1 had zero personal-log
+  entries before this; new localized (EN/ZH) reflections now fire on
+  finding the listing and on visiting LedgerVault. M3 had zero backtrace
+  presence at all (no facts, no logs); it now traces `shellCompany`/
+  `parentEntity`/`amount`/`caseId` and logs two reflections, on the ledger
+  dump and on report-sent — all wired through event handlers that already
+  existed for other objectives, no new SDK subscriptions. M2's existing
+  aftermath log line now names BLACKLEDGER explicitly. `backtrace.html`
+  gained an `m3` entry in `FACT_LABELS` (previously only m1/m2, so M3's
+  traced facts had nowhere to render) and now keeps showing traced facts/
+  personal-log entries after a mission completes, not just while it's in
+  progress (previously they vanished the instant `complete` was reached,
+  for any mission without a bespoke "report ready" view — still true for
+  M4). A full bespoke "report ready" screen for M3 (matching M1/M2's) is
+  still not built; this only stops the already-traced data from being
+  thrown away.
+- **[docs] Reviewed.** Independent code-reviewer pass across this session's
+  full diff (21 files): APPROVE, 0 CRITICAL/HIGH, 3 MEDIUM (LedgerVault
+  search `data-name` still pointed at the old year, an aftermath-log write
+  ordered after the objective that could complete the mission first, and
+  the `backtrace.html` gap above) — all three fixed same-day.
+
 ## 2026-09-18
 
 - **[milestone] Project scaffolded.** `flatline-protocol-mods` created as a

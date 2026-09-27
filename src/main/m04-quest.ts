@@ -9,6 +9,7 @@ import {
 
 import { setBacktraceMission } from "../applications/backtrace-state.js";
 import { ATTRCHECK_REVEALED_EVENT } from "../commands/attrcheck.js";
+import { resetMissionNetworks } from "../helpers/network.js";
 import {
     M04_ARCHITECT_NMAP_RESULT,
     M04_ARCHITECT_REAL_NAME,
@@ -59,7 +60,7 @@ import {
     M04_TRAP_WARNING_FROM,
     M04_TRAP_WARNING_SUBJECT,
 } from "../content/m04.js";
-import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M04QuestData {
     readonly leadReviewed: boolean;
@@ -115,9 +116,7 @@ const registerM04ShellFixtures = (): void => {
 };
 
 const registerM04Network = (): void => {
-    if (isDev) {
-        Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
-    }
+    resetMissionNetworks([M04_ARCHITECT_VPN_IP]);
 
     Network.createSubnetNetwork({
         ip: M04_ARCHITECT_VPN_IP,

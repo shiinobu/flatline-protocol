@@ -1106,3 +1106,189 @@ diimplementasi ke `src/content/m02.ts` + `src/main/m02-quest.ts`,
   exploit dengan versi baru `FreeRDP 7.1.9`, Closer-Rig penuh dengan
   versi baru `FreeRDP 2.7.3`, dan report/mail ke dead drop — semuanya
   jalan tanpa masalah.
+
+---
+
+**M1-M4 network reset bug — root cause + fix (2026-09-27).** Live-test
+report: "PORT selalu OPEN setelah rebuild" + "mods.reset -> tetap bisa
+akses RDP tanpa setting Firewall" (M2). Root cause dikonfirmasi langsung
+dari `.reverse/app.asar` (bukan cache lama) dan primary vendor docs
+(`node_modules/@hotbunny/hackhub-content-sdk/index.d.ts:2656-2660`):
+`Network.createSubnetNetwork()` adalah "create, not replace" — reducer
+`AddSubnet` (`t.find(n=>n.ip===e.payload.ip)||t.push(e.payload)`) silent
+no-op kalau IP itu sudah pernah terdaftar, jadi port/firewall rule yang
+sudah dimutasi (`Network.openPort`/`removeFirewallRule`) survive
+selamanya, termasuk lintas `mods.reset` (scope reset-nya cuma "quests,
+mails, messages, data, apps" — network gak disebut, gak ikut direset).
+
+`registerM02WorkstationNetwork()` (`m02-quest.ts:383`) punya baris
+`Network.destroyNetwork(M02_WORKSTATION_ROUTER_IP)` yang di-comment —
+dibandingkan `m02-quest.original.ts:221` yang aktif (destroy-then-recreate,
+proven pattern pre-rewrite). Pola sama ditemukan commented/dead di M01 (5
+router IP, dibungkus comment `if(isDev)`) dan `if(isDev)`-gated (jadi
+dormant begitu `isDev` direvert ke baseline rilis) di M03/M04.
+
+**Fix diterapkan**: helper baru `src/helpers/network.ts`
+(`resetMissionNetworks(ips)` — loop `Network.destroyNetwork` per IP,
+unawaited — `OnObjectivesStart()` typed strict `void` di SDK, gak bisa
+di-await, fire-and-forget ini matching pola existing project termasuk
+`.original.ts`), dipanggil di awal tiap fungsi register-network milik
+mission sendiri. **Ditolak**: satu fungsi global "destroy semua M1-M4
+sekaligus" (usul awal user) — bahaya konkret: bakal ikut menghancurkan
+domain LedgerVault M01 yang permanen ([[project-m01-ledgervault-persistent-domain]],
+`OnObjectivesStart` M01 gak fire ulang kalau quest udah `complete`, jadi
+gak ada yang registrasi ulang) dan network mission lain yang gak sedang
+ditest. Solusi disepakati: shared helper, tapi dipanggil per-mission
+dengan IP milik mission itu sendiri saja.
+
+- M01 `registerM01Network()`: 5 IP (Router/Firewall/Blackwire/Frostgate/Obsidian)
+- M02 `registerM02WorkstationNetwork()`: 1 IP (Workstation Router)
+- M03 `registerM03FinanceVlan()`: 1 IP (PFSense) — `if(isDev)` gate dihapus, sekarang unconditional
+- M04 `registerM04Network()`: 1 IP (Architect VPN) — `if(isDev)` gate dihapus juga
+
+`isDev` import dibuang dari M01/M03/M04 (sudah genuinely unused setelah
+gate-nya hilang). `tsc --noEmit` bersih. Code-reviewer independent pass:
+APPROVE, 0 temuan (verifikasi call-site correctness, isDev removal
+safety, style, plus cek tambahan bahwa reload normal — bukan reset —
+tetap aman karena logic re-apply `firewallBreached` sudah ada duluan dan
+tetap jalan setelah network diregistrasi ulang; M03/M04 malah gak punya
+mutasi Network apapun di luar fungsi register-nya sendiri).
+
+Known accepted tradeoff (bukan oversight): fire-and-forget punya race
+kecil kalau `destroyNetwork`'s Worker-based cleanup belum resolve saat
+`createSubnetNetwork` langsung nyusul — sama class of issue dengan race
+`mods.reset` yang sudah terdokumentasi di [[feedback-mods-reset-races-fresh-networks]],
+mitigasinya sama (retry live-test). SDK docs sendiri rekomendasi
+`await`, tapi `OnObjectivesStart()` gak bisa await (lifecycle
+method-nya strict `void`, beda dari `OnStart`/`OnComplete` yang
+`void | Promise<void>`).
+
+**Status: EKSEKUSI + shipped, belum live-tested** (sesi lanjut ke M3
+sebelum sempat verify). `flags.ts` `DEV_FOCUS_QUEST`/`TESTER_FOCUS_QUEST`
+dipindah dari `m02` ke `m03` untuk lanjut testing M3 pertama kali (M3
+code-complete sejak redesign 2026-09-20, belum pernah live-tested sama
+sekali).
+
+---
+
+**M1→M2→M3 document inventory & story connections (2026-09-27).** User
+minta fokus penuh diskusi M1→M2→M3 (M4 sengaja di luar scope sesi ini),
+wajib presisi/real/konsisten — semua klaim di bawah diverifikasi
+langsung ke source (bukan cuma `story.md`), pakai 3 sub-agent paralel
+(1 per mission) buat inventaris dokumen mentah, lalu disintesis manual.
+
+**Tree dokumen per device (ringkas — isi lengkap ada di source, sitasi
+`file:line` di bawah tiap device):**
+
+*M1 (`src/content/m01.ts`, `src/main/m01-quest.ts`):*
+- `M01_TARGET_IP` — `/home/` (ops_notes.txt, todo.txt, readme.txt) +
+  `/logs/` (sales_ledger.log template, ops-relay.log terenkripsi base64,
+  auth/cron/system.log) — `m01.ts:176-315`
+- `M01_LEGACY_IP`, `M01_BLACKWIRE_GATEWAY_IP`, `M01_FROSTGATE_GATEWAY_IP`,
+  `M01_FROSTGATE_API_IP`, `M01_OBSIDIAN_GATEWAY_IP`, `M01_OBSIDIAN_API_IP`
+  — masing-masing 1 file flavor readme/decommissioned — `m01.ts:24-80`,
+  teks di `m01-i18n.ts:143-154`
+- LedgerVault (`x7k2m9vdlq4wnyt3.dark`) — file-browser 3 folder proyek,
+  isi folder `Q3-2026-SEA` (8 item: escrow receipt, 3 foto lokasi, notice
+  BLACKLEDGER, evidence note, network_map.txt, case_id.txt, found_note.txt,
+  associate_infra.txt) — `websites/m01/ledgervault/home.html:564-594`
+- Blackwire/Frostgate/Obsidian marketplace — listing pemenang **random
+  per-playthrough** (`m01-listing-templates.ts`, `m01-listing-pool.ts:80-115`)
+  — bukan fakta stabil lintas-mission; 4 listing decoy tiap situs statis/tetap.
+
+*M2 (`src/content/m02.ts`, `src/main/m02-quest.ts`):*
+- "Rust-Bucket" NAS — `affiliate_endpoints.txt` (lead ke Closer-Rig,
+  `62.171.45.90`) — `m02.ts:184-192`
+- "Stale-Fork" workstation — `wire_authorization.pdf` (nyebut Skynet
+  Import-Export Co.), `errands.txt`, `unsent.txt` — `m02.ts:155-182`
+- "Closer-Rig" (`Qu0taCl0ser`) — `quota_report.txt` (nyebut `FIN-NA-0091`),
+  `routing_notes.txt` (nyebut "Architect's cut" + `M04_ARCHITECT_VPN_IP`
+  literal) — `m02.ts:194-221`
+- Dev box (`f3a91b7c04d8.tr4c3404.dev`) — `deploy.log` (nyebut
+  `M01_CASE_ID`), `sync-home.txt` — `m02.ts:120-153`; DB `affiliates` (3
+  baris: `M01_CASE_ID`/$2.85M/2026-08-14, LOG-EU-2209/$1.4M/2026-05-02,
+  FIN-NA-0091/$4.1M/2026-02-19) + `admins` — `m02-quest.ts:152-192`
+- Decoy subdomain 1/2 — `README.txt`/`notes.txt`, dead end murni —
+  `m02.ts:15-22`
+- BACKTRACE personal log (`M02_LOG_ENTRIES`) — `m02.ts:132-143`
+
+*M3 (`src/content/m03.ts`, `src/main/m03-quest.ts`):*
+- "Faded-Ledger" (`d.reyes`) — `q1_reconciliation.xlsx` (satu-satunya
+  file filesystem di seluruh M3) — `m03.ts:38-46`
+- "Coin-Drift" — DB `wire_transfers`, 1 baris: beneficiary
+  `M02_SHELL_COMPANY_NAME` (import langsung), parentEntity `SKN Capital
+  Nominees`, amount $42,000 — `m03-quest.ts:117-124`
+- OSINT chain: `lynx skynet-importexport.biz` → staff blurb `@d.reyes` →
+  `lynx @d.reyes` (leak pattern "company+year+!") → `hydra` pfSense
+  `admin`/`SknTrade2024!` — `m03.ts:21-27`
+- **M3 nol tanggal di manapun** (satu-satunya angka: $42,000).
+
+**Tabel koneksi — DATA (fakta literal yang match):**
+
+| # | Fakta | M1 | M2 | M3 |
+|---|---|---|---|---|
+| 1 | `CASE-A7X-0417` | Establish (`case_id.txt`, LedgerVault) | Import langsung `M01_CASE_ID` (`m02.ts:4`) → DB, BACKTRACE log, laporan | **Tidak ada** |
+| 2 | Alias buyer `TR4C3#404` | Establish (`M01_BUYER_ALIAS`, `m01.ts:176`) | **Tidak di-import** (beda dari `m02.original.ts:4` yang dulu `import M01_BUYER_ALIAS` — link hard-import ini hilang saat rewrite); M2 cuma pakai turunan domain-safe `tr4c3404`/`A7xCodeFace`. Nilai `'TR4C3#404'` persis cuma survive di `backtrace.html:585` (preview data) | — |
+| 3 | `Skynet Import-Export Co.` | — | Establish (`M02_SHELL_COMPANY_NAME`) | Import konstanta sama persis (`m03.ts:4`) |
+| 4 | `tr4c3404.dev` | Disebut teks doang (`associate_infra.txt`) | Dibangun jadi domain/network hidup | — |
+| 5 | Tanggal **14 Agu 2026** | Tanggal escrow receipt DAN notice BLACKLEDGER (LedgerVault) — **match presisi**, bukan soal amount seperti diklaim `story.md` | `settledAt` ransom + semua timestamp `deploy.log` | — |
+| 6 | Istilah "escrow" | LedgerVault, sales_ledger.log | wire_authorization.pdf, quota_report.txt | — |
+| 7 | Istilah "consulting fee(s)" | — | wire_authorization.pdf | Spreadsheet + website (2x) |
+| 8 | `SKN Capital Nominees` | — | — | Establish, cocok `story.md:66` |
+
+**Tabel koneksi — NON-DATA (struktural/tematik):**
+
+| # | Koneksi | Bukti |
+|---|---|---|
+| 1 | Gate mekanis berantai | `questGate("m02",["flatline.m01"])` → `questGate("m03",["flatline.m02"])` |
+| 2 | Progresi eufemisme 2 lapis | Escrow (lapis pencairan, M1→M2) lalu consulting-fee (lapis pembukuan, M2→M3) |
+| 3 | "BLACKLEDGER" nama operasi payung | Establish 2x di M1, digemakan di domain IRC `relay.blkledger.dark` — **kata ini sendiri gak pernah muncul lagi di M2/M3** |
+| 4 | Thread "second signer" M2 belum ditutup M3 | Laporan akhir M2: *"a routing note ties payouts to a second signer above the shell company -- source and identity unconfirmed."* Laporan akhir M3 gak punya baris "Unresolved" setara, padahal nama "**Nominees**" + catatan D. Reyes ("hope that's true") sama-sama isyaratkan masih ada pihak di atas |
+| 5 | Thread itu mungkin justru ke M4, bukan M3 | `routing_notes.txt` M2: *"Architect's cut... confirm via the usual channel: <M04_ARCHITECT_VPN_IP>"* — di luar scope sesi ini, relevan buat gap #1 |
+| 6 | Konsistensi internal M2 | `FIN-NA-0091` di DB affiliate DAN quota_report.txt Closer-Rig — dua sisi operasi sama |
+
+**Usulan gap (urut prioritas, BELUM dieksekusi — masih diskusi):**
+
+1. Thread "second signer" M2 menggantung — M3 gak eksplisit lanjut/tutup.
+   Perlu keputusan: memang dirancang baru selesai di M4? Kalau ya, usul
+   tambah 1 baris "Unresolved" eksplisit di laporan M3.
+2. Identitas `TR4C3#404` = `A7xCodeFace` gak pernah dikonfirmasi eksplisit
+   di teks manapun — cuma implisit lewat urutan mission + kemiripan nama.
+3. "BLACKLEDGER" (nama operasi dari M1) gak pernah di-echo balik di M2/M3
+   meski di-setup 2x di M1.
+4. Angka ledger M3 ($42,000) vs ransom M2 ($2,850,000) gak dijelaskan
+   hubungannya, dan gak jelas ledger M3 itu mewakili kasus M2 yang mana
+   (M2 punya 3 korban lewat shell company yang sama).
+5. M1 nol koneksi langsung ke M3 (semua lewat M2 sebagai perantara) — core
+   emosional M1 (rumah sakit, korban) gak pernah di-callback di M3 yang
+   murni forensik finansial.
+6. (minor) M3 nol tanggal sama sekali, beda dari M1/M2 yang selalu
+   berpatokan ke tanggal 2026 spesifik — belum masalah sekarang, tapi
+   thread gap #1 kalau nanti diresolusi butuh anchor waktu.
+
+**Catatan proses**: dokumen mentah (isi verbatim tiap file) sengaja gak
+diduplikasi penuh di sini karena sudah recoverable dari source
+(`file:line` di atas); yang dipertahankan di sini adalah tree +
+sintesis-nya, karena itu yang butuh kerja ulang kalau hilang.
+
+---
+
+**STATUS (2026-09-28) — semua 6 gap di atas SELESAI dieksekusi + reviewed +
+di-commit.** Ringkasan shipped ada di `docs/changelog.md` tanggal ini
+(entry BLACKLEDGER/LedgerVault/rename/gap4-5, entry BACKTRACE M1/M3, entry
+review). Detail yang gak masuk changelog (biar gak duplikat):
+
+- Review independent (code-reviewer): APPROVE, 0 CRITICAL/HIGH, 3 MEDIUM
+  — 2 langsung difix (search `data-name` LedgerVault, urutan
+  `appendBacktraceLogs` sebelum `completeObjective` di M3 aftermath), 1
+  difix sekalian sesi ini juga (`backtrace.html` `FACT_LABELS.m3` +
+  notes/logs gak lagi hilang pas mission complete).
+- **Belum diputuskan/masih terbuka**: M3 (dan M4) belum punya bespoke
+  "report ready" screen kayak M1/M2 — sekarang cuma jatuh ke card
+  generic "REPORT PENDING" + facts/logs di bawahnya, bukan tampilan
+  didesain khusus. Kalau mau dibangun, itu kerjaan UI terpisah yang
+  nyentuh M3 dan M4 sekaligus.
+- Semua kerjaan di atas **belum live-tested** — network-reset fix, situs
+  BLACKLEDGER, LedgerVault fix, Personal Log M1/M3 baru, facts M3 baru.
+  M3 jadi fokus live-test pertama kalinya sesi berikutnya
+  (`flags.ts` udah diarahkan kesitu).

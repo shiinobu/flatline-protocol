@@ -47,8 +47,8 @@ Localization.registerAll({
         [M01_LV_KEY.BACK_TO_PROJECTS]: "← BACK TO PROJECTS",
         [M01_LV_KEY.FOOTER]: "LedgerVault · Internal document storage",
 
-        [M01_LV_KEY.NAME_Q1_EVIDENCE]: "Evidence EV-0147 — USB / access badge",
-        [M01_LV_KEY.NAME_Q2_EVIDENCE]: "Evidence — USB / staff access badge",
+        [M01_LV_KEY.NAME_Q1_EVIDENCE]: "Northstar Port Authority — access badge, recovered",
+        [M01_LV_KEY.NAME_Q2_EVIDENCE]: "Rheinland Energie AG — staff badge, recovered",
         [M01_LV_KEY.NAME_Q3_RECEIPT]: "Escrow receipt — X7xS3NTRY9 → TR4C3#404",
         [M01_LV_KEY.NAME_Q3_EXTERIOR]: "PacificCare Health — main entrance",
         [M01_LV_KEY.NAME_Q3_CORRIDOR]: "Ward corridor — systems down",
@@ -74,8 +74,8 @@ Localization.registerAll({
         [M01_LV_KEY.BACK_TO_PROJECTS]: "← 返回项目列表",
         [M01_LV_KEY.FOOTER]: "LedgerVault · 内部文档存储",
 
-        [M01_LV_KEY.NAME_Q1_EVIDENCE]: "证据 EV-0147 — USB / 门禁卡",
-        [M01_LV_KEY.NAME_Q2_EVIDENCE]: "证据 — USB / 员工门禁卡",
+        [M01_LV_KEY.NAME_Q1_EVIDENCE]: "北极星港务局 — 门禁卡，已回收",
+        [M01_LV_KEY.NAME_Q2_EVIDENCE]: "莱茵兰能源公司 — 员工门禁卡，已回收",
         [M01_LV_KEY.NAME_Q3_RECEIPT]: "托管收据 — X7xS3NTRY9 → TR4C3#404",
         [M01_LV_KEY.NAME_Q3_EXTERIOR]: "PacificCare医院 — 正门",
         [M01_LV_KEY.NAME_Q3_CORRIDOR]: "病房走廊 — 系统瘫痪",

@@ -1,6 +1,7 @@
 import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
 import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
+import { BLACKLEDGER_DOMAIN } from "./blackledger.js";
 import { M01_CASE_ID } from "./m01.js";
 
 export const M02_ROOT_DOMAIN = "tr4c3404.dev";
@@ -127,6 +128,7 @@ export const M02_DEPLOY_LOG_CONTENT = [
     `2026-08-14 02:41 UTC — client ${M01_CASE_ID} confirmed lock, ransom note delivered.`,
     "2026-08-14 09:02 UTC — client escrow released, payout queued.",
     "2026-08-14 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
+    `2026-08-14 09:20 UTC — sync confirmed with ${BLACKLEDGER_DOMAIN}, batch closed.`,
 ].join("\n");
 
 export const M02_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]> = {
@@ -138,7 +140,7 @@ export const M02_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]>
     aftermath: [
         "Got everything. Didn't expect it to feel like this.",
         "He builds it. Someone else profits off it. Somewhere there's someone who owns them both.",
-        "One name was never going to be enough.",
+        "BLACKLEDGER. One name was never going to be enough.",
     ],
 };
 
@@ -243,7 +245,7 @@ export const M02_REPORT_TEMPLATE_CONTENT = [
     "Shell company: {{shellCompany}}",
     `Case match: ${M01_CASE_ID} -- ransom $${M02_CASE_MATCH_RANSOM_AMOUNT.toLocaleString("en-US")}, settled ${M02_CASE_MATCH_SETTLED_AT}`,
     `Pattern: not isolated -- Q3 closes: 4, other confirmed victims (${M02_VICTIM_CASE_ID_NA}, ${M02_VICTIM_CASE_ID_EU})`,
-    "Unresolved: a routing note ties payouts to a second signer above the shell company -- source and identity unconfirmed.",
+    "Unresolved: TR4C3404 isn't BLACKLEDGER -- just the supply line. A routing note ties payouts to a second signer above the shell company; source and identity unconfirmed.",
     "",
     "Confirmed via affiliate panel dump, deployment logs and workstation extraction.",
     `Attached: ${M02_FINANCIAL_DOC_FILE_NAME}.${M02_FINANCIAL_DOC_FILE_EXTENSION}`,
@@ -253,7 +255,7 @@ export const M02_REPORT_BODY = [
     `Shell company: ${M02_SHELL_COMPANY_NAME}`,
     `Case match: ${M01_CASE_ID} -- ransom $${M02_CASE_MATCH_RANSOM_AMOUNT.toLocaleString("en-US")}, settled ${M02_CASE_MATCH_SETTLED_AT}`,
     `Pattern: not isolated -- Q3 closes: 4, other confirmed victims (${M02_VICTIM_CASE_ID_NA}, ${M02_VICTIM_CASE_ID_EU})`,
-    "Unresolved: a routing note ties payouts to a second signer above the shell company -- source and identity unconfirmed.",
+    "Unresolved: TR4C3404 isn't BLACKLEDGER -- just the supply line. A routing note ties payouts to a second signer above the shell company; source and identity unconfirmed.",
     "",
     "Confirmed via affiliate panel dump, deployment logs and workstation extraction.",
     `Attached: ${M02_FINANCIAL_DOC_FILE_NAME}.${M02_FINANCIAL_DOC_FILE_EXTENSION}`,

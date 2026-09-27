@@ -577,7 +577,8 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'THE ARCHITECT'};
   const FACT_LABELS = {
     m1:{broker:'Broker account',buyer:'Buyer alias',caseId:'Case reference',listing:'Listing code',project:'Project',vault:'Vault domain'},
-    m2:{buyer:'Buyer alias',developer:'Developer server',shellCompany:'Shell company',caseId:'Case reference',ransom:'Ransom paid',settled:'Settled on',victims:'Other victims'}
+    m2:{buyer:'Buyer alias',developer:'Developer server',shellCompany:'Shell company',caseId:'Case reference',ransom:'Ransom paid',settled:'Settled on',victims:'Other victims'},
+    m3:{shellCompany:'Shell company',parentEntity:'Parent entity',amount:'Amount traced',caseId:'Case reference'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const PREVIEW_STATE = {
@@ -768,8 +769,9 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 
   function stateCardMarkup(id, status){
     const card = STATE_CARDS[status === 'complete' ? 'pending' : status];
-    const notes = status === 'progress' ? traceNotesMarkup(id) : '';
-    const logs = status === 'progress' ? logsNotesMarkup(id) : '';
+    const showDetails = status === 'progress' || status === 'complete';
+    const notes = showDetails ? traceNotesMarkup(id) : '';
+    const logs = showDetails ? logsNotesMarkup(id) : '';
     return `<div class="locked-card"><div class="locked-glyph">${card.glyph}</div><div class="locked-title">${MISSION_TITLES[id]}</div><div class="locked-status">${card.status}</div><div class="locked-copy">${card.copy}</div>${notes}${logs}</div>`;
   }
 

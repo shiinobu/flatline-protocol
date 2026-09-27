@@ -10,7 +10,13 @@ import {
     WeeChat,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { getBacktraceStatus, setBacktraceMission, traceBacktraceFacts } from "../applications/backtrace-state.js";
+import {
+    appendBacktraceLogs,
+    getBacktraceStatus,
+    setBacktraceMission,
+    traceBacktraceFacts,
+} from "../applications/backtrace-state.js";
+import { resetMissionNetworks } from "../helpers/network.js";
 import {
     ensureM01ListingResolution,
     getM01ListingSlot,
@@ -96,6 +102,8 @@ import {
     M01_LEDGERVAULT_DOMAIN,
     M01_LEDGERVAULT_IP,
     M01_LEDGERVAULT_PROJECT,
+    M01_LOG_AFTERMATH,
+    M01_LOG_DEFAULT,
     M01_NMAP_RESULT,
     M01_OBJECTIVE_IDS,
     M01_OBSIDIAN_API_CONTENT,
@@ -155,7 +163,7 @@ import {
     buildM01TwotterContactPosts,
     buildM01TwotterTraderPosts,
 } from "../content/m01.js";
-import { applyDevGating, isDev, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 const M01_TARGET_SSH_TARGET = `${M01_TARGET_IP}:22`;
 
@@ -367,13 +375,13 @@ const registerM01BrokerLead = (): void => {
 const registerM01Network = (): void => {
     const listingCode = getM01WinningCode();
 
-    // if (isDev) {
-    //     Network.destroyNetwork(M01_ROUTER_IP);
-    //     Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
-    //     Network.destroyNetwork(M01_BLACKWIRE_ROUTER_IP);
-    //     Network.destroyNetwork(M01_FROSTGATE_ROUTER_IP);
-    //     Network.destroyNetwork(M01_OBSIDIAN_ROUTER_IP);
-    // }
+    resetMissionNetworks([
+        M01_ROUTER_IP,
+        M01_FIREWALL_ROUTER_IP,
+        M01_BLACKWIRE_ROUTER_IP,
+        M01_FROSTGATE_ROUTER_IP,
+        M01_OBSIDIAN_ROUTER_IP,
+    ]);
 
     Network.createSubnetNetwork({
         ip: M01_FIREWALL_ROUTER_IP,
@@ -869,6 +877,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             this.SetData("listingFound", true);
             registerM01BrokerLead();
             traceBacktraceFacts("m1", ["broker", "listing"]);
+            appendBacktraceLogs("m1", M01_LOG_DEFAULT());
         });
 
         this.Events.on("Python3.ExecFile", (data) => {
@@ -954,6 +963,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
             this.SetData("vaultVisited", true);
             traceBacktraceFacts("m1", ["vault"]);
+            appendBacktraceLogs("m1", M01_LOG_AFTERMATH());
         });
 
         this.Events.on("Mail.Sent", (data) => {

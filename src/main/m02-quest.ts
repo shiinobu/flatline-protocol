@@ -15,6 +15,7 @@ import {
     traceBacktraceFacts,
 } from "../applications/backtrace-state.js";
 import { OPEN_FILE_READ_EVENT } from "../commands/open.js";
+import { resetMissionNetworks } from "../helpers/network.js";
 import { M01_CASE_ID } from "../content/m01.js";
 import type { M02EmptySubdomain } from "../content/m02.js";
 import {
@@ -380,7 +381,7 @@ const registerM02CloserRigNetwork = (): void => {
 };
 
 const registerM02WorkstationNetwork = (): void => {
-    // Network.destroyNetwork(M02_WORKSTATION_ROUTER_IP);
+    resetMissionNetworks([M02_WORKSTATION_ROUTER_IP]);
 
     Network.createSubnetNetwork({
         ip: M02_WORKSTATION_ROUTER_IP,

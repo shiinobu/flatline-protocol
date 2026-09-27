@@ -14,6 +14,7 @@ import {
     M02_VICTIM_CASE_ID_EU,
     M02_VICTIM_CASE_ID_NA,
 } from "../content/m02.js";
+import { M03_LEDGER_AMOUNT, M03_PARENT_ENTITY_NAME } from "../content/m03.js";
 import type { BacktraceFacts, BacktraceMissionId } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
@@ -43,9 +44,17 @@ const buildM2Facts = (): BacktraceFacts => ({
     victims: `${M02_VICTIM_CASE_ID_NA}, ${M02_VICTIM_CASE_ID_EU}`,
 });
 
+const buildM3Facts = (): BacktraceFacts => ({
+    shellCompany: M02_SHELL_COMPANY_NAME,
+    parentEntity: M03_PARENT_ENTITY_NAME,
+    amount: `$${M03_LEDGER_AMOUNT.toLocaleString("en-US")}`,
+    caseId: M01_CASE_ID,
+});
+
 const FACT_BUILDERS: Readonly<Partial<Record<BacktraceMissionId, () => BacktraceFacts>>> = {
     m1: buildM1Facts,
     m2: buildM2Facts,
+    m3: buildM3Facts,
 };
 
 export const buildBacktraceFacts = (mission: BacktraceMissionId): BacktraceFacts =>

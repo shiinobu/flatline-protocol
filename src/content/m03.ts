@@ -2,6 +2,7 @@ import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-
 
 import { DEAD_DROP_CONTACT } from "./characters.js";
 import { M02_SHELL_COMPANY_NAME } from "./m02.js";
+import { M01_CASE_ID } from "./m01.js";
 
 export const M03_SKYNET_DOMAIN = "skynet-importexport.biz";
 export const M03_SKYNET_IP = "203.0.113.150";
@@ -30,6 +31,7 @@ export const M03_FINANCE_USERNAME = "finance_svc";
 export const M03_FINANCE_PASSWORD = "internal_only_2024";
 
 export const M03_LEDGER_TABLE = "wire_transfers";
+export const M03_LEDGER_AMOUNT = 42000;
 export const M03_PARENT_ENTITY_NAME = "SKN Capital Nominees";
 
 export const M03_SPREADSHEET_FILE_NAME = "q1_reconciliation";
@@ -43,6 +45,8 @@ export const M03_SPREADSHEET_CONTENT = [
     `Parent entity on file: ${M03_PARENT_ENTITY_NAME}`,
     "Note: batch payouts routed through 'consulting fees' line item again.",
     "Note: told this is normal for the holding company's structure. Hope that's true.",
+    `Note: batch ref lines up with the memo on ${M01_CASE_ID} -- healthcare sector, if intake notes are right.`,
+    "Note: dated same week as the wire authorization on file (Aug 2026).",
 ].join("\n");
 
 export const M03_TIP_SUBJECT = "shell company confirmed — dig into it";
@@ -62,13 +66,28 @@ export const M03_REPORT_TEMPLATE_CONTENT = [
     "Parent entity: {{parentEntity}}",
     "",
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
+    "Confirmed: BLACKLEDGER's money moves through {{parentEntity}}.",
+    "Unresolved: \"Nominees\" isn't an operating company -- means someone real still owns it, off every filing we've found.",
 ].join("\n");
 export const M03_REPORT_BODY = [
     `Shell company: ${M02_SHELL_COMPANY_NAME}`,
     `Parent entity: ${M03_PARENT_ENTITY_NAME}`,
     "",
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
+    `Confirmed: BLACKLEDGER's money moves through ${M03_PARENT_ENTITY_NAME}.`,
+    "Unresolved: \"Nominees\" isn't an operating company -- means someone real still owns it, off every filing we've found.",
 ].join("\n");
+
+export const M03_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]> = {
+    default: [
+        "There it is. Money doesn't disappear, it just changes names.",
+        `${M02_SHELL_COMPANY_NAME}. ${M03_PARENT_ENTITY_NAME}. Paper walls.`,
+    ],
+    aftermath: [
+        "Nominees. Not an owner, a name someone else hides behind.",
+        "Whoever that is, they're still out there. BLACKLEDGER doesn't end here.",
+    ],
+};
 
 export const M03_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 

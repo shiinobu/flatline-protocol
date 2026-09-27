@@ -6,6 +6,7 @@ import "./commands/open.js";
 import "./debug/scratch.js";
 import "./websites/m01/blackwire-network/index.js";
 import "./websites/m02/tr4c3404/index.js";
+import "./websites/m02/blkledger/index.js";
 import "./websites/m03/skynet-importexport/index.js";
 import "./websites/m04/architect-c2/index.js";
 import "./websites/m01/frostgate-exchange/index.js";
