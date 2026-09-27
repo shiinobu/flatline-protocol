@@ -2,6 +2,7 @@ import { Bootstrap, RegisterModPackage } from "@hotbunny/hackhub-content-sdk";
 
 import "./applications/backtrace.js";
 import "./commands/attrcheck.js";
+import "./commands/open.js";
 import "./debug/scratch.js";
 import "./websites/m01/blackwire-network/index.js";
 import "./websites/m02/tr4c3404/index.js";

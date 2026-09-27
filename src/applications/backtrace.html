@@ -97,6 +97,17 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .nav-icon-progress::before{content:"";position:absolute;left:3px;top:3px;width:10px;height:10px;border:1.5px solid #f0c419;border-top-color:transparent;border-radius:50%;box-sizing:border-box;animation:iconSpin 1.4s linear infinite}
 @keyframes iconSpin{to{transform:rotate(360deg)}}
 .is-hidden{display:none!important}
+.trace-notes{margin-top:22px;padding-top:16px;border-top:1px solid var(--line-soft);text-align:left}
+.trace-notes-head{margin-bottom:10px;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.7px;color:var(--muted);text-transform:uppercase}
+.trace-note{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid var(--line-soft);font:11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.trace-note span{color:var(--muted)}.trace-note strong{color:var(--text2);font-weight:500;text-align:right;word-break:break-all}
+.trace-note.log-note{display:block;color:#c7c9c9;font-style:italic;text-align:left}
+.log-entry{font-style:italic;color:#c7c9c9;padding-left:14px;border-left:2px solid var(--line-soft);margin:0 0 12px}
+.log-entry.is-new{animation:logEntryFade 10s ease forwards}
+@keyframes logEntryFade{
+  0%,80%{background:rgba(240,32,43,.14);border-left-color:var(--red);box-shadow:0 0 12px rgba(240,32,43,.12)}
+  100%{background:transparent;border-left-color:var(--line-soft);box-shadow:none}
+}
 .view[data-report="ready"]>.locked{display:none}
 .view[data-report="none"]>.report-scroll,.view[data-report="none"]>.report-link{display:none}
 .board-empty{position:absolute;inset:0;z-index:3;display:grid;place-items:center;pointer-events:none;text-align:center}
@@ -162,6 +173,14 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .findings{display:flex;flex-direction:column;gap:14px}.finding{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center}
 .finding-num{font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--red);letter-spacing:1px}.finding-text{font-size:14px;line-height:1.65;color:#d4d5d5}
 .code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#f0f1f1}
+[data-fact]{position:relative}
+[data-fact].has-fact{cursor:pointer}
+[data-fact].has-fact:hover{color:var(--red)}
+[data-fact].fact-copied{color:#3ddc6f}
+[data-fact].fact-copy-failed{color:var(--red)}
+[data-fact].fact-copied::after,[data-fact].fact-copy-failed::after{position:absolute;left:50%;bottom:100%;transform:translateX(-50%) translateY(-4px);padding:3px 6px;border:1px solid #2b3034;background:#111416;font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;pointer-events:none;z-index:40}
+[data-fact].fact-copied::after{content:"COPIED";color:#3ddc6f}
+[data-fact].fact-copy-failed::after{content:"COPY FAILED";color:var(--red)}
 .evidence{border:1px solid var(--line);background:rgba(12,13,14,.78);cursor:pointer;transition:border-color var(--ease),background var(--ease)}.evidence:hover{border-color:#4b5054;background:rgba(16,18,20,.92)}
 .evidence-visual{min-height:286px;position:relative;overflow:hidden;background:
   radial-gradient(circle at 70% 45%,rgba(240,32,43,.10),transparent 28%),
@@ -407,6 +426,9 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
           <button class="entity-card" data-entity="shell"><div class="entity-type">Shell Company</div><div class="entity-name" data-fact="m2.shellCompany">—</div><div class="entity-source">DISCOVERED // M2</div></button>
         </div>
       </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Personal Log</div></div>
+        <div data-personal-log="m2"></div>
+      </section>
     </div>
     <div>
       <section class="report-section"><div class="section-head"><div class="section-title">Evidence</div></div>
@@ -462,26 +484,26 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 
     <div class="board-canvas" id="boardCanvas">
       <svg class="board-svg" viewBox="0 0 1500 760" aria-hidden="true">
-        <line class="trace-line active" data-requires="m1" x1="405" y1="360" x2="645" y2="360"></line>
-        <line class="trace-line active" data-requires="m2" x1="865" y1="360" x2="1105" y2="360"></line>
-        <circle class="trace-dot" data-requires="m1" cx="645" cy="360" r="3"></circle>
-        <circle class="trace-dot" data-requires="m2" cx="865" cy="360" r="3"></circle>
-        <text class="trace-label" data-requires="m1" x="507" y="341">BUYER</text>
-        <text class="trace-label" data-requires="m2" x="950" y="341">SHELL COMPANY</text>
+        <line class="trace-line active" data-needs="m1.broker m1.buyer,m2.buyer" x1="405" y1="360" x2="645" y2="360"></line>
+        <line class="trace-line active" data-needs="m1.buyer,m2.buyer m2.shellCompany" x1="865" y1="360" x2="1105" y2="360"></line>
+        <circle class="trace-dot" data-needs="m1.broker m1.buyer,m2.buyer" cx="645" cy="360" r="3"></circle>
+        <circle class="trace-dot" data-needs="m1.buyer,m2.buyer m2.shellCompany" cx="865" cy="360" r="3"></circle>
+        <text class="trace-label" data-needs="m1.broker m1.buyer,m2.buyer" x="507" y="341">BUYER</text>
+        <text class="trace-label" data-needs="m1.buyer,m2.buyer m2.shellCompany" x="950" y="341">SHELL COMPANY</text>
       </svg>
 
-      <div class="board-annotation" data-requires="m1">
+      <div class="board-annotation" id="boardAnnotation">
         <div class="annotation-kicker">CURRENT TRACE</div>
         <div class="annotation-main" id="boardAnnotationMain">—</div>
       </div>
 
-      <button class="board-node" data-entity="broker" data-requires="m1" style="left:185px;top:306px">
+      <button class="board-node" data-entity="broker" data-needs="m1.broker" style="left:185px;top:306px">
         <div class="node-index">ENTITY 01</div><div class="node-type">BROKER</div><div class="node-id" data-fact="m1.broker">—</div><div class="node-foot">DISCOVERED // M1</div>
       </button>
-      <button class="board-node" data-entity="buyer" data-requires="m1" style="left:645px;top:306px">
+      <button class="board-node" data-entity="buyer" data-needs="m1.buyer,m2.buyer" style="left:645px;top:306px">
         <div class="node-index">ENTITY 02</div><div class="node-type">BUYER</div><div class="node-id" data-fact="m1.buyer,m2.buyer">—</div><div class="node-foot">DISCOVERED // M1</div>
       </button>
-      <button class="board-node" data-entity="shell" data-requires="m2" style="left:1105px;top:306px">
+      <button class="board-node" data-entity="shell" data-needs="m2.shellCompany" style="left:1105px;top:306px">
         <div class="node-index">ENTITY 03</div><div class="node-type">SHELL COMPANY</div><div class="node-id" data-fact="m2.shellCompany">—</div><div class="node-foot red">NEW // M2</div>
       </button>
     </div>
@@ -544,6 +566,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const boardConnections = document.getElementById('boardConnections');
   const boardTrace = document.getElementById('boardTrace');
   const boardAnnotationMain = document.getElementById('boardAnnotationMain');
+  const boardAnnotation = document.getElementById('boardAnnotation');
   const boardEmpty = document.getElementById('boardEmpty');
 
   const STORAGE_KEY = 'backtrace';
@@ -552,7 +575,10 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const MISSION_IDS = ['m1','m2','m3','m4'];
   const REPORT_MISSIONS = ['m1','m2'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'THE ARCHITECT'};
-  const MISSION_BOARD = {m1:{entities:2,connections:1},m2:{entities:1,connections:1}};
+  const FACT_LABELS = {
+    m1:{broker:'Broker account',buyer:'Buyer alias',caseId:'Case reference',listing:'Listing code',project:'Project',vault:'Vault domain'},
+    m2:{buyer:'Buyer alias',developer:'Developer server',shellCompany:'Shell company',caseId:'Case reference',ransom:'Ransom paid',settled:'Settled on',victims:'Other victims'}
+  };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const PREVIEW_STATE = {
     m1:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{broker:'X7xS3NTRY9',buyer:'TR4C3#404',caseId:'CASE-A7X-0417',listing:'MED-SEA-0417',project:'Q3-2026-SEA',vault:'x7k2m9vdlq4wnyt3.dark'}},
@@ -579,13 +605,19 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     return Object.fromEntries(Object.entries(raw).filter(([, value]) => typeof value === 'string' && value !== ''));
   }
 
+  function sanitizeLogs(raw){
+    if(!Array.isArray(raw)) return [];
+    return raw.filter(entry => typeof entry === 'string' && entry !== '');
+  }
+
   function normalizeState(raw){
     return Object.fromEntries(MISSION_IDS.map(id => {
       const entry = (raw && raw[id]) || {};
       return [id, {
         status: STATUSES.includes(entry.status) ? entry.status : 'locked',
         completedAt: Number.isFinite(entry.completedAt) ? entry.completedAt : null,
-        facts: sanitizeFacts(entry.facts)
+        facts: sanitizeFacts(entry.facts),
+        logs: sanitizeLogs(entry.logs)
       }];
     }));
   }
@@ -653,16 +685,92 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   }
 
   function renderFacts(){
-    document.querySelectorAll('[data-fact]').forEach(el => { el.textContent = fact(el.dataset.fact) || '—'; });
+    document.querySelectorAll('[data-fact]').forEach(el => {
+      const value = fact(el.dataset.fact);
+      el.textContent = value || '—';
+      el.classList.toggle('has-fact', Boolean(value));
+    });
   }
+
+  function legacyCopy(value){
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); }finally{ document.body.removeChild(ta); }
+  }
+
+  function flashFactCopy(el, failed){
+    el.classList.remove('fact-copied','fact-copy-failed');
+    void el.offsetWidth;
+    el.classList.add(failed ? 'fact-copy-failed' : 'fact-copied');
+    clearTimeout(el._factCopyTimer);
+    el._factCopyTimer = setTimeout(() => el.classList.remove('fact-copied','fact-copy-failed'), 900);
+  }
+
+  async function copyFact(el, e){
+    if(!el.classList.contains('has-fact')) return;
+    e.stopPropagation();
+    const value = el.textContent;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(value);
+      }else{
+        legacyCopy(value);
+      }
+      flashFactCopy(el);
+    }catch(_err){
+      try{ legacyCopy(value); flashFactCopy(el); }
+      catch(_err2){ flashFactCopy(el, true); }
+    }
+  }
+  document.querySelectorAll('[data-fact]').forEach(el => el.addEventListener('click', e => copyFact(el, e)));
 
   function renderEvidence(){
     document.querySelectorAll('[data-log]').forEach(el => { el.innerHTML = evidenceLogMarkup(el.dataset.log); });
   }
 
+  let seenLogEntries = null;
+
+  function personalLogMarkup(id){
+    const logs = state[id].logs;
+    if(!logs || logs.length === 0) return '<p class="body-copy">No log entries recorded.</p>';
+    return logs.map(text => {
+      const key = id + '|' + text;
+      const isNew = seenLogEntries !== null && !seenLogEntries.has(key);
+      if(seenLogEntries) seenLogEntries.add(key);
+      return `<p class="log-entry${isNew ? ' is-new' : ''}">${esc(text)}</p>`;
+    }).join('');
+  }
+
+  function renderPersonalLogs(){
+    document.querySelectorAll('[data-personal-log]').forEach(el => { el.innerHTML = personalLogMarkup(el.dataset.personalLog); });
+  }
+
+  function traceNotesMarkup(id){
+    const labels = FACT_LABELS[id];
+    if(!labels) return '';
+    const facts = state[id].facts;
+    const found = Object.keys(labels).filter(key => facts[key]);
+    if(found.length === 0) return '';
+    const rows = found.map(key => `<div class="trace-note"><span>${esc(labels[key])}</span><strong>${esc(facts[key])}</strong></div>`).join('');
+    return `<div class="trace-notes"><div class="trace-notes-head">TRACED SO FAR // ${found.length} OF ${Object.keys(labels).length}</div>${rows}</div>`;
+  }
+
+  function logsNotesMarkup(id){
+    const logs = state[id].logs;
+    if(!logs || logs.length === 0) return '';
+    const rows = logs.map(text => `<div class="trace-note log-note">${esc(text)}</div>`).join('');
+    return `<div class="trace-notes"><div class="trace-notes-head">PERSONAL LOG</div>${rows}</div>`;
+  }
+
   function stateCardMarkup(id, status){
     const card = STATE_CARDS[status === 'complete' ? 'pending' : status];
-    return `<div class="locked-card"><div class="locked-glyph">${card.glyph}</div><div class="locked-title">${MISSION_TITLES[id]}</div><div class="locked-status">${card.status}</div><div class="locked-copy">${card.copy}</div></div>`;
+    const notes = status === 'progress' ? traceNotesMarkup(id) : '';
+    const logs = status === 'progress' ? logsNotesMarkup(id) : '';
+    return `<div class="locked-card"><div class="locked-glyph">${card.glyph}</div><div class="locked-title">${MISSION_TITLES[id]}</div><div class="locked-status">${card.status}</div><div class="locked-copy">${card.copy}</div>${notes}${logs}</div>`;
   }
 
   function currentTrace(){
@@ -693,17 +801,22 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     });
   }
 
+  function isKnown(needs){
+    return needs.split(' ').every(group => fact(group));
+  }
+
   function renderCaseboard(){
-    const total = key => MISSION_IDS.filter(isComplete).reduce((sum, id) => sum + (MISSION_BOARD[id] ? MISSION_BOARD[id][key] : 0), 0);
-    document.querySelectorAll('[data-requires]').forEach(el => el.classList.toggle('is-hidden', !isComplete(el.dataset.requires)));
-    boardEntities.textContent = String(total('entities')).padStart(2,'0');
-    boardConnections.textContent = String(total('connections')).padStart(2,'0');
+    const gated = [...document.querySelectorAll('[data-needs]')];
+    gated.forEach(el => el.classList.toggle('is-hidden', !isKnown(el.dataset.needs)));
+    const nodes = gated.filter(el => el.classList.contains('board-node') && !el.classList.contains('is-hidden'));
+    const lines = gated.filter(el => el.tagName.toLowerCase() === 'line' && !el.classList.contains('is-hidden'));
+    boardEntities.textContent = String(nodes.length).padStart(2,'0');
+    boardConnections.textContent = String(lines.length).padStart(2,'0');
     boardTrace.textContent = currentTrace();
-    const chain = [];
-    if(isComplete('m1')) chain.push(fact('m1.broker'), fact('m1.buyer,m2.buyer'));
-    if(isComplete('m2')) chain.push(shortName(fact('m2.shellCompany')));
-    boardAnnotationMain.textContent = chain.filter(Boolean).join(' → ') || '—';
-    boardEmpty.classList.toggle('is-hidden', total('entities') > 0);
+    const chain = [fact('m1.broker'), fact('m1.buyer,m2.buyer'), shortName(fact('m2.shellCompany'))].filter(Boolean);
+    boardAnnotation.classList.toggle('is-hidden', chain.length === 0);
+    boardAnnotationMain.textContent = chain.join(' → ') || '—';
+    boardEmpty.classList.toggle('is-hidden', nodes.length > 0);
   }
 
   function refresh(){
@@ -716,6 +829,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     renderMissionViews();
     renderFacts();
     renderEvidence();
+    renderPersonalLogs();
     renderCaseboard();
   }
 
@@ -739,7 +853,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     drawerMission.textContent = e.mission;
     drawerCase.textContent = e.caseId || '—';
     drawerEvidence.textContent = e.evidence;
-    drawerRelated.innerHTML = e.related.filter(([name, , mission]) => name && isComplete(mission)).map(([name,type]) =>
+    drawerRelated.innerHTML = e.related.filter(([name]) => name).map(([name,type]) =>
       `<div class="related-item"><div class="related-type">${type}</div><div class="related-name">${esc(name)}</div></div>`
     ).join('');
     drawer.classList.add('open');
@@ -833,6 +947,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   centerBoard();
 
   refresh();
+  seenLogEntries = new Set(MISSION_IDS.flatMap(id => (state[id].logs || []).map(text => id + '|' + text)));
   setInterval(refresh, REFRESH_MS);
 
   document.addEventListener('keydown', e => {

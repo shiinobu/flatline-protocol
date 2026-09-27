@@ -1,4 +1,4 @@
-import type { QuestDialogDefinition, QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
+import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
 import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
 import { M01_CASE_ID } from "./m01.js";
@@ -129,40 +129,16 @@ export const M02_DEPLOY_LOG_CONTENT = [
     "2026-08-14 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
 ].join("\n");
 
-export const M02_DIALOG: QuestDialogDefinition = {
+export const M02_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]> = {
     default: [
-        {
-            speaker: "GHOSTWIRE",
-            text: `${M01_CASE_ID}. August 14th, 2026.`,
-            timeout: 1800,
-        },
-        {
-            speaker: "GHOSTWIRE",
-            text: "Same case. Same day my sibling never came out of surgery.",
-            timeout: 1800,
-        },
-        {
-            speaker: "GHOSTWIRE",
-            text: "This is the log. This is the person who actually deployed it.",
-            isEnd: true,
-        },
+        `${M01_CASE_ID}. August 14th, 2026.`,
+        "Same case. Same day my sibling never came out of surgery.",
+        "This is the log. This is the person who actually deployed it.",
     ],
     aftermath: [
-        {
-            speaker: "GHOSTWIRE",
-            text: "Got everything. Didn't expect it to feel like this.",
-            timeout: 1800,
-        },
-        {
-            speaker: "GHOSTWIRE",
-            text: "He builds it. Someone else profits off it. Somewhere there's someone who owns them both.",
-            timeout: 1800,
-        },
-        {
-            speaker: "GHOSTWIRE",
-            text: "One name was never going to be enough.",
-            isEnd: true,
-        },
+        "Got everything. Didn't expect it to feel like this.",
+        "He builds it. Someone else profits off it. Somewhere there's someone who owns them both.",
+        "One name was never going to be enough.",
     ],
 };
 

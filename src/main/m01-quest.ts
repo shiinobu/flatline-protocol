@@ -10,7 +10,7 @@ import {
     WeeChat,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { setBacktraceMission } from "../applications/backtrace-state.js";
+import { getBacktraceStatus, setBacktraceMission, traceBacktraceFacts } from "../applications/backtrace-state.js";
 import {
     ensureM01ListingResolution,
     getM01ListingSlot,
@@ -367,13 +367,13 @@ const registerM01BrokerLead = (): void => {
 const registerM01Network = (): void => {
     const listingCode = getM01WinningCode();
 
-    if (isDev) {
-        Network.destroyNetwork(M01_ROUTER_IP);
-        Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
-        Network.destroyNetwork(M01_BLACKWIRE_ROUTER_IP);
-        Network.destroyNetwork(M01_FROSTGATE_ROUTER_IP);
-        Network.destroyNetwork(M01_OBSIDIAN_ROUTER_IP);
-    }
+    // if (isDev) {
+    //     Network.destroyNetwork(M01_ROUTER_IP);
+    //     Network.destroyNetwork(M01_FIREWALL_ROUTER_IP);
+    //     Network.destroyNetwork(M01_BLACKWIRE_ROUTER_IP);
+    //     Network.destroyNetwork(M01_FROSTGATE_ROUTER_IP);
+    //     Network.destroyNetwork(M01_OBSIDIAN_ROUTER_IP);
+    // }
 
     Network.createSubnetNetwork({
         ip: M01_FIREWALL_ROUTER_IP,
@@ -606,9 +606,9 @@ const registerM01Network = (): void => {
 
     for (const record of M01_DOMAIN_RECORDS) {
         if (record.needsSubnet) {
-            if (isDev) {
-                Network.destroyNetwork(record.ip);
-            }
+            // if (isDev) {
+            //     Network.destroyNetwork(record.ip);
+            // }
             Network.createSubnetNetwork({
                 ip: record.ip,
                 type: NetworkDeviceType.Device,
@@ -868,6 +868,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
             this.SetData("listingFound", true);
             registerM01BrokerLead();
+            traceBacktraceFacts("m1", ["broker", "listing"]);
         });
 
         this.Events.on("Python3.ExecFile", (data) => {
@@ -925,6 +926,14 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             this.SetData("suspiciousFileFound", true);
         });
 
+        this.Events.on("Terminal.Cat", (data) => {
+            if (data.name !== M01_LEDGER_FILE_NAME) return;
+            if (!data.data?.includes(M01_BUYER_ALIAS)) return;
+
+            traceBacktraceFacts("m1", ["buyer"]);
+            if (getBacktraceStatus("m2") !== "locked") traceBacktraceFacts("m2", ["buyer"]);
+        });
+
         this.Events.on("Terminal.Openssl", (data) => {
             if (this.Data.credentialsDecrypted) return;
             if (data.type !== "dec" || data.output !== M01_IRC_NOTES_CONTENT) return;
@@ -944,6 +953,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.hostname !== M01_LEDGERVAULT_DOMAIN) return;
 
             this.SetData("vaultVisited", true);
+            traceBacktraceFacts("m1", ["vault"]);
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -955,6 +965,9 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             this.SetData("reportSent", true);
             this.completeObjective(M01_OBJECTIVE_IDS.reportFindings);
         });
+
+        if (this.Data.listingFound) traceBacktraceFacts("m1", ["broker", "listing"]);
+        if (this.Data.vaultVisited) traceBacktraceFacts("m1", ["vault"]);
     }
 
     override OnComplete() {

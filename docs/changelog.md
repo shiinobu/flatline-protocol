@@ -726,3 +726,135 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   finding. Values are inserted as text or escaped, and a state without
   facts renders "—". Checked in a browser with a stubbed SDK (with facts,
   without facts, and with HTML in the values); not yet tested in-game.
+- **[mechanic] BACKTRACE traces clues at checkpoints, not only at
+  completion.** A key is traced only at an event that proves the player
+  saw or used the value; keys without such an event stay hidden until
+  `OnComplete`, which still snapshots every key. M1: `broker` and
+  `listing` at `listingFound`, `buyer` when the backend's `sales_ledger`
+  is `cat`ed with the buyer alias in its content (a new `Terminal.Cat`
+  handler), `vault` at `vaultVisited`; `caseId` and `project` have no
+  checkpoint because they are read inside LedgerVault, which emits no
+  event. M2: dumping the `affiliates` table on the devbox IP
+  (`Sqlmap.DumpTable`) traces `developer`, `caseId`, `ransom`, `settled`
+  and `victims`; downloading `wire_authorization` (`Files.Transfer`)
+  traces `shellCompany`. The new `traceBacktraceFacts()` is idempotent
+  and, like `setBacktraceMission()`, fail-safe (errors are logged, never
+  thrown into the quest); M1's `OnObjectivesStart` re-traces from the
+  persisted flags so older saves catch up. In the app, CASEBOARD nodes and
+  connections appear as clues are traced, and an open mission's card lists
+  them ("TRACED SO FAR"). The BACKTRACE LAB comparison app, tried in-game
+  to decide this, was removed; `scratchbt <mission> <key>` now traces one
+  key from the terminal. Checked in a browser with a stubbed SDK; the real
+  checkpoint handlers are not yet live-tested (needs `isDebug = false`).
+- **[docs] `docs/architecture.md` documents the tracing checkpoints.**
+  The BACKTRACE section now covers `traceBacktraceFacts()`, the
+  fail-safe writers and a table of which event traces which key, with
+  the keys that have no checkpoint called out.
+
+## 2026-09-27
+
+- **[mechanic] BACKTRACE fact values are click-to-copy.** Any traced
+  `data-fact` value (domains, aliases, amounts, etc.) in `backtrace.html`
+  can now be clicked to copy its text via `navigator.clipboard.writeText`,
+  falling back to a hidden-`textarea`/`execCommand('copy')` shim if the
+  Clipboard API is unavailable or rejects; a "COPIED"/"COPY FAILED"
+  tooltip flashes above the value for ~900ms. Values still showing "—"
+  (untraced) are not clickable (`has-fact` class gates it). Clicking a
+  value inside an entity card or CASEBOARD node now copies it instead of
+  opening the entity drawer (`stopPropagation`); clicking elsewhere on the
+  card still opens the drawer as before. Not yet live-tested in-game —
+  needs confirming `navigator.clipboard` is permitted inside the HackHub
+  app iframe.
+- **[mechanic] New `open <path>` command reads any file, any extension.**
+  `src/commands/open.ts` uses `Files.getByPath`/`Files.read` directly, so
+  it is not limited to `.txt`/`.log` like the built-in `cat` — confirmed
+  in the decompiled engine that this is `cat`'s own restriction, not a
+  filesystem limit (`Files.read` returns raw string content for any
+  extension). Registered in `src/index.ts` alongside `attrcheck`. A
+  themed viewer for document-style extensions (`.pdf` and similar) is a
+  separate, not-yet-built follow-up — the SDK has no window/modal
+  primitive a command can open (`CommandTools` is terminal I/O only;
+  `UI` only has `notify`/`toast`/`prompt`), so that would need its own
+  small App, not an extension of this command.
+- **[mechanic] M02's GHOSTWIRE dialogue is a Personal Log, not a phone
+  call.** `content/m02.ts`'s `M02_DIALOG` (`QuestDialogDefinition`, used
+  via `this.createDialog()`) was replaced with `M02_LOG_ENTRIES`, plain
+  text read by a new `appendBacktraceLog(mission, text)` in
+  `backtrace-state.ts`. Root cause: the SDK's `createDialog()` is always
+  presented as an incoming phone call, but every line in both branches
+  (`default`, `aftermath`) was `speaker: "GHOSTWIRE"` — the player calling
+  themselves, with no counterpart. The two existing triggers
+  (`deployLogFound`, `aftermathShown`) are unchanged; only the
+  presentation changed, to a "PERSONAL LOG" section in BACKTRACE's M2
+  report (and a progressive preview on the still-open mission's card),
+  matching the "PERSONAL LOG" framing BACKTRACE's own prologue already
+  uses. `buildMissionState()` now carries `logs` through to `OnComplete`'s
+  full snapshot, which previously would have dropped them. Not yet
+  live-tested in-game.
+- **[mechanic] Live-test revisions to the three features above.** (1) M2's
+  `shellCompany` checkpoint moved from `Files.Transfer` DOWNLOAD to a new
+  `OPEN_FILE_READ_EVENT` (emitted by `open.ts` after a successful read) —
+  proves the player actually read `wire_authorization.pdf`'s content via
+  `open`, not just transferred the file; mirrors `attrcheck.ts`'s
+  custom-event pattern. (2) A new personal-log entry now fires
+  `UI.toast(...)` (best-effort duration — the SDK exposes no duration
+  parameter, confirmed by reading the live post-2026-09-26-patch
+  `app.asar` directly, not a stale cache) and, in `backtrace.html`, gets a
+  ~10s CSS-animated highlight (`.log-entry.is-new` / `logEntryFade`) the
+  first time it's rendered — tracked client-side via a `seenLogEntries`
+  set seeded from the very first `refresh()` so pre-existing entries never
+  flash on load. (3) M2's `buyer` (sourced from M1's alias) is now
+  cross-traced into `m2.facts.buyer` the moment M1's own buyer checkpoint
+  fires, plus a catch-up in M2's `OnObjectivesStart` (new
+  `getBacktraceFact(mission, key)` reader) for saves where M2 starts
+  after M1's buyer was already found. This needed a correctness fix in
+  `applyTrace`/`appendLog`: both used to auto-promote a `locked` mission
+  straight to `progress`, which would have made M2 falsely show
+  "in progress" the instant M1's buyer was read, even if M2 had never
+  been claimed — both now no-op unless the target mission's status is
+  already `progress` (symmetric with the existing `complete` no-op).
+  Not yet live-tested in-game.
+- **[bug] The `progress`-only guard above broke logging/toasts entirely.**
+  Live-test: a personal-log entry stopped appearing and its `UI.toast`
+  never fired. Root cause: that guard was meant only for the new
+  M1→M2 buyer cross-trace, but it landed in the *shared* `applyTrace`/
+  `appendLog` functions, so it also blocked every ordinary checkpoint
+  (`deployLogFound`, `aftermathShown`, the M1/M2 fact traces) whenever a
+  mission's status wasn't exactly `progress` at that instant — including
+  the known `mods.reset` timing race (a mission can briefly read back as
+  `locked` right after reset) and, in this case, "M2 already `complete`
+  from an earlier test." `applyTrace`/`appendLog` are reverted to their
+  original behavior (only `complete` blocks; `locked` self-heals to
+  `progress`, same fix as before this regression). The real fix moved to
+  exactly where it was needed: a new `getBacktraceStatus(mission)` reader,
+  checked only at the M1→M2 cross-trace call site
+  (`if (getBacktraceStatus("m2") !== "locked") ...`) — M2's own
+  `OnObjectivesStart` catch-up needed no such guard, since it only runs
+  while M2's own quest instance is already active.
+- **[mechanic] More live-test revisions.** (1) Multiple log lines added
+  together no longer fire one `UI.toast` each — `appendBacktraceLog` is
+  replaced by `appendBacktraceLogs(mission, texts)`, which writes the
+  whole fresh batch in one `SaveStorage` call and fires exactly one toast
+  ("N new personal log entries recorded."). (2) The `aftermathShown`
+  personal-log trigger moved from `Files.Transfer` DOWNLOAD to
+  `OPEN_FILE_READ_EVENT`, matching name+extension for all three
+  workstation files (`wire_authorization.pdf`, `errands.txt`,
+  `unsent.txt`) — downloading is no longer part of M2's progression at
+  all now that `open` is the real "player engaged with this file" signal;
+  `m02-quest.ts` has no `Files.Transfer` listener left. Not yet
+  live-tested in-game.
+- **[bug] `mods.reset` doesn't touch the player's own filesystem, so a
+  workstation file downloaded in an earlier playthrough survives it.**
+  Live-test finding: after `mods.reset`, `open wire_authorization.pdf`
+  still traced `shellCompany` even though RDP hadn't been breached again
+  this playthrough — confirmed in the decompiled engine that
+  `mods.reset`'s own description is "Reset a mod's save-state (quests,
+  mails, messages, data, apps)", which never mentions the player's home
+  directory; a locally-downloaded file is player-owned state, not
+  mod-save-state, so it isn't part of what gets wiped. Both
+  `OPEN_FILE_READ_EVENT` handlers in `m02-quest.ts` (`shellCompany`,
+  `aftermathShown`) now additionally require `this.Data.firewallBreached`
+  — quest data that *does* reset per claim — so a stale local copy from
+  a previous run can no longer skip the RDP step. M1 has no equivalent
+  local-file-download checkpoint today, so this class of bug doesn't
+  currently apply there. Not yet live-tested in-game.

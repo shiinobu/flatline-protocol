@@ -12,10 +12,13 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { buildBacktraceFacts } from "../applications/backtrace-facts.js";
 import {
     BACKTRACE_STORAGE_KEY,
     setBacktraceMission,
+    traceBacktraceFacts,
     type BacktraceMissionId,
+    type BacktraceMissionState,
     type BacktraceMissionStatus,
     type BacktraceState,
 } from "../applications/backtrace-state.js";
@@ -144,8 +147,11 @@ const isBacktraceMission = (value: string | undefined): value is BacktraceMissio
 const isBacktraceStatus = (value: string | undefined): value is BacktraceMissionStatus =>
     BACKTRACE_STATUSES.some((status) => status === value);
 
+const readBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionState =>
+    SaveStorage.get<Partial<BacktraceState>>(BACKTRACE_STORAGE_KEY)?.[mission] ?? { status: "locked" };
+
 const readBacktraceStatus = (mission: BacktraceMissionId): BacktraceMissionStatus =>
-    SaveStorage.get<Partial<BacktraceState>>(BACKTRACE_STORAGE_KEY)?.[mission]?.status ?? "locked";
+    readBacktraceMission(mission).status;
 
 const nextBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionId | undefined =>
     BACKTRACE_MISSION_IDS[BACKTRACE_MISSION_IDS.indexOf(mission) + 1];
@@ -153,11 +159,34 @@ const nextBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionId |
 @RegisterCommand({ default: true, scope: "both" })
 export class ScratchBacktraceCommand extends Command {
     CommandName = "scratchbt";
-    Description = "scratch: set, inspect or reset the BACKTRACE mission state";
+    Description = "scratch: set, inspect or reset the BACKTRACE mission state, or trace a single clue";
     Autocomplete: CommandAutoComplete[] = [
         { label: "scratchbt", type: "STRING" },
-        { label: "<m1|m2|m3|m4|reset> <locked|progress|complete>", type: "STRING" },
+        { label: "<m1|m2|m3|m4|reset> <locked|progress|complete|keys|key>", type: "STRING" },
     ];
+
+    private listKeys(tools: CommandTools, mission: BacktraceMissionId): void {
+        const traced = readBacktraceMission(mission).facts ?? {};
+        for (const key of Object.keys(buildBacktraceFacts(mission))) {
+            tools.println(`${traced[key] ? "[x]" : "[ ]"} ${key}`);
+        }
+    }
+
+    private traceKey(tools: CommandTools, mission: BacktraceMissionId, key: string): void {
+        const available = buildBacktraceFacts(mission);
+        if (available[key] === undefined) {
+            tools.printError(`Unknown key "${key}" for ${mission}. Try: scratchbt ${mission} keys`);
+            return;
+        }
+        if (readBacktraceStatus(mission) === "complete") {
+            tools.printWarning(`${mission} is already complete; its report already carries every fact.`);
+            return;
+        }
+        const outcome = traceBacktraceFacts(mission, [key]).length > 0 ? "traced" : "already traced";
+        const tracedCount = Object.keys(readBacktraceMission(mission).facts ?? {}).length;
+        const progress = `${tracedCount}/${Object.keys(available).length}, ${readBacktraceStatus(mission)}`;
+        tools.printSuccess(`${mission}.${key} = ${available[key]} (${outcome}, ${progress})`);
+    }
 
     async Run(tools: CommandTools) {
         const [first, second] = tools.getArgs();
@@ -173,8 +202,18 @@ export class ScratchBacktraceCommand extends Command {
             return;
         }
 
+        if (isBacktraceMission(first) && second === "keys") {
+            this.listKeys(tools, first);
+            return;
+        }
+
+        if (isBacktraceMission(first) && second !== undefined && !isBacktraceStatus(second)) {
+            this.traceKey(tools, first, second);
+            return;
+        }
+
         if (!isBacktraceMission(first) || !isBacktraceStatus(second)) {
-            tools.printError("Usage: scratchbt [<m1|m2|m3|m4> <locked|progress|complete> | reset]");
+            tools.printError("Usage: scratchbt [<m1|m2|m3|m4> <locked|progress|complete|keys|key> | reset]");
             return;
         }
 

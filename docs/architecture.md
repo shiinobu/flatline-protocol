@@ -93,14 +93,16 @@ case file), as four flat files:
   `Unlocked = true`, an AppStore `Store` listing) that imports the HTML.
 - `backtrace.html` — the whole UI in one file. It reads mission state
   through `HackhubSDK.SaveStorage`, polls it every 2 s, and drives the
-  sidebar statuses, the M1/M2 report views (a placeholder card while a
-  mission has no report yet) and the CASEBOARD. No story fact is hardcoded
-  in it: findings, entity cards, evidence records, CASEBOARD nodes and the
-  entity drawer are bound to the mission's `facts`. Outside the game
+  sidebar statuses, the M1/M2 report views (a card listing the clues traced
+  so far while a mission is open) and the CASEBOARD, whose nodes and
+  connections appear as their clues are traced. No story fact is hardcoded
+  in it: everything is bound to a mission's `facts`. Outside the game
   (`file:` protocol, no SDK) it falls back to an M1+M2-complete preview
   with sample facts.
-- `backtrace-state.ts` — `setBacktraceMission(mission, status)`, the only
-  writer of the state, plus its types.
+- `backtrace-state.ts` — `setBacktraceMission(mission, status)`,
+  `traceBacktraceFacts(mission, keys)` and `appendBacktraceLog(mission, text)`,
+  the only writers of the state, plus its types. All three are fail-safe: an
+  error is logged with `trace()` and never reaches the quest that called them.
 - `backtrace-facts.ts` — `buildBacktraceFacts(mission)`, the only place
   BACKTRACE reads mission canon (`content/m01.ts`, `content/m02.ts` and the
   per-save winning M1 listing from `content/m01-listing-pool.ts`). This is
@@ -110,26 +112,63 @@ case file), as four flat files:
 State is one `SaveStorage` key, `backtrace`:
 
 ```text
-{ m1..m4: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> } } }
+{ m1..m4: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> }, logs?: <string>[] } }
 ```
 
-Each `main/mNN-quest.ts` writes it from `OnStart` (`progress`), `OnComplete`
-(`complete`, stamped with `Time.now()`) and `OnAbandon` (`locked`); a mission
-that never starts stays `locked`. `facts` is a snapshot taken inside
-`OnComplete`, before the quest's teardown wipes per-save data such as the M1
-listing resolution: M1 carries `broker`, `buyer`, `caseId`, `listing`,
-`project`, `vault`; M2 carries `buyer`, `developer`, `shellCompany`,
-`caseId`, `ransom`, `settled`, `victims`; M3/M4 have none yet and show
+Each `main/mNN-quest.ts` writes the status from `OnStart` (`progress`),
+`OnComplete` (`complete`, stamped with `Time.now()`) and `OnAbandon`
+(`locked`). `facts` grow in two ways. A checkpoint inside a quest calls
+`traceBacktraceFacts(mission, keys)` the moment the player provably sees a
+value (idempotent; a `locked` mission becomes `progress`). `OnComplete` then
+replaces the partial set with the full snapshot, taken before the quest's
+teardown wipes per-save data such as the M1 listing resolution, so a
+finished report always has every key. M3/M4 have no facts yet and show
 "REPORT PENDING". An App iframe can read `SaveStorage` — unlike a
 `Website`'s `metadata()` (`docs/bugs.md` #20) — confirmed in-game with the
-`scratchbt` debug command (`src/debug/scratch.ts`), which sets, prints and
-resets the state (facts included) and mirrors the real `AutoStart` chain.
+`scratchbt` debug command (`src/debug/scratch.ts`): `scratchbt <mission>
+<status>` sets the state (facts included on `complete`) and cascades the next
+mission like the real `AutoStart` chain, `scratchbt <mission> keys` lists the
+keys and `scratchbt <mission> <key>` traces one.
+
+### Tracing checkpoints
+
+A key is traced only at an event that proves the player saw or used the
+value. A key with no such event stays hidden until completion; it is never
+guessed.
+
+| Mission | Keys | Checkpoint |
+|---|---|---|
+| M1 | `broker`, `listing` | winning listing page opened (`Browser.Meta`, the `listingFound` flag) |
+| M1 | `buyer` | `cat` of the backend's `sales_ledger` whose content contains the buyer alias (`Terminal.Cat`) |
+| M1 | `vault` | LedgerVault domain visited (`Browser.Meta`, the `vaultVisited` flag) |
+| M1 | `caseId`, `project` | none: they are read inside LedgerVault, which emits no event, so they appear at completion |
+| M2 | `developer`, `caseId`, `ransom`, `settled`, `victims` | `Sqlmap.DumpTable` of the `affiliates` table on the devbox IP |
+| M2 | `shellCompany` | `Files.Transfer` DOWNLOAD of `wire_authorization` (proves the download, not that it was read) |
+
+Every time M1's `OnObjectivesStart` runs, the keys behind `listingFound` and
+`vaultVisited` are re-traced from those persisted flags, so saves that passed
+a checkpoint before tracing existed catch up.
+
+`logs` is a separate, append-only list of plain narrative lines (GHOSTWIRE's
+own reflections), written by `appendBacktraceLog(mission, text)` instead of
+`traceBacktraceFacts` — there is no canon builder to rebuild them from, so
+`OnComplete`'s full snapshot carries the accumulated array forward rather
+than regenerating it. Duplicate text for the same mission is a no-op. M2 logs
+two entries this way: `deployLogFound` (the deploy log's `cat`) and
+`aftermathShown` (the workstation file download) — the same triggers that
+previously called `this.createDialog()`, before that mechanic was dropped
+for M2 (see `docs/changelog.md` 2026-09-27: it always presents as an
+incoming phone call, but every line was `speaker: "GHOSTWIRE"`). BACKTRACE
+renders `logs` two ways: a live preview on the still-open mission's card
+(`stateCardMarkup`, "PERSONAL LOG") and the "Personal Log" section of the
+finished M2 report (`[data-personal-log="m2"]`).
 
 To show a new fact: add it to the mission's builder in `backtrace-facts.ts`,
-then bind it in `backtrace.html` with `data-fact="mN.key"` (comma-separated
-fallbacks are allowed, e.g. `m2.buyer,m1.buyer`) or use it in the script's
-evidence and entity configs. Values are inserted as text or escaped, and a
-missing fact renders as "—".
+label it in the script's `FACT_LABELS`, bind it in `backtrace.html` with
+`data-fact="mN.key"` (comma-separated fallbacks are allowed, e.g.
+`m2.buyer,m1.buyer`), and, if the player can see it before the mission ends,
+call `traceBacktraceFacts` from an event handler that proves it. Values are
+inserted as text or escaped, and a missing fact renders as "—".
 
 ## Naming convention
 

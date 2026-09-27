@@ -8,7 +8,13 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { setBacktraceMission } from "../applications/backtrace-state.js";
+import {
+    appendBacktraceLogs,
+    getBacktraceFact,
+    setBacktraceMission,
+    traceBacktraceFacts,
+} from "../applications/backtrace-state.js";
+import { OPEN_FILE_READ_EVENT } from "../commands/open.js";
 import { M01_CASE_ID } from "../content/m01.js";
 import type { M02EmptySubdomain } from "../content/m02.js";
 import {
@@ -46,7 +52,7 @@ import {
     M02_DEV_NMAP_RESULT,
     M02_DEV_ROUTER_IP,
     M02_DEV_SUBDOMAIN,
-    M02_DIALOG,
+    M02_LOG_ENTRIES,
     M02_EMPTY_SUBDOMAINS,
     M02_FINANCIAL_DOC_CONTENT,
     M02_FINANCIAL_DOC_FILE_EXTENSION,
@@ -513,7 +519,6 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
     override AutoComplete = true;
     override QuestsToComplete = questGate("m02", ["flatline.m01"]);
     override Rewards = (isQuestDevFocus("m02") || isQuestTesterFocus("m02")) ? { money: 0, xp: 0 } : M02_REWARDS;
-    override Dialog = M02_DIALOG;
 
     override Objectives = applyDevGating(M02_OBJECTIVES, isQuestDevFocus("m02"));
 
@@ -581,7 +586,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             if (data.name !== M02_DEPLOY_LOG_FILE_NAME || data.data !== M02_DEPLOY_LOG_CONTENT) return;
 
             this.SetData("deployLogFound", true);
-            this.createDialog("default");
+            appendBacktraceLogs("m2", M02_LOG_ENTRIES.default);
         });
 
         this.Events.on("PFSense.Login", (data) => {
@@ -599,18 +604,32 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             Network.openPort(M02_WORKSTATION_IP, 3389);
         });
 
-        this.Events.on("Files.Transfer", (data) => {
+        this.Events.on(OPEN_FILE_READ_EVENT, (data: { id: string; name: string; extension?: string }) => {
             if (this.Data.aftermathShown) return;
-            if (data.type !== "DOWNLOAD") return;
-            const workstationFiles: string[] = [
-                M02_FINANCIAL_DOC_FILE_NAME,
-                M02_WORKSTATION_ERRANDS_FILE_NAME,
-                M02_WORKSTATION_UNSENT_FILE_NAME,
+            if (!this.Data.firewallBreached) return;
+            const workstationFiles: { name: string; extension: string }[] = [
+                { name: M02_FINANCIAL_DOC_FILE_NAME, extension: M02_FINANCIAL_DOC_FILE_EXTENSION },
+                { name: M02_WORKSTATION_ERRANDS_FILE_NAME, extension: M02_WORKSTATION_ERRANDS_FILE_EXTENSION },
+                { name: M02_WORKSTATION_UNSENT_FILE_NAME, extension: M02_WORKSTATION_UNSENT_FILE_EXTENSION },
             ];
-            if (!workstationFiles.includes(data.file?.name ?? "")) return;
+            if (!workstationFiles.some((file) => file.name === data.name && file.extension === data.extension)) return;
 
             this.SetData("aftermathShown", true);
-            this.createDialog("aftermath");
+            appendBacktraceLogs("m2", M02_LOG_ENTRIES.aftermath);
+        });
+
+        this.Events.on("Sqlmap.DumpTable", (data) => {
+            if (data.host !== M02_DEV_IP) return;
+            if (data.tableName !== M02_AFFILIATE_TABLE) return;
+
+            traceBacktraceFacts("m2", ["developer", "caseId", "ransom", "settled", "victims"]);
+        });
+
+        this.Events.on(OPEN_FILE_READ_EVENT, (data: { id: string; name: string; extension?: string }) => {
+            if (!this.Data.firewallBreached) return;
+            if (data.name !== M02_FINANCIAL_DOC_FILE_NAME || data.extension !== M02_FINANCIAL_DOC_FILE_EXTENSION) return;
+
+            traceBacktraceFacts("m2", ["shellCompany"]);
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -621,6 +640,8 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             this.SetData("reportSent", true);
             this.completeObjective(M02_OBJECTIVE_IDS.reportFindings);
         });
+
+        if (getBacktraceFact("m1", "buyer")) traceBacktraceFacts("m2", ["buyer"]);
     }
 
     override OnComplete() {
