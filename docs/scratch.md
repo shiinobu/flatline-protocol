@@ -1298,132 +1298,144 @@ review). Detail yang gak masuk changelog (biar gak duplikat):
 
 ---
 
-**M3 REDESIGN (2026-09-28, branch `clouds-modify`) — implemented, NOT
-live-tested.** `tsc --noEmit` clean, `npx tsx esbuild.config.ts` clean.
-Closes the 2026-09-23 audit's M3 findings #1 (bettercap), #2 (d.reyes
-creds) and cross-mission #6 (M3→M4 VPN IP). Full shipped topology is in
-`docs/network-plan.md`; design intent in `docs/story.md` §4.
+**M3 REDESIGN — PASS 2 (2026-09-28, branch `clouds-modify`, after the first
+live-test of pass 1). Implemented, NOT live-tested.** `tsc --noEmit` clean,
+`npx tsx esbuild.config.ts` clean. This supersedes the pass-1 M3 section
+(removed) — where they differ, this wins. Design intent: `docs/story.md`
+§4; topology: `docs/network-plan.md`.
 
-**Audit bugs, resolved:**
-- **A (CRITICAL, audit #6) — the VPN lead is now produced by the capture.**
-  `Wireshark.Started` (only after the NAT pivot AND bettercap) now (1)
-  writes `~/finance_vlan_capture.log` to the player's PC listing the two
-  recurring external endpoints, one of which is `M04_ARCHITECT_VPN_IP`,
-  (2) traces a new `architectVpn` BACKTRACE fact, and (3) the M3 report
-  gained a required third field `vpnLead` that must equal that IP. So
-  M4's tip ("one address kept showing up in the finance VLAN capture,
-  every single session") now describes evidence the player actually
-  collected and reported. `m03.ts` imports the IP from the `characters`
-  leaf (never from `m04.ts`, which would re-close the cycle fixed on
-  2026-09-24). M4 itself is untouched.
-- **B (HIGH, audit #1) — bettercap is a real gate.** `Bettercap.Open` or
-  `Bettercap.NetProbe(true)` after the pivot sets `arpSpoofDone`;
-  `Wireshark.Started` does nothing until it is set.
-- **C (MEDIUM, audit #2) — d.reyes's SMB creds have a discovery path.**
-  Coin-Drift's database gained a second table, `helpdesk_resets`, whose
-  one row is the helpdesk resetting `d.reyes` back to her personal
-  password. Same `sqlmap` dump that yields the ledger. Her Twotter
-  (see below) also hints at it ("same four names on every password").
+**Live-test bugs from pass 1 — fixed:**
+- **A. bettercap removed entirely.** In this SDK/project bettercap is a
+  Wi-Fi mechanic (`WifiRecon`/`WifiDeAuth`; M2 uses it legitimately to
+  crack a home AP). M3 is a wired remote pivot with no Wi-Fi, so the
+  pass-1 `Bettercap.Open`/`NetProbe` gate was wrong. `internalTrafficCaptured`
+  now gates on `Wireshark.Started` + `natPivotDone` only (`:520`). M2's
+  bettercap/fern is untouched.
+- **B. the finance VLAN is no longer reachable before the pivot.** Pass 1
+  registered Coin-Drift's domain + open ports at mission start, so `sqlmap`
+  worked with zero dependency on pfSense. Now every internal service port
+  ships `active: false` (`:290-291`, `:317`, `:337`, `:349`) and is opened
+  only by `openM03InternalPorts()` (`:142`), called on the pivot's
+  `PFSense.Changes` (`:510`) and reconciled on restart if `natPivotDone`
+  (`:480`) — the exact `Network.openPort`-after-breach mechanism M1 uses.
+  The `sqlmap` port-active gate (`bugs.md` #12) is what makes this bite:
+  3306 inactive → "No sql-injection vulnerabilities found" until the pivot.
+- **C. VLAN re-addressed to `192.168.1.x`.** The pfSense port-forward panel
+  rejected `10.50.1.x` with "Local IP must be a LAN address (192.168.1.x)
+  or left empty for Any." Every `lanIp` (pfSense `.1`, splitter `.2`,
+  Coin-Drift `.3`, Faded-Ledger `.4`, Split-Bill `.5`, Vault-Line `.6`) is
+  now `192.168.1.x`. Public `ip`s stay scattered/unique. (This is the same
+  `IsLocalIp()` constraint M2's LAN hit on 2026-09-24; the pass-1 "open
+  question" about it is now resolved by the live error message.)
 
-**Pre-existing M3 blockers found and fixed during this pass** (both would
-have stopped the mission on its first live-test, independent of A/B/C):
-1. **Coin-Drift had no domain, so `sqlmap` could never reach the ledger.**
-   Per this file's own M2 finding, `sqlmap` resolves its target through
-   `GetSubnetByDomain` and must be given a domain. Coin-Drift now carries
-   `domain: { name: "ledger.skynet-importexport.biz", vulnerabilities:
-   [SQL_INJECTION] }`, the exact shape of M2's live-confirmed devbox.
-2. **pfSense exposed only 443.** Per the 2026-09-24 M2 finding, the
-   browser only opens a Router/Firewall admin page on `port.internal ===
-   80`. Now `80/http` (443 shown explicitly CLOSE in the nmap fixture,
-   per implementation-rules §12).
+**New depth this pass (the mission was too shallow — one leaked password →
+one DB dump):**
+- **Metasploit exploitation chain (real, mirrors M2/M4).** New internal
+  host `Vault-Line` (`79.124.62.90` / lan `192.168.1.6`), the finance
+  site-to-site VPN gateway. RDP 3389 `FreeRDP 7.1.9` + `setVulnerabilities
+  [{type:"RCE", version:"FreeRDP 7.1.9"}]` (`:376`) — the **exact** recipe
+  M2's workstation live-confirmed, chosen so a Metasploit module is
+  guaranteed to match. Player: nmap -sV → search/use/set/run →
+  `Metasploit.Meterpreter.Connected` (`:541`) → `Metasploit.Rootgrab`
+  (`:547`, gated on the shell flag like M4) → read the root file → download
+  `site_to_site_backup.txt` → `Files.Transfer` DOWNLOAD (`:556`, M4's proven
+  download gate). The config names `M04_ARCHITECT_VPN_IP` as peer
+  `SKN-CENTRAL`, owner `SKN Capital Nominees` — so the exploit is what
+  proves the money's destination and the tunnel's far end are one hand, and
+  it carries the DB creds for the DatabaseManager path below.
+- **DatabaseManager as an alternative to sqlmap (scope item 1).**
+  `Database.Connected` (`:536`) with `host === Coin-Drift` sets
+  `ledgerDumped` too, so a player who lifts `finance_svc` creds from the
+  gateway config can read the ledger through the app instead of `sqlmap`.
+  The `index.d.ts` Database doc comment ("used by sqlmap, DatabaseManager
+  app, etc.") is the only basis for assuming the app fires this event on
+  connect — hence it is an *alternative*, never the only route (sqlmap
+  still sets the same flag), so if it doesn't fire nothing is lost.
+- **Multi-step OSINT password puzzle (scope item 4).** No single line
+  leaks the pfSense password. The player must combine: the FORMAT from
+  Reyes's Twotter/`lynx @d.reyes` ("short company name + policy year + '!',
+  one word, capitalized"), the SHORT NAME from the site ("trading as
+  Skynet"), and the POLICY YEAR from the site footer ("policy in force
+  since 2024, rotation suspended"). `M03_PFSENSE_PASSWORD` is derived in
+  code as `${SHORT_NAME}${POLICY_YEAR}!` so the puzzle and the credential
+  can never drift apart. Pure content (lynx `additional` + site HTML) — the
+  only SDK dependency is `PFSense.Login`, already used.
+- **`@m.okafor` real red-herring persona (scope item 5).** Full Twotter
+  account + 5 posts: an ops/facilities guy who brags about "running the
+  building" and access he admits he doesn't have. The one credential he
+  posts is a fake guest-wifi password (`SkynetGuest2019`) that looks like
+  the corporate pattern but is a dead end (wrong token, wrong year, wrong
+  system). A player who chases him wastes real effort.
 
-**Other changes:** internal devices moved to M2's live-confirmed shape
-(scattered public `ip` + sequential `lanIp`), matching `network-plan.md`'s
-convention, instead of using the private address as the node `ip`. Fresh
-addresses throughout (gateway `77.83.142.6`, VLAN `10.50.1.x`) per
-`bugs.md` #21, and the legacy gateway `203.0.113.151` is destroyed on
-start so an old save can't keep an orphan whose children overlap. pfSense
-password `SknTrade2024!` → `Skynet2024!` so it is actually derivable from
-the leaked pattern ("company name + year + !") and the visible company
-name. New decoys: `@m.okafor` (OSINT dead end), `Split-Bill` (empty
-internal SMB host), and PayStream `45.67.219.8` in the capture (geoip →
-Dublin, ordinary; the VPN IP geoips to Unknown). New D. Reyes Twotter
-persona (7 posts) and a personal note on her share. 10 write-only
-listeners/flags removed (M2's collapse precedent): the tools still return
-their data through the fixtures; nothing ever read those flags.
+**Objectives: collapsed to exactly ONE** (`m03.objective.00`
+`reportFindings`), matching M1/M2. Every step above is still enforced
+underneath ("full mechanic, not full objective") via the report's hard
+gates: `internalTrafficCaptured && ledgerDumped && vpnConfigPulled &&
+natReverted` + the three correct field values (shellCompany, parentEntity,
+vpnLead). BACKTRACE logs fire at each milestone (ledger dump, capture, root,
+Reyes's share) so the single silent objective still gives running feedback,
+exactly as M1's one objective does. **Before testing, abandon or
+`mods.reset` M3 — the objective IDs changed again (pass-1 `.00`-`.02` → one
+`.00`).**
 
-**Objectives: 12 → 3 milestones** (`investigateShellCompany` → pivot,
-`traceTheMoney` → capture + ledger, `reportToDeadDrop` → revert + report).
-Not collapsed to 1 like M1/M2 because M3 now has a mandatory
-"undo your own action" beat (revert the NAT rule) that the player must
-know about; a milestone for it is the difference between a legible
-requirement and a silently-refused report. **Before testing, abandon or
-`mods.reset` M3 — the objective IDs changed (`.00`-`.11` → `.00`-`.02`).**
+**Cross-mission connections preserved:** `M02_SHELL_COMPANY_NAME` (report +
+ledger), `M04_ARCHITECT_VPN_IP` (imported from the `characters` leaf, never
+`m04.js`; appears in the capture log, the gateway config, and the report
+field), `M03_PARENT_ENTITY_NAME` = SKN Capital Nominees (imported by
+`m04.ts`, unchanged), and the BLACKLEDGER throughline in the report body.
 
-**SDK-BEHAVIOR ASSUMPTIONS — verify against the real client before merging**
-(all in `src/main/m03-quest.ts`; none of these has a live-tested precedent
-in this exact form):
-1. **`:94-104` Capture file via `Events.emit` → module-level `Events.on`
-   → `Files.create`.** The bridge shape is `bugs.md` #19's live-verified
-   row 6, but that was reached from a `Website.Exports` click; here it is
-   reached from a quest's `this.Events.on("Wireshark.Started")`. Also
-   assumes `Files.getHomePath()` + `parentPath` lands the file in the
-   player's home. **Fallback if it fails:** the VPN IP still reaches the
-   player through the BACKTRACE `architectVpn` fact (`:465`), and the
-   ledger domain through `subfinder` (assumption 4), so the mission stays
-   completable — but the capture would lose its artifact.
-2. **`:448-457` Which bettercap event fires.** Both carry no target, so
-   the gate is "bettercap ran after the pivot," not "ARP-spoofed the
-   finance VLAN." Assumes `Bettercap.Open` fires on launch and/or
-   `NetProbe` fires `true` on `net.probe on`. A player who opened
-   bettercap *before* pivoting must toggle `net.probe` or reopen it.
-3. **`:459` `Wireshark.Started` fires with no packet data**, so the
-   capture file is authored content, not what the Wireshark UI shows.
-   `bugs.md` #8 suggests the UI may show nothing on this VLAN. Deliberately
-   NOT filtered by `source`/`destination` (the audit's old "loosest gate"
-   note) — an address-format mismatch there would soft-lock the one step
-   M4 depends on. **Open question worth checking in the client:** whether
-   `Events.emit("NetworkPacketTransfer", ...)` would make real packets
-   appear in Wireshark's list. Not implemented — it would be assuming
-   engine behavior from a doc comment alone.
-4. **`:250` `ledger.skynet-importexport.biz` on a device nested
-   Router → Splitter → Device.** M2's devbox domain is Router → Device.
-   Assumes `sqlmap`/`subfinder` resolve a domain one level deeper (M2's
-   workstation proves the depth is reachable for Metasploit, not sqlmap).
-5. **`:472` `Sqlmap.DumpTable.host`** — M2 matches it against the IP;
-   accepts the IP *or* the domain here, since the input must be a domain.
-6. **`:237` + `:425` pfSense admin panel on a `Router`-type node.** M1/M2's
-   confirmed panels are on `Firewall` nodes. `bugs.md` #17 says pfSense
-   keys off `users`, not type, and M3 has always put it on the Router —
-   but no live test has opened one.
-7. **`:430-446` `PFSense.Changes` counting** (inherited): change #1 is the
-   pivot; the first change *after* both the capture and the ledger dump
-   counts as the revert. The event carries no rule data (`{old, new}:
-   any`), so "revert" means "any later change," not "removed that rule."
-8. **`:174` hydra target with `:80`.** M1's fixture uses `ip:port`; M3's
-   historically used a bare IP. Both are registered. The pivot does NOT
-   depend on hydra: `PFSense.Login` fires on a correct manual login with
-   the pattern-derived password too.
-9. **`:481` `Terminal.Explorer.ip`** — accepts the public IP or the LAN IP.
-10. **`:331` Twotter persona with no avatar/banner** (M1 always supplies
-    both). `createUser` is documented to fill missing fields. Also: the
-    `lynx @d.reyes` fixture and a real Twotter account now share a
-    handle; the handler lower-cases `input` and matches "reyes" so either
-    resolution works (the SDK notes a handle lookup may arrive as the
-    account's full name).
+**SDK-BEHAVIOR ASSUMPTIONS — verify against the real client before merge**
+(all in `src/main/m03-quest.ts`):
+1. **`:107-116` capture file via `Events.emit` → module-level `Events.on`
+   → `Files.create`** (unchanged from pass 1). Bridge shape = `bugs.md`
+   #19 row 6, but reached from a quest `this.Events.on` rather than a
+   `Website.Exports` click; assumes `Files.getHomePath()` + `parentPath`
+   lands the file in the player's home. Non-load-bearing: the VPN IP also
+   reaches the player via the BACKTRACE `architectVpn` fact (`:526`) and
+   the gateway config, so a failure here only loses the `.log` artifact.
+2. **`:376` + the metasploit chain (`:541`,`:547`).** `setVulnerabilities
+   [{type:"RCE", version:"FreeRDP 7.1.9"}]` on an RDP-3389 device is copied
+   verbatim from M2's live-confirmed workstation, so the module match is
+   the safest available — BUT M2's host is Router→Device (one level) and
+   Vault-Line is Router→Splitter→Device (two levels). Two-level metasploit
+   reachability is unproven (M4 assumes the same shape, also untested).
+   `Meterpreter.Connected`/`Rootgrab` match on `ip` only. **Non-load-bearing
+   for completion:** the report gates on `Files.Transfer` of the config
+   (`:556`), which needs in-game root access regardless of whether my
+   `gatewayShellObtained`/`gatewayRooted` feedback flags ever set.
+3. **`:480` + `:510` `Network.openPort` on a device two levels deep**
+   (Router→Splitter→Device). M1 proves `openPort` at one level; two levels
+   is unproven, though the shipped M3 already assumed two-level
+   reachability for `sqlmap`. If it fails, the whole VLAN stays dark after
+   the pivot — first thing to check on live-test.
+4. **`:536` `Database.Connected` fires when the player connects via the
+   DatabaseManager app** with host+creds. Only basis is the `index.d.ts`
+   doc comment. Optional path (sqlmap also sets `ledgerDumped`), so a
+   no-fire costs nothing.
+5. **`:279` `ledger.skynet-importexport.biz` on a device nested
+   Router→Splitter→Device** (unchanged) — assumes `sqlmap`'s domain
+   resolution reaches two levels deep; M2 proved one level.
+6. **`:530` `Sqlmap.DumpTable.host`** accepts the device IP *or* the
+   domain (sqlmap input must be a domain; the event's `host` field's exact
+   value at two-level depth is unconfirmed).
+7. **`:266` + `:497` pfSense admin panel on a `Router`-type node.** M1/M2's
+   confirmed panels are on `Firewall` nodes; `bugs.md` #17 says pfSense
+   keys off `users` not type; M3 has always used the Router. Unconfirmed.
+8. **`:502-518` `PFSense.Changes` counting.** Change #1 = pivot (opens the
+   ports). The first change *after* capture+ledger+config counts as the
+   revert. Event carries no rule data, so "revert" = "any later saved
+   change," not "removed that specific rule."
+9. **`:203` hydra fixture registered for both bare IP and `ip:80`.** The
+   pivot does NOT depend on hydra — `PFSense.Login` fires on a correct
+   manual login with the deduced password, so hydra is only a convenience.
+10. **`:562` `Terminal.Explorer.ip`** accepts the public IP or the LAN IP
+    (bonus path; not required for completion).
+11. **`:393` Twotter personas** created with no avatar/banner (M1 supplies
+    both); `createUser` documented to fill missing fields. Two personas
+    now (Reyes female, Okafor male). `lynx @handle` fixtures share the
+    handles with the real accounts, as M1 does.
 
-**Open questions (docs disagree, deliberately not silently resolved):**
-- **`IsLocalIp()` vs the `10.50.x.x` corporate scheme.** The 2026-09-24
-  changelog says `IsLocalIp()` hardcodes `192.168.1.x`, but this file's
-  own M2 notes give the root cause as the router missing an explicit
-  `lanIp`. M3's router has one. Kept `network-plan.md`'s `10.50.x.x`. If
-  the pfSense form rejects `10.50.1.x` destinations: the pivot handler
-  never reads the destination, so any saveable change still completes
-  it; the fallback is renumbering the VLAN to `192.168.1.x` (content-only).
-- **`resetMissionNetworks` (`:225`) vs `bugs.md` #18/#21.** Those entries
-  say a same-tick destroy+create at one address can leave it empty, or
-  keep `subfinder` from listing its domains. The 2026-09-28 reset fix
-  applied it to every mission anyway, not yet live-tested. M3 inherits
-  this unchanged, but depends on it more now: the report hard-requires
-  the ledger dump, which requires the domain to register. First suspect
-  if `sqlmap`/`subfinder` can't find `ledger.skynet-importexport.biz`.
+**Remaining open item (unchanged):** `resetMissionNetworks` (`bugs.md`
+#18/#21 race) — the report hard-requires the ledger dump, which requires
+the domain+port to come up cleanly on a rebuilt save; first suspect if the
+VLAN can't be reached at all after the pivot.

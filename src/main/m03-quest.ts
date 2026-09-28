@@ -27,9 +27,9 @@ import {
     M03_COINDRIFT_CODENAME,
     M03_COINDRIFT_IP,
     M03_COINDRIFT_LAN_IP,
+    M03_COMPANY_SHORT_NAME,
     M03_DEAD_DROP_EMAIL,
     M03_DECOY_EMPLOYEE_HANDLE,
-    M03_DECOY_EMPLOYEE_NAME,
     M03_DECOY_HOST_CODENAME,
     M03_DECOY_HOST_IP,
     M03_DECOY_HOST_LAN_IP,
@@ -40,7 +40,6 @@ import {
     M03_FINANCE_PASSWORD,
     M03_FINANCE_USERNAME,
     M03_HELPDESK_RESET_NOTE,
-    M03_LEAK_PATTERN,
     M03_LEDGER_AMOUNT,
     M03_LEDGER_DOMAIN,
     M03_LEDGER_TABLE,
@@ -49,6 +48,11 @@ import {
     M03_MX_HOST,
     M03_OBJECTIVES,
     M03_OBJECTIVE_IDS,
+    M03_OKAFOR_BIO,
+    M03_OKAFOR_FIRST_NAME,
+    M03_OKAFOR_HANDLE,
+    M03_OKAFOR_LAST_NAME,
+    M03_OKAFOR_POSTS,
     M03_PARENT_ENTITY_NAME,
     M03_PAYROLL_GEOIP,
     M03_PAYROLL_SAAS_IP,
@@ -58,6 +62,7 @@ import {
     M03_PFSENSE_NMAP_RESULT,
     M03_PFSENSE_PASSWORD,
     M03_PFSENSE_USERNAME,
+    M03_POLICY_YEAR,
     M03_REMOTE_PORTAL_DOMAIN,
     M03_REPORT_BODY,
     M03_REPORT_SUBJECT,
@@ -83,7 +88,15 @@ import {
     M03_TWOTTER_HANDLE,
     M03_TWOTTER_LAST_NAME,
     M03_TWOTTER_POSTS,
+    M03_VAULTLINE_CODENAME,
+    M03_VAULTLINE_IP,
+    M03_VAULTLINE_LAN_IP,
+    M03_VAULTLINE_RDP_VERSION,
+    M03_VPN_CONFIG_CONTENT,
+    M03_VPN_CONFIG_FILE_EXTENSION,
+    M03_VPN_CONFIG_FILE_NAME,
     M03_VPN_GEOIP,
+    type M03TwotterPost,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
 import { M01_CASE_ID } from "../content/m01.js";
@@ -107,14 +120,28 @@ Events.on(M03_CAPTURE_EXPORT_EVENT, async () => {
 interface M03QuestData {
     readonly pfsenseLoggedIn: boolean;
     readonly natPivotDone: boolean;
-    readonly arpSpoofDone: boolean;
     readonly internalTrafficCaptured: boolean;
     readonly ledgerDumped: boolean;
+    readonly gatewayShellObtained: boolean;
+    readonly gatewayRooted: boolean;
+    readonly vpnConfigPulled: boolean;
     readonly reyesShareSeen: boolean;
     readonly natReverted: boolean;
     readonly reportSent: boolean;
     readonly pfsenseChangeCount: number;
 }
+
+const M03_INTERNAL_PORTS: ReadonlyArray<readonly [string, number]> = [
+    [M03_COINDRIFT_IP, 3306],
+    [M03_COINDRIFT_IP, 445],
+    [M03_ACCOMPLICE_IP, 445],
+    [M03_DECOY_HOST_IP, 445],
+    [M03_VAULTLINE_IP, 3389],
+];
+
+const openM03InternalPorts = (): void => {
+    for (const [ip, port] of M03_INTERNAL_PORTS) Network.openPort(ip, port);
+};
 
 const resetM03ShellFixtures = (): void => {
     Shell.removeCommandData("nmap", M03_SKYNET_IP);
@@ -142,10 +169,11 @@ const registerM03ShellFixtures = (): void => {
         ips: [M03_SKYNET_IP],
         address: [`https://${M03_SKYNET_DOMAIN}/`],
         additional: [
-            "Import-export logistics firm. Generic corporate front.",
+            `Import-export logistics firm. Trades publicly as "${M03_COMPANY_SHORT_NAME}".`,
             `Staff directory lists a finance analyst active online: ${M03_FINANCE_EMPLOYEE_HANDLE} (${M03_TWOTTER_FIRST_NAME} ${M03_TWOTTER_LAST_NAME}).`,
-            `Also listed: ${M03_DECOY_EMPLOYEE_HANDLE} (${M03_DECOY_EMPLOYEE_NAME}), operations.`,
+            `Also listed: ${M03_DECOY_EMPLOYEE_HANDLE} (${M03_OKAFOR_FIRST_NAME} ${M03_OKAFOR_LAST_NAME}), operations.`,
             `Staff remote-access portal: ${M03_REMOTE_PORTAL_DOMAIN}.`,
+            `Site footer: "IT security policy in force since ${M03_POLICY_YEAR}. Annual password rotation."`,
         ],
     });
     Shell.addCommandData("mxlookup", M03_SKYNET_DOMAIN, M03_MX_HOST);
@@ -153,15 +181,16 @@ const registerM03ShellFixtures = (): void => {
         socialMedia: [M03_FINANCE_EMPLOYEE_HANDLE],
         additional: [
             "Finance analyst. Posts constantly, mostly about work she shouldn't.",
-            `Complained publicly about being forced to reuse the company's standard password format across every internal tool: ${M03_LEAK_PATTERN}.`,
-            "Also mentions reusing her family's names on personal shares. Careless in two directions at once.",
+            "Spelled out the corporate password recipe in one post: the short company name, the year the policy came in, one word, capitalized, '!' on the end.",
+            "Also mentions reusing her family's names on her own personal shares. Careless in two directions at once.",
         ],
     });
     Shell.addCommandData("lynx", M03_DECOY_EMPLOYEE_HANDLE, {
         socialMedia: [M03_DECOY_EMPLOYEE_HANDLE],
         additional: [
-            "Operations. Two posts in three years, both about a delayed shipment.",
-            "No password talk, no internal-tool talk, nothing to work with.",
+            "Facilities/operations. Loud about 'running the building', badges and the server room.",
+            "Brags about access he clearly doesn't have; even admits he can't reach the finance systems.",
+            "The one credential he actually posts is the guest wifi -- a dead end, nothing internal behind it.",
         ],
     });
     Shell.addCommandData(
@@ -258,8 +287,8 @@ const registerM03FinanceVlan = (): void => {
                             }),
                         ],
                         ports: [
-                            { external: 445, internal: 445, active: true, service: "smb" },
-                            { external: 3306, internal: 3306, active: true, service: "mysql", version: "mariadb" },
+                            { external: 445, internal: 445, active: false, service: "smb" },
+                            { external: 3306, internal: 3306, active: false, service: "mysql", version: "mariadb" },
                         ],
                     },
                     {
@@ -285,7 +314,7 @@ const registerM03FinanceVlan = (): void => {
                                 ],
                             }),
                         ],
-                        ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
+                        ports: [{ external: 445, internal: 445, active: false, service: "smb" }],
                     },
                     {
                         ip: M03_DECOY_HOST_IP,
@@ -305,7 +334,30 @@ const registerM03FinanceVlan = (): void => {
                                 ],
                             }),
                         ],
-                        ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
+                        ports: [{ external: 445, internal: 445, active: false, service: "smb" }],
+                    },
+                    {
+                        ip: M03_VAULTLINE_IP,
+                        lanIp: M03_VAULTLINE_LAN_IP,
+                        type: NetworkDeviceType.Device,
+                        name: M03_VAULTLINE_CODENAME,
+                        users: [Network.createUser({ username: "svc-vpn", online: true })],
+                        ports: [
+                            {
+                                external: 3389,
+                                internal: 3389,
+                                active: false,
+                                service: "rdp",
+                                version: M03_VAULTLINE_RDP_VERSION,
+                            },
+                        ],
+                        rootFiles: [
+                            {
+                                name: M03_VPN_CONFIG_FILE_NAME,
+                                extension: M03_VPN_CONFIG_FILE_EXTENSION,
+                                data: M03_VPN_CONFIG_CONTENT,
+                            },
+                        ],
                     },
                 ],
             },
@@ -316,43 +368,59 @@ const registerM03FinanceVlan = (): void => {
     Network.addPort(M03_COINDRIFT_IP, {
         external: 3306,
         internal: 3306,
-        active: true,
+        active: false,
         service: "mysql",
         version: "mariadb",
     });
     Network.setVulnerabilities(M03_COINDRIFT_IP, [{ type: "SQL_INJECTION" }]);
+    Network.setVulnerabilities(M03_VAULTLINE_IP, [{ type: "RCE", version: M03_VAULTLINE_RDP_VERSION }]);
 };
 
 const M03_TWOTTER_TWEET_PREFIX = "m03-reyes-tweet-";
+const M03_OKAFOR_TWEET_PREFIX = "m03-okafor-tweet-";
 
-const registerM03TwotterPersona = (): void => {
-    const reyes =
-        Twotter.getUserByUsername(M03_TWOTTER_HANDLE) ??
-        Twotter.createUser({
-            username: M03_TWOTTER_HANDLE,
-            firstName: M03_TWOTTER_FIRST_NAME,
-            lastName: M03_TWOTTER_LAST_NAME,
-            bio: M03_TWOTTER_BIO,
-            gender: "female",
-        });
-    if (!Twotter.getUserByUsername(M03_TWOTTER_HANDLE)) {
-        Twotter.addUser(reyes);
+const seedM03Persona = (
+    username: string,
+    firstName: string,
+    lastName: string,
+    bio: string,
+    gender: "male" | "female",
+    prefix: string,
+    posts: readonly M03TwotterPost[],
+): void => {
+    const user =
+        Twotter.getUserByUsername(username) ??
+        Twotter.createUser({ username, firstName, lastName, bio, gender });
+    if (!Twotter.getUserByUsername(username)) {
+        Twotter.addUser(user);
     }
-    Twotter.updateUser(reyes.id, {
-        name: M03_TWOTTER_FIRST_NAME,
-        surname: M03_TWOTTER_LAST_NAME,
-        bio: M03_TWOTTER_BIO,
-    });
-    M03_TWOTTER_POSTS.forEach((post, index) => {
-        const id = `${M03_TWOTTER_TWEET_PREFIX}${index}`;
+    Twotter.updateUser(user.id, { name: firstName, surname: lastName, bio });
+    posts.forEach((post, index) => {
+        const id = `${prefix}${index}`;
         Twotter.removeTweet(id);
-        Twotter.postTweet({
-            id,
-            userId: reyes.id,
-            content: post.content,
-            interaction: post.interaction,
-        });
+        Twotter.postTweet({ id, userId: user.id, content: post.content, interaction: post.interaction });
     });
+};
+
+const registerM03TwotterPersonas = (): void => {
+    seedM03Persona(
+        M03_TWOTTER_HANDLE,
+        M03_TWOTTER_FIRST_NAME,
+        M03_TWOTTER_LAST_NAME,
+        M03_TWOTTER_BIO,
+        "female",
+        M03_TWOTTER_TWEET_PREFIX,
+        M03_TWOTTER_POSTS,
+    );
+    seedM03Persona(
+        M03_OKAFOR_HANDLE,
+        M03_OKAFOR_FIRST_NAME,
+        M03_OKAFOR_LAST_NAME,
+        M03_OKAFOR_BIO,
+        "male",
+        M03_OKAFOR_TWEET_PREFIX,
+        M03_OKAFOR_POSTS,
+    );
 };
 
 @RegisterQuest
@@ -374,9 +442,11 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
         return {
             pfsenseLoggedIn: false,
             natPivotDone: false,
-            arpSpoofDone: false,
             internalTrafficCaptured: false,
             ledgerDumped: false,
+            gatewayShellObtained: false,
+            gatewayRooted: false,
+            vpnConfigPulled: false,
             reyesShareSeen: false,
             natReverted: false,
             reportSent: false,
@@ -407,11 +477,13 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
         registerM03FinanceVlan();
 
+        if (this.Data.natPivotDone) openM03InternalPorts();
+
         Network.registerDomain(M03_SKYNET_DOMAIN, M03_SKYNET_IP);
         Network.registerDomain(M03_REMOTE_PORTAL_DOMAIN, M03_PFSENSE_IP);
 
         registerM03ShellFixtures();
-        registerM03TwotterPersona();
+        registerM03TwotterPersonas();
         this.databaseId = registerM03Database();
 
         Mail.registerTemplate({
@@ -435,47 +507,56 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
             if (count === 1 && !this.Data.natPivotDone) {
                 this.SetData("natPivotDone", true);
-                this.completeObjective(M03_OBJECTIVE_IDS.investigateShellCompany);
+                openM03InternalPorts();
                 return;
             }
 
             if (this.Data.natReverted) return;
-            if (!this.Data.ledgerDumped || !this.Data.internalTrafficCaptured) return;
+            if (!this.Data.ledgerDumped || !this.Data.internalTrafficCaptured || !this.Data.vpnConfigPulled) return;
 
             this.SetData("natReverted", true);
         });
 
-        this.Events.on("Bettercap.Open", () => {
-            if (this.Data.arpSpoofDone || !this.Data.natPivotDone) return;
-            this.SetData("arpSpoofDone", true);
-        });
-
-        this.Events.on("Bettercap.NetProbe", (active) => {
-            if (this.Data.arpSpoofDone || !this.Data.natPivotDone) return;
-            if (active !== true) return;
-            this.SetData("arpSpoofDone", true);
-        });
-
         this.Events.on("Wireshark.Started", () => {
             if (this.Data.internalTrafficCaptured) return;
-            if (!this.Data.natPivotDone || !this.Data.arpSpoofDone) return;
+            if (!this.Data.natPivotDone) return;
 
             this.SetData("internalTrafficCaptured", true);
             Events.emit(M03_CAPTURE_EXPORT_EVENT);
             traceBacktraceFacts("m3", ["architectVpn"]);
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.capture);
-            this.tryCompleteTrace();
         });
 
         this.Events.on("Sqlmap.DumpTable", (data) => {
-            if (this.Data.ledgerDumped) return;
             if (data.host !== M03_COINDRIFT_IP && data.host !== M03_LEDGER_DOMAIN) return;
             if (data.tableName !== M03_LEDGER_TABLE) return;
+            this.markLedgerDumped();
+        });
 
-            this.SetData("ledgerDumped", true);
-            traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount", "caseId"]);
-            appendBacktraceLogs("m3", M03_LOG_ENTRIES.default);
-            this.tryCompleteTrace();
+        this.Events.on("Database.Connected", (data) => {
+            if (data.host !== M03_COINDRIFT_IP && data.host !== M03_LEDGER_DOMAIN) return;
+            this.markLedgerDumped();
+        });
+
+        this.Events.on("Metasploit.Meterpreter.Connected", (data) => {
+            if (this.Data.gatewayShellObtained) return;
+            if (data.ip !== M03_VAULTLINE_IP) return;
+            this.SetData("gatewayShellObtained", true);
+        });
+
+        this.Events.on("Metasploit.Rootgrab", (data) => {
+            if (this.Data.gatewayRooted) return;
+            if (data.ip !== M03_VAULTLINE_IP) return;
+            if (!this.Data.gatewayShellObtained) return;
+
+            this.SetData("gatewayRooted", true);
+            appendBacktraceLogs("m3", M03_LOG_ENTRIES.root);
+        });
+
+        this.Events.on("Files.Transfer", (data) => {
+            if (this.Data.vpnConfigPulled) return;
+            if (data.type !== "DOWNLOAD" || data.file.name !== M03_VPN_CONFIG_FILE_NAME) return;
+            this.SetData("vpnConfigPulled", true);
         });
 
         this.Events.on("Terminal.Explorer", (data) => {
@@ -490,12 +571,19 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
         this.Events.on("Mail.Sent", (data) => {
             if (this.Data.reportSent) return;
             if (data.to !== M03_DEAD_DROP_EMAIL) return;
-            if (!this.Data.internalTrafficCaptured || !this.Data.ledgerDumped || !this.Data.natReverted) return;
+            if (
+                !this.Data.internalTrafficCaptured ||
+                !this.Data.ledgerDumped ||
+                !this.Data.vpnConfigPulled ||
+                !this.Data.natReverted
+            ) {
+                return;
+            }
             if (!this.isReport(data.subject, data.content)) return;
 
             this.SetData("reportSent", true);
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.aftermath);
-            this.completeObjective(M03_OBJECTIVE_IDS.reportToDeadDrop);
+            this.completeObjective(M03_OBJECTIVE_IDS.reportFindings);
         });
     }
 
@@ -509,9 +597,11 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
         this.teardown();
     }
 
-    private tryCompleteTrace(): void {
-        if (!this.Data.ledgerDumped || !this.Data.internalTrafficCaptured) return;
-        this.completeObjective(M03_OBJECTIVE_IDS.traceTheMoney);
+    private markLedgerDumped(): void {
+        if (this.Data.ledgerDumped) return;
+        this.SetData("ledgerDumped", true);
+        traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount", "caseId"]);
+        appendBacktraceLogs("m3", M03_LOG_ENTRIES.ledger);
     }
 
     private teardown(): void {

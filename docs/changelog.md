@@ -23,6 +23,26 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 
 ## 2026-09-28
 
+- **[mechanic] M3 "Money Trail" — pass 2, after the first live-test
+  (branch `clouds-modify`, not yet re-tested).** Three live-test bugs
+  fixed: (A) `bettercap` removed — it is a Wi-Fi tool (WifiRecon/DeAuth),
+  wrong for a wired pivot; the capture gates on `Wireshark.Started` +
+  pivot only. (B) the finance VLAN was reachable by `sqlmap` before the
+  pivot — every internal port now ships `active:false` and is opened only
+  by the NAT-pivot `PFSense.Changes` (the `Network.openPort`-after-breach
+  mechanism M1 uses), reconciled on restart. (C) the VLAN was re-addressed
+  `10.50.1.x` → `192.168.1.x` because the pfSense port-forward panel's
+  `IsLocalIp()` rejects anything else. New depth: a real Metasploit chain
+  against a hardened tunnel gateway `Vault-Line` (RDP `FreeRDP 7.1.9` RCE,
+  the recipe M2 live-confirmed) → Meterpreter → Rootgrab → download
+  `site_to_site_backup` whose config ties the recurring VPN IP to SKN
+  Capital Nominees; a multi-step OSINT password deduction (format from
+  Reyes, short-name + policy-year from the site); a real `@m.okafor`
+  red-herring Twotter persona; and DatabaseManager (`Database.Connected`)
+  as an alternative to `sqlmap`. Objectives collapsed to a single
+  `reportFindings`, matching M1/M2. Cross-mission constants preserved.
+  11 SDK-behavior assumptions listed in `docs/scratch.md`. **Abandon /
+  `mods.reset` M3 before testing — objective IDs changed again.**
 - **[mechanic] M3 "Money Trail" redesigned (branch `clouds-modify`, not
   live-tested).** Closes the 2026-09-23 audit's M3 findings. **M3→M4:** the
   `wireshark` capture (gated behind the NAT pivot *and* a new `bettercap`

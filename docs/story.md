@@ -213,51 +213,66 @@ admin.
 
 ### Mission 3 — "Money Trail"
 
-**Status: redesigned 2026-09-28 (branch `clouds-modify`), not yet
-live-tested.** Deepened to match M1/M2: a third internal host (a decoy),
-a D. Reyes Twotter persona, two in-mission decoys, a real bettercap gate,
-and a capture that genuinely produces M4's lead. Objectives collapsed
-12 → 3 milestones (pivot / trace / report). Engine-level detail and every
-unverified assumption: `docs/scratch.md` (last section); topology:
+**Status: redesigned 2026-09-28 (branch `clouds-modify`), pass 2 after the
+first live-test, not yet re-tested.** Deepened to match M1/M2: a real
+Metasploit exploitation chain against a hardened internal gateway, two
+Twotter personas (Reyes + a red-herring), three decoys, and a capture that
+genuinely produces M4's lead. Objectives collapsed to a **single**
+`reportFindings`, matching M1/M2. Engine-level detail and every unverified
+assumption: `docs/scratch.md` (last section); topology:
 `docs/network-plan.md`. Pre-2026-09-20 implementation kept at
 `src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
 
-**Target:** Skynet Import-Export Co. (shell company).
+**Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
+laundering front — defended like a real corporate target: OSINT-hardened
+credentials, a NAT-gated internal VLAN, and a separately-exploited tunnel
+gateway, not a company that falls to one leaked password.
 
 **Cast:** **Dana Reyes** (`@d.reyes`), finance analyst and unwitting
-accomplice — careless in public (leaks the company password format and
-her own personal-password habit on Twotter), uneasy in private (a note on
-her share, `do_not_open_at_work.txt`, lists what she's "not supposed to
-have noticed," including the finance box phoning the same address after
-every batch). She ties the numbers anyway: kids, a paycheck.
+accomplice — careless in public (her Twotter leaks the *shape* of the
+corporate password recipe and her own personal-password habit), uneasy in
+private (a note on her share, `do_not_open_at_work.txt`, lists what she's
+"not supposed to have noticed," including the finance box tunnelling out
+after every batch). She ties the numbers anyway: kids, a paycheck.
+**Marcus Okafor** (`@m.okafor`), facilities — a red herring: brags about
+"running the building" and access he admits he doesn't have, and posts a
+guest-wifi password that looks like the corporate pattern but leads
+nowhere.
 
-**Chain:**
+**Chain (all one objective underneath):**
 1. `nmap`+`lynx` on the public site — staff directory names `@d.reyes`
-   (the real lead) and `@m.okafor` (**decoy**: nothing to work with), plus
-   a staff remote-access portal.
-2. `nslookup remote.skynet-importexport.biz` → the pfSense gateway;
+   (real lead) and `@m.okafor` (**decoy route**), plus a remote-access
+   portal, the trading name "Skynet", and a "policy in force since 2024"
+   footer.
+2. **Multi-step password deduction:** Reyes's Twotter gives the FORMAT
+   (short name + policy year + "!", one word, capitalized); the site gives
+   the SHORT NAME ("Skynet") and the POLICY YEAR (2024). Combine →
+   `Skynet2024!`. No single line hands it over; Okafor's `SkynetGuest2019`
+   is a decoy that fails.
+3. `nslookup remote.skynet-importexport.biz` → the pfSense gateway;
    `mxlookup` maps the mail host.
-3. `lynx @d.reyes` / her Twotter — leaks the password pattern
-   ("company name + year + !") — derivable, never handed over.
-4. Into the company's **pfSense** admin panel (pattern-derived password
-   typed in, or `hydra`).
-5. `PFSense.Changes` — the player **adds their own NAT rule** to pivot
-   into the finance VLAN.
-6. `bettercap` (ARP-spoof), then `wireshark` — the capture writes
-   `finance_vlan_capture.log`: the finance server's hostname plus two
-   recurring external endpoints.
-7. `geoip`/`whois` both endpoints — PayStream Payroll (**decoy**, Dublin,
-   ordinary) vs. an address that resolves to nothing, tunnelled to once
-   per payout batch. That address is the one M4 opens on.
-8. `sqlmap` the ledger host — `wire_transfers` names **SKN Capital
+4. Into the **pfSense** admin panel (deduced password, or `hydra`) and
+   **add a NAT rule** to pivot — this is what opens the internal VLAN;
+   nothing behind it is reachable until then.
+5. `nmap` the VLAN → `Coin-Drift` (ledger DB), `Faded-Ledger` (Reyes),
+   `Vault-Line` (the tunnel gateway), and `Split-Bill` (empty **decoy**).
+6. `sqlmap` the ledger host — `wire_transfers` names **SKN Capital
    Nominees**; `helpdesk_resets` leaks d.reyes's personal SMB password.
-9. **Optional/bonus:** `explorer` into Reyes's share (the reconciliation
-   spreadsheet + her note); `Split-Bill` sits beside it as an empty
-   **decoy** host.
-10. **Revert your own pfSense rule** before leaving (the mission's "undo
-    your own action" beat; the report is refused until you do).
+   (Or connect the **DatabaseManager** app with creds lifted from the
+   gateway config — an alternative route to the same ledger.)
+7. `wireshark` on the VLAN → `finance_vlan_capture.log`: the payroll
+   endpoint (**decoy**, `geoip`→Dublin) and the gateway's recurring tunnel
+   to an address that resolves to nothing — M4's lead.
+8. **Metasploit** the hardened gateway `Vault-Line` (RDP RCE) →
+   Meterpreter → **Rootgrab** (two-stage) → download `site_to_site_backup`
+   → its config peers to the same VPN IP, labelled `SKN-CENTRAL`, owner
+   `SKN Capital Nominees`: proof the money's destination and the tunnel's
+   far end are one hand.
+9. **Optional/bonus:** `explorer` into Reyes's share (spreadsheet + note).
+10. **Revert your own pfSense rule** before leaving (the "undo your own
+    action" beat; the report is refused until you do).
 11. Dead-drop mail: shell company, parent entity, and the recurring
-    endpoint.
+    tunnel endpoint.
 
 ### Mission 4 — "The Architect"
 
@@ -402,8 +417,10 @@ to code:
   pass run. pfSense's finance VLAN already used the correct
   Router-wrapping-child-Device shape pre-redesign; now wraps a `Splitter`
   with two Devices instead of one flat Device. **Redesigned again
-  2026-09-28** (three Devices, bettercap gate, capture → M4 lead,
-  12 → 3 objectives) — see §4 and `docs/scratch.md`; not yet live-tested.
+  2026-09-28** (branch `clouds-modify`, two passes: four Devices incl. a
+  Metasploit tunnel gateway, NAT-gated ports, `192.168.1.x` LAN, capture →
+  M4 lead, collapsed to one objective) — see §4 and `docs/scratch.md`; not
+  yet live-tested.
 - [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
   `src/main/m04-quest.ts`, `src/websites/m04/architect-c2/`,
   `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`

@@ -149,34 +149,41 @@ M02_CLOSER_RIG_ROUTER_IP (Router)             109.94.27.183
          3389 rdp (FreeRDP 2.7.3, RCE) -- open from the start, optional bonus thread
 ```
 
-## M3 — "Money Trail" (redesigned 2026-09-28, not yet live-tested)
+## M3 — "Money Trail" (redesigned 2026-09-28, pass 2, not yet live-tested)
 
 ```
 Router 203.0.113.150  [skynet-importexport.biz]   public site, 443 open / 80 closed
 
-Router 77.83.142.6 (pfSense)  lan 10.50.1.1   [remote.skynet-importexport.biz]
+Router 77.83.142.6 (pfSense)  lan 192.168.1.1   [remote.skynet-importexport.biz]
    80/http (admin panel), admin / Skynet2024!
-└─ Splitter  91.207.174.33 / lan 10.50.1.2   (empty pass-through)
-   ├─ Device "Coin-Drift"   185.107.56.214 / lan 10.50.1.3  [ledger.skynet-importexport.biz]
-   │     mariadb:3306 SQL_INJECTION, smb:445
+   NAT-pivot (any saved PFSense.Changes) opens the child ports below;
+   they all ship active:false and are dark until then.
+└─ Splitter  91.207.174.33 / lan 192.168.1.2   (empty pass-through)
+   ├─ Device "Coin-Drift"   185.107.56.214 / lan 192.168.1.3  [ledger.skynet-importexport.biz]
+   │     mariadb:3306 SQL_INJECTION (opens on pivot), smb:445
    │     DB: wire_transfers (-> SKN Capital Nominees), helpdesk_resets (-> d.reyes creds)
-   ├─ Device "Faded-Ledger" 62.210.183.77 / lan 10.50.1.4   smb:445, d.reyes / Reyes_Family2024
-   │     q1_reconciliation.xlsx, do_not_open_at_work.txt
-   └─ Device "Split-Bill"   146.185.239.12 / lan 10.50.1.5  smb:445, guest / guest -- decoy, readme only
+   ├─ Device "Faded-Ledger" 62.210.183.77 / lan 192.168.1.4   smb:445, d.reyes / Reyes_Family2024
+   │     q1_reconciliation.xlsx, do_not_open_at_work.txt   (explorer bonus)
+   ├─ Device "Split-Bill"   146.185.239.12 / lan 192.168.1.5  smb:445, guest / guest -- decoy, readme only
+   └─ Device "Vault-Line"   79.124.62.90 / lan 192.168.1.6   tunnel gateway
+         rdp:3389 FreeRDP 7.1.9 RCE (Metasploit) -> Meterpreter -> Rootgrab
+         rootFile site_to_site_backup.txt: peer SKN-CENTRAL = M04_ARCHITECT_VPN_IP,
+         owner SKN Capital Nominees, + finance_svc DB creds
 
 External endpoints seen only in the capture (geoip/whois fixtures, no network):
    45.67.219.8    PayStream Payroll (decoy -- geoip Dublin)
    203.0.113.160  M04_ARCHITECT_VPN_IP (geoip Unknown -- M4's entry point)
 ```
 
-Every address above is new except the public site: the VLAN's shape
-changed (a third device, a domain on Coin-Drift), and `bugs.md` #21 says a
-structural change never reaches an address that already holds a network.
-The previous gateway `203.0.113.151` is destroyed on start for the same
-reason. Internal devices now follow the convention above (scattered public
-`ip`, sequential `lanIp`); the old layout used the private address as the
-node `ip`, which no mission had proven. Chain and every open assumption:
-`docs/scratch.md` (last section).
+**Pass 2 changes (live-test of pass 1):** LAN re-addressed `10.50.1.x` →
+`192.168.1.x` (the pfSense port-forward panel's `IsLocalIp()` rejects
+anything else — same constraint M2 hit). `bettercap` removed (it is a
+Wi-Fi tool; M3 is wired). Internal ports now ship `active:false` and open
+only on the NAT pivot (`Network.openPort`, the M1 mechanism), so nothing is
+reachable before pfSense. New hardened host `Vault-Line` adds a real
+Metasploit chain. All addresses are fresh (`bugs.md` #21) and the legacy
+gateway `203.0.113.151` is destroyed on start. Chain and every open
+assumption: `docs/scratch.md` (last section).
 
 ## M4 — "The Architect" (implemented, not yet live-tested)
 

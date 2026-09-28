@@ -60,7 +60,7 @@ file whenever a mission introduces or confirms a new tool.
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| `bettercap` | `Bettercap.Open`/`.Close`/`.NetProbe`/`.NetShow`/`.WifiRecon`/`.WifiDeAuth` | Network MITM / WiFi recon & deauth. Every event but `NetProbe` (a plain `boolean`) carries `null`, so a gate can only prove "bettercap ran," never which network. Used by M3 (2026-09-28), not live-tested. |
+| `bettercap` | `Bettercap.Open`/`.Close`/`.NetProbe`/`.NetShow`/`.WifiRecon`/`.WifiDeAuth` | Network MITM / **Wi-Fi** recon & deauth. Its events carry no target (only `NetProbe`'s plain `boolean`), and it is a physical-proximity Wi-Fi tool — used by M2 (bettercap+fern to crack a home AP), **not** M3 (a wired remote pivot, no Wi-Fi component). |
 | `wireshark` | `Wireshark.Started`/`.Stopped` | Packet capture. Payload is only the `{source?, destination?}` filter, no packets, and there is no SDK call to inject packets into the list — a mission that needs captured data must deliver it another way (M3 writes a capture file). See `bugs.md` #8. |
 
 ### Exploitation
