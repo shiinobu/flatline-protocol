@@ -128,6 +128,13 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   `sales_ledger.log` gained two historical rows for the same buyer
   alias, matching the IRC line "same as on the last two jobs," which
   previously had no ledger data backing it.
+- **[docs] HackHub auto-updated to 1.3.13; client decompilation confirmed
+  a new opt-in `--mod-dev`/`HACKHUB_MOD_DEV=1` mode that watches the
+  `mods/` folder and reloads a rebuilt mod into the current save without a
+  full restart.** `@hotbunny/hackhub-content-sdk` itself is unchanged
+  (still 0.24.0). Directly targets the manual restart step in
+  `docs/implementation-rules.md` §8 — not yet verified live. Full detail:
+  `docs/bugs.md` entry 24.
 
 ## 2026-09-18
 

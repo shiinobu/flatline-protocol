@@ -1172,3 +1172,47 @@ exists before `removeServer`+`createServer`) — reduces how often it re-logs,
 but does not eliminate the leak on first creation. Not implemented;
 documented as a known, accepted limitation of the WeeChat feature for any
 future mission using it.
+
+---
+
+## 24. HackHub 1.3.13 added a `--mod-dev`/`HACKHUB_MOD_DEV=1` live-reload mode that watches the `mods/` folder and reloads a rebuilt mod into the current save without a full restart
+
+**Status: CONFIRMED from client decompilation, NOT YET verified end-to-end
+against this project's own build**
+Found: Steam auto-updated HackHub to 1.3.13, 2026-09-28. Confirmed via
+direct decompilation of the live client (`.reverse/app.asar` →
+`preload.mjs`/`main2.js`/`sharedbundle18.js`), diffed against the
+2026-09-19/20 baseline kept in `.reverse/extracted/`; fresh extraction of
+the new version kept at `.reverse/extracted-1.3.13/`. The public
+`@hotbunny/hackhub-content-sdk` npm package is unaffected — still 0.24.0,
+no new version published — this lives entirely in the game client.
+
+The client gained an opt-in dev-mode file watcher:
+
+- Gated in the main process by `isModDevMode()`: `process.argv.includes(
+  "--mod-dev") || process.env.HACKHUB_MOD_DEV === "1"` — off by default,
+  only enabled via a Steam launch option or that env var.
+- When enabled, `fs.watch(modsDir, { recursive: true })` reacts to changes
+  matching `/^(dist[\/].+|mod\.js|manifest\.json)$/i` (400ms debounce) —
+  exactly the files this project's own build (`npx tsx esbuild.config.ts`
+  → `dist/`) already produces, in the same `mods/` folder the user already
+  copies them into manually.
+- New preload-bridge API: `Workshop.GetModDevStatus()` (IPC
+  `mod-dev-status`, returns `{ enabled, modsDir }`) and
+  `Workshop.OnLocalModsChanged(callback)` (IPC event `mods.localChanged`).
+- On a matching change, the renderer logs `[ModDev] Build output changed
+  in: <names>. Reloading.` and calls `reloadMods()`, which reloads the
+  renderer (`window.location.reload()`) **into the current save** —
+  blocked with a warning if in multiplayer.
+
+**Relevance:** targets the manual step in `docs/implementation-rules.md`
+§8 ("the user manually copies `dist/` into HackHub's mods folder and
+restarts"). If confirmed working live, the build→copy→restart loop used
+for every mission's live-test could drop the restart in favor of an
+automatic reload on the current save.
+
+**Not yet done:** actually launching HackHub with `--mod-dev` (or
+`HACKHUB_MOD_DEV=1`) and confirming a real rebuild reloads correctly —
+this entry is read directly from shipped client code, not yet observed
+live. Do not update `implementation-rules.md` §8's mandatory workflow
+until that live confirmation happens.
