@@ -215,8 +215,8 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .board-viewport.dragging{cursor:grabbing}.board-viewport::before{content:"";position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(90deg,rgba(240,32,43,.055),transparent 22%,transparent 78%,rgba(240,32,43,.04)),
   radial-gradient(circle at 50% 50%,rgba(255,255,255,.018),transparent 32%);z-index:1}
-.board-canvas{position:absolute;width:1500px;height:760px;left:0;top:0;transform-origin:0 0;z-index:2}
-.board-svg{position:absolute;inset:0;width:1500px;height:760px;overflow:visible;pointer-events:none}
+.board-canvas{position:absolute;width:1960px;height:760px;left:0;top:0;transform-origin:0 0;z-index:2}
+.board-svg{position:absolute;inset:0;width:1960px;height:760px;overflow:visible;pointer-events:none}
 .trace-line{stroke:#4f5558;stroke-width:1.4;fill:none}.trace-line.active{stroke:var(--red);stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(240,32,43,.15))}
 .trace-dot{fill:var(--red)}.trace-label{font:9px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1px;fill:#7a8083;text-transform:uppercase}
 .board-node{position:absolute;width:220px;min-height:108px;padding:15px 16px 14px;border:1px solid #3b4043;background:rgba(17,19,20,.96);color:var(--text);text-align:left;cursor:pointer;transition:border-color var(--ease),background var(--ease),transform var(--ease)}
@@ -483,13 +483,16 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     </div>
 
     <div class="board-canvas" id="boardCanvas">
-      <svg class="board-svg" viewBox="0 0 1500 760" aria-hidden="true">
+      <svg class="board-svg" viewBox="0 0 1960 760" aria-hidden="true">
         <line class="trace-line active" data-needs="m1.broker m1.buyer,m2.buyer" x1="405" y1="360" x2="645" y2="360"></line>
         <line class="trace-line active" data-needs="m1.buyer,m2.buyer m2.shellCompany" x1="865" y1="360" x2="1105" y2="360"></line>
+        <line class="trace-line active" data-needs="m2.shellCompany m3.parentEntity" x1="1325" y1="360" x2="1565" y2="360"></line>
         <circle class="trace-dot" data-needs="m1.broker m1.buyer,m2.buyer" cx="645" cy="360" r="3"></circle>
         <circle class="trace-dot" data-needs="m1.buyer,m2.buyer m2.shellCompany" cx="865" cy="360" r="3"></circle>
+        <circle class="trace-dot" data-needs="m2.shellCompany m3.parentEntity" cx="1325" cy="360" r="3"></circle>
         <text class="trace-label" data-needs="m1.broker m1.buyer,m2.buyer" x="507" y="341">BUYER</text>
         <text class="trace-label" data-needs="m1.buyer,m2.buyer m2.shellCompany" x="950" y="341">SHELL COMPANY</text>
+        <text class="trace-label" data-needs="m2.shellCompany m3.parentEntity" x="1410" y="341">PARENT ENTITY</text>
       </svg>
 
       <div class="board-annotation" id="boardAnnotation">
@@ -505,6 +508,9 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
       </button>
       <button class="board-node" data-entity="shell" data-needs="m2.shellCompany" style="left:1105px;top:306px">
         <div class="node-index">ENTITY 03</div><div class="node-type">SHELL COMPANY</div><div class="node-id" data-fact="m2.shellCompany">—</div><div class="node-foot red">NEW // M2</div>
+      </button>
+      <button class="board-node" data-entity="parent" data-needs="m3.parentEntity" style="left:1565px;top:306px">
+        <div class="node-index">ENTITY 04</div><div class="node-type">PARENT ENTITY</div><div class="node-id" data-fact="m3.parentEntity">—</div><div class="node-foot red">NEW // M3</div>
       </button>
     </div>
 
@@ -661,6 +667,10 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     'EV-M2-01':{
       bar:'CORPORATE ENTITY RECORD',
       rows:[['account','m2.buyer,m1.buyer'],['entity','m2.shellCompany'],['role',null,'SHELL CO.'],['developer','m2.developer'],['case','m2.caseId'],['payout','m2.ransom']]
+    },
+    'EV-M3-01':{
+      bar:'INTERNAL WIRE-TRANSFER LEDGER',
+      rows:[['shell','m2.shellCompany'],['parent','m3.parentEntity'],['role',null,'PARENT ENTITY'],['amount','m3.amount'],['case','m3.caseId'],['status',null,'LINK CONFIRMED']]
     }
   };
 
@@ -678,10 +688,12 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     const broker = fact('m1.broker');
     const buyer = fact('m1.buyer,m2.buyer');
     const shell = fact('m2.shellCompany');
+    const parent = fact('m3.parentEntity');
     return {
       broker:{type:'Broker',id:broker,mission:'M1 — First Trace',evidence:'EV-M1-01',caseId:fact('m1.caseId'),related:[[buyer,'Buyer','m1']]},
       buyer:{type:'Buyer',id:buyer,mission:'M1 — First Trace',evidence:'EV-M1-01',caseId:fact('m1.caseId,m2.caseId'),related:[[broker,'Broker','m1'],[shell,'Shell Company','m2']]},
-      shell:{type:'Shell Company',id:shell,mission:'M2 — The Maker',evidence:'EV-M2-01',caseId:fact('m2.caseId'),related:[[buyer,'Buyer','m1']]}
+      shell:{type:'Shell Company',id:shell,mission:'M2 — The Maker',evidence:'EV-M2-01',caseId:fact('m2.caseId'),related:[[buyer,'Buyer','m1'],[parent,'Parent Entity','m3']]},
+      parent:{type:'Parent Entity',id:parent,mission:'M3 — Money Trail',evidence:'EV-M3-01',caseId:fact('m3.caseId'),related:[[shell,'Shell Company','m2']]}
     };
   }
 
@@ -815,7 +827,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     boardEntities.textContent = String(nodes.length).padStart(2,'0');
     boardConnections.textContent = String(lines.length).padStart(2,'0');
     boardTrace.textContent = currentTrace();
-    const chain = [fact('m1.broker'), fact('m1.buyer,m2.buyer'), shortName(fact('m2.shellCompany'))].filter(Boolean);
+    const chain = [fact('m1.broker'), fact('m1.buyer,m2.buyer'), shortName(fact('m2.shellCompany')), shortName(fact('m3.parentEntity'))].filter(Boolean);
     boardAnnotation.classList.toggle('is-hidden', chain.length === 0);
     boardAnnotationMain.textContent = chain.join(' → ') || '—';
     boardEmpty.classList.toggle('is-hidden', nodes.length > 0);
@@ -889,7 +901,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 
   function clampPan(){
     const vw = viewport.clientWidth, vh = viewport.clientHeight;
-    const cw = 1500 * zoom, ch = 760 * zoom;
+    const cw = 1960 * zoom, ch = 760 * zoom;
     const minX = Math.min(0, vw - cw);
     const minY = Math.min(0, vh - ch);
     panX = Math.max(minX - 80, Math.min(80, panX));
@@ -902,7 +914,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   }
   function centerBoard(){
     const vw = viewport.clientWidth, vh = viewport.clientHeight;
-    panX = (vw - 1500*zoom) / 2;
+    panX = (vw - 1960*zoom) / 2;
     panY = (vh - 760*zoom) / 2;
     renderBoard();
   }

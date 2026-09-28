@@ -429,12 +429,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_LEGACY_USERNAME,
                         password: M01_LEGACY_PASSWORD,
+                        files: [
+                            { name: "decommissioned", extension: "txt", data: M01_LEGACY_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "decommissioned", extension: "txt", data: M01_LEGACY_CONTENT() },
-                ],
             },
             {
                 ip: M01_BLACKWIRE_GATEWAY_IP,
@@ -444,12 +444,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_BLACKWIRE_GATEWAY_USERNAME,
                         password: M01_BLACKWIRE_GATEWAY_PASSWORD,
+                        files: [
+                            { name: "readme", extension: "txt", data: M01_BLACKWIRE_GATEWAY_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "readme", extension: "txt", data: M01_BLACKWIRE_GATEWAY_CONTENT() },
-                ],
             },
         ],
     });
@@ -470,18 +470,7 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_BROKER_ALIAS,
                         password: M01_TARGET_PASSWORD,
-                    }),
-                ],
-                ports: [
-                    { external: 22, internal: 22, active: false, service: "ssh" },
-                    { external: 80, internal: 80, active: false, service: "http" },
-                    { external: 443, internal: 443, active: true, service: "https" },
-                ],
-                rootFiles: [
-                    {
-                        name: "home",
-                        isFolder: true,
-                        children: [
+                        files: [
                             {
                                 name: M01_OPS_NOTES_FILE_NAME,
                                 extension: M01_OPS_NOTES_FILE_EXTENSION,
@@ -490,7 +479,14 @@ const registerM01Network = (): void => {
                             { name: "todo", extension: "txt", data: M01_DUMMY_TODO_CONTENT() },
                             { name: "readme", extension: "txt", data: M01_DUMMY_README_CONTENT() },
                         ],
-                    },
+                    }),
+                ],
+                ports: [
+                    { external: 22, internal: 22, active: false, service: "ssh" },
+                    { external: 80, internal: 80, active: false, service: "http" },
+                    { external: 443, internal: 443, active: true, service: "https" },
+                ],
+                rootFiles: [
                     {
                         name: "logs",
                         isFolder: true,
@@ -537,12 +533,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_FROSTGATE_GATEWAY_USERNAME,
                         password: M01_FROSTGATE_GATEWAY_PASSWORD,
+                        files: [
+                            { name: "readme", extension: "txt", data: M01_FROSTGATE_GATEWAY_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "readme", extension: "txt", data: M01_FROSTGATE_GATEWAY_CONTENT() },
-                ],
             },
             {
                 ip: M01_FROSTGATE_API_IP,
@@ -552,12 +548,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_FROSTGATE_API_USERNAME,
                         password: M01_FROSTGATE_API_PASSWORD,
+                        files: [
+                            { name: "decommissioned", extension: "txt", data: M01_FROSTGATE_API_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "decommissioned", extension: "txt", data: M01_FROSTGATE_API_CONTENT() },
-                ],
             },
         ],
     });
@@ -584,12 +580,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_OBSIDIAN_GATEWAY_USERNAME,
                         password: M01_OBSIDIAN_GATEWAY_PASSWORD,
+                        files: [
+                            { name: "readme", extension: "txt", data: M01_OBSIDIAN_GATEWAY_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "readme", extension: "txt", data: M01_OBSIDIAN_GATEWAY_CONTENT() },
-                ],
             },
             {
                 ip: M01_OBSIDIAN_API_IP,
@@ -599,12 +595,12 @@ const registerM01Network = (): void => {
                     Network.createUser({
                         username: M01_OBSIDIAN_API_USERNAME,
                         password: M01_OBSIDIAN_API_PASSWORD,
+                        files: [
+                            { name: "decommissioned", extension: "txt", data: M01_OBSIDIAN_API_CONTENT() },
+                        ],
                     }),
                 ],
                 ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                rootFiles: [
-                    { name: "decommissioned", extension: "txt", data: M01_OBSIDIAN_API_CONTENT() },
-                ],
             },
         ],
     });

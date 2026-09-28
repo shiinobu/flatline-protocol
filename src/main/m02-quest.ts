@@ -218,9 +218,15 @@ const registerM02DecoySubnet = (spec: M02DecoySubnetSpec): void => {
                 ],
                 rootFiles: [
                     {
-                        name: spec.rootFileName,
-                        extension: "txt",
-                        data: spec.rootFileContent,
+                        name: "etc",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: spec.rootFileName,
+                                extension: "txt",
+                                data: spec.rootFileContent,
+                            },
+                        ],
                     },
                 ],
             },
@@ -274,14 +280,26 @@ const registerM02DevSubnet = (): void => {
                 ],
                 rootFiles: [
                     {
-                        name: M02_DEPLOY_LOG_FILE_NAME,
-                        extension: M02_DEPLOY_LOG_FILE_EXTENSION,
-                        data: M02_DEPLOY_LOG_CONTENT,
+                        name: "logs",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: M02_DEPLOY_LOG_FILE_NAME,
+                                extension: M02_DEPLOY_LOG_FILE_EXTENSION,
+                                data: M02_DEPLOY_LOG_CONTENT,
+                            },
+                        ],
                     },
                     {
-                        name: M02_SYNC_SCRIPT_FILE_NAME,
-                        extension: M02_SYNC_SCRIPT_FILE_EXTENSION,
-                        data: M02_SYNC_SCRIPT_CONTENT,
+                        name: "etc",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: M02_SYNC_SCRIPT_FILE_NAME,
+                                extension: M02_SYNC_SCRIPT_FILE_EXTENSION,
+                                data: M02_SYNC_SCRIPT_CONTENT,
+                            },
+                        ],
                     },
                 ],
             },
@@ -363,14 +381,20 @@ const registerM02CloserRigNetwork = (): void => {
                 ],
                 rootFiles: [
                     {
-                        name: M02_QUOTA_REPORT_FILE_NAME,
-                        extension: M02_QUOTA_REPORT_FILE_EXTENSION,
-                        data: M02_QUOTA_REPORT_CONTENT,
-                    },
-                    {
-                        name: M02_ROUTING_NOTES_FILE_NAME,
-                        extension: M02_ROUTING_NOTES_FILE_EXTENSION,
-                        data: M02_ROUTING_NOTES_CONTENT,
+                        name: "etc",
+                        isFolder: true,
+                        children: [
+                            {
+                                name: M02_QUOTA_REPORT_FILE_NAME,
+                                extension: M02_QUOTA_REPORT_FILE_EXTENSION,
+                                data: M02_QUOTA_REPORT_CONTENT,
+                            },
+                            {
+                                name: M02_ROUTING_NOTES_FILE_NAME,
+                                extension: M02_ROUTING_NOTES_FILE_EXTENSION,
+                                data: M02_ROUTING_NOTES_CONTENT,
+                            },
+                        ],
                     },
                 ],
             },
@@ -434,16 +458,16 @@ const registerM02WorkstationNetwork = (): void => {
                             Network.createUser({
                                 username: M02_HOME_NAS_USERNAME,
                                 password: M02_HOME_NAS_PASSWORD,
+                                files: [
+                                    {
+                                        name: M02_AFFILIATE_ENDPOINTS_FILE_NAME,
+                                        extension: M02_AFFILIATE_ENDPOINTS_FILE_EXTENSION,
+                                        data: M02_AFFILIATE_ENDPOINTS_CONTENT,
+                                    },
+                                ],
                             }),
                         ],
                         ports: [{ external: 22, internal: 22, active: true, service: "ssh" }],
-                        rootFiles: [
-                            {
-                                name: M02_AFFILIATE_ENDPOINTS_FILE_NAME,
-                                extension: M02_AFFILIATE_ENDPOINTS_FILE_EXTENSION,
-                                data: M02_AFFILIATE_ENDPOINTS_CONTENT,
-                            },
-                        ],
                     },
                     {
                         ip: M02_SMART_TV_IP,
@@ -466,7 +490,29 @@ const registerM02WorkstationNetwork = (): void => {
                         lanIp: M02_WORKSTATION_LAN_IP,
                         type: NetworkDeviceType.Device,
                         name: M02_WORKSTATION_CODENAME,
-                        users: [Network.createUser({ username: "tr4c3404", online: true })],
+                        users: [
+                            Network.createUser({
+                                username: "tr4c3404",
+                                online: true,
+                                files: [
+                                    {
+                                        name: M02_FINANCIAL_DOC_FILE_NAME,
+                                        extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
+                                        data: M02_FINANCIAL_DOC_CONTENT,
+                                    },
+                                    {
+                                        name: M02_WORKSTATION_ERRANDS_FILE_NAME,
+                                        extension: M02_WORKSTATION_ERRANDS_FILE_EXTENSION,
+                                        data: M02_WORKSTATION_ERRANDS_CONTENT,
+                                    },
+                                    {
+                                        name: M02_WORKSTATION_UNSENT_FILE_NAME,
+                                        extension: M02_WORKSTATION_UNSENT_FILE_EXTENSION,
+                                        data: M02_WORKSTATION_UNSENT_CONTENT,
+                                    },
+                                ],
+                            }),
+                        ],
                         ports: [
                             {
                                 external: 3389,
@@ -474,23 +520,6 @@ const registerM02WorkstationNetwork = (): void => {
                                 active: false,
                                 service: "rdp",
                                 version: "FreeRDP 7.1.9",
-                            },
-                        ],
-                        rootFiles: [
-                            {
-                                name: M02_FINANCIAL_DOC_FILE_NAME,
-                                extension: M02_FINANCIAL_DOC_FILE_EXTENSION,
-                                data: M02_FINANCIAL_DOC_CONTENT,
-                            },
-                            {
-                                name: M02_WORKSTATION_ERRANDS_FILE_NAME,
-                                extension: M02_WORKSTATION_ERRANDS_FILE_EXTENSION,
-                                data: M02_WORKSTATION_ERRANDS_CONTENT,
-                            },
-                            {
-                                name: M02_WORKSTATION_UNSENT_FILE_NAME,
-                                extension: M02_WORKSTATION_UNSENT_FILE_EXTENSION,
-                                data: M02_WORKSTATION_UNSENT_CONTENT,
                             },
                         ],
                     },

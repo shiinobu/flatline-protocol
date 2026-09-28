@@ -72,6 +72,62 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
   search `data-name` still pointed at the old year, an aftermath-log write
   ordered after the objective that could complete the mission first, and
   the `backtrace.html` gap above) — all three fixed same-day.
+- **[docs] Story/mechanic verification audit (M1-M3): the prior entry's
+  "all 6 gaps fixed" claim was only partly true.** Re-checked every
+  M1→M2→M3 connection, the BACKTRACE↔mission wiring, and the BLACKLEDGER
+  identity against current source, not the prior session's own summary.
+  Confirmed real: the `TR4C3404` rename, the `BLACKLEDGER` echo in M2/M3
+  reports/logs, and M3's tie back to `M01_CASE_ID`. Confirmed still open
+  at the time: the "second signer" thread from M2's report was never
+  bridged in M3, the $42,000 M3 ledger amount vs M2's $2,850,000 ransom
+  was never explained, M3 had no concrete date, and the BACKTRACE
+  caseboard's visual graph stopped at M2 (`shellCompany`) even though
+  M3's `parentEntity` fact already existed. All four fixed this session
+  (see below). One stale line in `docs/network-plan.md` (M1's firewall
+  described as "ssh-able directly," superseded by the pfSense-web-login
+  mechanic) and one fully-superseded section (M2's original Wi-Fi/
+  `bettercap`/`fern` design, replaced 2026-09-24 by the Firewall-behind-
+  Splitter shape) also corrected.
+- **[mechanic] BACKTRACE caseboard now reaches M3.** Added a fourth
+  entity node (`parentEntity`, SKN Capital Nominees), its connecting
+  trace-line from `shellCompany`, and an `EV-M3-01` evidence card —
+  previously the visual investigation map (unlike M3's own text-only
+  report panel) never extended past M2. M3's `caseId` fact, previously
+  only traceable through the optional bonus objective
+  (`bonusExploreShare`), now also traces on the mandatory ledger-dump
+  event (`Sqlmap.DumpTable`); backed by a new `memo` field on the
+  Coin-Drift ledger DB row referencing `M01_CASE_ID`, not just a
+  relocated trigger, so the fact has real in-fiction grounding on the
+  required path.
+- **[mechanic] M3's report bridges to M2's unresolved "second signer"
+  thread; ledger amount and date clarified.** M3's report gained one
+  line tying its own "Nominees" mystery back to M2's routing-note
+  thread. `q1_reconciliation.xlsx` gained a line clarifying the $42,000
+  ledger row is one line item, not the whole ransom batch, and its
+  vague "same week" date note is now a concrete `Aug 16, 2026`.
+- **[mechanic] Every mission file that lived loose at a device's root
+  now sits in a real container.** New engine fact, confirmed from
+  `index.d.ts` rather than assumed: `rootFiles` folders named
+  `etc`/`home`/`logs`/`lib` are merged into a device's default root
+  folders, and a separate `NetworkUser.files` field mounts a flat file
+  list under that user's own home directory — the precise mechanism
+  M1's target device was already informally approximating. Every loose
+  file across M1 (6 devices), M2 (6 devices, including the two decoy
+  subdomains that share one registration function), and M3 (1 device)
+  now goes through one of these two containers, chosen by whether the
+  file has a named owner. Zero event-handler changes needed — every
+  mission's file-read checkpoints already match by
+  `name`/`extension`/`data`, never a path.
+- **[mechanic] `.txt`/`.log` content given an explicit 4-shape
+  standard.** Report/log artifacts keep a title+divider header; ambient
+  system logs (M1's `auth.log`/`cron.log`/`system.log`) get none,
+  rewritten in genuine Debian/Ubuntu syslog format (`sshd`/`CRON[pid]`/
+  `systemd`/`kernel` lines, new IPs checked against every address
+  already used in the project) instead of the previous untimestamped
+  placeholder lines; casual notes and scripts are exempt/unchanged.
+  `sales_ledger.log` gained two historical rows for the same buyer
+  alias, matching the IRC line "same as on the last two jobs," which
+  previously had no ledger data backing it.
 
 ## 2026-09-18
 

@@ -81,7 +81,9 @@ easy to reuse.
 Router  91.198.174.3 / lan 192.168.1.1     (storefront's ISP router)
 ├─ Firewall  45.132.11.87 / lan 192.168.1.2
 │    rules: [{ allowed: false, port: 22 }]  ← blocks the backend's SSH from the start
-│    ssh-able directly, with the same credential recovered from the broker's session JWT
+│    breached via the pfSense web UI (port 80), using the same credential
+│    recovered from the broker's session JWT -- not ssh; ssh-into-firewall
+│    was confirmed impossible (docs/bugs.md entry 17)
 └─ Device  77.91.14.203 / lan 192.168.1.3   (verifiedaccess.mkt storefront + the broker's real backend — one machine, not two)
      ports: 443 (open, public storefront), 22 (inactive until the Firewall is breached), 80 (inactive, unused decoy port)
 ```
@@ -111,34 +113,41 @@ The old single "access the broker's server" objective is now two:
 breach the firewall, then SSH into the actual backend — 8 objectives
 became 9, still inside the 9-11 range `story.md` §4 targets.
 
-## M2 — "The Maker" (implemented, not yet live-tested)
+## M2 — "The Maker" (implemented, reworked again 2026-09-24)
+
+**Correction (2026-09-28 audit):** the Wi-Fi-based plan this section
+originally described (`bettercap`/`fern`/`Network.createWifiNetwork`) was
+superseded on 2026-09-24 by a Firewall-behind-a-Splitter shape, the same
+`PFSense.Login`/`PFSense.Changes` mechanic M1/M3 already use -- no Wi-Fi
+cracking in the shipped mission (confirmed: zero `Fern`/`Bettercap`/
+`WifiConnected`/`createWifiNetwork` references anywhere in `src/`). The
+diagram below reflects what `m02-quest.ts` actually implements; full
+node-by-node detail (every decoy device, port and credential) is in
+`docs/m02-playtest.md`'s appendix, already verified line-by-line against
+source.
 
 ```
-Router → Device devbox.a7xcodeface.dev        (dev server chain unchanged: sqlmap/john/ssh)
+M02_ROOT_IP (Router)                          203.0.113.140  [tr4c3404.dev]
+   subfinder -> 40 subdomains (1 real devbox + 2 populated decoys + 37 empty noise)
+   └─ M02_DEV_ROUTER_IP (Router) 66.0.34.201
+      └─ M02_DEV_IP 139.162.45.98  [f3a91b7c04d8.tr4c3404.dev]
+         ports: 22 ssh · 443 https (EOL) · 3306 mysql (SQL_INJECTION)
+         files: deploy.log, sync-home.txt
 
-WifiNetwork ssid "TP-Link_8F21"   ip 66.0.34.202 (reused, was M02_WORKSTATION_ROUTER_IP)
-└─ Device 203.0.113.142  lan 192.168.0.2  codename "Stale-Fork"
-     ports: rdp 3389 (FreeRDP 1.0.0) — unchanged exploit target, only the reachability path moved
+M02_WORKSTATION_ROUTER_IP (Router)            24.187.92.14
+   └─ M02_SPLITTER_IP (Splitter, pure pass-through)  88.212.67.19
+      ├─ M02_FIREWALL_IP (Firewall, isIpHidden)      156.38.94.201
+      │     PFSense.Login/Changes gates RDP (3389) on the Device below
+      ├─ M02_WORKSTATION_IP (Device) "Stale-Fork"    71.192.14.230
+      │     3389 rdp (FreeRDP 7.1.9, RCE) -- closed until Firewall breached
+      │     files: wire_authorization.pdf, errands.txt, unsent.txt
+      └─ Printer + 4 decoy devices (Glass-Eye/Night-Owl/Ghost-Relay/Dead-Pixel)
+            -- one real NAS "Rust-Bucket" among them, ssh 22 admin/admin
+
+M02_CLOSER_RIG_ROUTER_IP (Router)             109.94.27.183
+   └─ M02_CLOSER_RIG_IP "Closer-Rig"          62.171.45.90
+         3389 rdp (FreeRDP 2.7.3, RCE) -- open from the start, optional bonus thread
 ```
-
-The developer's personal admin workstation moves off the public internet
-entirely and onto a home Wi-Fi network — thematically it was never a
-corporate asset, so reaching it over Wi-Fi instead of a second
-internet-facing router/RDP box fits better and gives the mission its own
-distinct "Very Hard" mechanic. Confirmed against
-`node_modules/@hotbunny/hackhub-content-sdk/index.d.ts`: `Network.createWifiNetwork()`
-takes no `lanIp` at the AP level (only `ip`) — `lanIp` is only settable on
-the `children` devices behind it. Flow: `bettercap` (`Bettercap.WifiRecon`/
-`.WifiDeAuth`, both null-payload events, gated as loosely as M03's
-Wireshark) → `fern` → **`Fern.FindPassword`** (`{subnet, user, model}`,
-matched on `subnet.ip`) → `Network.connectWifi()` → `Network.WifiConnected`.
-New objective `m02.objective.04` inserted between `accessDevServer` and
-`rootgrabWorkstation` (7 → 8 objectives); `rootgrabWorkstation` and
-`Network.setVulnerabilities` also picked up an explicit `version:
-"FreeRDP 1.0.0"` (previously bare `RCE`) since Metasploit's own in-game
-handbook (`.reverse/extracted/docs_unzipped/docs/EN/Metasploit/`) shows
-`search`/`use` matching against the scanned service+version string, not
-the vulnerability type alone.
 
 ## M3 — "Money Trail" (implemented, not yet live-tested)
 

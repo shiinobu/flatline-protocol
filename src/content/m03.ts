@@ -44,9 +44,10 @@ export const M03_SPREADSHEET_CONTENT = [
     `Prepared by: ${M03_ACCOMPLICE_NAME} (Finance)`,
     `Parent entity on file: ${M03_PARENT_ENTITY_NAME}`,
     "Note: batch payouts routed through 'consulting fees' line item again.",
+    "Note: this is one line item, not the whole batch -- the rest is split across transfers we haven't pulled yet.",
     "Note: told this is normal for the holding company's structure. Hope that's true.",
     `Note: batch ref lines up with the memo on ${M01_CASE_ID} -- healthcare sector, if intake notes are right.`,
-    "Note: dated same week as the wire authorization on file (Aug 2026).",
+    "Note: dated Aug 16, 2026 -- two days after the wire authorization on file.",
 ].join("\n");
 
 export const M03_TIP_SUBJECT = "shell company confirmed — dig into it";
@@ -68,6 +69,7 @@ export const M03_REPORT_TEMPLATE_CONTENT = [
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
     "Confirmed: BLACKLEDGER's money moves through {{parentEntity}}.",
     "Unresolved: \"Nominees\" isn't an operating company -- means someone real still owns it, off every filing we've found.",
+    "Same shape as the routing note from the toolkit developer -- someone signs off above the shell layer both times. Still no name.",
 ].join("\n");
 export const M03_REPORT_BODY = [
     `Shell company: ${M02_SHELL_COMPANY_NAME}`,
@@ -76,6 +78,7 @@ export const M03_REPORT_BODY = [
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
     `Confirmed: BLACKLEDGER's money moves through ${M03_PARENT_ENTITY_NAME}.`,
     "Unresolved: \"Nominees\" isn't an operating company -- means someone real still owns it, off every filing we've found.",
+    "Same shape as the routing note from the toolkit developer -- someone signs off above the shell layer both times. Still no name.",
 ].join("\n");
 
 export const M03_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]> = {

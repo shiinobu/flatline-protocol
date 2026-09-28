@@ -50,6 +50,7 @@ import {
     M03_TIP_SUBJECT,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
+import { M01_CASE_ID } from "../content/m01.js";
 import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
 interface M03QuestData {
@@ -122,6 +123,7 @@ const registerM03Database = (): string => {
             beneficiary: { value: M02_SHELL_COMPANY_NAME, type: "string" },
             parentEntity: { value: M03_PARENT_ENTITY_NAME, type: "string" },
             amount: { value: M03_LEDGER_AMOUNT, type: "number" },
+            memo: { value: `ref ${M01_CASE_ID}`, type: "string" },
         },
     ]);
 
@@ -174,16 +176,16 @@ const registerM03FinanceVlan = (): void => {
                             Network.createUser({
                                 username: M03_ACCOMPLICE_USERNAME,
                                 password: M03_ACCOMPLICE_PASSWORD,
+                                files: [
+                                    {
+                                        name: M03_SPREADSHEET_FILE_NAME,
+                                        extension: M03_SPREADSHEET_FILE_EXTENSION,
+                                        data: M03_SPREADSHEET_CONTENT,
+                                    },
+                                ],
                             }),
                         ],
                         ports: [{ external: 445, internal: 445, active: true, service: "smb" }],
-                        rootFiles: [
-                            {
-                                name: M03_SPREADSHEET_FILE_NAME,
-                                extension: M03_SPREADSHEET_FILE_EXTENSION,
-                                data: M03_SPREADSHEET_CONTENT,
-                            },
-                        ],
                     },
                 ],
             },
@@ -362,7 +364,7 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
             this.SetData("ledgerDumped", true);
             this.completeObjective(M03_OBJECTIVE_IDS.dumpFinanceLedger);
-            traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount"]);
+            traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount", "caseId"]);
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.default);
         });
 
