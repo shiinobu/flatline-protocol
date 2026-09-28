@@ -23,6 +23,26 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 
 ## 2026-09-28
 
+- **[mechanic] M3 "Money Trail" redesigned (branch `clouds-modify`, not
+  live-tested).** Closes the 2026-09-23 audit's M3 findings. **M3→M4:** the
+  `wireshark` capture (gated behind the NAT pivot *and* a new `bettercap`
+  step) now writes `~/finance_vlan_capture.log` naming
+  `M04_ARCHITECT_VPN_IP`, traces a new `architectVpn` BACKTRACE fact, and
+  the report requires that IP as a third field, so M4's opening tip now
+  describes evidence the player actually gathered. **d.reyes's SMB
+  creds** leak from a new `helpdesk_resets` table in the same `sqlmap`
+  dump. Deeper chain: remote-portal `nslookup` lead to the gateway, a D.
+  Reyes Twotter persona and personal note, three decoys (`@m.okafor`, the
+  `Split-Bill` host, and a PayStream payroll IP ruled out by `geoip`).
+  Objectives 12 → 3 milestones. See `docs/scratch.md` (last section).
+- **[bug] Two pre-existing M3 blockers fixed.** Coin-Drift had no domain,
+  so `sqlmap` (which resolves targets by domain only) could never reach
+  the ledger; it now carries `ledger.skynet-importexport.biz`. The pfSense
+  gateway exposed only 443, but the browser opens admin panels only on
+  internal port 80. VLAN moved to fresh addresses (`bugs.md` #21) and to
+  M2's proven public-`ip` + `lanIp` shape. 10 SDK-behavior assumptions and
+  2 open doc conflicts are listed in `docs/scratch.md` for verification
+  against the client before merge.
 - **[bug] M1-M4 network state silently survived `mods.reset` and rebuilds
   forever.** `Network.createSubnetNetwork()` is "create, not replace" per
   the SDK's own docs — an address that already holds a network is left

@@ -213,39 +213,51 @@ admin.
 
 ### Mission 3 — "Money Trail"
 
-**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
-plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
-is purely technical: the finance VLAN (step 6-8) now splits across two
-hosts behind a `Splitter` — the finance-server ("Coin-Drift") and the
-accomplice's PC ("Faded-Ledger") — instead of one device holding
-everything. Objective count unchanged. Pre-redesign implementation kept
-at `src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
+**Status: redesigned 2026-09-28 (branch `clouds-modify`), not yet
+live-tested.** Deepened to match M1/M2: a third internal host (a decoy),
+a D. Reyes Twotter persona, two in-mission decoys, a real bettercap gate,
+and a capture that genuinely produces M4's lead. Objectives collapsed
+12 → 3 milestones (pivot / trace / report). Engine-level detail and every
+unverified assumption: `docs/scratch.md` (last section); topology:
+`docs/network-plan.md`. Pre-2026-09-20 implementation kept at
+`src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
 
 **Target:** Skynet Import-Export Co. (shell company).
 
+**Cast:** **Dana Reyes** (`@d.reyes`), finance analyst and unwitting
+accomplice — careless in public (leaks the company password format and
+her own personal-password habit on Twotter), uneasy in private (a note on
+her share, `do_not_open_at_work.txt`, lists what she's "not supposed to
+have noticed," including the finance box phoning the same address after
+every batch). She ties the numbers anyway: kids, a paycheck.
+
 **Chain:**
-1. `nmap`+`lynx` — recon the public site.
-2. `mxlookup`/`dig` — map the employee email format.
-3. `lynx` — finds a public post by a finance employee that leaks a
-   password pattern (used to build a wordlist, never handed over for
-   free).
-4. Find + `hydra`-crack the company's **pfSense** admin login (the SDK's
-   real router/firewall tool — this mission is built specifically around
-   it, per explicit request that Router/Firewall get real weight).
-5. `PFSense.Changes` — the player must **add their own temporary
-   NAT/port-forward rule** to pivot into the internal Finance VLAN (not
-   handed access).
-6. `bettercap` ARP-spoof + `wireshark` capture — internal traffic capture.
-7. `sqlmap` — dumps the internal finance portal's wire-transfer ledger,
-   which points to the parent holding entity **SKN Capital Nominees**.
-8. **Optional/bonus:** browse the Finance shared drive via `explorer` (GUI
-   File Explorer — this mission is also where that explicitly-requested
-   tool gets real use) and find a spreadsheet corroborating the ledger,
-   plus a "collateral" beat: one finance employee turns out to be an
-   unwitting accomplice.
-9. Player must **revert their own pfSense rule change** before leaving
-   (tradecraft, not just "mission complete").
-10. Dead-drop mail naming SKN Capital Nominees.
+1. `nmap`+`lynx` on the public site — staff directory names `@d.reyes`
+   (the real lead) and `@m.okafor` (**decoy**: nothing to work with), plus
+   a staff remote-access portal.
+2. `nslookup remote.skynet-importexport.biz` → the pfSense gateway;
+   `mxlookup` maps the mail host.
+3. `lynx @d.reyes` / her Twotter — leaks the password pattern
+   ("company name + year + !") — derivable, never handed over.
+4. Into the company's **pfSense** admin panel (pattern-derived password
+   typed in, or `hydra`).
+5. `PFSense.Changes` — the player **adds their own NAT rule** to pivot
+   into the finance VLAN.
+6. `bettercap` (ARP-spoof), then `wireshark` — the capture writes
+   `finance_vlan_capture.log`: the finance server's hostname plus two
+   recurring external endpoints.
+7. `geoip`/`whois` both endpoints — PayStream Payroll (**decoy**, Dublin,
+   ordinary) vs. an address that resolves to nothing, tunnelled to once
+   per payout batch. That address is the one M4 opens on.
+8. `sqlmap` the ledger host — `wire_transfers` names **SKN Capital
+   Nominees**; `helpdesk_resets` leaks d.reyes's personal SMB password.
+9. **Optional/bonus:** `explorer` into Reyes's share (the reconciliation
+   spreadsheet + her note); `Split-Bill` sits beside it as an empty
+   **decoy** host.
+10. **Revert your own pfSense rule** before leaving (the mission's "undo
+    your own action" beat; the report is refused until you do).
+11. Dead-drop mail: shell company, parent entity, and the recurring
+    endpoint.
 
 ### Mission 4 — "The Architect"
 
@@ -389,7 +401,9 @@ to code:
   yet live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
   pass run. pfSense's finance VLAN already used the correct
   Router-wrapping-child-Device shape pre-redesign; now wraps a `Splitter`
-  with two Devices instead of one flat Device.
+  with two Devices instead of one flat Device. **Redesigned again
+  2026-09-28** (three Devices, bettercap gate, capture → M4 lead,
+  12 → 3 objectives) — see §4 and `docs/scratch.md`; not yet live-tested.
 - [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
   `src/main/m04-quest.ts`, `src/websites/m04/architect-c2/`,
   `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`

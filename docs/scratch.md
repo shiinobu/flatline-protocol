@@ -426,7 +426,10 @@ recycled.
 ---
 
 **M03/M04 AUDIT FINDINGS (2026-09-23, read-only investigation, NOT YET
-ACTED ON — M2 redesign plan above stays the priority).** Same audit lens
+ACTED ON — M2 redesign plan above stays the priority).** **Update
+2026-09-28:** M3 findings #1, #2 and cross-mission #6 are addressed by the
+M3 redesign (last section of this file, not live-tested). M4 findings #3,
+#4, #5 remain open. Same audit lens
 used on M02 this session (physical-proximity plausibility, dead connective
 tissue, flat antagonist writing, unpaid latent details, looser-than-story
 gating), run against M03 "Money Trail" and M04 "The Architect."
@@ -1292,3 +1295,135 @@ review). Detail yang gak masuk changelog (biar gak duplikat):
   BLACKLEDGER, LedgerVault fix, Personal Log M1/M3 baru, facts M3 baru.
   M3 jadi fokus live-test pertama kalinya sesi berikutnya
   (`flags.ts` udah diarahkan kesitu).
+
+---
+
+**M3 REDESIGN (2026-09-28, branch `clouds-modify`) — implemented, NOT
+live-tested.** `tsc --noEmit` clean, `npx tsx esbuild.config.ts` clean.
+Closes the 2026-09-23 audit's M3 findings #1 (bettercap), #2 (d.reyes
+creds) and cross-mission #6 (M3→M4 VPN IP). Full shipped topology is in
+`docs/network-plan.md`; design intent in `docs/story.md` §4.
+
+**Audit bugs, resolved:**
+- **A (CRITICAL, audit #6) — the VPN lead is now produced by the capture.**
+  `Wireshark.Started` (only after the NAT pivot AND bettercap) now (1)
+  writes `~/finance_vlan_capture.log` to the player's PC listing the two
+  recurring external endpoints, one of which is `M04_ARCHITECT_VPN_IP`,
+  (2) traces a new `architectVpn` BACKTRACE fact, and (3) the M3 report
+  gained a required third field `vpnLead` that must equal that IP. So
+  M4's tip ("one address kept showing up in the finance VLAN capture,
+  every single session") now describes evidence the player actually
+  collected and reported. `m03.ts` imports the IP from the `characters`
+  leaf (never from `m04.ts`, which would re-close the cycle fixed on
+  2026-09-24). M4 itself is untouched.
+- **B (HIGH, audit #1) — bettercap is a real gate.** `Bettercap.Open` or
+  `Bettercap.NetProbe(true)` after the pivot sets `arpSpoofDone`;
+  `Wireshark.Started` does nothing until it is set.
+- **C (MEDIUM, audit #2) — d.reyes's SMB creds have a discovery path.**
+  Coin-Drift's database gained a second table, `helpdesk_resets`, whose
+  one row is the helpdesk resetting `d.reyes` back to her personal
+  password. Same `sqlmap` dump that yields the ledger. Her Twotter
+  (see below) also hints at it ("same four names on every password").
+
+**Pre-existing M3 blockers found and fixed during this pass** (both would
+have stopped the mission on its first live-test, independent of A/B/C):
+1. **Coin-Drift had no domain, so `sqlmap` could never reach the ledger.**
+   Per this file's own M2 finding, `sqlmap` resolves its target through
+   `GetSubnetByDomain` and must be given a domain. Coin-Drift now carries
+   `domain: { name: "ledger.skynet-importexport.biz", vulnerabilities:
+   [SQL_INJECTION] }`, the exact shape of M2's live-confirmed devbox.
+2. **pfSense exposed only 443.** Per the 2026-09-24 M2 finding, the
+   browser only opens a Router/Firewall admin page on `port.internal ===
+   80`. Now `80/http` (443 shown explicitly CLOSE in the nmap fixture,
+   per implementation-rules §12).
+
+**Other changes:** internal devices moved to M2's live-confirmed shape
+(scattered public `ip` + sequential `lanIp`), matching `network-plan.md`'s
+convention, instead of using the private address as the node `ip`. Fresh
+addresses throughout (gateway `77.83.142.6`, VLAN `10.50.1.x`) per
+`bugs.md` #21, and the legacy gateway `203.0.113.151` is destroyed on
+start so an old save can't keep an orphan whose children overlap. pfSense
+password `SknTrade2024!` → `Skynet2024!` so it is actually derivable from
+the leaked pattern ("company name + year + !") and the visible company
+name. New decoys: `@m.okafor` (OSINT dead end), `Split-Bill` (empty
+internal SMB host), and PayStream `45.67.219.8` in the capture (geoip →
+Dublin, ordinary; the VPN IP geoips to Unknown). New D. Reyes Twotter
+persona (7 posts) and a personal note on her share. 10 write-only
+listeners/flags removed (M2's collapse precedent): the tools still return
+their data through the fixtures; nothing ever read those flags.
+
+**Objectives: 12 → 3 milestones** (`investigateShellCompany` → pivot,
+`traceTheMoney` → capture + ledger, `reportToDeadDrop` → revert + report).
+Not collapsed to 1 like M1/M2 because M3 now has a mandatory
+"undo your own action" beat (revert the NAT rule) that the player must
+know about; a milestone for it is the difference between a legible
+requirement and a silently-refused report. **Before testing, abandon or
+`mods.reset` M3 — the objective IDs changed (`.00`-`.11` → `.00`-`.02`).**
+
+**SDK-BEHAVIOR ASSUMPTIONS — verify against the real client before merging**
+(all in `src/main/m03-quest.ts`; none of these has a live-tested precedent
+in this exact form):
+1. **`:94-104` Capture file via `Events.emit` → module-level `Events.on`
+   → `Files.create`.** The bridge shape is `bugs.md` #19's live-verified
+   row 6, but that was reached from a `Website.Exports` click; here it is
+   reached from a quest's `this.Events.on("Wireshark.Started")`. Also
+   assumes `Files.getHomePath()` + `parentPath` lands the file in the
+   player's home. **Fallback if it fails:** the VPN IP still reaches the
+   player through the BACKTRACE `architectVpn` fact (`:465`), and the
+   ledger domain through `subfinder` (assumption 4), so the mission stays
+   completable — but the capture would lose its artifact.
+2. **`:448-457` Which bettercap event fires.** Both carry no target, so
+   the gate is "bettercap ran after the pivot," not "ARP-spoofed the
+   finance VLAN." Assumes `Bettercap.Open` fires on launch and/or
+   `NetProbe` fires `true` on `net.probe on`. A player who opened
+   bettercap *before* pivoting must toggle `net.probe` or reopen it.
+3. **`:459` `Wireshark.Started` fires with no packet data**, so the
+   capture file is authored content, not what the Wireshark UI shows.
+   `bugs.md` #8 suggests the UI may show nothing on this VLAN. Deliberately
+   NOT filtered by `source`/`destination` (the audit's old "loosest gate"
+   note) — an address-format mismatch there would soft-lock the one step
+   M4 depends on. **Open question worth checking in the client:** whether
+   `Events.emit("NetworkPacketTransfer", ...)` would make real packets
+   appear in Wireshark's list. Not implemented — it would be assuming
+   engine behavior from a doc comment alone.
+4. **`:250` `ledger.skynet-importexport.biz` on a device nested
+   Router → Splitter → Device.** M2's devbox domain is Router → Device.
+   Assumes `sqlmap`/`subfinder` resolve a domain one level deeper (M2's
+   workstation proves the depth is reachable for Metasploit, not sqlmap).
+5. **`:472` `Sqlmap.DumpTable.host`** — M2 matches it against the IP;
+   accepts the IP *or* the domain here, since the input must be a domain.
+6. **`:237` + `:425` pfSense admin panel on a `Router`-type node.** M1/M2's
+   confirmed panels are on `Firewall` nodes. `bugs.md` #17 says pfSense
+   keys off `users`, not type, and M3 has always put it on the Router —
+   but no live test has opened one.
+7. **`:430-446` `PFSense.Changes` counting** (inherited): change #1 is the
+   pivot; the first change *after* both the capture and the ledger dump
+   counts as the revert. The event carries no rule data (`{old, new}:
+   any`), so "revert" means "any later change," not "removed that rule."
+8. **`:174` hydra target with `:80`.** M1's fixture uses `ip:port`; M3's
+   historically used a bare IP. Both are registered. The pivot does NOT
+   depend on hydra: `PFSense.Login` fires on a correct manual login with
+   the pattern-derived password too.
+9. **`:481` `Terminal.Explorer.ip`** — accepts the public IP or the LAN IP.
+10. **`:331` Twotter persona with no avatar/banner** (M1 always supplies
+    both). `createUser` is documented to fill missing fields. Also: the
+    `lynx @d.reyes` fixture and a real Twotter account now share a
+    handle; the handler lower-cases `input` and matches "reyes" so either
+    resolution works (the SDK notes a handle lookup may arrive as the
+    account's full name).
+
+**Open questions (docs disagree, deliberately not silently resolved):**
+- **`IsLocalIp()` vs the `10.50.x.x` corporate scheme.** The 2026-09-24
+  changelog says `IsLocalIp()` hardcodes `192.168.1.x`, but this file's
+  own M2 notes give the root cause as the router missing an explicit
+  `lanIp`. M3's router has one. Kept `network-plan.md`'s `10.50.x.x`. If
+  the pfSense form rejects `10.50.1.x` destinations: the pivot handler
+  never reads the destination, so any saveable change still completes
+  it; the fallback is renumbering the VLAN to `192.168.1.x` (content-only).
+- **`resetMissionNetworks` (`:225`) vs `bugs.md` #18/#21.** Those entries
+  say a same-tick destroy+create at one address can leave it empty, or
+  keep `subfinder` from listing its domains. The 2026-09-28 reset fix
+  applied it to every mission anyway, not yet live-tested. M3 inherits
+  this unchanged, but depends on it more now: the report hard-requires
+  the ledger dump, which requires the domain to register. First suspect
+  if `sqlmap`/`subfinder` can't find `ledger.skynet-importexport.biz`.
