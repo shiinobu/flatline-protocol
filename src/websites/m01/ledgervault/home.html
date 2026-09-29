@@ -622,6 +622,7 @@ document.getElementById("photoList").innerHTML=folder.files.map((file,i)=>`
 <div class="file-type">${file[3]}</div>
 </div>`).join("");
 document.getElementById("folderSummary").textContent="{{t:M01.LV.SUMMARY_FILES_TEMPLATE}}".replace("{{n}}",folder.files.length);
+if(typeof flatlineOpenProject==="function")flatlineOpenProject(key);
 }
 function openViewer(index,key){
 const file=folders[key].files[index];

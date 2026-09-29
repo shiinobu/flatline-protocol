@@ -44,7 +44,16 @@ export class OpenCommand extends Command {
 
         const label = file.extension ? `${file.name}.${file.extension}` : file.name;
         tools.println([{ text: label, color: "cyan", bold: true }]);
-        tools.println(content);
+        printLines(tools, content);
         Events.emit(OPEN_FILE_READ_EVENT, { id: file.id, name: file.name, extension: file.extension });
     }
 }
+
+const keepIndent = (line: string): string => line.replace(/^ +/, (spaces) => "\u00a0".repeat(spaces.length));
+
+const printLines = (tools: CommandTools, content: string): void => {
+    for (const line of content.split(/\r?\n/)) {
+        if (line === "") tools.newLine();
+        else tools.println(keepIndent(line));
+    }
+};

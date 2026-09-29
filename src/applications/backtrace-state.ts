@@ -1,7 +1,7 @@
 import { SaveStorage, Time, UI } from "@hotbunny/hackhub-content-sdk";
 
 import { trace } from "../helpers/logger.js";
-import { buildBacktraceFacts } from "./backtrace-facts.js";
+import { buildBacktraceFacts, isBacktraceKey, type BacktraceKey } from "./backtrace-facts.js";
 
 export const BACKTRACE_STORAGE_KEY = "backtrace";
 
@@ -61,27 +61,24 @@ const applyMission = (mission: BacktraceMissionId, status: BacktraceMissionStatu
     if (missionState.facts) trace("Backtrace", `${mission} facts`, JSON.stringify(missionState.facts));
 };
 
-const applyTrace = (mission: BacktraceMissionId, keys: readonly string[]): readonly string[] => {
-    const current = readBacktraceState()[mission];
-    if (current.status === "complete") return [];
+const applyFinding = (mission: BacktraceMissionId, key: string): boolean => {
+    if (!isBacktraceKey(mission, key)) {
+        trace("Backtrace", `${mission}.${key} is not a key finding`);
+        return false;
+    }
 
-    const canon = collectFacts(mission) ?? {};
+    const current = readBacktraceState()[mission];
+    if (current.status === "complete") return false;
+
+    const value = (collectFacts(mission) ?? {})[key];
     const known = current.facts ?? {};
-    const fresh = keys.filter((key) => canon[key] !== undefined && known[key] !== canon[key]);
-    if (fresh.length === 0) return [];
+    if (value === undefined || known[key] === value) return false;
 
     const status: BacktraceMissionStatus = current.status === "locked" ? "progress" : current.status;
-    const facts = { ...known, ...Object.fromEntries(fresh.map((key) => [key, canon[key]])) };
-    writeBacktraceMission(mission, { ...current, status, facts });
-    trace("Backtrace", `${mission} traced ${fresh.join(", ")}`);
-    return fresh;
+    writeBacktraceMission(mission, { ...current, status, facts: { ...known, [key]: value } });
+    trace("Backtrace", `${mission} traced ${key}`);
+    return true;
 };
-
-export const getBacktraceFact = (mission: BacktraceMissionId, key: string): string | undefined =>
-    readBacktraceState()[mission].facts?.[key];
-
-export const getBacktraceStatus = (mission: BacktraceMissionId): BacktraceMissionStatus =>
-    readBacktraceState()[mission].status;
 
 export const setBacktraceMission = (mission: BacktraceMissionId, status: BacktraceMissionStatus): void => {
     try {
@@ -91,14 +88,17 @@ export const setBacktraceMission = (mission: BacktraceMissionId, status: Backtra
     }
 };
 
-export const traceBacktraceFacts = (mission: BacktraceMissionId, keys: readonly string[]): readonly string[] => {
+export const traceBacktraceKeyById = (mission: BacktraceMissionId, key: string): boolean => {
     try {
-        return applyTrace(mission, keys);
+        return applyFinding(mission, key);
     } catch (error: unknown) {
-        trace("Backtrace", `${mission} trace ${keys.join(", ")} failed`, describeError(error));
-        return [];
+        trace("Backtrace", `${mission} trace ${key} failed`, describeError(error));
+        return false;
     }
 };
+
+export const traceBacktraceFinding = <M extends BacktraceMissionId>(mission: M, key: BacktraceKey<M>): boolean =>
+    traceBacktraceKeyById(mission, key);
 
 const appendLogs = (mission: BacktraceMissionId, texts: readonly string[]): readonly string[] => {
     const current = readBacktraceState()[mission];

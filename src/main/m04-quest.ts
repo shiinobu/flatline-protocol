@@ -9,7 +9,7 @@ import {
 
 import { setBacktraceMission } from "../applications/backtrace-state.js";
 import { ATTRCHECK_REVEALED_EVENT } from "../commands/attrcheck.js";
-import { resetMissionNetworks } from "../helpers/network.js";
+import { missionNetworksExist, resetMissionNetworks } from "../helpers/network.js";
 import {
     M04_ARCHITECT_NMAP_RESULT,
     M04_ARCHITECT_REAL_NAME,
@@ -78,6 +78,7 @@ interface M04QuestData {
     readonly dialogStarted: boolean;
     readonly honeypotAlertSent: boolean;
     readonly reportSent: boolean;
+    readonly networkBuilt: boolean;
 }
 
 const resetM04ShellFixtures = (): void => {
@@ -236,6 +237,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
             dialogStarted: false,
             honeypotAlertSent: false,
             reportSent: false,
+            networkBuilt: false,
         };
     }
 
@@ -249,7 +251,8 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     override OnObjectivesStart() {
-        registerM04Network();
+        const networkKept = this.Data.networkBuilt && missionNetworksExist([M04_ARCHITECT_VPN_IP]);
+        if (!networkKept) registerM04Network();
         registerM04ShellFixtures();
 
         Mail.registerTemplate({
@@ -393,6 +396,8 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
             this.SetData("reportSent", true);
             this.completeObjective(M04_OBJECTIVE_IDS.finalDecision);
         });
+
+        if (!networkKept) this.SetData("networkBuilt", true);
     }
 
     override OnComplete() {

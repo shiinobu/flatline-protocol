@@ -5,6 +5,18 @@ import type {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
+import {
+    RANSOM_BATCHES,
+    RANSOM_BATCHES_Q3,
+    RANSOM_BATCH_HOSPITAL,
+    RANSOM_POSTING_TIMES,
+    RANSOM_SPLIT_PERCENT,
+    formatUsd,
+    formatUsdShare,
+    splitRansom,
+    totalRansom,
+    type RansomBatch,
+} from "./finance.js";
 import { M02_SHELL_COMPANY_NAME } from "./m02.js";
 import { M01_CASE_ID } from "./m01.js";
 
@@ -48,12 +60,42 @@ export const M03_VAULTLINE_LAN_IP = "192.168.1.6";
 export const M03_VAULTLINE_CODENAME = "Vault-Line";
 export const M03_VAULTLINE_RDP_VERSION = "FreeRDP 7.1.9";
 
+export interface M03ForwardTarget {
+    readonly ip: string;
+    readonly lanIp: string;
+    readonly internal: number;
+    readonly service: string;
+    readonly version?: string;
+}
+
+export const M03_FORWARD_TARGETS: readonly M03ForwardTarget[] = [
+    { ip: M03_COINDRIFT_IP, lanIp: M03_COINDRIFT_LAN_IP, internal: 445, service: "smb" },
+    { ip: M03_COINDRIFT_IP, lanIp: M03_COINDRIFT_LAN_IP, internal: 3306, service: "mysql", version: "mariadb" },
+    { ip: M03_ACCOMPLICE_IP, lanIp: M03_ACCOMPLICE_LAN_IP, internal: 445, service: "smb" },
+    { ip: M03_ACCOMPLICE_IP, lanIp: M03_ACCOMPLICE_LAN_IP, internal: 22, service: "ssh" },
+    { ip: M03_DECOY_HOST_IP, lanIp: M03_DECOY_HOST_LAN_IP, internal: 445, service: "smb" },
+    {
+        ip: M03_VAULTLINE_IP,
+        lanIp: M03_VAULTLINE_LAN_IP,
+        internal: 3389,
+        service: "rdp",
+        version: M03_VAULTLINE_RDP_VERSION,
+    },
+];
+
+export const M03_SITE_ACCESS_NOTICE =
+    "Staff access: the gateway forwards nothing to the finance VLAN until IT adds a rule. " +
+    `Hosts on the request form: ${M03_COINDRIFT_CODENAME} (database 3306, share 445, ledger portal ${M03_LEDGER_DOMAIN}), ` +
+    `${M03_ACCOMPLICE_CODENAME} (ssh 22, share 445), ${M03_DECOY_HOST_CODENAME} (share 445), ` +
+    `${M03_VAULTLINE_CODENAME} (tunnel gateway, RDP 3389).`;
+
 export const M03_COMPANY_SHORT_NAME = "Skynet";
 export const M03_POLICY_YEAR = "2024";
 
 export const M03_FINANCE_EMPLOYEE_HANDLE = "@d.reyes";
 export const M03_DECOY_EMPLOYEE_HANDLE = "@m.okafor";
 
+export const M03_HYDRA_DEFAULT_USER = "guest";
 export const M03_PFSENSE_USERNAME = "admin";
 export const M03_PFSENSE_PASSWORD = `${M03_COMPANY_SHORT_NAME}${M03_POLICY_YEAR}!`;
 
@@ -62,12 +104,86 @@ export const M03_FINANCE_PASSWORD = "internal_only_2024";
 
 export const M03_LEDGER_TABLE = "wire_transfers";
 export const M03_ACCESS_TABLE = "helpdesk_resets";
-export const M03_LEDGER_AMOUNT = 42000;
 export const M03_PARENT_ENTITY_NAME = "SKN Capital Nominees";
 export const M03_VPN_PEER_LABEL = "SKN-CENTRAL";
 
-export const M03_PAYROLL_SAAS_IP = "45.67.219.8";
-export const M03_PAYROLL_SAAS_NAME = "PayStream Payroll Services";
+export const M03_LEDGER_ESCROW_PARTY = "ClearEscrow Settlement";
+export const M03_LEDGER_PANEL_PARTY = "TR4C3404 Consulting";
+export const M03_LEDGER_BROKER_PARTY = "X7xSentry9 Brokerage";
+
+export interface M03LedgerRow {
+    readonly id: number;
+    readonly postedAt: string;
+    readonly direction: "IN" | "OUT";
+    readonly party: string;
+    readonly amount: number;
+    readonly balance: number;
+    readonly memo: string;
+}
+
+interface M03LedgerLeg {
+    readonly postedAt: string;
+    readonly direction: "IN" | "OUT";
+    readonly party: string;
+    readonly amount: number;
+    readonly memo: string;
+}
+
+const buildM03BatchLegs = (batch: RansomBatch): readonly M03LedgerLeg[] => {
+    const split = splitRansom(batch.gross);
+    const tag = `${batch.ref} ${batch.caseRef}`;
+    const at = (time: string): string => `${batch.settledAt} ${time} UTC`;
+
+    return [
+        {
+            postedAt: at(RANSOM_POSTING_TIMES.received),
+            direction: "IN",
+            party: M03_LEDGER_ESCROW_PARTY,
+            amount: batch.gross,
+            memo: `${tag} escrow release`,
+        },
+        {
+            postedAt: at(RANSOM_POSTING_TIMES.parent),
+            direction: "OUT",
+            party: M03_PARENT_ENTITY_NAME,
+            amount: split.parent,
+            memo: `${tag} management fee`,
+        },
+        {
+            postedAt: at(RANSOM_POSTING_TIMES.panel),
+            direction: "OUT",
+            party: M03_LEDGER_PANEL_PARTY,
+            amount: split.panel,
+            memo: `${tag} consulting fees (logistics)`,
+        },
+        {
+            postedAt: at(RANSOM_POSTING_TIMES.broker),
+            direction: "OUT",
+            party: M03_LEDGER_BROKER_PARTY,
+            amount: split.broker,
+            memo: `${tag} customs brokerage`,
+        },
+    ];
+};
+
+export const buildM03LedgerRows = (): readonly M03LedgerRow[] =>
+    RANSOM_BATCHES.flatMap(buildM03BatchLegs).reduce<readonly M03LedgerRow[]>((rows, leg) => {
+        const previousBalance = rows[rows.length - 1]?.balance ?? 0;
+        const signedAmount = leg.direction === "IN" ? leg.amount : -leg.amount;
+
+        return [
+            ...rows,
+            {
+                id: rows.length + 1,
+                postedAt: leg.postedAt,
+                direction: leg.direction,
+                party: leg.party,
+                amount: leg.amount,
+                balance: previousBalance + signedAmount,
+                memo: leg.memo,
+            },
+        ];
+    }, []);
 
 export interface M03TwotterPost {
     readonly content: string;
@@ -160,19 +276,40 @@ export const M03_OKAFOR_POSTS: M03TwotterPost[] = [
     },
 ];
 
-export const M03_SPREADSHEET_FILE_NAME = "q1_reconciliation";
+export const M03_SPREADSHEET_FILE_NAME = "q3_reconciliation";
 export const M03_SPREADSHEET_FILE_EXTENSION = "xlsx";
 export const M03_ACCOMPLICE_NAME = "D. Reyes";
+
+const buildM03ReconciliationBlock = (batch: RansomBatch): readonly string[] => {
+    const split = splitRansom(batch.gross);
+
+    return [
+        `${batch.ref} / ${batch.caseRef} / settled ${batch.settledAt}`,
+        `  deposit ${formatUsd(batch.gross)} (${M03_LEDGER_ESCROW_PARTY})`,
+        `  ${RANSOM_SPLIT_PERCENT.parent}% management fee -> ${M03_PARENT_ENTITY_NAME}: ${formatUsd(split.parent)}`,
+        `  ${RANSOM_SPLIT_PERCENT.panel}% consulting fees -> ${M03_LEDGER_PANEL_PARTY}: ${formatUsd(split.panel)}`,
+        `  ${RANSOM_SPLIT_PERCENT.broker}% customs brokerage -> ${M03_LEDGER_BROKER_PARTY}: ${formatUsd(split.broker)}`,
+        `  ${RANSOM_SPLIT_PERCENT.retained}% retained: ${formatUsd(split.retained)}`,
+        "",
+    ];
+};
+
+const M03_Q3_TOTALS = totalRansom(RANSOM_BATCHES_Q3);
+
 export const M03_SPREADSHEET_CONTENT = [
-    "Q1 RECONCILIATION — INTERNAL DRAFT",
+    "Q3 RECONCILIATION — INTERNAL DRAFT",
     "===================================",
     "",
     `Prepared by: ${M03_ACCOMPLICE_NAME} (Finance)`,
     `Parent entity on file: ${M03_PARENT_ENTITY_NAME}`,
-    "Note: batch payouts routed through 'consulting fees' line item again.",
-    "Note: this is one line item, not the whole batch -- the rest is split across transfers we haven't pulled yet.",
+    "",
+    ...RANSOM_BATCHES_Q3.flatMap(buildM03ReconciliationBlock),
+    `Q3 total deposits ${formatUsd(M03_Q3_TOTALS.gross)}: parent ${formatUsd(M03_Q3_TOTALS.parent)}, consulting ${formatUsd(M03_Q3_TOTALS.panel)}, brokerage ${formatUsd(M03_Q3_TOTALS.broker)}, retained ${formatUsd(M03_Q3_TOTALS.retained)}.`,
+    "",
+    "Note: every deposit is split the same way, same day, to the minute. Nobody bills a percentage of someone else's deposit and calls it consulting.",
+    "Note: none of these depositors is a client of ours -- no freight, no customs file, nothing shipped.",
     "Note: told this is normal for the holding company's structure. Hope that's true.",
-    `Note: batch ref lines up with the memo on ${M01_CASE_ID} -- healthcare sector, if intake notes are right.`,
+    `Note: the ${RANSOM_BATCH_HOSPITAL.ref} batch lines up with the memo on ${M01_CASE_ID} -- healthcare sector, if intake notes are right.`,
     "Note: dated Aug 16, 2026 -- two days after the wire authorization on file.",
 ].join("\n");
 
@@ -190,25 +327,7 @@ export const M03_REYES_NOTE_CONTENT = [
 ].join("\n");
 
 export const M03_HELPDESK_RESET_NOTE =
-    "SMB reset for d.reyes -- back to her personal one. told her AGAIN to use the company format.";
-
-export const M03_CAPTURE_FILE_NAME = "finance_vlan_capture";
-export const M03_CAPTURE_FILE_EXTENSION = "log";
-export const M03_CAPTURE_FILE_CONTENT = [
-    "FINANCE VLAN CAPTURE — session summary (wireshark, post-pivot)",
-    "=============================================================",
-    "",
-    `Finance DB server:  ${M03_LEDGER_DOMAIN} (${M03_COINDRIFT_LAN_IP}), mariadb on 3306.`,
-    `Tunnel gateway:     ${M03_VAULTLINE_CODENAME} (${M03_VAULTLINE_LAN_IP}), rdp on 3389.`,
-    "",
-    "Recurring outbound sessions observed on the finance VLAN this window:",
-    "",
-    `  ${M03_COINDRIFT_LAN_IP}  ->  ${M03_PAYROLL_SAAS_IP}      https   scheduled, business hours`,
-    `  ${M03_VAULTLINE_LAN_IP}  ->  ${M04_ARCHITECT_VPN_IP}     ipsec   fires once per payout batch, every capture window`,
-    "",
-    "Two external endpoints. One is ordinary. The other one the gateway builds a tunnel to and nothing",
-    "resolves behind it. Check both before trusting either -- and get onto that gateway.",
-].join("\n");
+    "Remote login reset for d.reyes -- back to her personal one. told her AGAIN to use the company format.";
 
 export const M03_VPN_CONFIG_FILE_NAME = "site_to_site_backup";
 export const M03_VPN_CONFIG_FILE_EXTENSION = "txt";
@@ -231,16 +350,27 @@ export const M03_VPN_CONFIG_CONTENT = [
 
 export const M03_TIP_SUBJECT = "shell company confirmed — dig into it";
 export const M03_TIP_CONTENT = [
-    `The financial document you pulled names ${M02_SHELL_COMPANY_NAME}.`,
+    `The wire authorization you pulled sends the full ${formatUsd(RANSOM_BATCH_HOSPITAL.gross)} batch to ${M02_SHELL_COMPANY_NAME}.`,
     "That's the account the ransom payouts actually clear through.",
     "",
     `Public site: ${M03_SKYNET_DOMAIN}`,
     "Get inside their finance network, pull the ledger, and find where the money answers to --",
     "there's a box in there that builds a tunnel to somewhere off the map after every batch. Root it.",
     "",
-    "One more thing: whatever you change on their gateway to get in, change it back before you leave.",
+    "One more thing: their remote-access gateway forwards nothing inward, so whatever forwarding rule you write to get in is yours to keep or remove.",
     "A rule that's still open when they audit is how people like us get found.",
 ].join("\n");
+
+const M03_ALL_TOTALS = totalRansom(RANSOM_BATCHES);
+
+const buildM03FundsLines = (parentEntity: string): readonly string[] => {
+    const split = splitRansom(RANSOM_BATCH_HOSPITAL.gross);
+
+    return [
+        `Funds: ${formatUsd(RANSOM_BATCH_HOSPITAL.gross)} escrow release on ${RANSOM_BATCH_HOSPITAL.settledAt} (${RANSOM_BATCH_HOSPITAL.ref}), moved out the same morning: ${formatUsdShare(split.parent, RANSOM_SPLIT_PERCENT.parent)} to ${parentEntity}, ${formatUsdShare(split.panel, RANSOM_SPLIT_PERCENT.panel)} to ${M03_LEDGER_PANEL_PARTY} as consulting fees, ${formatUsdShare(split.broker, RANSOM_SPLIT_PERCENT.broker)} to ${M03_LEDGER_BROKER_PARTY} as brokerage, ${formatUsdShare(split.retained, RANSOM_SPLIT_PERCENT.retained)} retained.`,
+        `Same split on all ${RANSOM_BATCHES.length} batches on the ledger: ${formatUsd(M03_ALL_TOTALS.gross)} in, ${formatUsd(M03_ALL_TOTALS.parent)} to ${parentEntity}.`,
+    ];
+};
 
 export const M03_REPORT_SUBJECT = "Shell company laundering confirmed — parent entity named";
 export const M03_REPORT_TEMPLATE_ID = "flatline.m03.report";
@@ -249,6 +379,7 @@ export const M03_REPORT_TEMPLATE_CONTENT = [
     "Shell company: {{shellCompany}}",
     "Parent entity: {{parentEntity}}",
     "Recurring tunnel endpoint (finance VLAN): {{vpnLead}}",
+    ...buildM03FundsLines("{{parentEntity}}"),
     "",
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
     "Confirmed: BLACKLEDGER's money moves through {{parentEntity}}.",
@@ -260,6 +391,7 @@ export const M03_REPORT_BODY = [
     `Shell company: ${M02_SHELL_COMPANY_NAME}`,
     `Parent entity: ${M03_PARENT_ENTITY_NAME}`,
     `Recurring tunnel endpoint (finance VLAN): ${M04_ARCHITECT_VPN_IP}`,
+    ...buildM03FundsLines(M03_PARENT_ENTITY_NAME),
     "",
     "Confirmed via internal wire-transfer ledger, pivoted through the finance VLAN.",
     `Confirmed: BLACKLEDGER's money moves through ${M03_PARENT_ENTITY_NAME}.`,
@@ -268,13 +400,13 @@ export const M03_REPORT_BODY = [
     "Unresolved: \"Nominees\" isn't an operating company -- someone real still owns it, off every filing. That endpoint is where they answer.",
 ].join("\n");
 
-export const M03_LOG_ENTRIES: Record<"ledger" | "capture" | "root" | "reyes" | "aftermath", readonly string[]> = {
+export const M03_LOG_ENTRIES: Record<"ledger" | "tunnel" | "root" | "reyes" | "aftermath", readonly string[]> = {
     ledger: [
         "There it is. Money doesn't disappear, it just changes names.",
-        `${M02_SHELL_COMPANY_NAME}. ${M03_PARENT_ENTITY_NAME}. Paper walls.`,
+        `${formatUsd(M03_ALL_TOTALS.parent)} of ${formatUsd(M03_ALL_TOTALS.gross)} ends at ${M03_PARENT_ENTITY_NAME}. Paper walls.`,
     ],
-    capture: [
-        "One box on that VLAN keeps building a tunnel out after every batch. Not payroll. Not a customer.",
+    tunnel: [
+        "The gateway's own config names the far end of that tunnel after every batch. Not a customer. Not a vendor.",
         "Whatever's on the far end of that tunnel is who I actually came for.",
     ],
     root: [
@@ -303,13 +435,6 @@ export const M03_PFSENSE_NMAP_RESULT: Shell.NmapPort[] = [
     { port: 443, status: "CLOSE", service: "https" },
 ];
 
-export const M03_PAYROLL_GEOIP: Shell.GeoipData = {
-    country: "Ireland",
-    city: "Dublin",
-    latitude: "53.3498",
-    longitude: "-6.2603",
-};
-
 export const M03_VPN_GEOIP: Shell.GeoipData = {
     country: "Unknown",
     city: "Unknown",
@@ -325,7 +450,7 @@ export const M03_OBJECTIVES: QuestObjectiveDefinition[] = [
     {
         name: M03_OBJECTIVE_IDS.reportFindings,
         description:
-            "Trace BLACKLEDGER's money through Skynet Import-Export -- break into the finance network, pull the wire-transfer ledger for the parent entity, root the box that tunnels the money off the map, cover your tracks, and report it all to the dead drop.",
+            "Trace BLACKLEDGER's money through Skynet Import-Export -- break into the finance network, pull the wire-transfer ledger for the parent entity, root the box that tunnels the money off the map, and report it all to the dead drop.",
     },
 ];
 

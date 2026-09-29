@@ -6,17 +6,13 @@ import {
     Quest,
     RegisterQuest,
     Shell,
+    type DatabaseRowDefinition,
 } from "@hotbunny/hackhub-content-sdk";
 
-import {
-    appendBacktraceLogs,
-    getBacktraceFact,
-    setBacktraceMission,
-    traceBacktraceFacts,
-} from "../applications/backtrace-state.js";
+import { appendBacktraceLogs, setBacktraceMission, traceBacktraceFinding } from "../applications/backtrace-state.js";
 import { OPEN_FILE_READ_EVENT } from "../commands/open.js";
-import { resetMissionNetworks } from "../helpers/network.js";
-import { M01_CASE_ID } from "../content/m01.js";
+import { missionNetworksExist, resetMissionNetworks } from "../helpers/network.js";
+import { RANSOM_BATCHES, splitRansom } from "../content/finance.js";
 import type { M02EmptySubdomain } from "../content/m02.js";
 import {
     M02_ADMINS_TABLE,
@@ -30,8 +26,6 @@ import {
     M02_CAMERA_CODENAME,
     M02_CAMERA_IP,
     M02_CAMERA_LAN_IP,
-    M02_CASE_MATCH_RANSOM_AMOUNT,
-    M02_CASE_MATCH_SETTLED_AT,
     M02_CLOSER_RIG_CODENAME,
     M02_CLOSER_RIG_IP,
     M02_CLOSER_RIG_ROUTER_IP,
@@ -98,8 +92,6 @@ import {
     M02_SYNC_SCRIPT_FILE_NAME,
     M02_TIP_CONTENT,
     M02_TIP_SUBJECT,
-    M02_VICTIM_CASE_ID_EU,
-    M02_VICTIM_CASE_ID_NA,
     M02_WIFI_EXTENDER_CODENAME,
     M02_WIFI_EXTENDER_IP,
     M02_WIFI_EXTENDER_LAN_IP,
@@ -123,7 +115,14 @@ interface M02QuestData {
     readonly firewallBreached: boolean;
     readonly aftermathShown: boolean;
     readonly reportSent: boolean;
+    readonly networkBuilt: boolean;
 }
+
+const M02_ROUTER_IPS: readonly string[] = [
+    M02_DEV_ROUTER_IP,
+    M02_CLOSER_RIG_ROUTER_IP,
+    M02_WORKSTATION_ROUTER_IP,
+];
 
 const resetM02ShellFixtures = (): void => {
     Shell.removeCommandData("whois", M02_ROOT_DOMAIN);
@@ -160,26 +159,19 @@ const registerM02Database = (): string => {
             tables: {},
         });
 
-    Database.setTable(databaseId, M02_AFFILIATE_TABLE, [
-        {
-            id: { value: 1, type: "number" },
-            client: { value: M01_CASE_ID, type: "string" },
-            ransomAmount: { value: M02_CASE_MATCH_RANSOM_AMOUNT, type: "number" },
-            settledAt: { value: M02_CASE_MATCH_SETTLED_AT, type: "string" },
-        },
-        {
-            id: { value: 2, type: "number" },
-            client: { value: M02_VICTIM_CASE_ID_EU, type: "string" },
-            ransomAmount: { value: 1400000, type: "number" },
-            settledAt: { value: "2026-05-02", type: "string" },
-        },
-        {
-            id: { value: 3, type: "number" },
-            client: { value: M02_VICTIM_CASE_ID_NA, type: "string" },
-            ransomAmount: { value: 4100000, type: "number" },
-            settledAt: { value: "2026-02-19", type: "string" },
-        },
-    ]);
+    Database.setTable(
+        databaseId,
+        M02_AFFILIATE_TABLE,
+        RANSOM_BATCHES.map((batch, index): DatabaseRowDefinition => ({
+            id: { value: index + 1, type: "number" },
+            client: { value: batch.caseRef, type: "string" },
+            ransomAmount: { value: batch.gross, type: "number" },
+            settledAt: { value: batch.settledAt, type: "string" },
+            batchRef: { value: batch.ref, type: "string" },
+            panelShare: { value: splitRansom(batch.gross).panel, type: "number" },
+            status: { value: "PAID", type: "string" },
+        })),
+    );
     Database.setTable(databaseId, M02_ADMINS_TABLE, [
         {
             id: { value: 1, type: "number" },
@@ -357,8 +349,6 @@ const registerM02SubfinderDomains = (): void => {
 };
 
 const registerM02CloserRigNetwork = (): void => {
-    // Network.destroyNetwork(M02_CLOSER_RIG_ROUTER_IP);
-
     Network.createSubnetNetwork({
         ip: M02_CLOSER_RIG_ROUTER_IP,
         type: NetworkDeviceType.Router,
@@ -561,6 +551,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             firewallBreached: false,
             aftermathShown: false,
             reportSent: false,
+            networkBuilt: false,
         };
     }
 
@@ -585,17 +576,16 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             children: [],
         });
 
-        // if (isDev) {
-        //     Network.destroyNetwork(M02_DEV_ROUTER_IP);
-        // }
-        registerM02SubfinderDomains();
+        const networkKept = this.Data.networkBuilt && missionNetworksExist(M02_ROUTER_IPS);
+        if (!networkKept) {
+            registerM02SubfinderDomains();
+            registerM02WorkstationNetwork();
+            registerM02CloserRigNetwork();
 
-        registerM02WorkstationNetwork();
-        registerM02CloserRigNetwork();
-
-        if (this.Data.firewallBreached) {
-            Network.removeFirewallRule(M02_FIREWALL_IP, 3389);
-            Network.openPort(M02_WORKSTATION_IP, 3389);
+            if (this.Data.firewallBreached) {
+                Network.removeFirewallRule(M02_FIREWALL_IP, 3389);
+                Network.openPort(M02_WORKSTATION_IP, 3389);
+            }
         }
 
         Network.registerDomain(M02_ROOT_DOMAIN, M02_ROOT_IP);
@@ -612,17 +602,32 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
         });
 
         this.Events.on("Terminal.Cat", (data) => {
-            if (this.Data.deployLogFound) return;
             if (data.name !== M02_DEPLOY_LOG_FILE_NAME || data.data !== M02_DEPLOY_LOG_CONTENT) return;
+
+            traceBacktraceFinding("m2", "deployLog");
+            if (this.Data.deployLogFound) return;
 
             this.SetData("deployLogFound", true);
             appendBacktraceLogs("m2", M02_LOG_ENTRIES.default);
+        });
+
+        this.Events.on("Terminal.Cat", (data) => {
+            if (data.name !== M02_SYNC_SCRIPT_FILE_NAME || data.data !== M02_SYNC_SCRIPT_CONTENT) return;
+
+            traceBacktraceFinding("m2", "homeLead");
         });
 
         this.Events.on("PFSense.Login", (data) => {
             if (data.ip !== M02_FIREWALL_IP) return;
 
             this.SetData("firewallLoggedIn", true);
+            traceBacktraceFinding("m2", "firewall");
+        });
+
+        this.Events.on("RemoteConnection.Established", (data) => {
+            if (data.t !== "METASPLOIT" || data.targetIp !== M02_WORKSTATION_IP) return;
+
+            traceBacktraceFinding("m2", "workstation");
         });
 
         this.Events.on("PFSense.Changes", () => {
@@ -650,16 +655,16 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
 
         this.Events.on("Sqlmap.DumpTable", (data) => {
             if (data.host !== M02_DEV_IP) return;
-            if (data.tableName !== M02_AFFILIATE_TABLE) return;
 
-            traceBacktraceFacts("m2", ["developer", "caseId", "ransom", "settled", "victims"]);
+            if (data.tableName === M02_ADMINS_TABLE) traceBacktraceFinding("m2", "developer");
+            if (data.tableName === M02_AFFILIATE_TABLE) traceBacktraceFinding("m2", "ransom");
         });
 
         this.Events.on(OPEN_FILE_READ_EVENT, (data: { id: string; name: string; extension?: string }) => {
             if (!this.Data.firewallBreached) return;
             if (data.name !== M02_FINANCIAL_DOC_FILE_NAME || data.extension !== M02_FINANCIAL_DOC_FILE_EXTENSION) return;
 
-            traceBacktraceFacts("m2", ["shellCompany"]);
+            traceBacktraceFinding("m2", "shellCompany");
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -671,7 +676,7 @@ export class FlatlineM02Quest extends Quest<M02QuestData> {
             this.completeObjective(M02_OBJECTIVE_IDS.reportFindings);
         });
 
-        if (getBacktraceFact("m1", "buyer")) traceBacktraceFacts("m2", ["buyer"]);
+        if (!networkKept) this.SetData("networkBuilt", true);
     }
 
     override OnComplete() {

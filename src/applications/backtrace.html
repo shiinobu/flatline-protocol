@@ -364,10 +364,11 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
       <section class="report-section"><div class="section-head"><div class="section-title">Summary</div></div><p class="body-copy">A preliminary trace isolated a broker identity embedded in the transaction trail. The recovered record also exposed a buyer identifier, establishing the first usable connection inside the case.</p></section>
       <section class="report-section"><div class="section-head"><div class="section-title">Key Findings</div></div>
         <div class="findings">
-          <div class="finding"><div class="finding-num">01</div><div class="finding-text">Broker account identified as <span class="code" data-fact="m1.broker">—</span>.</div></div>
-          <div class="finding"><div class="finding-num">02</div><div class="finding-text">Buyer identifier <span class="code" data-fact="m1.buyer">—</span> is directly linked to the broker trail.</div></div>
-          <div class="finding"><div class="finding-num">03</div><div class="finding-text">Case reference confirmed: <span class="code" data-fact="m1.caseId">—</span>.</div></div>
-          <div class="finding"><div class="finding-num">04</div><div class="finding-text">The sale is recorded under listing <span class="code" data-fact="m1.listing">—</span> (project <span class="code" data-fact="m1.project">—</span>).</div></div>
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">Broker account identified as <span class="code" data-fact="m1.broker">—</span>, selling access under listing <span class="code" data-fact="m1.listing">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">Buyer identifier <span class="code" data-fact="m1.buyer">—</span> is directly linked to the broker trail: the same alias sits on every row of the broker's backend ledger.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">The broker keeps a private archive at <span class="code" data-fact="m1.vault">—</span>, with project folders reaching back to 2020.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">Case reference confirmed: <span class="code" data-fact="m1.caseId">—</span>, filed under project <span class="code" data-fact="m1.project">—</span> and signed BLACKLEDGER.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">This is not an isolated listing: the same buyer alias shows up across multiple past incidents on record.</div></div>
         </div>
       </section>
       <section class="report-section"><div class="section-head"><div class="section-title">Entities Discovered</div></div>
@@ -413,11 +414,15 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
       <section class="report-section"><div class="section-head"><div class="section-title">Summary</div></div><p class="body-copy">A deeper trace tied the buyer identifier to a shell-company layer, extending the investigation from an account-level clue into an organizational relationship.</p></section>
       <section class="report-section"><div class="section-head"><div class="section-title">Key Findings</div></div>
         <div class="findings">
-          <div class="finding"><div class="finding-num">01</div><div class="finding-text"><span class="code" data-fact="m2.buyer,m1.buyer">—</span> is associated with <span data-fact="m2.shellCompany">—</span></div></div>
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text"><span class="code" data-fact="m2.buyer,m1.buyer">—</span> is associated with <span data-fact="m2.shellCompany">—</span>, named beneficiary of the ransom payout batch.</div></div>
           <div class="finding"><div class="finding-num">02</div><div class="finding-text">The company appears to function as a shell layer within the transaction chain.</div></div>
           <div class="finding"><div class="finding-num">03</div><div class="finding-text">Ties directly back to case <span class="code" data-fact="m2.caseId">—</span> — a second-level relationship now exposed.</div></div>
           <div class="finding"><div class="finding-num">04</div><div class="finding-text">Toolkit developer traced to <span class="code" data-fact="m2.developer">—</span>.</div></div>
           <div class="finding"><div class="finding-num">05</div><div class="finding-text">The case matches a payout of <span class="code" data-fact="m2.ransom">—</span>, settled <span class="code" data-fact="m2.settled">—</span>; the pattern is not isolated (<span class="code" data-fact="m2.victims">—</span>).</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">The panel books its own share of every close: <span class="code" data-fact="m2.panelShare">—</span> on batch <span class="code" data-fact="m2.batchRef">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The deploy log ties the developer to the attack: <span class="code" data-fact="m2.deployLog">—</span> was pushed the day the hospital's systems locked, and the payout paperwork went to his home workstation.</div></div>
+          <div class="finding"><div class="finding-num">08</div><div class="finding-text">The sync script leaks the home gateway <span class="code" data-fact="m2.homeLead">—</span> and admits the NAS behind it is still on its factory login.</div></div>
+          <div class="finding"><div class="finding-num">09</div><div class="finding-text">The home firewall <span class="code" data-fact="m2.firewall">—</span> opens with the devbox admin password — one operator, one password — and the workstation <span class="code" data-fact="m2.workstation">—</span> behind it is where the payout paperwork lands.</div></div>
         </div>
       </section>
       <section class="report-section"><div class="section-head"><div class="section-title">Entities Discovered</div></div>
@@ -425,9 +430,6 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
           <button class="entity-card" data-entity="buyer"><div class="entity-type">Buyer</div><div class="entity-name" data-fact="m2.buyer,m1.buyer">—</div><div class="entity-source">DISCOVERED // M1</div></button>
           <button class="entity-card" data-entity="shell"><div class="entity-type">Shell Company</div><div class="entity-name" data-fact="m2.shellCompany">—</div><div class="entity-source">DISCOVERED // M2</div></button>
         </div>
-      </section>
-      <section class="report-section"><div class="section-head"><div class="section-title">Personal Log</div></div>
-        <div data-personal-log="m2"></div>
       </section>
     </div>
     <div>
@@ -441,6 +443,9 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
           <div class="evidence-meta"><strong>EV-M2-01</strong><span>Corporate entity record</span></div>
         </div>
       </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Personal Log</div></div>
+        <div data-personal-log="m2"></div>
+      </section>
     </div>
   </div>
 </div></div>
@@ -448,7 +453,61 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 <div class="locked"></div>
 </section>
 
-<section id="m3" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">MONEY TRAIL</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m3" class="view" data-report="none">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
+    <div><div class="report-code">MISSION 03</div><h1 class="report-title">MONEY TRAIL</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-accent">TRACE // CORRELATE // EXPOSE</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M3</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
+  </div>
+
+  <div class="report-grid">
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Summary</div></div><p class="body-copy">Following the ransom through the shell company's own ledger showed where it goes: a fixed split, paid out the same morning, ending at a nominee name — while a tunnel off the finance network points at the address behind it.</p></section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Key Findings</div></div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">The ransom of <span class="code" data-fact="m3.gross">—</span> (batch <span class="code" data-fact="m3.batchRef">—</span>, case <span class="code" data-fact="m3.caseId">—</span>) reached <span data-fact="m3.shellCompany">—</span> on <span class="code" data-fact="m3.settled">—</span> and left the same morning.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">It was split on a fixed schedule: <span class="code" data-fact="m3.toParent">—</span> to <span data-fact="m3.parentEntity">—</span>, <span class="code" data-fact="m3.toPanel">—</span> to the toolkit panel as consulting fees, <span class="code" data-fact="m3.toBroker">—</span> to the access broker as brokerage, <span class="code" data-fact="m3.retained">—</span> kept by the shell.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">The identical split repeats on all <span class="code" data-fact="m3.batchCount">—</span> batches on the ledger: <span class="code" data-fact="m3.allBatches">—</span> in, <span class="code" data-fact="m3.allToParent">—</span> to <span data-fact="m3.parentEntity">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">"Nominees" is a name, not an operating company: the money stops at <span data-fact="m3.parentEntity">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">The finance gateway <span class="code" data-fact="m3.gateway">—</span> builds a tunnel to <span class="code" data-fact="m3.architectVpn">—</span> after every payout batch — not a customer, not a vendor.</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">Its site-to-site config peers to <span class="code" data-fact="m3.peerGateway">—</span>, labelled <span class="code" data-fact="m3.vpnPeer">—</span>, owner noted as <span data-fact="m3.peerOwner">—</span>: the money's destination and the tunnel's far end are the same hand.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The way in was human: the staff portal <span class="code" data-fact="m3.portal">—</span> fell to a password recipe posted in public, and the finance analyst <span class="code" data-fact="m3.accomplice">—</span> tied the numbers anyway.</div></div>
+          <div class="finding"><div class="finding-num">08</div><div class="finding-text">Unresolved: someone real still owns the nominee, off every filing. The address at the far end of the tunnel is where they answer.</div></div>
+        </div>
+      </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Entities Discovered</div></div>
+        <div class="entity-grid">
+          <button class="entity-card" data-entity="shell"><div class="entity-type">Shell Company</div><div class="entity-name" data-fact="m2.shellCompany">—</div><div class="entity-source">DISCOVERED // M2</div></button>
+          <button class="entity-card" data-entity="parent"><div class="entity-type">Parent Entity</div><div class="entity-name" data-fact="m3.parentEntity">—</div><div class="entity-source">DISCOVERED // M3</div></button>
+        </div>
+      </section>
+    </div>
+    <div>
+      <section class="report-section"><div class="section-head"><div class="section-title">Evidence</div></div>
+        <div class="evidence" data-evidence="EV-M3-01">
+          <div class="evidence-visual"><div class="evidence-ui">
+            <div class="evidence-bar"><span>INTERNAL WIRE-TRANSFER LEDGER</span><span>EV-M3-01</span></div>
+            <div class="evidence-log" data-log="EV-M3-01"></div>
+            <div class="evidence-stamp">RECOVERED // M3</div>
+          </div></div>
+          <div class="evidence-meta"><strong>EV-M3-01</strong><span>Internal wire-transfer ledger</span></div>
+        </div>
+      </section>
+      <section class="report-section"><div class="section-head"><div class="section-title">Personal Log</div></div>
+        <div data-personal-log="m3"></div>
+      </section>
+    </div>
+  </div>
+</div></div>
+<div class="report-link"><div class="report-link-copy">4 ENTITIES // 3 CONNECTIONS<br>CASEBOARD EXPANDED WITH THE M3 DISCOVERY.</div><button class="text-btn" data-view="board">VIEW CASEBOARD →</button></div>
+<div class="locked"></div>
+</section>
 <section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE ARCHITECT</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 
 <section id="board" class="view active">
@@ -579,17 +638,18 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
   const MISSION_IDS = ['m1','m2','m3','m4'];
-  const REPORT_MISSIONS = ['m1','m2'];
+  const REPORT_MISSIONS = ['m1','m2','m3'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'THE ARCHITECT'};
-  const FACT_LABELS = {
-    m1:{broker:'Broker account',buyer:'Buyer alias',caseId:'Case reference',listing:'Listing code',project:'Project',vault:'Vault domain'},
-    m2:{buyer:'Buyer alias',developer:'Developer server',shellCompany:'Shell company',caseId:'Case reference',ransom:'Ransom paid',settled:'Settled on',victims:'Other victims'},
-    m3:{shellCompany:'Shell company',parentEntity:'Parent entity',amount:'Amount traced',caseId:'Case reference',architectVpn:'Recurring endpoint'}
+  const KEY_LABELS = {
+    m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
+    m2:{developer:'Developer server',ransom:'Payout pattern',deployLog:'Deploy log',homeLead:'Home network lead',firewall:'Home firewall',workstation:'Home workstation',shellCompany:'Shell company'},
+    m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const PREVIEW_STATE = {
-    m1:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{broker:'X7xS3NTRY9',buyer:'TR4C3#404',caseId:'CASE-A7X-0417',listing:'MED-SEA-0417',project:'Q3-2026-SEA',vault:'x7k2m9vdlq4wnyt3.dark'}},
-    m2:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{buyer:'TR4C3#404',developer:'f3a91b7c04d8.tr4c3404.dev',shellCompany:'Skynet Import-Export Co.',caseId:'CASE-A7X-0417',ransom:'$2,850,000',settled:'2026-08-14',victims:'FIN-NA-0091, LOG-EU-2209'}}
+    m1:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{broker:'X7xS3NTRY9',buyer:'TR4C3#404',vault:'x7k2m9vdlq4wnyt3.dark',caseId:'CASE-A7X-0417',listing:'MED-SEA-0417',project:'Q3-2026-SEA'}},
+    m2:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{developer:'f3a91b7c04d8.tr4c3404.dev',ransom:'$2,850,000',deployLog:'payload_v9',homeLead:'24.187.92.14',firewall:'156.38.94.201',workstation:'71.192.14.230',shellCompany:'Skynet Import-Export Co.',caseId:'CASE-A7X-0417',settled:'2026-08-14',victims:'FIN-NA-0091, LOG-EU-2209',buyer:'TR4C3#404',batchRef:'PB-2608-01',panelShare:'$712,500 (25%)'}},
+    m3:{status:'complete',completedAt:Date.UTC(2026,4,4),facts:{portal:'remote.skynet-importexport.biz',parentEntity:'SKN Capital Nominees',architectVpn:'203.0.113.160',gateway:'Vault-Line',vpnPeer:'SKN-CENTRAL',accomplice:'d.reyes',shellCompany:'Skynet Import-Export Co.',caseId:'CASE-A7X-0417',settled:'2026-08-14',batchRef:'PB-2608-01',gross:'$2,850,000',toParent:'$1,710,000 (60%)',toPanel:'$712,500 (25%)',toBroker:'$142,500 (5%)',retained:'$285,000 (10%)',batchCount:'3',allBatches:'$8,350,000',allToParent:'$5,010,000',peerGateway:'203.0.113.160',peerOwner:'SKN Capital Nominees'}}
   };
   const NAV_STATUS = {
     locked:{cls:'is-locked',dot:'status-locked',label:'LOCKED',icon:'nav-icon-lock'},
@@ -666,11 +726,11 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     },
     'EV-M2-01':{
       bar:'CORPORATE ENTITY RECORD',
-      rows:[['account','m2.buyer,m1.buyer'],['entity','m2.shellCompany'],['role',null,'SHELL CO.'],['developer','m2.developer'],['case','m2.caseId'],['payout','m2.ransom']]
+      rows:[['account','m2.buyer,m1.buyer'],['entity','m2.shellCompany'],['role',null,'SHELL CO.'],['developer','m2.developer'],['case','m2.caseId'],['batch','m2.batchRef'],['payout','m2.ransom'],['panel cut','m2.panelShare']]
     },
     'EV-M3-01':{
       bar:'INTERNAL WIRE-TRANSFER LEDGER',
-      rows:[['shell','m2.shellCompany'],['parent','m3.parentEntity'],['role',null,'PARENT ENTITY'],['amount','m3.amount'],['case','m3.caseId'],['status',null,'LINK CONFIRMED']]
+      rows:[['shell','m2.shellCompany'],['batch','m3.batchRef'],['deposit','m3.gross'],['mgmt fee','m3.toParent'],['consulting','m3.toPanel'],['brokerage','m3.toBroker'],['retained','m3.retained'],['parent','m3.parentEntity'],['all batches','m3.allBatches'],['status',null,'LINK CONFIRMED']]
     }
   };
 
@@ -763,7 +823,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   }
 
   function traceNotesMarkup(id){
-    const labels = FACT_LABELS[id];
+    const labels = KEY_LABELS[id];
     if(!labels) return '';
     const facts = state[id].facts;
     const found = Object.keys(labels).filter(key => facts[key]);

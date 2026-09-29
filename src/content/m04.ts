@@ -44,9 +44,9 @@ export const M04_IDENTITY_FILE_CONTENT = "AES256-CBC::[REDACTED-BINARY-BLOB]";
 
 export const M04_ARCHITECT_REAL_NAME = "Damien Okoro";
 
-export const M04_TIP_SUBJECT = "the VPN IP from the pcap — worth a look";
+export const M04_TIP_SUBJECT = "the VPN IP from the gateway config — worth a look";
 export const M04_TIP_CONTENT = [
-    "One address kept showing up in the finance VLAN capture, every single session.",
+    "One address is named in the finance gateway's tunnel config, and every payout session goes there.",
     "Not a customer. Not an employee. Somebody who never touches the front door.",
     "",
     `Start here: ${M04_ARCHITECT_VPN_IP}`,

@@ -10,13 +10,8 @@ import {
     WeeChat,
 } from "@hotbunny/hackhub-content-sdk";
 
-import {
-    appendBacktraceLogs,
-    getBacktraceStatus,
-    setBacktraceMission,
-    traceBacktraceFacts,
-} from "../applications/backtrace-state.js";
-import { resetMissionNetworks } from "../helpers/network.js";
+import { appendBacktraceLogs, setBacktraceMission, traceBacktraceFinding } from "../applications/backtrace-state.js";
+import { missionNetworksExist, resetMissionNetworks } from "../helpers/network.js";
 import {
     ensureM01ListingResolution,
     getM01ListingSlot,
@@ -102,6 +97,7 @@ import {
     M01_LEDGERVAULT_DOMAIN,
     M01_LEDGERVAULT_IP,
     M01_LEDGERVAULT_PROJECT,
+    M01_LEDGERVAULT_PROJECT_FOLDER,
     M01_LOG_AFTERMATH,
     M01_LOG_DEFAULT,
     M01_NMAP_RESULT,
@@ -124,6 +120,7 @@ import {
     M01_OPS_NOTES_CONTENT,
     M01_OPS_NOTES_FILE_EXTENSION,
     M01_OPS_NOTES_FILE_NAME,
+    M01_PROJECT_OPENED_EVENT,
     M01_REPORT_SUBJECT,
     M01_REPORT_TEMPLATE_CONTENT,
     M01_REPORT_TEMPLATE_ID,
@@ -191,8 +188,18 @@ interface M01QuestData {
     readonly credentialsDecrypted: boolean;
     readonly chatConfirmed: boolean;
     readonly vaultVisited: boolean;
+    readonly caseFileOpened: boolean;
     readonly reportSent: boolean;
+    readonly networkBuilt: boolean;
 }
+
+const M01_ROUTER_IPS: readonly string[] = [
+    M01_ROUTER_IP,
+    M01_FIREWALL_ROUTER_IP,
+    M01_BLACKWIRE_ROUTER_IP,
+    M01_FROSTGATE_ROUTER_IP,
+    M01_OBSIDIAN_ROUTER_IP,
+];
 
 const resetM01ShellFixtures = (): void => {
     for (const record of M01_DOMAIN_RECORDS) {
@@ -372,16 +379,10 @@ const registerM01BrokerLead = (): void => {
     }
 };
 
-const registerM01Network = (): void => {
+const registerM01Routers = (): void => {
     const listingCode = getM01WinningCode();
 
-    resetMissionNetworks([
-        M01_ROUTER_IP,
-        M01_FIREWALL_ROUTER_IP,
-        M01_BLACKWIRE_ROUTER_IP,
-        M01_FROSTGATE_ROUTER_IP,
-        M01_OBSIDIAN_ROUTER_IP,
-    ]);
+    resetMissionNetworks(M01_ROUTER_IPS);
 
     Network.createSubnetNetwork({
         ip: M01_FIREWALL_ROUTER_IP,
@@ -604,15 +605,14 @@ const registerM01Network = (): void => {
             },
         ],
     });
+};
 
+const registerM01Domains = (): void => {
     Network.removeDomain(M01_LEDGERVAULT_DOMAIN);
     Network.registerDomain(M01_LEDGERVAULT_DOMAIN, M01_LEDGERVAULT_IP);
 
     for (const record of M01_DOMAIN_RECORDS) {
         if (record.needsSubnet) {
-            // if (isDev) {
-            //     Network.destroyNetwork(record.ip);
-            // }
             Network.createSubnetNetwork({
                 ip: record.ip,
                 type: NetworkDeviceType.Device,
@@ -765,7 +765,9 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             credentialsDecrypted: false,
             chatConfirmed: false,
             vaultVisited: false,
+            caseFileOpened: false,
             reportSent: false,
+            networkBuilt: false,
         };
     }
 
@@ -800,14 +802,16 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     override OnObjectivesStart() {
         refreshM01SiteStrings();
 
-        registerM01Network();
+        const networkKept = this.Data.networkBuilt && missionNetworksExist(M01_ROUTER_IPS);
+        if (!networkKept) registerM01Routers();
+        registerM01Domains();
         registerM01ShellFixtures();
 
         if (this.Data.listingFound) {
             registerM01BrokerLead();
         }
 
-        if (this.Data.firewallBreached) {
+        if (!networkKept && this.Data.firewallBreached) {
             Network.removeFirewallRule(M01_FIREWALL_IP, 22);
             Network.openPort(M01_TARGET_IP, 22);
         }
@@ -872,7 +876,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
             this.SetData("listingFound", true);
             registerM01BrokerLead();
-            traceBacktraceFacts("m1", ["broker", "listing"]);
+            traceBacktraceFinding("m1", "broker");
             appendBacktraceLogs("m1", M01_LOG_DEFAULT());
         });
 
@@ -935,8 +939,7 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.name !== M01_LEDGER_FILE_NAME) return;
             if (!data.data?.includes(M01_BUYER_ALIAS)) return;
 
-            traceBacktraceFacts("m1", ["buyer"]);
-            if (getBacktraceStatus("m2") !== "locked") traceBacktraceFacts("m2", ["buyer"]);
+            traceBacktraceFinding("m1", "buyer");
         });
 
         this.Events.on("Terminal.Openssl", (data) => {
@@ -958,8 +961,16 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             if (data.hostname !== M01_LEDGERVAULT_DOMAIN) return;
 
             this.SetData("vaultVisited", true);
-            traceBacktraceFacts("m1", ["vault"]);
+            traceBacktraceFinding("m1", "vault");
             appendBacktraceLogs("m1", M01_LOG_AFTERMATH());
+        });
+
+        this.Events.on(M01_PROJECT_OPENED_EVENT, (data: { folder: string }) => {
+            if (this.Data.caseFileOpened) return;
+            if (data.folder !== M01_LEDGERVAULT_PROJECT_FOLDER) return;
+
+            this.SetData("caseFileOpened", true);
+            traceBacktraceFinding("m1", "caseId");
         });
 
         this.Events.on("Mail.Sent", (data) => {
@@ -972,8 +983,11 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
             this.completeObjective(M01_OBJECTIVE_IDS.reportFindings);
         });
 
-        if (this.Data.listingFound) traceBacktraceFacts("m1", ["broker", "listing"]);
-        if (this.Data.vaultVisited) traceBacktraceFacts("m1", ["vault"]);
+        if (this.Data.listingFound) traceBacktraceFinding("m1", "broker");
+        if (this.Data.vaultVisited) traceBacktraceFinding("m1", "vault");
+        if (this.Data.caseFileOpened) traceBacktraceFinding("m1", "caseId");
+
+        if (!networkKept) this.SetData("networkBuilt", true);
     }
 
     override OnComplete() {

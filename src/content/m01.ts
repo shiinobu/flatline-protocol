@@ -37,6 +37,8 @@ export const M01_BLACKWIRE_GATEWAY_CONTENT = (): string =>
 
 export const M01_BROKER_ALIAS = "X7xS3NTRY9";
 export const M01_LEDGERVAULT_PROJECT = "Q3-2026-SEA";
+export const M01_LEDGERVAULT_PROJECT_FOLDER = "q3";
+export const M01_PROJECT_OPENED_EVENT = "flatline.m01.projectOpened";
 
 export const M01_BROKER_INFRA_DOMAIN = "x7xsentry9.tech";
 export const M01_BROKER_INFRA_IP = "194.36.108.20";

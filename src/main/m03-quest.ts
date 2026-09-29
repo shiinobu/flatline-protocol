@@ -1,7 +1,5 @@
 import {
     Database,
-    Events,
-    Files,
     Mail,
     Network,
     NetworkDeviceType,
@@ -9,9 +7,13 @@ import {
     RegisterQuest,
     Shell,
     Twotter,
+    type DatabaseRowDefinition,
+    type NetworkPortInfo,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { appendBacktraceLogs, setBacktraceMission, traceBacktraceFacts } from "../applications/backtrace-state.js";
+import { appendBacktraceLogs, setBacktraceMission, traceBacktraceFinding } from "../applications/backtrace-state.js";
+import { OPEN_FILE_READ_EVENT } from "../commands/open.js";
+import { trace } from "../helpers/logger.js";
 import { resetMissionNetworks } from "../helpers/network.js";
 import {
     M03_ACCESS_TABLE,
@@ -21,9 +23,6 @@ import {
     M03_ACCOMPLICE_PASSWORD,
     M03_ACCOMPLICE_USERNAME,
     M03_ARCHITECT_VPN_LEAD,
-    M03_CAPTURE_FILE_CONTENT,
-    M03_CAPTURE_FILE_EXTENSION,
-    M03_CAPTURE_FILE_NAME,
     M03_COINDRIFT_CODENAME,
     M03_COINDRIFT_IP,
     M03_COINDRIFT_LAN_IP,
@@ -39,8 +38,9 @@ import {
     M03_FINANCE_EMPLOYEE_HANDLE,
     M03_FINANCE_PASSWORD,
     M03_FINANCE_USERNAME,
+    M03_FORWARD_TARGETS,
     M03_HELPDESK_RESET_NOTE,
-    M03_LEDGER_AMOUNT,
+    M03_HYDRA_DEFAULT_USER,
     M03_LEDGER_DOMAIN,
     M03_LEDGER_TABLE,
     M03_LEGACY_PFSENSE_IP,
@@ -54,9 +54,6 @@ import {
     M03_OKAFOR_LAST_NAME,
     M03_OKAFOR_POSTS,
     M03_PARENT_ENTITY_NAME,
-    M03_PAYROLL_GEOIP,
-    M03_PAYROLL_SAAS_IP,
-    M03_PAYROLL_SAAS_NAME,
     M03_PFSENSE_IP,
     M03_PFSENSE_LAN_IP,
     M03_PFSENSE_NMAP_RESULT,
@@ -73,6 +70,7 @@ import {
     M03_REYES_NOTE_CONTENT,
     M03_REYES_NOTE_FILE_EXTENSION,
     M03_REYES_NOTE_FILE_NAME,
+    M03_SITE_ACCESS_NOTICE,
     M03_SKYNET_DOMAIN,
     M03_SKYNET_IP,
     M03_SKYNET_NMAP_RESULT,
@@ -96,52 +94,91 @@ import {
     M03_VPN_CONFIG_FILE_EXTENSION,
     M03_VPN_CONFIG_FILE_NAME,
     M03_VPN_GEOIP,
+    buildM03LedgerRows,
+    type M03ForwardTarget,
     type M03TwotterPost,
 } from "../content/m03.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
-import { M01_CASE_ID } from "../content/m01.js";
 import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 
-const M03_CAPTURE_EXPORT_EVENT = "flatline.m03.captureExport";
-
-Events.on(M03_CAPTURE_EXPORT_EVENT, async () => {
-    const home = Files.getHomePath();
-    const path = `${home}/${M03_CAPTURE_FILE_NAME}.${M03_CAPTURE_FILE_EXTENSION}`;
-    if (await Files.exists(path)) return;
-
-    await Files.create({
-        name: M03_CAPTURE_FILE_NAME,
-        extension: M03_CAPTURE_FILE_EXTENSION,
-        data: M03_CAPTURE_FILE_CONTENT,
-        parentPath: home,
-    });
-});
+interface M03Forward {
+    readonly ip: string;
+    readonly external: number;
+    readonly internal: number;
+    readonly active: boolean;
+}
 
 interface M03QuestData {
-    readonly pfsenseLoggedIn: boolean;
+    readonly portalReached: boolean;
     readonly natPivotDone: boolean;
-    readonly internalTrafficCaptured: boolean;
     readonly ledgerDumped: boolean;
     readonly gatewayShellObtained: boolean;
     readonly gatewayRooted: boolean;
-    readonly vpnConfigPulled: boolean;
-    readonly reyesShareSeen: boolean;
-    readonly natReverted: boolean;
+    readonly vpnConfigRead: boolean;
+    readonly accompliceReached: boolean;
     readonly reportSent: boolean;
-    readonly pfsenseChangeCount: number;
+    readonly networkBuilt: boolean;
+    readonly forwards: readonly M03Forward[];
 }
 
-const M03_INTERNAL_PORTS: ReadonlyArray<readonly [string, number]> = [
-    [M03_COINDRIFT_IP, 3306],
-    [M03_COINDRIFT_IP, 445],
-    [M03_ACCOMPLICE_IP, 445],
-    [M03_DECOY_HOST_IP, 445],
-    [M03_VAULTLINE_IP, 3389],
-];
+interface M03MatchedForward {
+    readonly target: M03ForwardTarget;
+    readonly port: NetworkPortInfo;
+}
 
-const openM03InternalPorts = (): void => {
-    for (const [ip, port] of M03_INTERNAL_PORTS) Network.openPort(ip, port);
+const findForwardTarget = (port: NetworkPortInfo): M03ForwardTarget | undefined =>
+    M03_FORWARD_TARGETS.find(
+        (target) => target.lanIp === port.lanIp?.trim() && target.internal === port.internal,
+    );
+
+const matchForwards = (ports: readonly NetworkPortInfo[]): readonly M03MatchedForward[] =>
+    ports.flatMap((port) => {
+        const target = findForwardTarget(port);
+        return target ? [{ target, port }] : [];
+    });
+
+const toForward = ({ target, port }: M03MatchedForward): M03Forward => ({
+    ip: target.ip,
+    external: port.external,
+    internal: port.internal,
+    active: port.active === true,
+});
+
+const hasBanner = ({ target, port }: M03MatchedForward): boolean =>
+    port.service === target.service && port.version === target.version;
+
+const writeForward = (target: M03ForwardTarget, forward: M03Forward): void => {
+    Network.removePort(forward.ip, forward.external);
+    Network.addPort(forward.ip, {
+        external: forward.external,
+        internal: forward.internal,
+        active: forward.active,
+        service: target.service,
+        version: target.version,
+    });
 };
+
+const syncM03Forwards = (ports: readonly NetworkPortInfo[]): readonly M03Forward[] => {
+    const matched = matchForwards(ports);
+
+    for (const match of matched) {
+        if (!hasBanner(match)) writeForward(match.target, toForward(match));
+    }
+
+    return matched.map(toForward);
+};
+
+const restoreM03Forwards = (forwards: readonly M03Forward[]): void => {
+    for (const forward of forwards) {
+        const target = M03_FORWARD_TARGETS.find(
+            (candidate) => candidate.ip === forward.ip && candidate.internal === forward.internal,
+        );
+        if (target) writeForward(target, forward);
+    }
+};
+
+const M03_PFSENSE_HYDRA_TARGET = `${M03_PFSENSE_IP}:80`;
+const M03_PFSENSE_HYDRA_USERS: readonly string[] = [M03_HYDRA_DEFAULT_USER, M03_PFSENSE_USERNAME];
 
 const resetM03ShellFixtures = (): void => {
     Shell.removeCommandData("nmap", M03_SKYNET_IP);
@@ -152,10 +189,10 @@ const resetM03ShellFixtures = (): void => {
     Shell.removeCommandData("lynx", M03_DECOY_EMPLOYEE_HANDLE);
     Shell.removeCommandData("mxlookup", M03_SKYNET_DOMAIN);
     Shell.removeCommandData("hydra", { user: M03_PFSENSE_USERNAME, target: M03_PFSENSE_IP });
-    Shell.removeCommandData("hydra", { user: M03_PFSENSE_USERNAME, target: `${M03_PFSENSE_IP}:80` });
-    Shell.removeCommandData("geoip", M03_PAYROLL_SAAS_IP);
+    for (const user of M03_PFSENSE_HYDRA_USERS) {
+        Shell.removeCommandData("hydra", { user, target: M03_PFSENSE_HYDRA_TARGET });
+    }
     Shell.removeCommandData("geoip", M03_ARCHITECT_VPN_LEAD);
-    Shell.removeCommandData("whois", M03_PAYROLL_SAAS_IP);
     Shell.removeCommandData("whois", M03_ARCHITECT_VPN_LEAD);
 };
 
@@ -173,6 +210,7 @@ const registerM03ShellFixtures = (): void => {
             `Staff directory lists a finance analyst active online: ${M03_FINANCE_EMPLOYEE_HANDLE} (${M03_TWOTTER_FIRST_NAME} ${M03_TWOTTER_LAST_NAME}).`,
             `Also listed: ${M03_DECOY_EMPLOYEE_HANDLE} (${M03_OKAFOR_FIRST_NAME} ${M03_OKAFOR_LAST_NAME}), operations.`,
             `Staff remote-access portal: ${M03_REMOTE_PORTAL_DOMAIN}.`,
+            M03_SITE_ACCESS_NOTICE,
             `Site footer: "IT security policy in force since ${M03_POLICY_YEAR}. Annual password rotation."`,
         ],
     });
@@ -193,23 +231,14 @@ const registerM03ShellFixtures = (): void => {
             "The one credential he actually posts is the guest wifi -- a dead end, nothing internal behind it.",
         ],
     });
-    Shell.addCommandData(
-        "hydra",
-        { user: M03_PFSENSE_USERNAME, target: M03_PFSENSE_IP },
-        { credentials: { username: M03_PFSENSE_USERNAME, password: M03_PFSENSE_PASSWORD } },
-    );
-    Shell.addCommandData(
-        "hydra",
-        { user: M03_PFSENSE_USERNAME, target: `${M03_PFSENSE_IP}:80` },
-        { credentials: { username: M03_PFSENSE_USERNAME, password: M03_PFSENSE_PASSWORD } },
-    );
-    Shell.addCommandData("geoip", M03_PAYROLL_SAAS_IP, M03_PAYROLL_GEOIP);
+    for (const user of M03_PFSENSE_HYDRA_USERS) {
+        Shell.addCommandData(
+            "hydra",
+            { user, target: M03_PFSENSE_HYDRA_TARGET },
+            { credentials: { username: M03_PFSENSE_USERNAME, password: M03_PFSENSE_PASSWORD } },
+        );
+    }
     Shell.addCommandData("geoip", M03_ARCHITECT_VPN_LEAD, M03_VPN_GEOIP);
-    Shell.addCommandData("whois", M03_PAYROLL_SAAS_IP, {
-        ip: M03_PAYROLL_SAAS_IP,
-        contact: M03_PAYROLL_SAAS_NAME,
-        status: true,
-    });
     Shell.addCommandData("whois", M03_ARCHITECT_VPN_LEAD, {
         ip: M03_ARCHITECT_VPN_LEAD,
         contact: "Bulletproof VPN Ltd.",
@@ -228,15 +257,19 @@ const registerM03Database = (): string => {
             tables: {},
         });
 
-    Database.setTable(databaseId, M03_LEDGER_TABLE, [
-        {
-            id: { value: 1, type: "number" },
-            beneficiary: { value: M02_SHELL_COMPANY_NAME, type: "string" },
-            parentEntity: { value: M03_PARENT_ENTITY_NAME, type: "string" },
-            amount: { value: M03_LEDGER_AMOUNT, type: "number" },
-            memo: { value: `ref ${M01_CASE_ID}`, type: "string" },
-        },
-    ]);
+    Database.setTable(
+        databaseId,
+        M03_LEDGER_TABLE,
+        buildM03LedgerRows().map((row): DatabaseRowDefinition => ({
+            id: { value: row.id, type: "number" },
+            postedAt: { value: row.postedAt, type: "string" },
+            direction: { value: row.direction, type: "string" },
+            party: { value: row.party, type: "string" },
+            amount: { value: row.amount, type: "number" },
+            balance: { value: row.balance, type: "number" },
+            memo: { value: row.memo, type: "string" },
+        })),
+    );
 
     Database.setTable(databaseId, M03_ACCESS_TABLE, [
         {
@@ -286,10 +319,6 @@ const registerM03FinanceVlan = (): void => {
                                 password: M03_FINANCE_PASSWORD,
                             }),
                         ],
-                        ports: [
-                            { external: 445, internal: 445, active: false, service: "smb" },
-                            { external: 3306, internal: 3306, active: false, service: "mysql", version: "mariadb" },
-                        ],
                     },
                     {
                         ip: M03_ACCOMPLICE_IP,
@@ -314,7 +343,6 @@ const registerM03FinanceVlan = (): void => {
                                 ],
                             }),
                         ],
-                        ports: [{ external: 445, internal: 445, active: false, service: "smb" }],
                     },
                     {
                         ip: M03_DECOY_HOST_IP,
@@ -334,23 +362,13 @@ const registerM03FinanceVlan = (): void => {
                                 ],
                             }),
                         ],
-                        ports: [{ external: 445, internal: 445, active: false, service: "smb" }],
                     },
                     {
                         ip: M03_VAULTLINE_IP,
                         lanIp: M03_VAULTLINE_LAN_IP,
                         type: NetworkDeviceType.Device,
                         name: M03_VAULTLINE_CODENAME,
-                        users: [Network.createUser({ username: "svc-vpn", online: true })],
-                        ports: [
-                            {
-                                external: 3389,
-                                internal: 3389,
-                                active: false,
-                                service: "rdp",
-                                version: M03_VAULTLINE_RDP_VERSION,
-                            },
-                        ],
+                        users: [Network.createUser({ username: "svc-vpn", online: true }), Network.createUser({ username: "root" })],
                         rootFiles: [
                             {
                                 name: M03_VPN_CONFIG_FILE_NAME,
@@ -364,14 +382,6 @@ const registerM03FinanceVlan = (): void => {
         ],
     });
 
-    Network.removePort(M03_COINDRIFT_IP, 3306);
-    Network.addPort(M03_COINDRIFT_IP, {
-        external: 3306,
-        internal: 3306,
-        active: false,
-        service: "mysql",
-        version: "mariadb",
-    });
     Network.setVulnerabilities(M03_COINDRIFT_IP, [{ type: "SQL_INJECTION" }]);
     Network.setVulnerabilities(M03_VAULTLINE_IP, [{ type: "RCE", version: M03_VAULTLINE_RDP_VERSION }]);
 };
@@ -440,17 +450,16 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
 
     override CreateData(): M03QuestData {
         return {
-            pfsenseLoggedIn: false,
+            portalReached: false,
             natPivotDone: false,
-            internalTrafficCaptured: false,
             ledgerDumped: false,
             gatewayShellObtained: false,
             gatewayRooted: false,
-            vpnConfigPulled: false,
-            reyesShareSeen: false,
-            natReverted: false,
+            vpnConfigRead: false,
+            accompliceReached: false,
             reportSent: false,
-            pfsenseChangeCount: 0,
+            networkBuilt: false,
+            forwards: [],
         };
     }
 
@@ -475,9 +484,11 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             children: [],
         });
 
-        registerM03FinanceVlan();
-
-        if (this.Data.natPivotDone) openM03InternalPorts();
+        const vlanKept = this.Data.networkBuilt && Network.getSubnet(M03_PFSENSE_IP) !== null;
+        if (!vlanKept) {
+            registerM03FinanceVlan();
+            restoreM03Forwards(this.Data.forwards ?? []);
+        }
 
         Network.registerDomain(M03_SKYNET_DOMAIN, M03_SKYNET_IP);
         Network.registerDomain(M03_REMOTE_PORTAL_DOMAIN, M03_PFSENSE_IP);
@@ -494,37 +505,10 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             fields: ["shellCompany", "parentEntity", "vpnLead"],
         });
 
-        this.Events.on("PFSense.Login", (data) => {
-            if (data.ip !== M03_PFSENSE_IP) return;
-            this.SetData("pfsenseLoggedIn", true);
-        });
+        this.Events.on("Network.PortChanges", (data) => {
+            if (data.subnet.ip !== M03_PFSENSE_IP) return;
 
-        this.Events.on("PFSense.Changes", () => {
-            if (!this.Data.pfsenseLoggedIn) return;
-
-            const count = this.Data.pfsenseChangeCount + 1;
-            this.SetData("pfsenseChangeCount", count);
-
-            if (count === 1 && !this.Data.natPivotDone) {
-                this.SetData("natPivotDone", true);
-                openM03InternalPorts();
-                return;
-            }
-
-            if (this.Data.natReverted) return;
-            if (!this.Data.ledgerDumped || !this.Data.internalTrafficCaptured || !this.Data.vpnConfigPulled) return;
-
-            this.SetData("natReverted", true);
-        });
-
-        this.Events.on("Wireshark.Started", () => {
-            if (this.Data.internalTrafficCaptured) return;
-            if (!this.Data.natPivotDone) return;
-
-            this.SetData("internalTrafficCaptured", true);
-            Events.emit(M03_CAPTURE_EXPORT_EVENT);
-            traceBacktraceFacts("m3", ["architectVpn"]);
-            appendBacktraceLogs("m3", M03_LOG_ENTRIES.capture);
+            this.onRouterSaved(data.newPorts);
         });
 
         this.Events.on("Sqlmap.DumpTable", (data) => {
@@ -538,10 +522,21 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             this.markLedgerDumped();
         });
 
+        this.Events.on("RemoteConnection.Established", (data) => {
+            trace("M03", `remote connection ${data.t} -> ${data.targetIp}`);
+            if (data.t === "SSH" && data.targetIp === M03_ACCOMPLICE_IP) {
+                this.markAccompliceReached();
+                return;
+            }
+            if (data.t !== "METASPLOIT" || data.targetIp !== M03_VAULTLINE_IP) return;
+
+            this.markGatewayShell();
+        });
+
         this.Events.on("Metasploit.Meterpreter.Connected", (data) => {
-            if (this.Data.gatewayShellObtained) return;
             if (data.ip !== M03_VAULTLINE_IP) return;
-            this.SetData("gatewayShellObtained", true);
+
+            this.markGatewayShell();
         });
 
         this.Events.on("Metasploit.Rootgrab", (data) => {
@@ -553,38 +548,49 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.root);
         });
 
-        this.Events.on("Files.Transfer", (data) => {
-            if (this.Data.vpnConfigPulled) return;
-            if (data.type !== "DOWNLOAD" || data.file.name !== M03_VPN_CONFIG_FILE_NAME) return;
-            this.SetData("vpnConfigPulled", true);
+        this.Events.on("Terminal.Cat", (data) => {
+            if (data.name !== M03_VPN_CONFIG_FILE_NAME || data.extension !== M03_VPN_CONFIG_FILE_EXTENSION) return;
+
+            this.markVpnConfigRead();
+        });
+
+        this.Events.on(OPEN_FILE_READ_EVENT, (data: { id: string; name: string; extension?: string }) => {
+            if (data.name !== M03_VPN_CONFIG_FILE_NAME || data.extension !== M03_VPN_CONFIG_FILE_EXTENSION) return;
+
+            this.markVpnConfigRead();
         });
 
         this.Events.on("Terminal.Explorer", (data) => {
-            if (this.Data.reyesShareSeen) return;
             if (data.ip !== M03_ACCOMPLICE_IP && data.ip !== M03_ACCOMPLICE_LAN_IP) return;
 
-            this.SetData("reyesShareSeen", true);
-            traceBacktraceFacts("m3", ["caseId"]);
+            this.markAccompliceReached();
+            appendBacktraceLogs("m3", M03_LOG_ENTRIES.reyes);
+        });
+
+        this.Events.on("Terminal.Cat", (data) => {
+            if (data.name !== M03_REYES_NOTE_FILE_NAME || data.extension !== M03_REYES_NOTE_FILE_EXTENSION) return;
+
+            appendBacktraceLogs("m3", M03_LOG_ENTRIES.reyes);
+        });
+
+        this.Events.on(OPEN_FILE_READ_EVENT, (data: { id: string; name: string; extension?: string }) => {
+            if (data.name !== M03_REYES_NOTE_FILE_NAME || data.extension !== M03_REYES_NOTE_FILE_EXTENSION) return;
+
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.reyes);
         });
 
         this.Events.on("Mail.Sent", (data) => {
             if (this.Data.reportSent) return;
             if (data.to !== M03_DEAD_DROP_EMAIL) return;
-            if (
-                !this.Data.internalTrafficCaptured ||
-                !this.Data.ledgerDumped ||
-                !this.Data.vpnConfigPulled ||
-                !this.Data.natReverted
-            ) {
-                return;
-            }
+            if (!this.Data.ledgerDumped || !this.Data.vpnConfigRead) return;
             if (!this.isReport(data.subject, data.content)) return;
 
             this.SetData("reportSent", true);
             appendBacktraceLogs("m3", M03_LOG_ENTRIES.aftermath);
             this.completeObjective(M03_OBJECTIVE_IDS.reportFindings);
         });
+
+        if (!vlanKept) this.SetData("networkBuilt", true);
     }
 
     override OnComplete() {
@@ -597,10 +603,46 @@ export class FlatlineM03Quest extends Quest<M03QuestData> {
         this.teardown();
     }
 
+    private onRouterSaved(ports: readonly NetworkPortInfo[]): void {
+        if (!this.Data.portalReached) {
+            this.SetData("portalReached", true);
+            traceBacktraceFinding("m3", "portal");
+        }
+
+        const forwards = syncM03Forwards(ports);
+        this.SetData("forwards", forwards);
+
+        if (!this.Data.natPivotDone && forwards.some((forward) => forward.active)) {
+            this.SetData("natPivotDone", true);
+        }
+    }
+
+    private markVpnConfigRead(): void {
+        if (this.Data.vpnConfigRead) return;
+
+        this.SetData("vpnConfigRead", true);
+        traceBacktraceFinding("m3", "vpnPeer");
+        appendBacktraceLogs("m3", M03_LOG_ENTRIES.tunnel);
+    }
+
+    private markAccompliceReached(): void {
+        if (this.Data.accompliceReached) return;
+
+        this.SetData("accompliceReached", true);
+        traceBacktraceFinding("m3", "accomplice");
+    }
+
+    private markGatewayShell(): void {
+        traceBacktraceFinding("m3", "gateway");
+        if (this.Data.gatewayShellObtained) return;
+
+        this.SetData("gatewayShellObtained", true);
+    }
+
     private markLedgerDumped(): void {
         if (this.Data.ledgerDumped) return;
         this.SetData("ledgerDumped", true);
-        traceBacktraceFacts("m3", ["shellCompany", "parentEntity", "amount", "caseId"]);
+        traceBacktraceFinding("m3", "parentEntity");
         appendBacktraceLogs("m3", M03_LOG_ENTRIES.ledger);
     }
 

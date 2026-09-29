@@ -2,6 +2,7 @@ import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-
 
 import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
 import { BLACKLEDGER_DOMAIN } from "./blackledger.js";
+import { RANSOM_BATCH_EU, RANSOM_BATCH_HOSPITAL, RANSOM_BATCH_NA, RANSOM_SPLIT_PERCENT, formatUsd, splitRansom } from "./finance.js";
 import { M01_CASE_ID } from "./m01.js";
 
 export const M02_ROOT_DOMAIN = "tr4c3404.dev";
@@ -118,17 +119,18 @@ export const M02_ADMIN_PASSWORD = "Zx8kTq21mR";
 export const M02_AFFILIATE_TABLE = "affiliates";
 export const M02_ADMINS_TABLE = "admins";
 
+export const M02_DEPLOY_PAYLOAD_NAME = "payload_v9";
 export const M02_DEPLOY_LOG_FILE_NAME = "deploy";
 export const M02_DEPLOY_LOG_FILE_EXTENSION = "log";
 export const M02_DEPLOY_LOG_CONTENT = [
     "DEPLOY LOG — build-affiliate-panel",
     "===================================",
     "",
-    "2026-08-14 02:14 UTC — pushed payload_v9 to affiliate mirror.",
-    `2026-08-14 02:41 UTC — client ${M01_CASE_ID} confirmed lock, ransom note delivered.`,
-    "2026-08-14 09:02 UTC — client escrow released, payout queued.",
-    "2026-08-14 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
-    `2026-08-14 09:20 UTC — sync confirmed with ${BLACKLEDGER_DOMAIN}, batch closed.`,
+    `${RANSOM_BATCH_HOSPITAL.settledAt} 02:14 UTC — pushed ${M02_DEPLOY_PAYLOAD_NAME} to affiliate mirror.`,
+    `${RANSOM_BATCH_HOSPITAL.settledAt} 02:41 UTC — client ${M01_CASE_ID} confirmed lock, ransom note delivered.`,
+    `${RANSOM_BATCH_HOSPITAL.settledAt} 09:02 UTC — client escrow released (${formatUsd(RANSOM_BATCH_HOSPITAL.gross)}), payout queued as batch ${RANSOM_BATCH_HOSPITAL.ref}.`,
+    `${RANSOM_BATCH_HOSPITAL.settledAt} 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.`,
+    `${RANSOM_BATCH_HOSPITAL.settledAt} 09:20 UTC — sync confirmed with ${BLACKLEDGER_DOMAIN}, batch closed.`,
 ].join("\n");
 
 export const M02_LOG_ENTRIES: Record<"default" | "aftermath", readonly string[]> = {
@@ -161,9 +163,11 @@ export const M02_FINANCIAL_DOC_CONTENT = [
     "WIRE AUTHORIZATION — INTERNAL",
     "==============================",
     "",
+    `Batch: ${RANSOM_BATCH_HOSPITAL.ref} (${RANSOM_BATCH_HOSPITAL.caseRef})`,
     `Beneficiary: ${M02_SHELL_COMPANY_NAME}`,
     "Purpose: consulting services (logistics)",
-    "Amount: escrow release, ransom payout batch",
+    `Amount: ${formatUsd(RANSOM_BATCH_HOSPITAL.gross)} (escrow release, ransom payout batch)`,
+    `Value date: ${RANSOM_BATCH_HOSPITAL.settledAt}`,
     "Authorized by: dev ops",
 ].join("\n");
 
@@ -203,8 +207,11 @@ export const M02_QUOTA_REPORT_CONTENT = [
     "Close rate: 94%",
     "Avg time-to-lock: 11 days",
     "",
-    "Top account: FIN-NA-0091 -- closed 6 days ahead of forecast, escrow",
-    "released same week. Bonus tier unlocked, nice work team (well, me).",
+    `Top account: ${RANSOM_BATCH_NA.caseRef} (${formatUsd(RANSOM_BATCH_NA.gross)}) -- closed 6 days ahead of`,
+    "forecast, escrow released same week. Bonus tier unlocked, nice work team",
+    "(well, me).",
+    "",
+    `Panel share stays at ${RANSOM_SPLIT_PERCENT.panel}% of every close, paid out through the usual consulting line.`,
     "",
     "Reminder to self: keep response time under 24h on new leads or panel",
     "flags you for review. Nobody wants that conversation again.",
@@ -233,10 +240,12 @@ export const M02_TIP_CONTENT = [
     "Send what you find the same way as before.",
 ].join("\n");
 
-export const M02_CASE_MATCH_RANSOM_AMOUNT = 2850000;
-export const M02_CASE_MATCH_SETTLED_AT = "2026-08-14";
-export const M02_VICTIM_CASE_ID_EU = "LOG-EU-2209";
-export const M02_VICTIM_CASE_ID_NA = "FIN-NA-0091";
+export const M02_CASE_MATCH_RANSOM_AMOUNT = RANSOM_BATCH_HOSPITAL.gross;
+export const M02_CASE_MATCH_SETTLED_AT = RANSOM_BATCH_HOSPITAL.settledAt;
+export const M02_CASE_BATCH_REF = RANSOM_BATCH_HOSPITAL.ref;
+export const M02_CASE_PANEL_SHARE = splitRansom(RANSOM_BATCH_HOSPITAL.gross).panel;
+export const M02_VICTIM_CASE_ID_EU = RANSOM_BATCH_EU.caseRef;
+export const M02_VICTIM_CASE_ID_NA = RANSOM_BATCH_NA.caseRef;
 
 export const M02_REPORT_SUBJECT = "Toolkit developer confirmed — shell company named";
 export const M02_REPORT_TEMPLATE_ID = "flatline.m02.report";
