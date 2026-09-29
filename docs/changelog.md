@@ -21,6 +21,246 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 
 ---
 
+## 2026-09-29
+
+- **[bug] #32 fix extended to M1, M2 and M4.** Their quest data gained
+  `networkBuilt`, and `OnObjectivesStart` builds the network (the
+  `resetMissionNetworks` destroy included) only when the flag is false or an
+  anchor router is missing, so a restart or a dev reload keeps the persisted
+  network. New `missionNetworksExist` helper in `src/helpers/network.ts`; M1's
+  `registerM01Network` split into `registerM01Routers` and `registerM01Domains`.
+  Seven commented-out `destroyNetwork` lines removed from `m01-quest.ts` and
+  `m02-quest.ts`. Typechecked, not live-tested — see docs/bugs.md #32.
+- **[mechanic] BACKTRACE reports: Personal Log now sits under Evidence.** In
+  the M2 and M3 reports the Personal Log section moved from the left column
+  to the right column, directly below the Evidence card (a markup move in
+  `src/applications/backtrace.html`; the M1 report has no Personal Log).
+  Requested in the M3 round-3 review. The Shell Company card keeps reading
+  `m2.shellCompany` on purpose: missions are played in order, so a blank
+  there in an isolated M3 test is a test artifact, not a bug.
+- **[milestone] M3 round 3 live-tested (2026-09-29, 22:18–22:37).** All five
+  keys traced in order (`portal`, `parentEntity`, `gateway`, `vpnPeer`,
+  `accomplice`), both `[FP][M03] remote connection` lines appeared
+  (METASPLOIT → 79.124.62.90, SSH → 62.210.183.77) and the report completed
+  (`m3 -> complete`). R1–R4, R6 and R7 were ticked as passed; **R5 (the Reyes
+  personal log via `cat`/`open`) was skipped, not tested**: the note was read
+  after the mission had completed, when `teardown()` had already destroyed
+  the network ("File not found."). See `docs/m03-livetest-guide.md`.
+- **[docs] Bug statuses #31–#34 moved to live-tested; guide updated.**
+  `docs/bugs.md` #31 (portal via `Network.PortChanges`), #32 (round 2: a
+  restart and a reload keep the network), #33 (`accomplice` via SSH; its
+  Reyes-log half stays untested) and #34 (the report completes on ledger +
+  config, `cat` works at `meterpreter >`) no longer say "not yet
+  live-tested". The guide marks R5 `[-]` (skipped) and warns to send the
+  report last, because completing the mission tears the M3 network down.
+- **[refactor] `src/debug/scratch.ts` retired; `scratchbt` moved to
+  `src/applications/backtrace-debug.ts`.** Three of its four tools were
+  dead: `scratchloc` (bug #22's investigation is RESOLVED and already
+  written up in `docs/bugs.md`), `scratchimg` and the `scratch-viewer`
+  website (one-off tests never referenced again). Only `scratchbt` was
+  still live-test tooling, so it moved next to
+  `backtrace.ts`/`backtrace-state.ts`/`backtrace-facts.ts` instead of
+  disappearing with the rest of the file; its command name and behavior
+  are unchanged.
+- **[mechanic] `msflab` debug command added (`src/debug/msf-lab.ts`).**
+  Stands up one sandbox host per base-game Metasploit module (telnet,
+  MariaDB, vsftpd, OpenSSH, RDP, SMTP, Nginx, Apache, POP3, IMAP) with the
+  port/service/version banner and online `guest` user each module's own
+  gating needs, so every module can be live-tested against a known-good
+  target instead of inferred from the decompiled client alone. `msflab up`
+  builds it and prints the RHOST/RPORT/Version cheat sheet, `msflab` alone
+  reprints it, `msflab down` tears it down; the router address is random
+  and saved per-save, so it never collides with a mission's own network.
+- **[mechanic] BACKTRACE: one action = one key finding.** The old tracing
+  wrote several facts from a single action (M2's `affiliates` dump traced 5,
+  M3's ledger dump 4) and the mission card listed every fact as a row. The
+  model is now split: a **key** is one important finding earned by exactly
+  one provable action and is the only thing the "TRACED SO FAR // x OF N"
+  panel shows (title + value, no description); every other fact is an
+  **extra** that only exists in the full snapshot written at COMPLETE, where
+  it is composed into the report's Key Findings — which may outnumber the
+  keys because they are the chain of events. Keys: M1 4 (`broker`, `buyer`,
+  `vault`, `caseId`), M2 7 (`developer`, `ransom`, `deployLog`, `homeLead`,
+  `firewall`, `workstation`, `shellCompany`), M3 6 (`portal`, `parentEntity`,
+  `architectVpn`, `gateway`, `vpnPeer`, `accomplice`). `traceBacktraceFacts(mission,
+  keys[])` is replaced by the typed single-key `traceBacktraceFinding(mission,
+  key)` (a non-key is rejected at compile time and at runtime); carried facts
+  (`buyer` in M2, `caseId` in M2/M3, `shellCompany` in M3) are no longer keys.
+  M1 gained the Q3 folder as a checkpoint (LedgerVault reports the click to
+  the quest through `Website.Exports` + `Events.emit`), which merges `caseId`
+  and `project` into one finding; M3 gained a report view (Key Findings
+  8, Entities, Personal Log, EV-M3-01 now reachable) and M1/M2's Key Findings
+  were rewritten (M1 5, M2 9). See `docs/architecture.md` (Applications:
+  BACKTRACE) and `docs/implementation-rules.md` §13.
+- **[mechanic] One money model for M2 and M3 (`src/content/finance.ts`).**
+  M3's ledger showed a single $42,000 row while M2's ransom was $2,850,000.
+  Root cause: both were $42,000 in the pre-redesign missions; M2 was rebuilt
+  on 2026-09-25 (commit `f255b8e`) and M3's constant kept the old value, and a
+  2026-09-28 patch (`8bbdc8e`, "this is one line item, not the whole batch")
+  papered over it. Three ransom batches (LOG-EU-2209 $1.4M on 2026-05-02,
+  FIN-NA-0091 $4.1M on 2026-07-22 — moved from 2026-02-19 so it really falls
+  in the "Q3" that `quota_report` and the M2 report claim — and CASE-A7X-0417
+  $2.85M on 2026-08-14) share one waterfall: 60% SKN Capital Nominees
+  (management fee, the Architect's cut), 25% TR4C3404 Consulting (consulting
+  fees, the panel's share), 5% X7xSentry9 Brokerage (the M1 broker, paid a
+  share of the ransom), 10% retained by Skynet. Total $8,350,000, $5,010,000
+  to the parent. M2 shows gross and the panel's share (`affiliates` gained
+  `batchRef`, `panelShare`, `status`; `deploy.log` and `wire_authorization.pdf`
+  carry the amount, batch and value date); M3 shows the whole waterfall
+  (`wire_transfers` is now 12 rows with a running balance ending at the
+  retained $835,000, the Reyes spreadsheet is a Q3 reconciliation
+  `q3_reconciliation.xlsx` — it was misnamed `q1_` — the tip mail names the
+  $2,850,000, and the report gained "Funds" lines). Every number is computed
+  from the one batch table, so M2, M3 and BACKTRACE cannot disagree again.
+- **[mechanic] M3: `open` replaces the download step; formats changed.**
+  The VPN config is `site_to_site_backup.conf` and the capture
+  `finance_vlan_capture.pcap`; reading them with the `open` command (any
+  extension; `cat` only handles `.txt`/`.log`) is what counts
+  (`OPEN_FILE_READ_EVENT`, the M2 pattern), so the `Files.Transfer` handler
+  and the `vpnConfigPulled` flag are gone (`vpnConfigRead`, `captureRead`
+  instead). Starting Wireshark now only creates the file; the tunnel
+  endpoint is traced when the capture is opened. The capture log names the
+  public IPs of the DB server and the gateway (a LAN IP alone is a dead end,
+  `bugs.md` #27).
+- **[bug] M3 hydra username was undiscoverable (`bugs.md` #25).** The engine
+  defaults `-l` to `guest` and a missed fixture only says "Could not connect
+  to the server."; the fixture is now registered under `guest` and `admin`
+  and the dead bare-IP fixture is dropped.
+- **[bug] M3 `rootgrab` could never fire (`bugs.md` #26).** Vault-Line had no
+  `root` user; it now has one. The command is `rootgrab /etc/passwd`.
+- **[bug] "Shell obtained" never fired for a plain Metasploit exploit
+  (`bugs.md` #29).** `Metasploit.Meterpreter.Connected` is raised only by the
+  reverse-TCP listener; the `exploit` flow raises `Metasploit.Event` and
+  `RemoteConnection.Established`. M3's shell flag and its `gateway` finding,
+  and M2's new `workstation` finding, now listen for
+  `RemoteConnection.Established` (`t === "METASPLOIT"`). M4's
+  `initialShellAccess` has the same latent problem and was deliberately left
+  unchanged (untested, out of scope).
+- **[docs] Recon and tool facts recorded (`bugs.md` #27, #28):** nmap and
+  Metasploit take public IPs only, Splitter children are found with
+  `python3 net_tree.py`, and Wireshark is an App. Also corrected: M2's
+  Metasploit/`openPort` through Router→Splitter→Device was already proven
+  live, so the "two levels unproven" notes for M3 were stale.
+- **[docs] Stale docs synced.** `architecture.md` still said M2's
+  `shellCompany` traced on `Files.Transfer` and that M3/M4 had no facts;
+  `m02-playtest.md` still said `download`; the M3 playtest had the wrong
+  `wireshark`/`run`/default-user details. All updated together with
+  `implementation-rules.md`, `mechanics-reference.md`, `story.md`,
+  `network-plan.md`, `scratch.md` and the three playtests.
+- **[bug] M3 personal log typo.** The `ledger` log rendered "Co.. SKN"
+  (double period from `${name}.`); the line now carries the money instead.
+- **[milestone] Verification state.** `npx tsc -p tsconfig.json --noEmit`
+  passes clean (exit 0) on the whole change set — it could not be run earlier
+  in the session (the shell was blocked by auto mode) and was run once the
+  shell was available again, after all code edits. No build was run and
+  nothing was live-tested; every new checkpoint (the LedgerVault folder
+  export, `RemoteConnection.Established`, the Wireshark-started capture file)
+  is still an unplayed assumption.
+- **[docs] `open` cannot read a Meterpreter target (`bugs.md` #30).** Checked
+  against the client after the code was written: custom commands see a remote
+  file system only over SSH (`isRemote` = `ssh_ip`), and a relative path
+  resolves from the home folder, not the cwd. The M2/M3 route is Meterpreter
+  `download` (copies land in `~/downloads`) and then `open ~/downloads/<file>`;
+  the quests already match on `{ name, extension }`, so no code changed. The
+  playtests, `mechanics-reference.md` and `scratch.md` were corrected. Open
+  proposal: make `open` cwd-aware with `Files.resolvePath`.
+- **[bug] M3's NAT pivot could never fire — the gateway is a TP-Link router,
+  not a pfSense (`bugs.md` #31).** A live-test screenshot of the admin panel
+  showed the TP-Link "Router Administration" page with five pre-filled
+  forwarding rules. Checked against the client: a `Router` node renders that
+  page, which raises `Network.PortChanges` on Save and **no event on login**;
+  `PFSense.Login`/`PFSense.Changes` come only from the pfSense page of a
+  `Firewall` node (M1/M2, where they were live-proven). M3 listened to the
+  wrong events, so `portal`, `natPivotDone` and the VLAN ports never happened.
+- **[mechanic] M3 pivot redesigned: the player writes the forwarding rules
+  (Option B).** The Port Forwarding table is the router's real port table, so
+  it cannot be hidden; it now starts with only the locked port-80 rule and the
+  four VLAN devices ship with no ports. `Network.PortChanges` on the gateway:
+  the first Save traces `portal`; each saved rule that matches a host and
+  service in `M03_FORWARD_TARGETS` is completed with its service banner
+  (`removePort` + `addPort`, `syncM03Forwards` in `m03-quest.ts`) so sqlmap,
+  Metasploit and nmap accept it; an active match is the pivot; the matches
+  persist in `forwards` and are re-applied on start; the revert now means "no
+  active rule of yours left" instead of "any later Save". The hint precedes the
+  gate: the tip mail, the public site's Staff Access block and its `lynx`
+  fixture name each host with its service and port, and `python3 net_tree.py`
+  gives names and LAN IPs. Quest data: `pfsenseLoggedIn`/`pfsenseChangeCount`
+  replaced by `portalReached`/`forwards` (abandon or `mods.reset` an old M3
+  save).
+- **[milestone] Verification state (M3 pivot).** `npx tsc -p tsconfig.json
+  --noEmit` clean (exit 0), no build run, nothing played. Open assumptions:
+  `Network.PortChanges` reaching a quest-scoped listener, and the rewrite
+  surviving the panel's stale form state.
+- **[docs] `docs/m03-livetest-guide.md` added.** A short Indonesian live-test
+  guide for M3: the story, the network map with public vs LAN IPs, the six-stage
+  flow, how to trigger and check each BACKTRACE key (with the log line to look
+  for) and a prioritised bug/risk table to try on purpose. Complements
+  `m03-playtest.md`; disposable like the playtests.
+- **[milestone] M3 live-tested up to the VPN config (2026-09-29, log-confirmed).**
+  The router rework was played from the recon through `vpnPeer`: `portal`,
+  `architectVpn`, `parentEntity`, `gateway` and `vpnPeer` traced in the log, with
+  the capture, ledger and root personal logs. Verified live: `Network.PortChanges`
+  reaching the quest, the banner surviving a second Save, `open` on the `.pcap`
+  and the `.conf`, the plain `exploit` raising `RemoteConnection.Established`,
+  `rootgrab` with a root user, hydra without `-l`, and the rejected out-of-order
+  attempts. The project owner's review of that run (first written into the
+  guide's section 8, since replaced by the retest steps) found the three
+  problems below.
+- **[bug] M3's network vanished on every restart (`bugs.md` #32).** A start-time
+  `destroyNetwork` runs in a worker on a snapshot and overwrites the whole
+  network list when it finishes, so the network built a moment earlier — and the
+  player's rules — were lost on every restart and every dev reload. M3 now
+  builds the VLAN only once (`networkBuilt` in the quest data, plus a check that
+  the subnet still exists); `forwards` remains the fallback for a rebuilt
+  network. M1, M2 and M4 still call `resetMissionNetworks` on every start and
+  have the same problem.
+- **[mechanic] M3's report no longer requires the rules to be removed.** A
+  design call by the project owner (the rules are the player's freedom): `natReverted`
+  and `isVlanExposed` are gone, the report waits only for the capture, the ledger
+  and the config, the tip mail now says the rule is "yours to keep or remove",
+  and the objective text no longer says "cover your tracks".
+- **[mechanic] Faded-Ledger is reached over SSH (`bugs.md` #33).** The guide's
+  O14 showed that a successful SSH login did not clear the bonus key:
+  `Terminal.Explorer` is raised only by Meterpreter and `evil-rm`. `accomplice`
+  is now traced on `RemoteConnection.Established` with `t === "SSH"` to
+  Faded-Ledger; `M03_FORWARD_TARGETS` gained `22 ssh` for it; the Reyes personal
+  log fires on `cat`/`open` of her note instead of at login; the Staff Access
+  notice, the site page and the `helpdesk_resets` note were reworded to match.
+  Data: `reyesShareSeen` became `accompliceReached`.
+- **[docs] `docs/m03-livetest-guide.md` rewritten for the retest.** The review
+  section, the ticked bug table and the DB-manager remarks are gone; it now has
+  the fresh-start steps, the three new checks (restart, report with the rules
+  left in place, Faded-Ledger over SSH) and a short list of what is parked.
+  `m03-playtest.md`, `bugs.md`, `story.md`, `network-plan.md`, `architecture.md`
+  and `mechanics-reference.md` were synced.
+- **[milestone] Verification state (round 2).** `npx tsc -p tsconfig.json
+  --noEmit` clean, no build run by the assistant, the three changes above are
+  unplayed.
+- **[milestone] Retest of round 2 (2026-09-29, 20:02–20:26, log-confirmed).**
+  Restart and dev reload kept the network and the rules (`bugs.md` #32 works),
+  the new texts were live, BACKTRACE was clean. Not passed: the report never
+  completed and the SSH login to Faded-Ledger traced no key.
+- **[bug] M3's report was refused in silence (`bugs.md` #34).** The log shows the
+  ledger dumped and the config read, but no capture: the third report gate needed
+  `Wireshark.Started`, and gates print nothing. The Wireshark step (judged weird
+  in play) is removed with its `.pcap`, the payroll decoy and the `architectVpn`
+  key (now a snapshot extra; M3 has 5 keys). The ledger domain moved into the
+  Staff access notice, the personal log that fired on the capture (`tunnel`) fires
+  on the config read, M4's tip mail names the gateway config as the source, and
+  the report needs only the ledger and the config.
+- **[mechanic] No `download` in M3.** The gateway config is
+  `site_to_site_backup.txt` (was `.conf`), read with `cat` at the session's root;
+  `Terminal.Cat` traces `vpnPeer`. Unconfirmed: that `cat` is offered at the
+  `meterpreter >` prompt.
+- **[bug] `open` printed one paragraph.** `open` gave the whole file to one
+  `println` of a string, which collapses newlines; it now prints line by line
+  (`bugs.md` #34).
+- **[docs] `CLAUDE.md` added** at the project root: an honest project context
+  (a game mod, fictional data, design-level work). A `trace()` was added to the
+  `RemoteConnection.Established` handler to explain the silent SSH login.
+- **[milestone] Verification state (round 3).** `npx tsc -p tsconfig.json
+  --noEmit` clean, no build run by the assistant, round 3 is unplayed.
+
 ## 2026-09-28
 
 - **[mechanic] M3 "Money Trail" — pass 2, after the first live-test

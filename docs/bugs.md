@@ -1172,3 +1172,448 @@ exists before `removeServer`+`createServer`) — reduces how often it re-logs,
 but does not eliminate the leak on first creation. Not implemented;
 documented as a known, accepted limitation of the WeeChat feature for any
 future mission using it.
+
+---
+
+**Numbering note:** entry 24 (HackHub 1.3.13 `--mod-dev` live-reload
+discovery) is recorded on local `main` (commit `ed17195`) and lands here when
+`clouds-modify` merges. Entries 25+ below skip 24 on this branch on purpose,
+so the merge needs no renumbering.
+
+---
+
+## 25. `hydra -l` is optional and the engine defaults it to `guest` — an unmatched `{user, target}` fixture prints only a generic "Could not connect to the server."
+
+**Status: RESOLVED (M3 registers the fixture under the default user as well)**
+Found: M3 live-test (pass 2), 2026-09-29, checked against the live
+`app.asar` (1.3.13, `dist/assets/index.js`, the `hydra` command class).
+
+What the client does: `let user = GetParameterValue("l") ?? "guest"`, and its
+own usage string reads `-l [login username (optional)]`. `-T` must be
+`ip:port` (a target without a port only prints usage). The fixture is looked
+up with `gd.GetCommand({ command: "hydra", input: { user, target } })`, a
+deep-equal match on the whole object — object inputs are not lowercased, so
+`-l Admin` does not match a fixture registered for `admin`. On a hit it runs
+the animation and prints `credentials.username`/`password` **from the
+fixture**; nothing compares that username with the `-l` value. On a miss it
+prints the banner and `Could not connect to the server.` — the very same
+message as a wrong IP or port, so it never hints that the username was the
+problem. `Terminal.Hydra.Try` fires before the lookup and carries no
+username, so a mission cannot react to a wrong guess either.
+
+The base game's own quests register their hydra fixtures with `user: "guest"`,
+so its players never need to know a username.
+
+What M3 did wrong: it registered only `{ user: "admin", target:
+"77.83.142.6:80" }` (plus a bare-IP twin that can never match, because `-T`
+always contains a port), and `admin` never appeared anywhere a player could
+see it (no mail, `lynx` result, Twotter post, page or `nmap` line). A player
+who ran `hydra -T 77.83.142.6:80 -P wordlist.lst` got the generic error and had
+nowhere to go; `m03-playtest.md` also wrongly claimed the default user is
+`root`.
+
+**Fix:** the fixture is now registered under both `guest` (the engine
+default, so a bare `hydra -T ip:80 -P wordlist.lst` succeeds and the result
+table itself reveals `admin`) and `admin` (an explicit `-l admin` still
+works). Both return the same `admin` credentials. The dead bare-IP fixture is
+no longer registered (its removal stays in the reset path so stale saves are
+cleaned).
+
+**Takeaway for future missions:** key a hydra fixture on `guest` whenever the
+player is not meant to already know the username, and let the success table
+reveal the real one; only key on a specific username when an in-world lead
+delivers it before the gate (M1's vendor name is the model). Never rely on
+the player guessing a "standard" default.
+
+---
+
+## 26. `rootgrab` needs an explicit `/etc/passwd` path and a `root` user on the target — a device without `root` fails with "Root user not found!"
+
+**Status: RESOLVED (Vault-Line gained a `root` user; pending live confirmation)**
+Found: M3 static review against the client, 2026-09-29.
+
+`rootgrab` is not a bare command: the client implementation requires exactly
+one argument, `rootgrab </path/to/passwd>`, and that file must be the
+engine-generated, hashed `passwd`. It then resolves the device's subnet and
+looks for a user named `root` (`users.find(u => u.username === "root")`);
+without one it throws `Root user not found!` and `Metasploit.Rootgrab` never
+fires. `Network.createSubnetNetwork` does not add `root` for you — the mod
+bridge maps only the `users` you pass, and the engine's `/etc/passwd` builder
+writes a line per given user except `root` (which is hashed but skipped) — the
+SDK's `Network.createDefaultUserSchema()` exists precisely for callers that
+want `root` + `guest` added. M4's C2 declares `root` explicitly; M3's
+Vault-Line declared only `svc-vpn`, so the "root the gateway" step could
+never produce its event.
+
+**Fix:** `Network.createUser({ username: "root" })` added next to the online
+`svc-vpn` user (the exploit still picks `svc-vpn`, the first `online` or
+`guest` user). The step is optional for completion — the report gates only on
+capture, ledger and config (it also needed the reverted rule until
+2026-09-29, `bugs.md` #31) — and only feeds a BACKTRACE log line.
+
+**Takeaway:** any device a mission expects to be `rootgrab`-ed needs an
+explicit `root` user; the player-facing command is `rootgrab /etc/passwd`.
+
+---
+
+## 27. `nmap` and Metasploit resolve targets by *public* IP only — a LAN IP works only while SSH'd inside that network; devices behind a Splitter are found with `python3 net_tree.py`
+
+**Status: WORKAROUND (content now supplies public IPs; behavior is engine design)**
+Found: M3 static review against the client, 2026-09-29.
+
+`nmap` looks the target up with `GetSubnet(ip)`, which matches a node's
+public `ip`. A `192.168.1.x` address is resolved only when the terminal has
+an SSH session (`Terminal.data.ssh_ip`), through `GetSubnet(sshIp, lanIp)`;
+from the player's own terminal `nmap 192.168.1.6` simply reports the host as
+down. The Metasploit exploit (`DiagnoseExploitTarget`) does the same:
+`GetSubnet(RHOST)`, the top Router, and `PortsForHost(router.ports, lanIp)` —
+a child device's ports live on its top Router with `lanIp` set, which is why
+`Network.openPort` and Metasploit both work through Router→Splitter→Device
+(confirmed live by M2's redesigned home network). `RHOST` must therefore be
+the public IP, and the `Version` option must equal the version half of the
+banner (`FreeRDP 7.1.9` → `7.1.9`); the failure messages ("Port N is
+closed", "Service version mismatch…", "No guest account or online user
+found") are accurate.
+
+M3's finance-VLAN capture log listed only LAN addresses, so a player had no
+usable IP for the gateway. **Fix:** the capture log now names both the public
+and the LAN address of the DB server and the gateway. The general recon path
+for a Splitter's children is `python3 net_tree.py <router ip>` (NetTree,
+downloaded from hackdb.net; needs `apt-get install python3`).
+
+**Takeaway:** a mission that wants the player to act on a device behind a
+router must deliver its **public** IP through a lead (file, capture, tool
+output); a LAN IP alone is a dead end.
+
+---
+
+## 28. Wireshark is an App, not a terminal command — `Wireshark.Started` fires from its ▶ button, and M3 counts it only after the NAT pivot
+
+**Status: RESOLVED (docs and playtest corrected; behavior unchanged)**
+Found: M3 playtest review, 2026-09-29.
+
+The client's Wireshark is a desktop App installed from the App Store
+(`docs/basegame-reference/hacktool-catalog.md`: "App only, no dedicated
+`TERMINAL.*` command key"). Its toolbar has Start / Stop / Clear plus
+optional Source and Destination capture filters, and it triggers
+`Wireshark.Started { source, destination }` when capture switches on. The
+old M3 playtest and `story.md` wrote `wireshark` as if it were a command.
+
+M3 ignores `Wireshark.Started` until the NAT pivot has happened (`natPivotDone`);
+a capture started earlier is not counted, so the player must press Stop and
+Start again after the pivot. Since 2026-09-29 starting the capture only
+creates `finance_vlan_capture.pcap` in the player's home folder; the
+BACKTRACE finding is traced when the player `open`s it (the M2 pattern —
+`open` reads a file of any extension, `cat` only `.txt`/`.log`).
+
+**Superseded 2026-09-29 (#34):** M3 no longer has a Wireshark step; the engine
+facts above still hold for any future mission.
+
+---
+
+## 29. `Metasploit.Meterpreter.Connected` is raised only by the reverse-TCP listener — a plain `exploit` raises `Metasploit.Event` and `RemoteConnection.Established` instead
+
+**Status: RESOLVED for M2 and M3; OPEN for M4 (not changed, untested)**
+Found: M3 static review against the client, 2026-09-29.
+
+The mod event `Metasploit.Meterpreter.Connected` maps to the engine's
+`Meterpreter.ReverseTCP.SessionCatch`, and the only place that triggers it is
+the reverse-TCP handler behind `tcp_listener` (a listener that logs
+"Meterpreter session N opened (lhost:lport -> ip)" when a payload calls back;
+its SDK payload carries the listener's `handler {ip, port}`). The flow M2's
+players actually use — `use exploit/rdp/cve_2019_0708_bluekeep`, `set RHOST/
+RPORT/Version`, `exploit` — never touches a listener: on success the exploit
+sets the terminal directory to the target and raises `Metasploit.Event`
+(`data.host` = the RHOST) and `RemoteConnection.Established` (`t:
+"METASPLOIT"`, match on `targetIp`). The base game's own tutorial quests
+listen for exactly that pair.
+
+M3 was written against `Metasploit.Meterpreter.Connected` (a copy of M4's
+shape), so its "shell obtained" flag — which also gates the `rootgrab` log —
+would never have been set, and the new BACKTRACE `gateway` finding could not
+be earned. M3 now listens for `RemoteConnection.Established` (`t ===
+"METASPLOIT"`, `targetIp` = Vault-Line) and still accepts
+`Metasploit.Meterpreter.Connected` for a player who uses the listener; M2's
+new `workstation` finding uses `RemoteConnection.Established` as well.
+
+**Still open — M4:** `m04-quest.ts` completes `initialShellAccess` on
+`Metasploit.Meterpreter.Connected` for the C2 host, so the plain `exploit`
+flow would not complete it. M4 is untested and out of this change's scope, so
+it was left as is; the fix is one more handler on `RemoteConnection.Established`
+(`t === "METASPLOIT"`, `targetIp` = `M04_C2_IP`).
+
+**Takeaway:** for "the player broke into this host with Metasploit", listen
+for `RemoteConnection.Established` (filter `t === "METASPLOIT"`) or
+`Metasploit.Event`; use `Metasploit.Meterpreter.Connected` only when the
+mission deliberately requires the listener workflow.
+
+---
+
+## 30. `open` (any command built on `Files.getByPath`) sees a remote file system only over SSH, and resolves relative paths from the home folder, not the cwd — it cannot read a Meterpreter target
+
+**Status: DOCUMENTED (engine design; docs and playtests corrected, `open.ts` unchanged — proposal below)**
+Found: M3 static review against the client (v1.3.13), 2026-09-29.
+
+The SDK's own `Files` doc says path operations are session-aware "while the
+player is connected to a remote host over SSH". The client agrees and is
+narrower than a reader might hope: the command context's `isRemote` is
+`!!terminal.data.ssh_ip`. An absolute path resolves against the SSH target's
+root only then (otherwise the player's own root); a relative or `~/` path
+resolves against the SSH user's home, or the player's default user (home)
+folder — never against the terminal's cwd (`Files.resolvePath(path)` is the
+cwd-aware helper; it returns an absolute path that `getByPath` accepts). A
+Meterpreter session is not SSH (it sets `meterpreter` / `meterpreter_user`,
+not `ssh_ip`), so at a `meterpreter >` prompt `open` reads the **player's own
+PC**, not the target. The terminal does offer mod commands in every
+environment (the command list appends them regardless of the active
+environment, filtered by `scope`), so `open` can be typed there; it just
+cannot reach the target's files.
+
+Meterpreter's `download` (like the base `download`) copies the file into the
+player's `~/downloads` (the client's file-service `Download` transfers into the
+`downloads` user folder), which is why M2's live route works: `download` at `meterpreter >`, then `open` on the
+local copy. Since a bare name resolves from the home folder, that copy is
+opened as `open ~/downloads/<file>` (or `open downloads/<file>`); the M3
+capture is created in the home folder itself, so `open finance_vlan_capture.pcap`
+works. Both quests match the event on `{ name, extension }` only, so they
+accept the local copy.
+
+**What was fixed:** the M2/M3 playtests, `mechanics-reference.md` and
+`scratch.md` no longer claim `open` works on a remote Meterpreter file, and
+they give the `~/downloads/` path. No code changed.
+
+**Proposal (not applied, needs its own go-ahead):** make `open` cwd-aware —
+`Files.getByPath(await Files.resolvePath(target))` — so a bare name works from
+any directory, and let the "No such file" error mention `~/downloads`. Until
+then a player who `cd`s away from the home folder and types a bare name gets
+"No such file".
+
+**Takeaway:** a mission file that lives on a Meterpreter target has to be
+checkpointed on its local copy (Meterpreter `download`, then `open`); only an
+SSH session exposes the target's file system to a custom command.
+
+---
+
+## 31. A `Router`-type node renders the TP-Link panel, which raises `Network.PortChanges` on Save and nothing on login — `PFSense.Login`/`PFSense.Changes` come only from the pfSense panel of a `Firewall` node, so M3's NAT pivot could never fire
+
+**Status: FIXED IN SOURCE (Option B, 2026-09-29) — LIVE-TESTED 2026-09-29: a Save in the TP-Link panel reaches the quest and traces `portal` (`m3 traced portal`, round 3 at 22:24:27; the round-1 results are in `docs/m03-livetest-guide.md` §7)**
+Found: a live-test screenshot of M3's admin panel (a **TP-Link** "Router
+Administration" page at `77.83.142.6`, Port Forwarding tab, five pre-filled
+rules), then verified against the client (v1.3.13), 2026-09-29.
+
+**What the client does.** The in-game browser picks the admin page from the
+node type: a `Firewall` opens the engine's pfSense page (and only if the
+router forwards an active `external → 80 → firewall LAN IP` rule); anything
+else that has an active port-80 rule to its own LAN IP opens the TP-Link
+"Router Interface". M3's remote gateway is `NetworkDeviceType.Router`, so it
+is the TP-Link page. The two pages raise different events:
+
+| Page | Login | Save |
+|---|---|---|
+| pfSense (`Firewall`) | `PFSense.Login {ip}` | `PFSense.Changes {old, new}` |
+| TP-Link (`Router`) | **no event** (a credential check, then the panel) | `Network.PortChanges {subnet, oldPorts, newPorts}` |
+
+M3 listened to `PFSense.Login` / `PFSense.Changes` on a `Router`, so neither
+could ever fire: the `portal` key was never traced, `natPivotDone` never
+became true and the five VLAN ports never opened. The game log agrees: in the
+2026-09-29 11:53 session the panel was open and logged in at 11:56 (the
+screenshot) and the log holds no `[FP][Backtrace] m3 traced …` line. M1 and M2
+are unaffected — their targets are `Firewall` nodes, which is also why their
+`PFSense.*` checkpoints were live-proven.
+
+**Why the table was pre-filled.** A device behind a router has no port list of
+its own: `CreateSubnetNetwork` moves every child's `ports` into `router.ports`,
+tagged with the child's `lanIp`, and deletes them from the child; `Network.addPort`,
+`removePort`, `openPort` and `closePort` all edit that router table by
+`(external, lanIp)`, and a host's ports are derived from it (`PortsForHost`).
+The TP-Link Port Forwarding tab lists the table verbatim, so a row cannot be
+hidden — an empty table means those services do not exist yet.
+
+**What the tools need from a row** (engine-verified): `sqlmap` — an *active*
+row with internal 3306/5432 whose `version` starts with `mariadb`, plus the
+domain's `SQL_INJECTION`; every Metasploit exploit — an *active* row with a
+`version`, `external === RPORT`, `internal` equal to the module's port, and
+service and version matching the banner; `nmap` — `OPEN` when
+`external === internal`, `FORWARDED` when they differ, `CLOSE` when inactive,
+"No ports found" for a host with no rows; `evil-rm` checks no ports at all.
+A rule the player types has no `service`/`version`: the panel copies them only
+from an existing *versioned* row with the same internal port and Local IP, so
+a typed rule is inert until the mission completes it.
+
+**Fix (the player writes the rules).**
+- The gateway ships with only its locked port-80 rule and the four VLAN devices
+  ship with no `ports` (`registerM03FinanceVlan`); the old `openPort` pivot and
+  the `removePort`/`addPort` workaround for 3306 are gone.
+- `Network.PortChanges` on `M03_PFSENSE_IP` (`onRouterSaved`): the first Save
+  traces `portal` (`portalReached`); every saved rule whose `(Local IP,
+  internal)` matches a row of `M03_FORWARD_TARGETS` is rewritten with its
+  banner via `Network.removePort` + `Network.addPort` (`syncM03Forwards` in
+  `src/main/m03-quest.ts`; the SDK calls do not re-raise the event); an *active* match sets
+  `natPivotDone`; the matches are saved in `forwards` and re-applied by
+  `OnObjectivesStart` only when the network has to be rebuilt (see #32). Rules
+  that match nothing (wrong host, wrong port, an empty "Any" Local IP) are left
+  alone and are inert. (The first version also made the report wait for the
+  player to take the rules out again — `natReverted`; that gate was dropped the
+  same day as the player's own call, so the rules may stay.)
+- The hint sits before the gate: the tip mail says the gateway forwards nothing
+  inward, the public site's Staff Access block (and `lynx`) names each host with
+  its service and port, and `python3 net_tree.py` gives each host's name,
+  public IP and LAN IP.
+
+**Not verified in game (live-test list, `docs/m03-playtest.md`):** that
+`Network.PortChanges` reaches a quest-scoped listener; that the panel's stale
+form state does not undo the rewrite (the client copies `service`/`version`
+back from the rewritten versioned rows on the next Save, but a `445` row has
+no version and is simply rewritten again); and the FORWARDED case
+(`external ≠ internal` needs `RPORT` = the external port).
+
+**Takeaway:** choose the event by node type — `Router` → `Network.PortChanges`
+(Save only, no login event), `Firewall` → `PFSense.*` — and read what a panel
+actually triggers before wiring a checkpoint to it. Whatever a mission must
+have the player discover for a gate has to be reachable before that gate.
+
+---
+
+## 32. A start-time `destroyNetwork` wipes the mission's network on every restart or reload — the destroy runs in a worker on a snapshot and overwrites the whole network list when it finishes
+
+**Status: FIXED IN SOURCE for M3 (2026-09-29), LIVE-TESTED (round 2: a game restart and a dev reload kept the network and the rules); the same fix is in source for M1, M2 and M4 (2026-09-29), typechecked, NOT live-tested**
+Found: live-test review, 2026-09-29 — after a plain game restart (no
+`mods.reset`), `nmap -sV` printed an empty table ("No ports found"), `sqlmap`
+answered "[ERROR] Failed to connect host", and every rule the player had
+written was gone (guide item P6).
+
+**What happens** (client v1.3.13 plus the game log):
+- `registerM03FinanceVlan` (and M1, M2 and M4's `register…Network`) call
+  `resetMissionNetworks` — an unawaited `Network.destroyNetwork` per IP —
+  immediately before `createSubnetNetwork` at the same address.
+  `OnObjectivesStart` runs on every game start, and in dev mode also each time a
+  rebuild reloads the mod (log 15:11:25 and 15:11:26: "Build output changed …
+  Reloading" — two loads within one second).
+- `DestroyNetwork` posts a snapshot of the whole subnet list (plus the files and
+  the global store) to a worker. When the worker answers, the client replaces
+  the whole subnet list with the worker's result (`SetSubnets`), and the files
+  and the store likewise. Anything created after the snapshot — the network the
+  same `OnObjectivesStart` just built, the rules restored onto it — is
+  discarded. When nothing existed at the address the worker has nothing to
+  remove, which is why the first start after `mods.reset` always worked and
+  every later start did not.
+- Same mechanism as #18 and #21 (and the `mods.reset` race noted in the project
+  memory). `resetMissionNetworks` was added on 2026-09-28 so that a replay starts
+  from a clean network; the price is that a plain restart destroys the network
+  too.
+
+**Fix (M3).** The quest data carries `networkBuilt`. `OnObjectivesStart` builds
+the VLAN (destroy, create, `restoreM03Forwards`) only when the flag is false or
+`Network.getSubnet(M03_PFSENSE_IP)` is null, and sets the flag once, at the end of
+`OnObjectivesStart` (after every listener is registered, so a failing `SetData`
+cannot cost the quest its event wiring). A restart or reload therefore leaves
+the persisted network alone, rules included. `mods.reset` and abandon clear the
+quest data, so the next claim builds fresh, as before. `forwards` stays as the
+fallback for a network that has to be rebuilt.
+
+**Consequences.** A structural change in the code no longer reaches a save whose
+flag is true (#21): abandon or `mods.reset` for a new topology. The first run of
+a build over an old save has no flag and rebuilds once, which can still hit the
+race — start from a fresh claim.
+
+**M1, M2 and M4 (2026-09-29, typechecked, not live-tested).** Each quest's data
+gained `networkBuilt`, and `OnObjectivesStart` follows the M3 rule: build (destroy,
+create, restore) only when the flag is false or an anchor router is gone
+(`missionNetworksExist` in `src/helpers/network.ts`; M1 checks its five routers, M2
+the dev, closer-rig and workstation routers, M4 the VPN router), and set the flag
+as the last statement. M1's `registerM01Network` is split into `registerM01Routers`
+(guarded, holds the destroy) and `registerM01Domains` (every start, so the
+LedgerVault domain is re-registered and never dropped). On the client,
+`createSubnetNetwork` skips an address that already exists (`AddSubnet` ignores a
+known ip) and `registerDomain` and `setVulnerabilities` only update the subnet
+record, so those calls are harmless on a kept network. The firewall-breach restore
+(`removeFirewallRule`, `openPort`) now runs on a rebuild only, since a kept network
+already carries the change. The seven commented-out `destroyNetwork` lines in
+`m01-quest.ts` and `m02-quest.ts` were removed (zero-comments rule). The same
+consequence as M3 applies: a structural change in the code reaches a save only
+after abandon or `mods.reset`.
+
+**Takeaway:** destroy-before-create belongs to the first build of a claim, never
+to the every-load path of `OnObjectivesStart`.
+
+---
+
+## 33. `Terminal.Explorer` cannot be raised for M3's Faded-Ledger — the way in is SSH, which raises `RemoteConnection.Established` (`t: "SSH"`)
+
+**Status: FIXED IN SOURCE (2026-09-29) — LIVE-TESTED for `accomplice` (round 3: `[FP][M03] remote connection SSH -> 62.210.183.77`, then `m3 traced accomplice`, both at 22:33:24). The Reyes personal log (`Terminal.Cat` / `open` of `do_not_open_at_work.txt`) is SKIPPED, not tested: the note was read after the mission completed, when `teardown()` had already destroyed the network ("File not found.")**
+Found: live-test review, 2026-09-29 (guide item O14: "logged in over SSH, still
+not cleared").
+
+**Facts from the client.** Exactly two commands raise `Terminal.Explorer`:
+`explorer` in a Meterpreter session and in an `evil-rm` session. Faded-Ledger has
+no service Metasploit can exploit (its only forwarded port was 445, which no
+command reads except `nmap`), and `evil-rm -H` accepts only a hash the engine
+itself registered when a quest created it (`Bq.EncryptPassword`), while
+`helpdesk_resets` stores the plain password. The SSH session's own `explorer`
+opens the file window without raising any event. `ssh` needs a `Device`
+(Faded-Ledger is one), an active router row with external = the `-p` port (22),
+internal 22 and a Local IP that matches the host, and a valid user and
+password; it raises `RemoteConnection.Established` with `t: "SSH"` and
+`targetIp` = the address typed. The log line "Sys log file not found for
+62.210.183.77" at 15:05 is the engine noting that connection (a device created
+by a mod has no `sys.log`); harmless.
+
+**Fix.** `M03_FORWARD_TARGETS` gains `22 ssh` for Faded-Ledger, so the player's
+rule is completed like the others. `accomplice` is traced when
+`RemoteConnection.Established` arrives with `t === "SSH"` and `targetIp ===
+M03_ACCOMPLICE_IP` (`markAccompliceReached`); `Terminal.Explorer` stays as a
+second trigger. The Reyes personal log is no longer written at login, because it
+quotes her note: it fires on `Terminal.Cat` or `open` of
+`do_not_open_at_work.txt`. Hints: the Staff Access notice lists "Faded-Ledger
+(ssh 22, share 445)" and the `helpdesk_resets` note now reads "Remote login reset
+for d.reyes". Data: `reyesShareSeen` became `accompliceReached`.
+
+**Takeaway:** before naming a tool as a checkpoint, list every place the engine
+raises its event, and prefer the event of the tool the player can actually reach
+the host with.
+
+---
+
+## 34. M3's report was refused without a word because of a hidden Wireshark requirement — the capture step is removed, `open` printed one paragraph, and the gateway config is now a plain `.txt` read with `cat`
+
+**Status: FIXED IN SOURCE (2026-09-29) — LIVE-TESTED round 3 (2026-09-29): the report completed on ledger + config alone (`m3 -> complete` at 22:37:55) and `cat site_to_site_backup.txt` traced `vpnPeer` at the `meterpreter >` prompt (22:31:20); `open` per line and the missing Wireshark were confirmed by the tester's own check, not by the log**
+Found: review of the retest run (game log 20:02–20:26), 2026-09-29.
+
+**What the log showed.** `portal`, `parentEntity`, `gateway` and `vpnPeer` were
+traced; there is no `architectVpn` and no capture log. The player had dumped the
+ledger, read the config and opened the rules, yet the report never completed:
+the `Mail.Sent` handler returned without a trace at the gate that needs
+`internalTrafficCaptured`, which only `Wireshark.Started` (after the pivot) sets.
+The gates print nothing, so the player could not tell which of three conditions
+was missing — and the Wireshark step itself was judged pointless.
+
+**Fix.**
+1. *Wireshark is out of the mission:* the `Wireshark.Started` handler, the
+   `Events.emit` → `Files.create` `.pcap` bridge, `internalTrafficCaptured`,
+   `captureRead`, the capture text, the payroll decoy (constants and geoip/whois
+   fixtures) and the `architectVpn` key are gone. `architectVpn` (the tunnel
+   endpoint) stays an *extra* in the COMPLETE snapshot, so the report still shows
+   it; `BACKTRACE_KEYS.m3` has 5 keys. The personal log that used to fire on the
+   capture is now `tunnel` and fires on the config read. M4's tip mail says the
+   address came from the gateway config. The report needs only the ledger and the
+   config.
+2. *The ledger domain* the capture used to reveal is now in the Staff access
+   notice (constant, `home.html`, the `lynx` fixture).
+3. *No `download` in the flow:* the gateway config is `site_to_site_backup.txt`
+   (it was `.conf`), so `cat` reads it at the session's root and `Terminal.Cat`
+   traces `vpnPeer`. The engine's `cat` reads the terminal's current directory,
+   which the exploit points at the target, and the base terminal commands stay
+   available inside an environment (SSH sessions show it); **confirmed live at
+   the `meterpreter >` prompt (round 3: `cat` traced `vpnPeer` at 22:31:20).** A local copy read with `open` still counts.
+4. *`open` printed one paragraph:* it handed the whole file to one `println` of a
+   plain string, which collapses newlines; `cat` returns the string as the command
+   result, which keeps them. `open` now prints line by line (blank lines with
+   `newLine()`, leading spaces turned into non-breaking spaces).
+5. *Diagnostics:* `RemoteConnection.Established` writes `[FP][M03] remote
+   connection <t> -> <ip>` so a session that traces no key can be seen in the
+   log. The SSH login to Faded-Ledger at 20:19:30 produced no `traced accomplice`;
+   the cause is still unknown.
+
+**Takeaway:** a gate that fails silently must never hide a requirement the player
+has no other way to discover; and when a step is judged weird in play, remove it
+rather than gate on it.

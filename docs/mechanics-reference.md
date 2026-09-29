@@ -43,7 +43,7 @@ file whenever a mission introduces or confirms a new tool.
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| `ssh` | `Terminal.SSH.Connected`/`.Disconnected`/`.FileDownload`/`.Shutdown`, `CommandDataMap.ssh` | Remote shell session — requires `-h [user@ip]` syntax, not a bare IP |
+| `ssh` | `Terminal.SSH.Connected`/`.Disconnected`/`.FileDownload`/`.Shutdown`, `CommandDataMap.ssh` | Remote shell session — requires `-h [user@ip]` syntax, not a bare IP. Needs a `Device`, an active router row with external = the port (default 22) and internal 22 that applies to the host (no service or version needed), and a valid user and password; it raises `RemoteConnection.Established` with `t: "SSH"` and `targetIp` = the address typed (M3 uses it for Faded-Ledger, `bugs.md` #33). |
 | `ftp` | `Terminal.FTP.Connect`, `CommandDataMap.ftp` | File transfer session |
 | `weechat` | `WeeChat.Connected`/`.Disconnected`/`.Message`, `CommandDataMap.weechat` | IRC chat client |
 
@@ -51,7 +51,7 @@ file whenever a mission introduces or confirms a new tool.
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| `hydra` | `Terminal.Hydra`, `Terminal.Hydra.Try`, `CommandDataMap.hydra` | Online brute-force login |
+| `hydra` | `Terminal.Hydra`, `Terminal.Hydra.Try`, `CommandDataMap.hydra` | Online brute-force login. `-T` must be `ip:port`; `-l` is optional and **defaults to `guest`**. The fixture is matched on the whole `{user, target}` object (case-sensitive) and the success table prints the fixture's own credentials, so a fixture keyed on `guest` can reveal a different username; a miss only prints "Could not connect to the server." `-P` needs a wordlist with a real `wordCount` (a HackDB download, not a hand-typed `.lst`). See `bugs.md` #25. |
 | `hashcat` | `Hashcat` | GPU hash cracking |
 | `john` | `John.DecryptHash` | Wordlist-based hash cracking (John the Ripper) |
 | `fern` | `Fern.FindPassword` | WiFi password recovery |
@@ -60,14 +60,14 @@ file whenever a mission introduces or confirms a new tool.
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| `bettercap` | `Bettercap.Open`/`.Close`/`.NetProbe`/`.NetShow`/`.WifiRecon`/`.WifiDeAuth` | Network MITM / **Wi-Fi** recon & deauth. Its events carry no target (only `NetProbe`'s plain `boolean`), and it is a physical-proximity Wi-Fi tool — used by M2 (bettercap+fern to crack a home AP), **not** M3 (a wired remote pivot, no Wi-Fi component). |
-| `wireshark` | `Wireshark.Started`/`.Stopped` | Packet capture. Payload is only the `{source?, destination?}` filter, no packets, and there is no SDK call to inject packets into the list — a mission that needs captured data must deliver it another way (M3 writes a capture file). See `bugs.md` #8. |
+| `bettercap` | `Bettercap.Open`/`.Close`/`.NetProbe`/`.NetShow`/`.WifiRecon`/`.WifiDeAuth` | Network MITM / **Wi-Fi** recon & deauth. Its events carry no target (only `NetProbe`'s plain `boolean`), and it is a physical-proximity Wi-Fi tool — M2 used it (bettercap + `fern` to crack a home AP) until the 2026-09-24 redesign replaced that step with `sync-home.txt`, and M3 had it wrongly (a wired remote pivot, no Wi-Fi component) until pass 2 removed it; **no mission uses `bettercap` or `fern` today**. |
+| `wireshark` | `Wireshark.Started`/`.Stopped` | **No mission uses it any more** (M3's capture step was removed on 2026-09-29, `bugs.md` #34). Packet capture — an **App** installed from the App Store (▶ Start / Stop / Clear plus optional Source/Destination filters), not a terminal command. Payload is only the `{source?, destination?}` filter, no packets, and there is no SDK call to inject packets into the list — a mission that needs captured data must deliver it another way (M3 writes `finance_vlan_capture.pcap` and traces it when the player `open`s it). See `bugs.md` #8 and #28. |
 
 ### Exploitation
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| `metasploit` / `msfconsole` | `Metasploit.Event`, `.Search`, `.Use`, `.Event.Try`, `.Msfconsole`, `.ShowOptions`, `.SetOption`, `.Rootgrab`, `.Meterpreter.Connected`, `Meterpreter.Download` | Exploit framework (search/use/configure/run modules, Meterpreter sessions) |
+| `metasploit` / `msfconsole` | `Metasploit.Event`, `.Search`, `.Use`, `.Event.Try`, `.Msfconsole`, `.ShowOptions`, `.SetOption`, `.Rootgrab`, `.Meterpreter.Connected`, `Meterpreter.Download` | Exploit framework: `search`, `use exploit/rdp/cve_2019_0708_bluekeep`, `set RHOST <public ip>` / `RPORT` / `Version <banner version, e.g. 7.1.9>`, then **`exploit`** (there is no `run`); needs an `online` or `guest` user on the target; then a `meterpreter >` prompt with `download`, `explorer`, `rootgrab /etc/passwd`, `show users`. `rootgrab` needs a `root` user on the target (`bugs.md` #26). Targets resolve by public IP only (`bugs.md` #27). `Meterpreter.Download` never fires reliably — use `open`/`Files.Transfer`. A successful plain `exploit` raises `Metasploit.Event` (`data.host`) and `RemoteConnection.Established` (`t: "METASPLOIT"`, match on `targetIp`); `Metasploit.Meterpreter.Connected` is raised only by the reverse-TCP listener (`tcp_listener`, LHOST/LPORT) — `bugs.md` #29. |
 | `sqlmap` | `Sqlmap.ListTables`, `Sqlmap.DumpTable` | Automated SQL injection |
 
 ### File / OS / scripting
@@ -76,17 +76,18 @@ file whenever a mission introduces or confirms a new tool.
 |---|---|---|
 | `ls` | `Terminal.Ls` (`{id, name}`) | List directory contents (file-ID based) |
 | `cd` | `Terminal.Cd` | Change working directory |
-| `cat` | `Terminal.Cat` | Print file contents |
+| `cat` | `Terminal.Cat` | Print file contents — only `.txt`/`.log`; any other extension fails with "Unable to read file." (use the project's `open` command, section 2) |
 | `openssl` | `Terminal.Openssl` (`{type: "enc"\|"dec", input, output}`) | Base64 encode/decode (`btoa`/`atob`), not real cryptography — confirmed by reading strings out of the base game's own `app.asar`, whose official tutorial quest uses the identical mechanic. Falls back to plain `atob()`/`btoa()` when no `Shell.addCommandData("openssl", {type, text}, ...)` fixture matches, so a mission can just seed valid base64 content without registering a fixture at all. |
-| `python3` | `Python3.ExecFile` | Execute a Python script file |
-| `explorer` | `Terminal.Explorer` | GUI file explorer (not a terminal command) |
+| `python3` | `Python3.ExecFile` | Execute a Python script file. `python3 net_tree.py <ip>` (NetTree, downloaded from hackdb.net; needs `apt-get install python3`) finds the router a public IP belongs to and lists the devices behind it, including a Splitter's children with their public IPs (`bugs.md` #27); `kimai.py` and `jwt_decoder.py` are the M1 tools. |
+| `explorer` | `Terminal.Explorer` | GUI file explorer. `Terminal.Explorer` is raised only by `explorer` in a Meterpreter session or an `evil-rm` session; the `explorer` of an SSH session opens the window and raises nothing (`bugs.md` #33). `evil-rm -H` needs a hash the engine itself registered, not a plain password. |
 | process kill | `Process.Killed` | Kill a running process by PID |
 
 ### Infrastructure / admin (borderline "hacking tool", included for completeness)
 
 | Tool | SDK hook(s) | What it does |
 |---|---|---|
-| pfSense | `PFSense.Login`, `PFSense.Changes` | Router/firewall admin web panel |
+| pfSense | `PFSense.Login`, `PFSense.Changes` | The admin page of a **`Firewall`** node only (M1, M2). Its firewall rules are the editable list. |
+| TP-Link router panel | `Network.PortChanges` (`{subnet, oldPorts, newPorts}`) | The admin page of a **`Router`** node (M3's remote gateway): login form, then Status and Port Forwarding tabs. **Login raises no event**; each Save raises `Network.PortChanges` with the whole table before and after. The table is the router's real port table — every child device's ports live in it, tagged with the child's `lanIp` — so rows cannot be hidden, and `Network.addPort`/`removePort`/`openPort`/`closePort` edit the same rows. The "Add Rule" form takes external, internal and Local IP (a LAN address, or empty for Any); a typed rule has no `service`/`version` until a mission adds them (`Network.removePort` + `Network.addPort`), and sqlmap/Metasploit ignore a row without them. `nmap` shows a host's row `OPEN` (`external === internal`), `FORWARDED` (different) or `CLOSE` (inactive). `bugs.md` #31. |
 
 **Explicitly out of scope for this doc** (general in-game apps, not hacking
 tools): Twotter, Kisscord, Mail, Bank, Database, generic Browser/AppStore/BCC
@@ -99,3 +100,6 @@ rides on, not tools themselves).
 | Command | File | Built for | Registration | Notes |
 |---|---|---|---|---|
 | `attrcheck` | `src/commands/attrcheck.ts` | M04's booby-trapped `master_identity_backup` file | `@RegisterCommand({ default: true, scope: "both" })` | Resolves the given path via `Files.getByPath` (session-aware, so it works against the remote host over SSH) and, if it matches the trap file, prints a warning and emits a custom mod event (`flatline.m04.attrcheckRevealed`) the quest listens for instead of completing the objective directly. Not yet live-tested. |
+| `open` | `src/commands/open.ts` | M2 and M3 evidence files (`.pdf`, `.xlsx`, …) | `@RegisterCommand({ default: true, scope: "both" })` | Prints a file of **any** extension (`cat` only reads `.txt`/`.log`) **line by line** (since 2026-09-29; a single `println` of the whole string collapsed every newline into one paragraph, `bugs.md` #34; leading spaces are kept as non-breaking spaces) and emits `flatline.open.fileRead` `{ id, name, extension }`, which quests use as a checkpoint — "the player provably read this file". Resolves the path with `Files.getByPath` like `attrcheck`: session-aware **over SSH only** (`isRemote` = the terminal has `ssh_ip`), so at a `meterpreter >` prompt it reads the player's own PC, never the target — fetch the file with Meterpreter's `download` (it lands in `~/downloads`) and `open ~/downloads/<file>`. A relative path resolves from the home folder, not the cwd (`Files.resolvePath` is the cwd-aware helper; making `open` use it is an open proposal). Engine-verified, `bugs.md` #30. The event carries only `{ id, name, extension }`, so quests match on `name`/`extension` and accept the local copy. Confirmed in M2's live-test on a local copy (`open wire_authorization.pdf` after it had been downloaded) and in M3's live-test on the old `.conf`/`.pcap` files. M3's gateway config is now a `.txt` read with `cat` (`bugs.md` #34). Replaces the download-based `Files.Transfer` gate for M2's shell-company lead and M3. |
+| `scratchbt` | `src/applications/backtrace-debug.ts` | BACKTRACE debugging | `@RegisterCommand({ default: true, scope: "both" })` | `scratchbt`, `scratchbt <m1..m4> <locked\|progress\|complete>`, `scratchbt <mission> keys` (lists the key findings and whether each is traced) and `scratchbt <mission> <key>` (traces one key; a non-key is rejected). |
+| `msflab` | `src/debug/msf-lab.ts` | Metasploit module verification, not shipped mission content | `@RegisterCommand({ default: true, scope: "both" })` | `msflab up` builds one sandbox host per base-game Metasploit module with a matching port/service/version banner and an online `guest` user, then prints RHOST/RPORT/Version per module; `msflab` alone reprints the sheet; `msflab down` tears the network down. |

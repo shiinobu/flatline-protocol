@@ -1304,6 +1304,14 @@ live-test of pass 1). Implemented, NOT live-tested.** `tsc --noEmit` clean,
 (removed) — where they differ, this wins. Design intent: `docs/story.md`
 §4; topology: `docs/network-plan.md`.
 
+**Partly superseded by the 2026-09-29 section at the end of this file.** Items
+A-C below stay valid, except that A's remark "M2 uses bettercap legitimately"
+has been stale since M2's 2026-09-24 redesign (no mission uses it now). The
+chain changed (download → `open`, `Meterpreter.Connected` →
+`RemoteConnection.Established`, `vpnConfigPulled` → `vpnConfigRead`), the
+hydra fixture in assumption 9 is now `guest` + `admin` on `ip:80` only, and
+assumptions 2-3 ("two levels unproven") are proven by M2's live-test.
+
 **Live-test bugs from pass 1 — fixed:**
 - **A. bettercap removed entirely.** In this SDK/project bettercap is a
   Wi-Fi mechanic (`WifiRecon`/`WifiDeAuth`; M2 uses it legitimately to
@@ -1439,3 +1447,305 @@ field), `M03_PARENT_ENTITY_NAME` = SKN Capital Nominees (imported by
 #18/#21 race) — the report hard-requires the ledger dump, which requires
 the domain+port to come up cleanly on a rebuilt save; first suspect if the
 VLAN can't be reached at all after the pivot.
+
+---
+
+**2026-09-29 — BACKTRACE keys, one money model, M3 follow-up.** Implemented,
+NOT live-tested. `npx tsc -p tsconfig.json --noEmit` clean (exit 0), the inline
+scripts of `backtrace.html` and `ledgervault/home.html` pass `node --check`,
+and the finance arithmetic was re-run outside the game (totals and the
+12-row balance below). No build was run. Detail per change: `docs/changelog.md`
+(2026-09-29), rules: `docs/implementation-rules.md` §13-14.
+
+**Why (user feedback, 2026-09-29).** One action used to trace several facts
+(M2's `affiliates` dump 5, M3's ledger dump 4), the panel listed every fact,
+and M3's ledger showed one $42,000 row while M2's ransom was $2,850,000. Asked
+for: one action = one key finding, keys shown as title + value only, the
+descriptions composed into Key Findings at COMPLETE (which may outnumber the
+keys), the case id merged with the Q3 folder in M1, new keys in M2/M3, and one
+detailed money model for M2 and M3.
+
+**Money model decisions (`src/content/finance.ts`).**
+- Three batches, chronological: `LOG-EU-2209` $1,400,000 2026-05-02
+  (`PB-2605-01`), `FIN-NA-0091` $4,100,000 2026-07-22 (`PB-2607-01`),
+  `CASE-A7X-0417` $2,850,000 2026-08-14 (`PB-2608-01`). FIN-NA-0091 was moved
+  from 2026-02-19 so it really falls in the "Q3" that `quota_report` ("Q3
+  summary", "top account") and the M2 report ("Q3 closes: 4") claim.
+- One waterfall for every batch: 60% SKN Capital Nominees ("management fee",
+  the Architect's cut — M2's `routing_notes` say it "goes out same day as
+  settlement"), 25% TR4C3404 Consulting ("consulting fees (logistics)" — M2's
+  `panelShare`), 5% X7xSentry9 Brokerage ("customs brokerage" — the M1
+  broker), 10% retained by Skynet (the remainder, so cents never drift).
+  Postings 09:04 in, 09:20 / 09:24 / 09:27 out. Totals $8,350,000 in,
+  $5,010,000 / $2,087,500 / $417,500 / $835,000. Re-run outside the game: every
+  split sums to its gross; by hand the 12 ledger rows end at a $835,000
+  balance (140,000 → 550,000 → 835,000 after each batch).
+- Where it surfaces: M2 `affiliates` (gross, `panelShare`, `batchRef`),
+  `deploy.log`, `wire_authorization.pdf`, `quota_report.txt`; M3
+  `wire_transfers` (all three batches), the Q3 reconciliation (July + August:
+  $6,950,000 in, $4,170,000 to the parent), the tip mail, the report's Funds
+  lines, BACKTRACE's M2/M3 facts.
+- Name note: M1's broker alias is `X7xS3NTRY9` (leet) while the ledger party is
+  `X7xSentry9 Brokerage`, after the broker's own domain `x7xsentry9.tech` — read
+  as the alias' corporate front. If the literal alias is preferred, change
+  `M03_LEDGER_BROKER_PARTY` (the only place the string lives).
+- Soft inconsistency left alone: M2's `quota_report` says "Closes this quarter:
+  4" and the report says "Q3 closes: 4" while the table holds two Q3 batches
+  (`LOG-EU-2209` is May). Read as the closer's own count, not the table's;
+  changing it means either moving the EU batch into Q3 or rewording two lines.
+
+**BACKTRACE decisions and edge cases.**
+- Keys are the only thing the mission card shows; extras (M1 listing/project,
+  M2 caseId/settled/victims/buyer/batchRef/panelShare, M3 the whole waterfall
+  plus the peer facts) exist only in the snapshot written at COMPLETE.
+- M1 `caseId` traces on the click of the `Q3-2026-SEA` folder, as asked. The
+  `Recent` sidebar view also lists `case_id.txt`; opening the file from there
+  does not trace the key. M1 `buyer` has no quest flag, so unlike the
+  listing / vault / Q3 folder it is not re-traced on a quest restart.
+- M3 `vpnPeer` has no shell gate. `mods.reset` does not clear the player's own
+  files, so a stale `site_to_site_backup.conf` left in `~/downloads` by an
+  earlier run, opened before the gateway is rooted, traces `vpnPeer` and sets
+  `vpnConfigRead` (a report gate) early. M2 avoids this with `firewallBreached`. The natural M3
+  gate, `gatewayShellObtained`, depends on `RemoteConnection.Established`, which
+  is unplayed — gating on it would risk a dead end if the event does not
+  fire, so it was left ungated. Revisit after the first live-test.
+- `captureRead` needs `internalTrafficCaptured`, which resets per claim, so a
+  stale `.pcap` cannot trigger it.
+
+**Assumptions to verify in the game (in the order a run hits them).**
+1. **LedgerVault folder click → quest.** `Website.Exports` +
+   `Events.emit` is proven (`bugs.md` #19 row 6, received by a *module-level*
+   `Events.on`; #20 row 2: a `SaveStorage` write inside that handler persists).
+   A **quest-scoped** `this.Events.on` (`m01-quest.ts`, the
+   `M01_PROJECT_OPENED_EVENT` handler) receiving an event emitted from a
+   website is not proven: the SDK doc says every `Events.emit` is dispatched to
+   both the game's event system (quest listeners) and the custom bus, and a
+   quest listener receiving a *command*-emitted custom event is live-proven
+   (`open` → M2), so only the website emitter context is untested.
+   Fallback if it never fires: a module-level `Events.on` that calls
+   `traceBacktraceFinding("m1", "caseId")` — guard it on the M1 status, because
+   `applyFinding` self-heals a `locked` mission to `progress`, and LedgerVault
+   stays reachable after M1 ends (the `caseId` key would otherwise only appear
+   in the COMPLETE snapshot).
+2. **`open` at a `meterpreter >` prompt** (M3 config, the M2 PDF) — **not an
+   assumption any more, it does not work** (`bugs.md` #30, engine-verified):
+   custom commands see the target's files only over SSH (`isRemote` =
+   `ssh_ip`). The route is Meterpreter `download` (lands in `~/downloads`) and
+   `open ~/downloads/<file>`; the handlers accept the local copy because the
+   event carries only `{ id, name, extension }`. Proposal, not applied: make
+   `open` cwd-aware with `Files.resolvePath` (a bare name currently resolves
+   from the home folder).
+3. **`RemoteConnection.Established`** (`t: "METASPLOIT"`, `targetIp`) for a plain
+   `exploit` (M2 `workstation`, M3 `gateway`), read from the decompiled client
+   (`bugs.md` #29), never seen in play. M3 also keeps
+   `Metasploit.Meterpreter.Connected`, which only the reverse-TCP listener raises.
+4. **Wireshark App start after the pivot** raises `Wireshark.Started`, which
+   emits the module-level export that writes `finance_vlan_capture.pcap` in
+   the player's home (a start before the pivot is ignored — Stop/Start again).
+   The capture is now the source of the two public IPs (with `python3
+   net_tree.py` as the independent route) and of the `architectVpn` key, so
+   it is more load-bearing than in pass 2 (the report gate itself still only
+   needs the capture *started*).
+5. **hydra without `-l`** prints the fixture's own credentials
+   (`admin`/`Skynet2024!`) — engine behaviour read from the client
+   (`bugs.md` #25), first time exercised here.
+6. **`rootgrab /etc/passwd`** now finds the `root` user (`bugs.md` #26). Its log
+   line fires only when the shell flag is set, and nothing gates on it.
+7. **Ledger via DatabaseManager** (`Database.Connected`) — unchanged, still an
+   optional alternative to `sqlmap`.
+
+**Left alone on purpose.**
+- M4's `initialShellAccess` listens for `Metasploit.Meterpreter.Connected`,
+  which a plain `exploit` never raises (`bugs.md` #29). Untested and out of
+  scope for this change; fix it with M4's own pass.
+- Seven `//` lines (commented-out `Network.destroyNetwork` blocks) remain in
+  `m01-quest.ts` and `m02-quest.ts`; they break the zero-comment rule
+  (`implementation-rules.md` §9) but predate this change.
+- `docs/story.md`'s M2 chain still describes the 2026-09-20 shape (only the
+  money and the `open` step were patched); `docs/m02-playtest.md` is the
+  current M2 step-by-step.
+
+---
+
+**2026-09-29 (late) — M3 router rework: TP-Link panel, player-written
+forwarding rules (Option B).** Implemented after a live-test screenshot; the
+whole thing typechecks and has not been played. Superseded by this section:
+every earlier line in this file that has M3's pivot on `PFSense.Login` /
+`PFSense.Changes` (the 2026-09-28 pass 2 chain, the "change #1 = pivot"
+counting, `pfsenseLoggedIn`) — those listeners never fire on a `Router`.
+
+**What was wrong.** M3's gateway is a `Router`, whose admin page is the
+TP-Link panel: login raises nothing, Save raises `Network.PortChanges`
+(`bugs.md` #31). The Port Forwarding table it shows is the router's real port
+table (every child's ports are moved into it with the child's `lanIp`), which
+is why five rules were pre-filled and why the table cannot simply be hidden.
+
+**What it does now.**
+- `registerM03FinanceVlan`: router with only the locked port-80 rule; the four
+  devices without `ports`; `setVulnerabilities` for Coin-Drift (SQL_INJECTION)
+  and Vault-Line (RCE, banner version) unchanged. The 3306 `removePort`/
+  `addPort` workaround is gone.
+- `Network.PortChanges` on `M03_PFSENSE_IP` → `onRouterSaved(newPorts)`: first
+  Save traces `portal` (`portalReached`); `syncM03Forwards` finds every rule
+  whose `(Local IP, internal)` is in `M03_FORWARD_TARGETS` and rewrites it with
+  `service`/`version` when the banner is missing (`Network.removePort` then
+  `Network.addPort`, keeping the player's external port and active flag);
+  any *active* match → `natPivotDone`; the matches (active or not) are stored
+  in `forwards` and re-applied by `restoreM03Forwards` in `OnObjectivesStart`.
+- `natReverted`: prerequisites (ledger, capture, config) done, pivot done, and
+  `isVlanExposed(newPorts)` false (no active rule whose Local IP is not the
+  router's own `192.168.1.1`; an "Any" rule counts as exposed).
+- Hint before the gate (rule: `feedback-hint-placement-must-precede-its-own-gate`
+  — the rules cannot be typed without host, LAN IP and port): the tip mail says
+  the gateway forwards nothing inward; the site's Staff Access block and the
+  `lynx` fixture (`M03_SITE_ACCESS_NOTICE`, same words in `home.html`) name every
+  host with its service and port; `python3 net_tree.py` (NetTree window: type,
+  public IP, `LAN <ip>`, `<Type>: <name>`) maps the names to LAN IPs.
+
+**Decisions.**
+- `portal` traces on the first Save, not on a valid rule: a Save proves the
+  player is logged in, and the same action is the pivot attempt — one action,
+  one key (`implementation-rules.md` §13).
+- A rule the mission completes keeps the player's **external** port. `nmap`
+  shows `FORWARDED` instead of `OPEN` when external and internal differ, and
+  Metasploit's `RPORT` must equal the external port (the client compares
+  `external.toString() === RPORT`, then requires `internal` = the module's).
+- Rules that match nothing are left alone, not deleted and not flagged: the
+  engine has no notion of "listening", so a wrong rule is just an inert row.
+- Persistence is best-effort: a restart rebuilds the network, so only matched
+  rules come back; a junk or "Any" rule is dropped (the SDK's `addPort` always
+  tags the row with a real host's `lanIp`).
+- No `445` requirement anywhere: the only consumer of that port found in the
+  client is `nmap`; the accomplice route (`Terminal.Explorer`) does not read it.
+  The `445` rows exist so a curious player's `nmap` looks right.
+
+**Assumptions to verify in the game (in the order a run hits them).**
+1. `Network.PortChanges` reaches a quest-scoped `this.Events.on`. Read from
+   the client (`vt.Trigger("Network.PortChanges", {subnet, oldPorts, newPorts})`
+   is the last statement of the panel's Save), typed in the SDK, never seen.
+   Fallback: a module-level `Events.on` that checks the quest status and calls
+   the same logic, or `Browser.Meta` for a visit-only `portal`.
+2. The rewrite lands: `nmap -sV` right after the Save must show `mariadb` /
+   `FreeRDP 7.1.9`. The handler runs inside the panel's Save click, after the
+   panel's own `UpdateSubnet` (a synchronous redux dispatch, so
+   `GetSubnet` sees the saved rows).
+3. The panel's form keeps the player's un-bannered rows; the next Save copies
+   `service`/`version` back from a versioned twin (`ResolveForwardedService`),
+   and a `445` row (never versioned) is simply rewritten again by the next
+   `PortChanges`. So a second Save cannot lose the banner for good: at worst the
+   form's bare row overwrites the rewritten one for the instant before the
+   handler rewrites it again. If a live run shows a banner missing after a
+   second Save, read the log first — the handler traces nothing today, so add a
+   `trace()` line in `syncM03Forwards` before changing the design.
+4. `nmap` on a VLAN host before any rule: "Host is up … No ports found" (read
+   from the nmap command: host up = the subnet exists).
+5. The Staff Access text is enough for a player to write `3306 → 192.168.1.3`
+   and `3389 → 192.168.1.6`; NetTree supplies the LAN IPs. If playtesters get
+   stuck, add the LAN IPs to the notice or to the tip mail — never after the
+   gate.
+6. Old M3 saves: `pfsenseLoggedIn`/`pfsenseChangeCount` are ignored, a missing
+   `forwards` reads `[]` (`?? []`), `portalReached` starts falsy. Still, abandon
+   or `mods.reset` before the run.
+
+**Left alone on purpose.**
+- The constants keep their `M03_PFSENSE_*` names and `M03_PFSENSE_NMAP_RESULT`
+  fixture: a rename would touch content, quest and docs for no behaviour.
+  (The fixture is cleared by the panel's own first Save — the panel calls
+  `RemoveCommand("nmap", router)` — after which `nmap` is live.)
+- M1 and M2 keep `PFSense.*`: their targets are `Firewall` nodes.
+
+---
+
+**2026-09-29 (evening) — M3 round 2 after the first live run.** The router
+rework was played to the VPN config and the log confirms it (five keys, three
+personal logs; `bugs.md` #31). The owner's review then asked for three changes,
+implemented and typechecked, not played. Superseded by this section: the
+"network is rebuilt on every start" and `natReverted` lines in the section above.
+
+**Decisions.**
+- **Restart (`bugs.md` #32).** The VLAN is built only when `networkBuilt` is
+  false or the subnet is gone; the flag is set at the very end of
+  `OnObjectivesStart` so a `SetData` failure there cannot cost the listeners
+  (no other `OnObjectivesStart` in the project calls `SetData` in its body — the
+  first such use). `resetMissionNetworks` stays for the rebuild path only, so a
+  claim after `mods.reset`/abandon behaves as before. `forwards` is now only the
+  fallback for a rebuilt network. M1, M2 and M4 are untouched.
+- **Report gate.** `natReverted`, `isVlanExposed` and the revert wording are
+  gone (the owner: the rules are the player's freedom). The tip mail keeps the
+  audit warning as flavour. The objective text lost "cover your tracks".
+- **Faded-Ledger (`bugs.md` #33).** Key on `RemoteConnection.Established`
+  (`t: "SSH"`, `targetIp` = the typed public IP; a LAN IP cannot be typed from
+  outside an SSH session). The Reyes personal log moved to `Terminal.Cat` /
+  `open` of the note because it quotes the note; `Terminal.Explorer` still
+  fires key and log together. `22 ssh` has no version on purpose: a made-up
+  banner could accidentally satisfy a Metasploit module's version check, and
+  `ssh` reads no service or version.
+
+**Assumptions to verify.**
+1. A plain restart keeps the rules and the banners. The first run of this
+   build over an old save rebuilds once (no flag), which can still hit the
+   race; start from a fresh claim.
+2. `Network.getSubnet(M03_PFSENSE_IP)` is not null while the save is loading
+   (if it were, the network would be rebuilt and the race would come back).
+3. SSH into Faded-Ledger raises `RemoteConnection.Established` with the typed IP
+   (read from the client: `t: "SSH"`, `targetIp` = the address after `@`). The
+   login itself is confirmed in the log ("Sys log file not found for
+   62.210.183.77", 15:05).
+4. `cat` of the note over SSH raises `Terminal.Cat` with `name` and `extension`
+   split (`do_not_open_at_work` / `txt`), as M2's `deploy`/`log` does.
+5. The dev-mode reload ("Build output changed … Reloading", two loads in a
+   second) leaves the kept network alone; before this change it wiped it.
+
+**Parked (owner's call, not done).** Database Manager needs the public IP
+(`185.107.56.214`), not the LAN `db_host` in the `.conf`, and the app checks no
+port rule at all (`Database.find` on host + user + password); an optional
+comment line in the `.conf` was proposed and skipped. The engine's "Sys log file
+not found for <ip>" error on each connection to a mission device is harmless. The
+BACKTRACE app showed M2 "in progress": leftover state from the 27/09 M2 test in
+the same save (`scratchbt m2 locked` clears it); the caseboard's TRACE label
+takes the first mission in progress, so it shows M2 while that is set. The
+"6/7" the owner mentioned was not identified.
+
+---
+
+**2026-09-29 (night) — M3 round 3 after the retest.** The retest (log 20:02–20:26)
+confirmed the restart fix (N1, N2), the new texts (N6) and a clean BACKTRACE
+(N7), and showed the report refused in silence (`bugs.md` #34). Implemented and
+typechecked, not played.
+
+**Decisions.**
+- **Wireshark out, not just optional.** The step was judged weird and was a
+  silent report gate; a merely optional capture would keep a dead thread. Removed:
+  handler, `.pcap` bridge, `internalTrafficCaptured`/`captureRead`, capture text,
+  the payroll decoy (its only source was the capture) and the `architectVpn` key.
+  `architectVpn` stays a fact in the snapshot (the report finding 05 and M4's
+  hand-off use it); 5 keys remain. Finding 05's "not payroll" became "not a
+  vendor". M4's tip mail (`M04_TIP_SUBJECT`/`CONTENT`) now names the gateway
+  config as the source; the quest matches on the constant, so nothing else moves.
+- **Where the player learns what the capture told them.** Ledger domain: the
+  Staff access notice (constant, `home.html`, the `lynx` fixture). Public IPs:
+  `python3 net_tree.py`. Which box is the tunnel gateway: the notice and the tip
+  mail. The tunnel endpoint: the config.
+- **No `download`.** `site_to_site_backup.conf` → `.txt` so the engine's `cat`
+  reads it where it lies. Assumption to verify: the base terminal commands
+  (`cat`, `ls`) are available at the `meterpreter >` prompt and `cat` reads the
+  terminal's current directory, which the exploit points at the target (the SSH
+  environment, which also lists only a few own commands, offers `cat` and `ls`, so
+  this is likely). `open` for the config stays as a second trigger for a
+  downloaded local copy.
+- **`open` line by line.** One `println` of a whole string collapses newlines;
+  `cat` returns the string as the command result. Fixed by printing per line;
+  leading spaces become non-breaking spaces so indented text keeps its shape.
+- **Diagnostics.** A `trace()` at the top of the `RemoteConnection.Established`
+  handler (`[FP][M03] remote connection <t> -> <ip>`) to explain why the SSH login
+  to Faded-Ledger traced nothing. Remove at FINAL LOCK.
+- **`CLAUDE.md`** added at the project root: an honest project context (a game
+  mod, fictional data, design-level work) for future sessions.
+
+**Assumptions to verify.**
+1. `cat` at `meterpreter >` (see above). Fallback: an SSH-reachable copy, or the
+   file explorer of the session.
+2. The `[FP][M03] remote connection …` line shows the SSH login; if it shows
+   `SSH -> 62.210.183.77` and still no `traced accomplice`, the fault is in
+   `markAccompliceReached`/`traceBacktraceFinding`, not in event delivery.
+3. The report completes with only the ledger and the config.

@@ -300,3 +300,42 @@ unreachable by ordinary scanning) must be written down — in
 `docs/scratch.md` while the mission is still under active development, or
 in `docs/story.md`/`docs/bugs.md` once it has reached FINAL LOCK — never
 left as an unexplained gap.
+
+## 13. BACKTRACE — MANDATORY RULE: one action yields at most one key finding
+
+Set by the user on 2026-09-29 after a review of the M1-M3 trace inventory:
+a single player action that traced several keys at once (M2's `affiliates`
+dump traced 5, M3's ledger dump 4) "makes no sense".
+
+- A **key** is one important finding earned by exactly one provable action.
+  Only keys are counted and shown while a mission runs ("TRACED SO FAR // x
+  OF N": title + value, never a description). `traceBacktraceFinding(mission,
+  key)` takes a single key, and never from a handler that already traces
+  another one.
+- Every other fact that came with the action is an **extra**: it is not
+  traced on its own, it is never the name of another mission's key, and it
+  reaches the app only in the COMPLETE snapshot, where the report composes
+  it into a Key Finding.
+- A fact that merely carries over between missions (the case ID from M1, the
+  buyer alias in M2, the shell company in M3) is never a key again in the
+  later mission; it is an extra there.
+- The Key Findings list in a report is the chain of events, not a mirror of
+  the keys, and may be longer than the key list.
+- Per-mission totals are a design decision, not a constant: M1 4, M2 7, M3
+  6 today. Adding a key means adding a new action that proves it, not
+  splitting an existing one.
+
+Details, the checkpoint table and how to add a key: `docs/architecture.md`
+(Applications: BACKTRACE).
+
+## 14. Money numbers come from `src/content/finance.ts`
+
+Every amount, date and split that appears in M2, M3 or BACKTRACE is derived
+from the one batch table and waterfall in `content/finance.ts` (three ransom
+batches, 60% parent / 25% panel / 5% broker / 10% retained, `splitRansom`,
+`totalRansom`, `formatUsd`). Never type a currency amount into mission
+content, a fixture, a report body or the BACKTRACE HTML by hand: M3's ledger
+once said $42,000 while M2's ransom was $2,850,000 because two files held
+two copies of the number. The HTML preview sample in `backtrace.html` is the
+one deliberate hardcoded copy (it renders outside the game) and must be
+updated together with the model.

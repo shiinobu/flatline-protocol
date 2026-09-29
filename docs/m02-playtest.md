@@ -26,6 +26,18 @@ optional Closer-Rig thread (node 25-27), including its updated
 for the full bug log from the redesign that led here (the Splitter
 architecture bug and its resolution).
 
+**2026-09-29 follow-up (NOT yet live-tested):** M2 now shares one money model
+with M3 (`src/content/finance.ts`) — the `affiliates` table has new columns and
+dates, `deploy.log` / `wire_authorization.pdf` / `quota_report.txt` state the
+batch amount and date — and BACKTRACE traces **one key per action** (nodes
+below say which). The progression files are read with the project's `open`
+command instead of the old `download`-only gate (that change dates from
+2026-09-27, see `docs/changelog.md`; the re-keyed BACKTRACE and the finance
+numbers are the new part). Watch for: the `RemoteConnection.Established`
+checkpoint (node 19). `open` cannot read a Meterpreter target's files
+(engine-verified, `docs/bugs.md` #30) — the route is `download` and then
+`open ~/downloads/<file>` (node 20).
+
 ---
 
 ## 0. Entry point
@@ -62,9 +74,15 @@ architecture bug and its resolution).
      dump leads to `notes.txt`: "client demo, contract fell through, never
      took it down." Dead end.
    - Real devbox `f3a91b7c04d8.tr4c3404.dev` (`66.0.34.201` →
-     `139.162.45.98`) — dump reveals `admins` table (`root` + a hash) and
-     `affiliates` table (3 rows: `CASE-A7X-0417` / `LOG-EU-2209` /
-     `FIN-NA-0091`). Continue with this one.
+     `139.162.45.98`) — dump reveals the `admins` table (`root` + a hash) →
+     key **Developer server** (`developer`), and the `affiliates` table →
+     key **Payout pattern** (`ransom`, shows `$2,850,000`). `affiliates` has 3
+     rows, chronological, columns `id, client, ransomAmount, settledAt,
+     batchRef, panelShare, status` (`panelShare` = 25% of the amount, the
+     TR4C3404 Consulting cut, every row `PAID`): `LOG-EU-2209` $1,400,000
+     2026-05-02 `PB-2605-01`; `FIN-NA-0091` $4,100,000 2026-07-22
+     `PB-2607-01`; `CASE-A7X-0417` $2,850,000 2026-08-14 `PB-2608-01`.
+     Continue with this one.
 7. `john` the admin hash → cracks to the real devbox password.
 
 ## 4. Into the dev server — **[CHECKPOINT]**
@@ -72,14 +90,18 @@ architecture bug and its resolution).
 8. `ssh -h root@139.162.45.98` (the resolved IP behind
    `f3a91b7c04d8.tr4c3404.dev` — the `ssh` command requires `-h` and an
    IP, never a domain name) with the cracked password.
-9. `cat deploy.log` → **GHOSTWIRE dialog #1** ("CASE-A7X-0417. August 14th,
-   2026. Same case. Same day my sibling never came out of surgery... This
-   is the person who actually deployed it."). Log ends pointing at "the
-   home workstation."
+9. `cat deploy.log` → key **Deploy log** (`deployLog`, shows `payload_v9`) and
+   the first **personal-log** entry, with a toast ("CASE-A7X-0417. August
+   14th, 2026. Same case. Same day my sibling never came out of surgery...
+   This is the person who actually deployed it."). The log itself now dates
+   every line 2026-08-14: the payload push, the lock confirmation for
+   CASE-A7X-0417, the client escrow release (`$2,850,000`, payout queued as
+   batch `PB-2608-01`), and the note that the payout paperwork goes to "the
+   home workstation".
 10. `cat sync-home.txt` (note: `.txt`, not `.sh` — the in-game `cat`
-    command only supports `.txt`/`.log` extensions) — leaks the home
-    router's public IP and a line about the NAS still being on its factory
-    admin login.
+    command only supports `.txt`/`.log` extensions) → key **Home network
+    lead** (`homeLead`, the router's public IP `24.187.92.14`) — and a line
+    about the NAS still being on its factory admin login.
 
 ## 5. The home network — Splitter, a real NAS, and 4 decoys
 
@@ -113,7 +135,8 @@ architecture bug and its resolution).
 16. Log into the PFSense panel at `156.38.94.201` (Firewall, lan
     `192.168.1.3`, port 80/http) — reuses `M02_ADMIN_PASSWORD` (same
     password as the devbox, node 4 — payoff for the "sloppy operator"
-    characterization, not a new credential). The firewall rule shown here
+    characterization, not a new credential) → key **Home firewall**
+    (`firewall`). The firewall rule shown here
     no longer pre-fills a `destination` — that field was removed this pass
     so the panel doesn't hand the workstation's LAN IP to the player for
     free.
@@ -130,21 +153,35 @@ architecture bug and its resolution).
     this pass, was `.4` — codename "Stale-Fork") — port 3389 now OPEN,
     `FreeRDP 7.1.9` (version changed this pass, was `1.0.0`).
 19. `metasploit` → `use exploit/rdp/cve_2019_0708_bluekeep` → `set RHOST`/
-    `RPORT`/`Version` → `exploit`. First attempt can fail ("No guest
-    account or online user found") if the device's online user isn't
-    ready yet — retry `exploit` once. Success opens a Meterpreter session.
+    `RPORT`/`Version` → `exploit` (there is no `run`; `Version` must be the
+    banner's `7.1.9`). First attempt can fail ("No guest account or online
+    user found") if the device's online user isn't ready yet — retry
+    `exploit` once. Success opens a Meterpreter session and raises
+    `RemoteConnection.Established` (`t: "METASPLOIT"`, `targetIp` = the
+    workstation) → key **Home workstation** (`workstation`). A plain `exploit`
+    does not raise `Metasploit.Meterpreter.Connected` (`docs/bugs.md` #29), so
+    this checkpoint listens to `RemoteConnection.Established`.
 
 ## 7. Pull the evidence and trigger the aftermath
 
-20. From the `meterpreter >` prompt, `download` each of the 3 rootFiles:
-    `wire_authorization.pdf` (names **Skynet Import-Export Co.** as the
-    shell company), `errands.txt`, `unsent.txt` (domestic texture).
-    **Use the text `download` command, not the graphical file-explorer
-    window** — only the text command's underlying `Files.Transfer` event
-    is wired to the aftermath trigger.
-21. The first successful download fires **GHOSTWIRE dialog #2** ("Got
-    everything... One name was never going to be enough.") exactly once,
-    regardless of which file triggers it first.
+20. From the `meterpreter >` prompt, get each of the 3 rootFiles onto the
+    player's own machine with the text `download` command (the copies land in
+    `~/downloads`), then read them with **`open`** (`open ~/downloads/<file>`;
+    `cat` only reads `.txt`/`.log`, so the `.pdf` needs `open` anyway):
+    `wire_authorization.pdf`
+    (names **Skynet Import-Export Co.** as the shell company, the batch
+    `PB-2608-01` and `$2,850,000`) → key **Shell company** (`shellCompany`),
+    `errands.txt`, `unsent.txt` (domestic texture). Both `open` checkpoints
+    additionally require the firewall breach (node 17) — quest data that
+    resets per claim — so a stale local copy left over from an earlier run
+    (`mods.reset` does not clear the player's files) cannot skip the RDP
+    step. `open` never reaches the *remote* file at the `meterpreter >` prompt
+    — it only sees the player's own PC (`docs/bugs.md` #30), which is why the
+    `download` comes first.
+21. The first `open` of any of the 3 workstation files fires the second
+    **personal-log** entry group ("Got everything... One name was never going
+    to be enough.", one toast) exactly once, regardless of which file triggers
+    it first.
 
 ## 8. Report findings (the one objective the player sees)
 
@@ -174,7 +211,9 @@ architecture bug and its resolution).
     separate credential puzzle — this device (`Qu0taCl0ser` / "Closer-Rig")
     is a lighter, secondary target.
 27. Download `quota_report.txt` (RaaS "affiliate performance" corporate
-    flavor, contrasts with TR4C3404's domestic texture) and
+    flavor, contrasts with TR4C3404's domestic texture; its top account is
+    now `FIN-NA-0091` at `$4,100,000` and it notes the panel share "stays at
+    25% of every close") and
     `routing_notes.txt` — the latter names the real `M04_ARCHITECT_VPN_IP`
     (`203.0.113.160`, imported from `m04.ts`) as evidence connecting this
     case to M4's Architect. No dialogue or objective is wired to this

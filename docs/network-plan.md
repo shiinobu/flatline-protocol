@@ -118,7 +118,8 @@ became 9, still inside the 9-11 range `story.md` §4 targets.
 **Correction (2026-09-28 audit):** the Wi-Fi-based plan this section
 originally described (`bettercap`/`fern`/`Network.createWifiNetwork`) was
 superseded on 2026-09-24 by a Firewall-behind-a-Splitter shape, the same
-`PFSense.Login`/`PFSense.Changes` mechanic M1/M3 already use -- no Wi-Fi
+`PFSense.Login`/`PFSense.Changes` mechanic M1 already uses (M3's gateway is a
+`Router` with a TP-Link panel and uses `Network.PortChanges`, `bugs.md` #31) -- no Wi-Fi
 cracking in the shipped mission (confirmed: zero `Fern`/`Bettercap`/
 `WifiConnected`/`createWifiNetwork` references anywhere in `src/`). The
 diagram below reflects what `m02-quest.ts` actually implements; full
@@ -149,30 +150,35 @@ M02_CLOSER_RIG_ROUTER_IP (Router)             109.94.27.183
          3389 rdp (FreeRDP 2.7.3, RCE) -- open from the start, optional bonus thread
 ```
 
-## M3 — "Money Trail" (redesigned 2026-09-28, pass 2, not yet live-tested)
+## M3 — "Money Trail" (redesigned 2026-09-28, pass 2; follow-up 2026-09-29; not yet re-tested)
 
 ```
 Router 203.0.113.150  [skynet-importexport.biz]   public site, 443 open / 80 closed
 
-Router 77.83.142.6 (pfSense)  lan 192.168.1.1   [remote.skynet-importexport.biz]
-   80/http (admin panel), admin / Skynet2024!
-   NAT-pivot (any saved PFSense.Changes) opens the child ports below;
-   they all ship active:false and are dark until then.
+Router 77.83.142.6 (TP-Link panel)  lan 192.168.1.1   [remote.skynet-importexport.biz]
+   80/http (locked admin rule, the only rule at start), admin / Skynet2024!
+   The player writes the forwarding rules (Network.PortChanges); a rule that matches
+   a host + service below is completed with its banner (removePort + addPort) and
+   is the pivot. The children ship with no ports at all: a device's ports live in
+   the router's table, so an empty table = dark VLAN.
 └─ Splitter  91.207.174.33 / lan 192.168.1.2   (empty pass-through)
    ├─ Device "Coin-Drift"   185.107.56.214 / lan 192.168.1.3  [ledger.skynet-importexport.biz]
-   │     mariadb:3306 SQL_INJECTION (opens on pivot), smb:445
-   │     DB: wire_transfers (-> SKN Capital Nominees), helpdesk_resets (-> d.reyes creds)
-   ├─ Device "Faded-Ledger" 62.210.183.77 / lan 192.168.1.4   smb:445, d.reyes / Reyes_Family2024
-   │     q1_reconciliation.xlsx, do_not_open_at_work.txt   (explorer bonus)
+   │     mariadb:3306 SQL_INJECTION (once forwarded), smb:445
+   │     DB: wire_transfers (12 rows, running balance, 3 batches -> SKN Capital Nominees
+   │         / TR4C3404 Consulting / X7xSentry9 Brokerage), helpdesk_resets (-> d.reyes creds)
+   ├─ Device "Faded-Ledger" 62.210.183.77 / lan 192.168.1.4   ssh:22 (the way in), smb:445 (cosmetic), d.reyes / Reyes_Family2024
+   │     q3_reconciliation.xlsx, do_not_open_at_work.txt   (bonus: ssh -h d.reyes@<ip>)
    ├─ Device "Split-Bill"   146.185.239.12 / lan 192.168.1.5  smb:445, guest / guest -- decoy, readme only
    └─ Device "Vault-Line"   79.124.62.90 / lan 192.168.1.6   tunnel gateway
-         rdp:3389 FreeRDP 7.1.9 RCE (Metasploit) -> Meterpreter -> Rootgrab
-         rootFile site_to_site_backup.txt: peer SKN-CENTRAL = M04_ARCHITECT_VPN_IP,
-         owner SKN Capital Nominees, + finance_svc DB creds
+         users: svc-vpn (online) + root (rootgrab needs a root user)
+         rdp:3389 FreeRDP 7.1.9 RCE (Metasploit `exploit`) -> Meterpreter -> optional rootgrab /etc/passwd
+         rootFile site_to_site_backup.txt (read with `cat` at the session's root):
+         peer SKN-CENTRAL = M04_ARCHITECT_VPN_IP, owner SKN Capital Nominees,
+         + finance_svc DB creds
 
-External endpoints seen only in the capture (geoip/whois fixtures, no network):
-   45.67.219.8    PayStream Payroll (decoy -- geoip Dublin)
-   203.0.113.160  M04_ARCHITECT_VPN_IP (geoip Unknown -- M4's entry point)
+External endpoint (geoip/whois fixtures, no network):
+   203.0.113.160  M04_ARCHITECT_VPN_IP (geoip Unknown -- M4's entry point),
+                  named only in the gateway config
 ```
 
 **Pass 2 changes (live-test of pass 1):** LAN re-addressed `10.50.1.x` →
@@ -184,6 +190,36 @@ reachable before pfSense. New hardened host `Vault-Line` adds a real
 Metasploit chain. All addresses are fresh (`bugs.md` #21) and the legacy
 gateway `203.0.113.151` is destroyed on start. Chain and every open
 assumption: `docs/scratch.md` (last section).
+
+**2026-09-29 follow-up:** the devices behind the pfSense are reached by their
+**public** IPs (a LAN IP only works inside an SSH session; `python3
+net_tree.py` lists them, the capture names two), Vault-Line gained a `root`
+user, the hydra fixture answers to `guest` (the engine's default `-l`) as well
+as `admin` on `<ip>:80`, the ledger became 12 rows from the shared money model
+(`src/content/finance.ts`), and the capture/config are `.pcap`/`.conf` read
+with `open`. Recorded in `bugs.md` #25-#29.
+
+**Late 2026-09-29 (router rework, `bugs.md` #31):** the "pfSense" above is
+really the TP-Link page of a `Router` node (the name `M03_PFSENSE_*` in the code
+is historical). Its Save raises `Network.PortChanges`, not `PFSense.*`, and its
+Port Forwarding table is the router's real port table — so the children ship
+without ports and the player writes the rules. Rules are matched on `(Local IP,
+internal port)` against `M03_FORWARD_TARGETS` (`src/content/m03.ts`), completed
+with the service banner and persisted in the quest's `forwards`. The hint that
+precedes the gate: the tip mail, the public site's Staff Access block (+ its
+`lynx` fixture) and `python3 net_tree.py`.
+
+**Round 3, same day (`bugs.md` #34):** the Wireshark capture and its `.pcap`
+(and the payroll decoy that lived in it) were removed; the gateway config is a
+`.txt` read with `cat`, so nothing in M3 needs `download`; the ledger domain moved
+into the Staff access notice; the report needs only the ledger and the config.
+
+**Later the same day (`bugs.md` #32, #33):** (1) the VLAN is built once
+(`networkBuilt`), so a restart or a dev reload no longer destroys and rebuilds it
+— the player's rules survive; `forwards` is only the fallback for a rebuilt
+network. (2) The report no longer waits for the player to remove their rules.
+(3) Faded-Ledger gained an `ssh:22` target: the bonus is an SSH login as d.reyes,
+because `Terminal.Explorer` is unreachable for that host.
 
 ## M4 — "The Architect" (implemented, not yet live-tested)
 

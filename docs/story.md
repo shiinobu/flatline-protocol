@@ -179,11 +179,16 @@ get their own objective checkpoint anymore.
 
 ### Mission 2 — "The Maker"
 
-**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
-plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
-is purely technical: the personal workstation (step 9) now sits behind a
-home Wi-Fi network cracked via `bettercap`+`fern` instead of being a
-second internet-facing router, adding one objective (7 → 8). Pre-redesign
+**Status: redesigned again 2026-09-24 and live-tested end-to-end that day
+(`docs/m02-playtest.md` is the current step-by-step and topology); a
+2026-09-29 follow-up (one money model shared with M3, BACKTRACE one key per
+action) is not yet live-tested.** The chain below still describes the
+2026-09-20 shape: since then the home Wi-Fi (`bettercap`+`fern`) was replaced
+by a `sync-home.txt` lead on the rooted devbox, `subfinder`/`nuclei` triage
+across three candidate hosts was added, and the home network became a
+Splitter with a real NAS and four decoys — the chain below is only patched
+for the money and the `open` step (5, 9, 10), read the playtest for the
+rest. Pre-redesign
 implementation kept at `src/content/m02.original.ts`/`src/main/m02-quest.original.ts`.
 
 **Target:** TR4C3#404, the ransomware toolkit developer / affiliate-panel
@@ -198,30 +203,38 @@ admin.
 4. **Optional decoy:** a `/admin/` page found via `lynx` — pure
    atmosphere/paranoia, non-gating.
 5. `sqlmap` — dumps the affiliate panel's database, which contains a row
-   matching the hospital attack's exact ransom amount/date.
+   matching the hospital attack's exact ransom amount/date ($2,850,000,
+   2026-08-14, batch `PB-2608-01`). It holds three batches in all (the
+   others are `LOG-EU-2209` and `FIN-NA-0091`), each with the panel's 25%
+   share — the same money M3 follows out of the shell company
+   (`src/content/finance.ts`).
 6. `john`/`hashcat` — cracks the admin's password hash pulled from that
    same dump.
 7. `ssh` — into the dev's real server.
 8. `ls`/`cat` — finds deployment logs whose timestamp matches the hospital
    incident exactly (the story's main emotional beat).
-9. **First Metasploit use of the whole mod:** search/use/set/run against
-   the dev's separate, better-defended personal workstation →
-   `Metasploit.Rootgrab`/`Meterpreter.Connected`.
-10. `Meterpreter.Download` — pulls a financial document naming a shell
-    company.
+9. **First Metasploit use of the whole mod:** search/use/set/`exploit`
+   (there is no `run`) against the dev's separate, better-defended personal
+   workstation → `RemoteConnection.Established` (a plain `exploit` never
+   raises `Meterpreter.Connected`, `bugs.md` #29).
+10. `download` the workstation's files, then `open` them (`cat` only reads
+    `.txt`/`.log`) — `wire_authorization.pdf` names the shell company, the
+    batch and its amount.
 11. Dead-drop mail.
 
 ### Mission 3 — "Money Trail"
 
 **Status: redesigned 2026-09-28 (branch `clouds-modify`), pass 2 after the
-first live-test, not yet re-tested.** Deepened to match M1/M2: a real
-Metasploit exploitation chain against a hardened internal gateway, two
+first live-test, plus a 2026-09-29 follow-up (one money model shared with
+M2, `open` checkpoints, BACKTRACE one key per action) — none of it
+re-tested in-game (`tsc --noEmit` is clean).** Deepened to match M1/M2: a
+real Metasploit exploitation chain against a hardened internal gateway, two
 Twotter personas (Reyes + a red-herring), three decoys, and a capture that
 genuinely produces M4's lead. Objectives collapsed to a **single**
 `reportFindings`, matching M1/M2. Engine-level detail and every unverified
-assumption: `docs/scratch.md` (last section); topology:
-`docs/network-plan.md`. Pre-2026-09-20 implementation kept at
-`src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
+assumption: `docs/scratch.md` (last two sections); topology:
+`docs/network-plan.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
+implementation kept at `src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
 
 **Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
 laundering front — defended like a real corporate target: OSINT-hardened
@@ -249,30 +262,68 @@ nowhere.
    the SHORT NAME ("Skynet") and the POLICY YEAR (2024). Combine →
    `Skynet2024!`. No single line hands it over; Okafor's `SkynetGuest2019`
    is a decoy that fails.
-3. `nslookup remote.skynet-importexport.biz` → the pfSense gateway;
-   `mxlookup` maps the mail host.
-4. Into the **pfSense** admin panel (deduced password, or `hydra`) and
-   **add a NAT rule** to pivot — this is what opens the internal VLAN;
-   nothing behind it is reachable until then.
-5. `nmap` the VLAN → `Coin-Drift` (ledger DB), `Faded-Ledger` (Reyes),
+3. `nslookup remote.skynet-importexport.biz` → the remote-access gateway (a
+   TP-Link router panel — `bugs.md` #31); `mxlookup` maps the mail host.
+4. Into the gateway's admin panel (deduced password, or `hydra -T
+   <ip>:80 -P wordlist.lst` — no `-l` needed: the engine defaults it to
+   `guest`, the fixture answers to `guest` as well as `admin`, and the
+   success table prints `admin`) and **write the port-forwarding rules
+   yourself** to pivot — the table starts with only the locked admin rule and
+   nothing behind the gateway answers until a rule matches a host and its
+   service. The public site's Staff access notice names each host with its
+   port; `python3 net_tree.py <gateway ip>` gives each host's name, public IP
+   and LAN IP (the Local IP the rule needs).
+5. The VLAN's devices are reached by their **public** IPs (a LAN IP only
+   works inside an SSH session): `python3 net_tree.py <gateway ip>` lists
+   them, and the site's Staff access notice names the roles → `Coin-Drift`
+   (ledger DB, `ledger.skynet-importexport.biz`), `Faded-Ledger` (Reyes),
    `Vault-Line` (the tunnel gateway), and `Split-Bill` (empty **decoy**).
-6. `sqlmap` the ledger host — `wire_transfers` names **SKN Capital
+6. `sqlmap` the ledger host — `wire_transfers` is a 12-row ledger with a
+   running balance (see the money below) that names **SKN Capital
    Nominees**; `helpdesk_resets` leaks d.reyes's personal SMB password.
    (Or connect the **DatabaseManager** app with creds lifted from the
    gateway config — an alternative route to the same ledger.)
-7. `wireshark` on the VLAN → `finance_vlan_capture.log`: the payroll
-   endpoint (**decoy**, `geoip`→Dublin) and the gateway's recurring tunnel
-   to an address that resolves to nothing — M4's lead.
-8. **Metasploit** the hardened gateway `Vault-Line` (RDP RCE) →
-   Meterpreter → **Rootgrab** (two-stage) → download `site_to_site_backup`
-   → its config peers to the same VPN IP, labelled `SKN-CENTRAL`, owner
-   `SKN Capital Nominees`: proof the money's destination and the tunnel's
-   far end are one hand.
-9. **Optional/bonus:** `explorer` into Reyes's share (spreadsheet + note).
-10. **Revert your own pfSense rule** before leaving (the "undo your own
-    action" beat; the report is refused until you do).
+7. *(Removed 2026-09-29.)* A Wireshark step used to hand out a `.pcap` naming
+   the DB server, the gateway and the tunnel endpoint. It was weird to play
+   and, worse, a silent requirement of the report (`bugs.md` #34). The
+   Staff access notice now carries the ledger domain, and the tunnel endpoint
+   comes from the gateway's own config.
+8. **Metasploit** the hardened gateway `Vault-Line` (RDP RCE:
+   `use exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = the public IP,
+   `Version 7.1.9`, `exploit`) → Meterpreter → optional **Rootgrab**
+   (`rootgrab /etc/passwd`, needs the `root` user the gateway now has) →
+   `cat site_to_site_backup.txt` (a plain `.txt` at the session's root; no
+   download) → its config peers to the VPN IP, labelled `SKN-CENTRAL`, owner
+   `SKN Capital Nominees`: proof the money's destination and the tunnel's far
+   end are one hand, and M4's lead.
+9. **Optional/bonus:** SSH into Reyes's account (`ssh -h d.reyes@<public ip>`
+   with the password from `helpdesk_resets`, after a rule `22 → 22 →
+   192.168.1.4`) — the engine has no SMB command, and `explorer` raises its
+   event only from Meterpreter/`evil-rm` (`bugs.md` #33). Reading her note
+   (`do_not_open_at_work.txt`) writes the personal log; the spreadsheet is the
+   other file.
+10. *(Dropped 2026-09-29.)* The first version made the player take their own
+    forwarding rules back out before the report was accepted. The rules now
+    stay where the player leaves them — the tip mail calls it "yours to keep or
+    remove" — and the report waits only for the ledger and the config.
 11. Dead-drop mail: shell company, parent entity, and the recurring
     tunnel endpoint.
+
+**The money (one model for M2 and M3, `src/content/finance.ts`):** BLACKLEDGER
+splits every ransom batch the same way — 60% to SKN Capital Nominees (booked as
+a "management fee", the Architect's cut), 25% to TR4C3404 Consulting
+("consulting fees (logistics)", the toolkit developer), 5% to X7xSentry9
+Brokerage ("customs brokerage", the M1 broker) and 10% kept by Skynet. Three
+batches pass through the shell company: `LOG-EU-2209` $1,400,000 (2026-05-02),
+`FIN-NA-0091` $4,100,000 (2026-07-22) and `CASE-A7X-0417` $2,850,000
+(2026-08-14, the hospital) — $8,350,000 in, $5,010,000 to the parent. M2 shows
+the gross and the panel's share; M3's `wire_transfers` shows the whole
+waterfall (deposit at 09:04 UTC, then transfers out at 09:20, 09:24 and 09:27,
+balance ending at the retained $835,000), Reyes's `q3_reconciliation.xlsx`
+covers the two Q3 batches ($6,950,000 in, $4,170,000 to the parent), and the
+report states it in its "Funds" lines. The tip mail names the $2,850,000
+batch. That the money ends at one nominee, and the tunnel's far end belongs to
+the same nominee, is what M4 builds on.
 
 ### Mission 4 — "The Architect"
 
@@ -287,13 +338,13 @@ kept at `src/content/m04.original.ts`/`src/main/m04-quest.original.ts`.
 
 **Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
 Nominees. Deliberate convergence point of all three prior threads
-(Mission 2's chat-log deference to "the architect," Mission 3's pcap
-capturing a recurring VPN IP that only becomes relevant now, and the
+(Mission 2's chat-log deference to "the architect," Mission 3's gateway
+config naming a recurring VPN IP that only becomes relevant now, and the
 holding-entity paper trail) — designed so this feels like one conspiracy,
 not four separate jobs.
 
 **Chain:**
-1. `whois`/`geoip` — on the recurring VPN IP from Mission 3's pcap.
+1. `whois`/`geoip` — on the recurring VPN IP from Mission 3's gateway config.
 2. `nmap -sV` — on a deliberately hardened, minimal-port target.
 3. `dirhunter`/`nuclei` — finds a real CVE in the C2 dashboard's old web
    framework.
@@ -420,7 +471,13 @@ to code:
   2026-09-28** (branch `clouds-modify`, two passes: four Devices incl. a
   Metasploit tunnel gateway, NAT-gated ports, `192.168.1.x` LAN, capture →
   M4 lead, collapsed to one objective) — see §4 and `docs/scratch.md`; not
-  yet live-tested.
+  yet live-tested. **Follow-up 2026-09-29:** one money model shared with M2
+  (`src/content/finance.ts`, a 12-row ledger), the capture/config read with
+  `open` (`.pcap`/`.conf`), hydra's default `guest` user, a `root` user on
+  the gateway, and BACKTRACE's M3 keys/report; `tsc --noEmit` clean, not
+  played. **Late 2026-09-29:** the gateway is a TP-Link `Router` panel (not a
+  pfSense), so the pivot is now player-written port-forwarding rules completed
+  through `Network.PortChanges` (`bugs.md` #31); not played.
 - [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
   `src/main/m04-quest.ts`, `src/websites/m04/architect-c2/`,
   `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`
@@ -430,7 +487,9 @@ to code:
   under a `Firewall`+`Splitter` hierarchy as part of the same redesign.
 - [x] Manifest permission review — M1's `ssh`/`weechat`/`openssl`, M2's
   metasploit/meterpreter/sqlmap/john/subfinder/bettercap/fern (Wi-Fi
-  added 2026-09-20), M3's pfSense/bettercap/wireshark/explorer, and M4's
+  added 2026-09-20), M3's pfSense/hydra/sqlmap/wireshark/metasploit/
+  meterpreter/explorer (bettercap removed, metasploit added — M3 redesign
+  pass 2, 2026-09-29, see `bugs.md`/`changelog.md`), and M4's
   metasploit/nuclei/explorer/honeypot-mail are all now implemented and
   re-audited against `manifest.json`'s `permissions` array (`filesystem,
   network, events, mail, bank, shell, ui`). Every one of these rides on
@@ -446,18 +505,21 @@ to code:
 - [x] Custom commands needed: `attrcheck` for M4's booby-trapped file,
   built (`src/commands/attrcheck.ts`). No `salesledger`-style command was
   needed for M1 in the end — `cat` against the ledger file covered it.
-- [ ] Full live-test pass for M2, M3 and M4 — none of the three has been
-  played yet. Several mechanics were implemented against real SDK event
-  shapes but without a working precedent in this project (unlike M1's
-  nmap/hydra/ssh/ftp/weechat, which entity-resolution-mods had already
-  used): `PFSense.Changes` (no `ip` field on the event itself — gated on a
-  login flag instead), `Wireshark.Started` filtering, `Subfinder.Results`
-  auto-discovery of a registered subdomain, `Nuclei.Results` against a
-  vulnerability tagged via `Network.setVulnerabilities`, and the
-  low-priv-shell-then-`Rootgrab` two-stage Metasploit flow. The
-  2026-09-20 mechanics redesign adds more of these: M2's `Fern.FindPassword`/
-  `Network.WifiConnected` gating, and M4's `Firewall` rule reaching a
-  `Device` nested inside a sibling `Splitter` (untested — see
-  `docs/network-plan.md`'s M4 section for the fallback if it doesn't). See
-  `docs/scratch.md` for the full list of deviations/assumptions pending
+- [ ] Full live-test pass for M3 and M4. M2 was played end-to-end on
+  2026-09-24 (`docs/m02-playtest.md`) and that run proved most of what this
+  bullet used to list as unproven — `PFSense.Changes` gated on a login flag,
+  `Subfinder.Results`, `Nuclei.Results`, Metasploit (a plain `exploit`, not
+  a low-priv shell then `Rootgrab`) — plus `Network.openPort()` on a device
+  two levels deep. M3 was live-tested only up to the router crack (pass 1); the
+  panel turned out to be a TP-Link page whose Save raises `Network.PortChanges`,
+  not `PFSense.*`, so the pivot was rebuilt around player-written forwarding
+  rules on 2026-09-29 (`bugs.md` #31); everything
+  after the crack is unplayed, and `docs/m03-playtest.md` lists what to watch —
+  Wireshark as an App, `open` on a mod-written `.pcap`/`.conf`, hydra's
+  default user, and the `RemoteConnection.Established` gateway checkpoint.
+  M4 has not been played: its `Firewall` rule reaching a `Device` nested
+  inside a sibling `Splitter` is untested (see `docs/network-plan.md`'s M4
+  section for the fallback if it doesn't), and its `initialShellAccess`
+  listens to an event a plain `exploit` never raises (`docs/bugs.md` #29).
+  See `docs/scratch.md` for the full list of deviations/assumptions pending
   confirmation once each mission is actually played.
