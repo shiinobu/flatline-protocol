@@ -2,6 +2,7 @@ import {
     Network,
     NetworkDeviceType,
     type ChildSubnetDefinition,
+    type NetworkVulnerability,
     type SubnetNetworkDefinition,
 } from "@hotbunny/hackhub-content-sdk";
 
@@ -24,21 +25,25 @@ export const resetMissionNetworks = (ips: readonly string[]): void => {
 };
 
 const toChild = (spec: DeviceSpec): ChildSubnetDefinition => {
-    const { kind, users, children, ...rest } = spec;
+    const { kind, users, children, vulnerabilities, ...rest } = spec;
     const base = { ...rest, users: users.map((user) => Network.createUser(user)) };
 
     switch (kind) {
         case "router":
             return { ...base, type: NetworkDeviceType.Router, children: (children ?? []).map(toChild) };
+        case "splitter":
+            return { ...base, type: NetworkDeviceType.Splitter, children: (children ?? []).map(toChild) };
         case "firewall":
             return { ...base, type: NetworkDeviceType.Firewall, rules: rest.rules ?? [] };
+        case "printer":
+            return { ...base, type: NetworkDeviceType.Printer };
         case "device":
             return { ...base, type: NetworkDeviceType.Device };
     }
 };
 
 const toNetwork = (spec: RouterSpec): SubnetNetworkDefinition => {
-    const { kind, users, children, ...rest } = spec;
+    const { kind, users, children, vulnerabilities, ...rest } = spec;
     return {
         ...rest,
         users: users.map((user) => Network.createUser(user)),
@@ -47,8 +52,18 @@ const toNetwork = (spec: RouterSpec): SubnetNetworkDefinition => {
     };
 };
 
+const vulnerabilitiesOf = (spec: DeviceSpec): readonly (readonly [string, readonly NetworkVulnerability[]])[] => [
+    ...(spec.vulnerabilities ? [[spec.ip, spec.vulnerabilities] as const] : []),
+    ...(spec.children ?? []).flatMap(vulnerabilitiesOf),
+];
+
 export const buildNetworks = (specs: readonly RouterSpec[]): void => {
-    for (const spec of specs) Network.createSubnetNetwork(toNetwork(spec));
+    for (const spec of specs) {
+        Network.createSubnetNetwork(toNetwork(spec));
+        for (const [ip, vulnerabilities] of vulnerabilitiesOf(spec)) {
+            Network.setVulnerabilities(ip, [...vulnerabilities]);
+        }
+    }
 };
 
 export const removeFirewallRules = (refs: readonly PortRef[]): void => {

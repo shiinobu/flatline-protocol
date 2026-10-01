@@ -5,7 +5,7 @@ import {
 } from "../../content/m01/listing-pool.js";
 import { M01_LISTING_KEY } from "../../i18n/m01/listing-template.js";
 import { M01_SITE_KEY } from "../../i18n/m01/site-shared.js";
-import { siteT } from "../../context/m01/site-strings.js";
+import { siteT } from "../../context/global/site-strings.js";
 
 interface M01ListingRenderContext {
     readonly slot: M01ListingSlot;

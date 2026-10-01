@@ -1,24 +1,28 @@
 import type {
+    DatabaseRowDefinition,
     FirewallRule,
     MailDefinition,
     NetworkFileMap,
     NetworkPort,
     NetworkUser,
+    NetworkVulnerability,
     Shell,
     TwotterTweetInteraction,
 } from "@hotbunny/hackhub-content-sdk";
 
-export type DeviceKind = "router" | "device" | "firewall";
+export type DeviceKind = "router" | "device" | "firewall" | "splitter" | "printer";
 
 export interface DeviceSpec {
     kind: DeviceKind;
     ip: string;
     lanIp?: string;
+    name?: string;
     isIpHidden?: boolean;
     users: Partial<NetworkUser>[];
     ports?: NetworkPort[];
     rules?: FirewallRule[];
     rootFiles?: NetworkFileMap[];
+    vulnerabilities?: NetworkVulnerability[];
     children?: DeviceSpec[];
 }
 
@@ -47,6 +51,14 @@ export interface DomainSpec {
     readonly name: string;
     readonly ip: string;
     readonly needsSubnet: boolean;
+    readonly vulnerabilities?: readonly NetworkVulnerability[];
+}
+
+export interface DatabaseSpec {
+    readonly host: string;
+    readonly user: string;
+    readonly password: string;
+    readonly tables: Readonly<Record<string, readonly DatabaseRowDefinition[]>>;
 }
 
 export interface PersistentDomain {
@@ -66,7 +78,7 @@ export interface UnlockSpec {
     readonly openPorts?: readonly PortRef[];
 }
 
-export interface WorldSpec {
+export interface WorldSpec<R = never> {
     readonly id: string;
     readonly networkIps: readonly string[];
     readonly networks: () => readonly RouterSpec[];
@@ -75,11 +87,14 @@ export interface WorldSpec {
     readonly fixtures: () => readonly FixtureEntry[];
     readonly staleFixtures: readonly FixtureRef[];
     readonly unlocks: Readonly<Record<string, UnlockSpec>>;
+    readonly databases?: () => readonly DatabaseSpec[];
+    readonly restore?: (saved: R) => void;
 }
 
-export interface WorldState {
+export interface WorldState<R = never> {
     readonly networkBuilt: boolean;
     readonly unlocked: readonly string[];
+    readonly restore?: R;
 }
 
 export interface PersonaPost {
@@ -114,12 +129,14 @@ export interface ReportSpec {
     readonly matchesFields: (fields: Record<string, unknown>) => boolean;
 }
 
+export type FlagKey<D> = { [K in keyof D & string]: D[K] extends boolean ? K : never }[keyof D & string];
+
 export interface Gate<D> {
-    readonly step: keyof D & string;
-    readonly requires: readonly (keyof D & string)[];
+    readonly step: FlagKey<D>;
+    readonly requires: readonly FlagKey<D>[];
 }
 
 export interface Unlock<D> {
     readonly name: string;
-    readonly when: keyof D & string;
+    readonly when: FlagKey<D>;
 }

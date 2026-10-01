@@ -13,7 +13,7 @@ import {
 import { clearM01VaultSeal, setM01VaultSealed } from "../../context/m01/progress.js";
 import { M01_WORLD } from "./world.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
-import { refreshM01SiteStrings } from "../../context/m01/site-strings.js";
+import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import { reachedUnlocks } from "../../middleware/gate.js";
 import { bindM01Access } from "./access.js";
 import { bindM01Breach } from "./breach.js";
@@ -53,7 +53,7 @@ export const onStartM01 = (): void => {
 export const onObjectivesStartM01 = (quest: M01Quest): void => {
     ensureM01ListingResolution();
     setM01VaultSealed(!quest.Data.chatConfirmed);
-    refreshM01SiteStrings();
+    refreshSiteStrings();
 
     const networkBuilt = register(M01_WORLD, {
         networkBuilt: quest.Data.networkBuilt,

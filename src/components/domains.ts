@@ -22,7 +22,11 @@ export const registerDomains = (
         }
 
         Network.removeDomain(record.name);
-        Network.registerDomain(record.name, record.ip);
+        if (record.vulnerabilities === undefined) {
+            Network.registerDomain(record.name, record.ip);
+        } else {
+            Network.registerDomain(record.name, record.ip, [...record.vulnerabilities]);
+        }
     }
 };
 

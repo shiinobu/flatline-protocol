@@ -1,4 +1,4 @@
-import type { Gate, Unlock } from "../core/types.js";
+import type { FlagKey, Gate, Unlock } from "../core/types.js";
 
 export interface StepHost<D extends object> {
     readonly Data: D;
@@ -7,35 +7,35 @@ export interface StepHost<D extends object> {
 
 export const missingFlags = <D extends object>(
     gates: readonly Gate<D>[],
-    step: keyof D & string,
+    step: FlagKey<D>,
     data: D,
-): readonly (keyof D & string)[] =>
+): readonly FlagKey<D>[] =>
     gates
         .filter((gate) => gate.step === step)
         .flatMap((gate) => gate.requires.filter((flag) => !data[flag]));
 
 export const canAdvance = <D extends object>(
     gates: readonly Gate<D>[],
-    step: keyof D & string,
+    step: FlagKey<D>,
     data: D,
 ): boolean => missingFlags(gates, step, data).length === 0;
 
 export const firstUnmetStep = <D extends object>(
-    order: readonly (keyof D & string)[],
+    order: readonly FlagKey<D>[],
     data: D,
-): (keyof D & string) | undefined => order.find((step) => !data[step]);
+): FlagKey<D> | undefined => order.find((step) => !data[step]);
 
 export const advanceStep = <D extends object>(
     host: StepHost<D>,
     gates: readonly Gate<D>[],
-    step: keyof D & string,
+    step: FlagKey<D>,
     onAdvance?: () => void,
 ): boolean => {
     if (host.Data[step]) return false;
 
     if (missingFlags(gates, step, host.Data).length > 0) return false;
 
-    host.SetData(step, true as D[keyof D & string]);
+    host.SetData(step, true as D[FlagKey<D>]);
     onAdvance?.();
     return true;
 };

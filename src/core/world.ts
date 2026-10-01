@@ -25,3 +25,6 @@ export const allDomainsOf = (world: WorldSpec): readonly DomainSpec[] => [
     ...world.domains,
     ...unlockDomainsOf(world, Object.keys(world.unlocks)),
 ];
+
+export const databaseHostsOf = (world: WorldSpec): readonly string[] =>
+    (world.databases?.() ?? []).map((spec) => spec.host);

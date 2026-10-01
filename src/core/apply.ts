@@ -1,3 +1,4 @@
+import { applyDatabases } from "../components/database.js";
 import { registerDomains, removeDomains } from "../components/domains.js";
 import { applyFixtures, removeFixtures } from "../components/fixtures.js";
 import { buildNetworks } from "../components/topology.js";
@@ -17,8 +18,12 @@ export const applyShell = (world: WorldSpec, unlocked: readonly string[]): void 
     applyFixtureUnlocks(world, unlocked);
 };
 
-export const applyNetwork = (world: WorldSpec, unlocked: readonly string[]): void => {
+export const applyData = (world: WorldSpec): void => applyDatabases(world.databases?.() ?? []);
+
+export const applyNetwork = <R = never>(world: WorldSpec<R>, unlocked: readonly string[], restore?: R): void => {
     buildNetworks(world.networks());
+    applyData(world);
     applyDomains(world, unlocked);
     applyNetworkUnlocks(world, unlocked);
+    if (restore !== undefined) world.restore?.(restore);
 };
