@@ -12,7 +12,7 @@ import { ensureM01ListingResolution } from "../context/m01/listing.js";
 import { M01_BROKER_ALIAS, M01_LEDGERVAULT_DOMAIN } from "../content/m01/network.js";
 import { M01_LEDGERVAULT_PROJECT } from "../content/m01/report.js";
 import { M01_BUYER_ALIAS } from "../content/m01/server-files.js";
-import { M02_SHELL_COMPANY_NAME } from "../content/global/entities.js";
+import { M02_SHELL_COMPANY_NAME, M03_PARENT_ENTITY_NAME } from "../content/global/entities.js";
 import { M02_DEV_SUBDOMAIN, M02_FIREWALL_IP, M02_WORKSTATION_IP, M02_WORKSTATION_ROUTER_IP } from "../content/m02/network.js";
 import {
     M02_CASE_BATCH_REF,
@@ -23,14 +23,13 @@ import {
     M02_VICTIM_CASE_ID_NA,
 } from "../content/m02/report.js";
 import { M02_DEPLOY_PAYLOAD_NAME } from "../content/m02/server-files.js";
+import { M04_ARCHITECT_VPN_IP } from "../content/global/characters.js";
 import {
     M03_ACCOMPLICE_USERNAME,
-    M03_ARCHITECT_VPN_LEAD,
-    M03_PARENT_ENTITY_NAME,
     M03_REMOTE_PORTAL_DOMAIN,
     M03_VAULTLINE_CODENAME,
     M03_VPN_PEER_LABEL,
-} from "../content/m03.js";
+} from "../content/m03/network.js";
 import type { BacktraceFacts, BacktraceMissionId } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
@@ -85,7 +84,7 @@ const buildM3Facts = (): BacktraceFacts => {
     return {
         portal: M03_REMOTE_PORTAL_DOMAIN,
         parentEntity: M03_PARENT_ENTITY_NAME,
-        architectVpn: M03_ARCHITECT_VPN_LEAD,
+        architectVpn: M04_ARCHITECT_VPN_IP,
         gateway: M03_VAULTLINE_CODENAME,
         vpnPeer: M03_VPN_PEER_LABEL,
         accomplice: M03_ACCOMPLICE_USERNAME,
@@ -101,7 +100,7 @@ const buildM3Facts = (): BacktraceFacts => {
         batchCount: String(RANSOM_BATCHES.length),
         allBatches: formatUsd(totals.gross),
         allToParent: formatUsd(totals.parent),
-        peerGateway: M03_ARCHITECT_VPN_LEAD,
+        peerGateway: M04_ARCHITECT_VPN_IP,
         peerOwner: M03_PARENT_ENTITY_NAME,
     };
 };
