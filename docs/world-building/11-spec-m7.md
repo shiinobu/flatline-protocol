@@ -1,0 +1,208 @@
+# 11 — M7 "The Architect": spesifikasi dan konten final
+
+Status: DECIDED 2026-10-02 untuk bentuk, rantai, nama, dan angka awal. Prosa en dan zh ditulis
+saat implementasi. Dialog bergaya panggilan telepon diganti surel Custodian dan kolom `choice`
+(diterima lewat EKSEKUSI). Mengikuti templat `07-arsitektur-misi-baru.md` bagian D. M7 adalah
+migrasi M4 lama dan harus dikerjakan **lebih dulu** dari M4 baru (id `m04` harus kosong).
+
+## A. Identitas
+
+`name: "flatline.m07"`, grup `storyline`, `autoStart: true`, `questGate("m07", ["flatline.m06"])`,
+bukan `Abandonable`, satu objective. **Hadiah: 5000 uang, 200 xp**, dibayar lewat `Bank.transaction`
+di `OnComplete` (bukan `Quest.Rewards`, tidak membayar di prototipe). Nilai lama `M04_REWARDS` adalah
+800 uang dan 200 xp.
+
+## B. Cacat M4 lama dan perbaikannya
+
+| # | Cacat (terverifikasi di kode) | Perbaikan di M7 |
+|---|---|---|
+| 1 | `initialShellAccess` menunggu `Metasploit.Meterpreter.Connected` (`docs/bugs.md` #29), yang tidak terpancar oleh `exploit` biasa | `RemoteConnection.Established` dengan `t === "METASPLOIT"` |
+| 2 | Banner `LegacyCMS 2.1` tidak diterima modul mana pun, dan C2 hanya punya `root` tanpa password | Modul RDP bluekeep (live di M2 dan M3) dengan banner `FreeRDP 5.2.1` dan satu pengguna online `svc-cms` |
+| 3 | Firewall di tingkat Router dan perangkat di dalam Splitter (bentuk belum teruji, `docs/network.md`) | Bentuk M2 yang sudah live: Splitter berisi Firewall dan perangkat bersaudara |
+| 4 | `attrcheck` memakai `Files.getByPath` (session-aware hanya lewat SSH), jadi tidak melihat berkas di sesi Meterpreter (#30) | Pakai pencarian Meterpreter-aware (`commands/meterpreter-files.ts`). Bergantung pada live test `open` yang masih tertunda |
+| 5 | `cat` hanya membaca `.txt` dan `.log` (`docs/mechanics.md`), jadi jebakan lewat `Terminal.Cat` pada `.enc` tidak pernah terpicu | Pemicu jebakan diganti `open` (`OPEN_FILE_READ_EVENT`) |
+| 6 | `rootgrab` sebagai langkah rantai | Dibuang (pelajaran M3) |
+| 7 | `identityFileListed` bergantung pada SSH ke host tanpa password | Diganti membaca `manifest.txt` |
+| 8 | `Dialog` panggilan telepon, `switchBranch` tidak terhubung ke apa pun, dan SDK tidak punya event untuk cabang yang dipilih | Dibuang. Surel Custodian "What now?" dan kolom `choice` di laporan. Telepon dari Custodian juga melanggar aturan yang sudah terkunci ("the only channel", "no side conversations", `i18n/m01/core.ts:90-94`) |
+| 9 | Dua langkah awal (menelusuri IP VPN) mengulang M3 dan M4 | Dibuang |
+| 10 | Pilihan A/B/C hanya mengubah teks laporan | Efek nyata (bagian H) |
+
+## C. Rantai gerbang (12 langkah, transitif)
+
+Keputusan dan laporan adalah satu surel (kolom `choice`), jadi tidak ada langkah keputusan terpisah.
+
+| # | Langkah | Requires | Pemicu | Tier | Efek |
+|---|---|---|---|---|---|
+| 1 | `tipReviewed` | - | `Mail.Read` tip terakhir Custodian ("Kamu sudah punya nama. Sekarang buktinya.") | 1 | - |
+| 2 | `edgeScanned` | 1 | `Terminal.NmapScan -sV` pada C2: 443 terbuka (LegacyCMS), 3389 FILTERED | 1 | buka halaman `/legacy-cms/` |
+| 3 | `dashboardFound` | 2 | `Browser.Meta` `/legacy-cms/` (halaman tersembunyi, tabel status node) | 1 | kunci `nodes` |
+| 4 | `deadBoxEntered` | 3 | `RemoteConnection.Established` SSH ke **Ash-Vector** (kotak mati sungguhan) | 1 | - |
+| 5 | `credentialRead` | 4 | `Terminal.Cat` `ash-gate_backup.txt` | 1 | kunci `credential` |
+| 6 | `firewallLoggedIn` | 5 | `PFSense.Login` pada Firewall (pola `controller/m01/breach.ts:27`) | 1 | - |
+| 7 | `firewallBreached` | 6 | `PFSense.Changes` | 1 | kunci `firewall`; `removeFirewallRules` dan `openPorts` 3389 C2 |
+| 8 | `shellObtained` | 7 | `RemoteConnection.Established` METASPLOIT pada C2 | 1 | kunci `c2`; pelacakan dimulai |
+| 9 | `manifestRead` | 8 | `Terminal.Cat` `manifest.txt` | 1 | kunci `manifest` |
+| 10 | `trapRevealed` | 9 | `attrcheck` pada `master_ledger_backup.enc` (event mod) | 1 | - |
+| 11 | `fileExtracted` | 10 | `Files.Transfer` DOWNLOAD `master_ledger_backup` | 1 | kunci `ledger`; pelacakan berakhir; surel "What now?" dikirim |
+| 12 | `reportSent` | 11 | `Mail.Sent` ke Custodian dengan `matchesFields` | 1 | `completeObjective`; efek ending |
+
+**Di luar rantai** (langkah opsional tidak masuk gerbang): menyentuh Null-Crown (honeypot), `nuclei`
+pada C2, membuka `.enc` dengan `open` sebelum `attrcheck`.
+
+## D. Dunia per langkah (`UnlockSpec`)
+- Langkah 2: halaman `/legacy-cms/` dan tabel node terbuka (cermin `SharedVariables`, #36).
+- Langkah 7: aturan Firewall untuk 3389 C2 dicabut dan port dibuka (`Network.openPort`).
+- Langkah 11: surel "What now?" dikirim.
+- Berkas di C2 ada sejak dunia dibangun, tetapi tak terjangkau sebelum sesi terbuka.
+
+## E. Topologi (bentuk M2 yang sudah live)
+
+```text
+Router 203.0.113.160 (titik akhir M3)
+└─ Splitter 45.76.180.9
+   ├─ Firewall "ash-gate" 194.60.38.12 (isIpHidden)  satu pengguna valid fw.admin/<P>
+   │     aturan blok 22 dan 3389 menuju C2
+   ├─ Device C2 203.0.113.161  443 https "LegacyCMS 2.1" (aktif), 3389 rdp "FreeRDP 5.2.1" (blok)
+   │     pengguna: svc-cms (online), root. rootFiles: master_ledger_backup.enc, manifest.txt
+   ├─ Device "Null-Crown" 185.220.101.42  honeypot, ssh 22 admin/admin, banner OpenSSH 9.6
+   └─ Device "Ash-Vector" 146.70.44.18    kotak mati, ssh 22 admin/admin, banner OpenSSH 5.3
+         berkas: ash-gate_backup.txt (kredensial fw.admin)
+```
+
+- Alamat dan nama diambil dari M4 lama (`content/m04.ts`). Alamat M4 baru bertetangga dengan
+  `203.0.113.160` (Night-Shift, `10-spec-m4.md`).
+- `PFSense.Login` hanya membawa `{ip}` dan hanya terpancar saat sukses (engine `index.js` ~9313749),
+  jadi Firewall punya **satu** pengguna valid.
+- RDP: modul `exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = alamat publik C2 (#27), `Version 5.2.1`
+  dari banner `nmap -sV`, butuh pengguna online (`svc-cms`).
+- Firewall ditemukan lewat tabel node di `/legacy-cms/` atau `python3 net_tree.py`.
+
+## F. HoneyCheck (`honeycheck.net`)
+
+Situs global `websites/global/honeycheck/` (JS di dalam halaman dengan dataset tertanam, pola
+ClearEscrow), dibungkus `gateMissionPages("m07")`. M4 dapat memakainya nanti (OPEN).
+
+| Host | Penilaian | Kenyataan |
+|---|---|---|
+| C2 `203.0.113.161` | bukan honeypot (91%) | asli |
+| Null-Crown `185.220.101.42` | **bersih (88%)** | **honeypot yang disetel supaya lolos** |
+| Ash-Vector `146.70.44.18` | **honeypot kemungkinan besar (71%)** | **kotak mati sungguhan** |
+
+Catatan bawah halaman: "This is not a foolproof method. Just because a host reads clean today does
+not mean it will tomorrow." (disadur dari honeypot.is).
+
+**Pembeda yang adil (alat hanya petunjuk).** Tabel node di `/legacy-cms/` menulis keduanya
+"decommissioned" (Null-Crown 2019, Ash-Vector 2022). `nmap -sV` memperlihatkan Null-Crown memakai
+OpenSSH modern, tidak konsisten dengan "decommissioned 2019", sedangkan Ash-Vector memakai OpenSSH 5.3
+yang konsisten. **Salah pilih tidak membuntukan:** menyentuh Null-Crown memicu surel peringatan
+(`M04_HONEYPOT_ALERT_*` dari `watchdog@architect-c2.dark`) dan serangan tambahan (penalti
+`min(saldo, 500)`), lalu pemain tinggal memakai Ash-Vector.
+
+## G. Pelacakan waktu nyata (komponen kit M4 dipakai ulang)
+
+- Mulai di langkah 8 dan dipasang lagi di setiap sesi baru ke C2 selama `fileExtracted` belum
+  tercapai. Banner hitung mundur **240 detik**.
+- Membuka `.enc` dengan `open` sebelum `attrcheck`/ekstraksi: tenggat dipangkas setengah, surel
+  peringatan jebakan (`M04_TRAP_WARNING_*`). Berkas tidak terhapus.
+- **Gagal (tenggat habis):** penalti `min(saldo, 500)`, desktop dibobol lagi (kit `desktop-breach`),
+  `.enc` terhapus sendiri. `sysdiag` menolak berjalan di sesi remote ("Disconnect first"), jadi pemain
+  harus keluar dari sesi untuk memulihkan. `.enc` dibuat ulang (`Files.create` di dalam handler,
+  `docs/bugs.md` #19) saat sesi baru ke C2 dimulai, dan pelacakan dipasang lagi. Firewall tetap terbuka.
+  Tidak ada jalan buntu.
+
+## H. Efek ending (dijalankan controller setelah `reportSent`)
+
+| `choice` | Efek mekanis | Epilog |
+|---|---|---|
+| `expose` | bukti dilepas | surat Greta A dari `greta.desouza@postbox.my`, log pribadi BACKTRACE A |
+| `handoff` | bukti diserahkan | surat Greta B, log pribadi B |
+| `destroy` | jaringan C2 dihancurkan (`unregister`, berurutan #35), `.enc` hilang | **tanpa surat**, log pribadi C |
+
+Beat surat (dari `09-konten-m5-m6.md` B10): A, namanya bersih tetapi tidak ada yang kembali seperti
+semula. B, seorang pengacara menelepon dan prosesnya akan lama. C, kotak masuk tetap sunyi.
+Log pribadi per ending memuat nasib Reyes, Vivien Orchid, dan Conrad Lindqvist sesuai
+`05-ending.md` bagian B. `greta.desouza@postbox.my` adalah alamat pribadi Greta, yang sama dengan
+rekaman umpan #2 di LeakIndex (M5).
+
+## I. Konten (beat)
+
+**Surel.** Tip terakhir Custodian: nama sudah ada, sekarang bukti, semua milik mereka ada di satu
+berkas, dan mereka tahu begitu kau menyentuhnya. "What now?" (sesudah ekstraksi): pertanyaan yang sama
+dengan dialog lama, tiga pilihan, jawab lewat laporan. Peringatan honeypot dan jebakan memakai teks yang
+sudah ada di `content/m04.ts`.
+
+**`/legacy-cms/`.** LegacyCMS 2.1, build 2011.04, "unpatched since deployment", dengan tabel status
+node (alamat publik, status, tanggal decommission) untuk C2, ash-gate, Null-Crown, dan Ash-Vector.
+
+**`ash-gate_backup.txt` (Ash-Vector).** Cadangan konfigurasi lama dengan kredensial `fw.admin`
+dalam teks biasa, tanggal 2022.
+
+**`manifest.txt` (C2, bisa dibaca).** "MASTER LEDGER INDEX": rekening korban (Northstar Port Authority
+2020 NA, Rheinland Energie AG 2023 EU, LOG-EU-2209 $1.400.000 2026-05-02, FIN-NA-0091 $4.100.000
+2026-07-22, PacificCare Health CASE-A7X-0417 $2.850.000 2026-08-14), tiap baris "settled". Catatan
+PacificCare: klasifikasi "employee negligence (G. de Souza)", disusun bersama V. Orchid, persetujuan
+Nordhaven 2026-08-17. Catatan pantauan: "d.reyes: monitor". Pernyataan model Conrad: kerugian yang bisa
+dihitung bukan bencana, melainkan satu baris pembukuan, dan semua rekening dilunasi. Penutup:
+"every account, settled."
+
+**`master_ledger_backup.enc`.** Isi tetap `AES256-CBC::[REDACTED-BINARY-BLOB]` (konstanta lama), nama
+diganti dari `master_identity_backup` karena identitas sudah dibuktikan di M6.
+
+**Conrad Lindqvist (DECIDED).** 59 tahun (lahir 1967). Aktuaris yang memberi harga pada risiko yang
+ia ciptakan sendiri: tebusan sebagai kerugian yang bisa diprediksi bila pasokannya dikelola. Ini
+menutup X-b.
+
+**Laporan.** Kolom `architect` (Conrad Lindqvist), `evidence` (ringkasan: kelalaian karyawan
+disusun, G. de Souza dijadikan kambing hitam), `choice` (`expose`/`handoff`/`destroy`). Validator
+menolak nama lain dan pilihan di luar tiga itu.
+
+**Petunjuk "belum waktunya" (beat).** Tip belum dibaca: baca kabar Custodian. C2 belum dipindai: lihat
+apa yang terbuka. Halaman tersembunyi belum ditemukan: tidak semua jalan ditautkan. Kotak mati belum
+dimasuki: ada yang terlupakan. Kredensial belum dibaca: isi kotak itu. Firewall belum dibuka: pintu
+masih terkunci. Berkas belum diekstrak: jangan membukanya begitu saja.
+
+**BACKTRACE.**
+
+| Kunci | Nilai |
+|---|---|
+| `nodes` | Tabel status node di `/legacy-cms/`: C2, ash-gate, dua kotak "mati" |
+| `credential` | Kredensial `fw.admin` dari cadangan lama di Ash-Vector |
+| `firewall` | ash-gate dibuka, 3389 C2 terbuka |
+| `c2` | Sesi di C2 (`svc-cms`) |
+| `manifest` | Master Ledger Index: lima rekening korban |
+| `ledger` | `master_ledger_backup.enc` diekstrak tanpa memicu jebakan |
+
+## J. Penempatan arsitektur dan perubahan global
+- Berkas: `main/m07.ts`, `controller/m07/` (`index`, `spec`, `report`, `world`, `recon`, `deadbox`,
+  `firewall`, `shell`, `extract`, `ending`), `content/m07/*`, `i18n/m07/`, `websites/m07/architect-c2/`
+  (dipindah), `websites/global/honeycheck/`.
+- `commands/attrcheck.ts`: konstanta dan nama berkas diperbarui, pakai pencarian Meterpreter-aware, event
+  menjadi `flatline.m07.attrcheckRevealed`.
+- **`M04_ARCHITECT_VPN_IP` di `content/global/characters.ts` tidak di-rename** (dipakai M2 dan M3 yang
+  terkunci). `content/global/mail-senders.ts` hanya diubah jalur impornya. `M04_ARCHITECT_REAL_NAME`
+  menjadi `M07_ARCHITECT_REAL_NAME` = "Conrad Lindqvist".
+- Global: `QuestId` (`guard/flags.ts`), `BacktraceMissionId` dan `BACKTRACE_KEYS` (m7), `manifest.json`.
+- Nasib `*.original.ts` M4 lama: OPEN.
+
+## K. Verifikasi mekanik dan risiko
+| Butir | Status |
+|---|---|
+| Bluekeep RDP, `PFSense.Login/Changes`, SSH ke Device, bentuk Splitter, `cat` `.txt` di sesi Meterpreter | Live (M1, M2, M3) |
+| Kit pelacakan, banner, kunci desktop, pemulihan | Live di lab, belum di pipeline |
+| HoneyCheck (JS dalam halaman dengan dataset tertanam) | Pola ClearEscrow, live |
+| `attrcheck` Meterpreter-aware | Bergantung pada live test `open` yang tertunda |
+| `Files.Transfer` DOWNLOAD pada `download` di sesi RDP | Belum diuji di jalur ini |
+| `Files.create` untuk membuat ulang `.enc` | Aturan konteks mod (#19) |
+
+**Risiko.** (1) Dua event belum teruji di sesi RDP M7: `attrcheck` Meterpreter-aware dan `Files.Transfer`.
+(2) Sesi non-RDP (modul Apache) belum jelas kemampuannya, jadi dipilih RDP. (3) Tenggat pelacakan
+harus adil. (4) Migrasi harus mendahului M4 baru.
+
+## L. Rencana uji
+Kerangka jalan M7 lebih dulu: topologi bentuk M2, satu sesi RDP, `cat manifest.txt`, `attrcheck`, dan
+`download` untuk memastikan tiga event itu terpancar, sebelum konten lain ditulis. Prasyarat bersama:
+live test `open` Meterpreter (juga syarat kunci M1-M3).
+
+## M. Masih OPEN
+Prosa en dan zh, alamat IP dan password, penyesuaian angka (tenggat 240 detik, penalti), nasib
+`*.original.ts`, pemakaian HoneyCheck di M4.

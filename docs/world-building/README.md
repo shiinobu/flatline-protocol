@@ -1,0 +1,115 @@
+# World Building — FLATLINE PROTOCOL
+
+Dibuat: 2026-10-02. Status: **desain M4 sampai M7 final, implementasi belum dimulai.** Belum ada satu
+pun yang masuk kode. Semua nama, tempat, situs, dan orang di sini fiktif dan berjalan di
+simulasi HackHub. Dokumen ini membahas desain cerita dan mekanik (event,
+gating, bentuk data), bukan cara serangan dunia nyata.
+
+Folder ini adalah lapisan desain di atas `docs/story.md`. Keputusan di folder ini tidak
+disinkronkan ke `story.md` sampai M1-M3 dikunci; sesudah itu isinya disinkronkan dari sini.
+
+## Label
+
+| Label | Artinya |
+|---|---|
+| DECIDED | Keputusan pemilik proyek, dengan tanggal |
+| PROPOSAL | Usulan, belum diputuskan |
+| OPEN | Pertanyaan terbuka |
+| INFERENSI | Kesimpulan dari bukti, bukan fakta tertulis |
+
+Setiap klaim tentang kode atau engine memuat rujukan `file:baris` atau
+`app.asar` (build 1.3.13, identik dengan `.reverse/extracted-1.3.13`).
+
+## Log keputusan
+
+| # | Keputusan | Status |
+|---|---|---|
+| 1 | Ide reverse-TCP / callback d.reyes (`docs/idea.md` bagian 2) dibuang, bukan ditunda | DECIDED 2026-10-02 |
+| 2 | Fokus ke world building. Mekanik baru hanya dari fitur yang sudah diriset dan bug-nya RESOLVED, dicek ke `app.asar` 1.3.13 | DECIDED 2026-10-02 |
+| 3 | M1-M3 dikunci LIVE dan FINAL **setelah** "anggaran hook". Anggarannya kemudian ditetapkan nol edit (#31) | DECIDED 2026-10-02 |
+| 4 | Tiga misi baru (M4-M6). Finale (M4 lama) menjadi M7 | DECIDED 2026-10-02 |
+| 5 | Benang cover-up rumah sakit dihidupkan. Architect boleh diganti namanya | DECIDED 2026-10-02 |
+| 6 | "G" di `found_note.txt` adalah **G1**: staf IT rumah sakit yang penasaran dengan kode proyek di memo pada USB, lalu mencolokkannya | DECIDED 2026-10-02 |
+| 7 | Custodian **tetap kosong**: tanpa identitas, bukan G | DECIDED 2026-10-02 |
+| 8 | Architect bernama **Conrad Lindqvist** (nama lama: Damien Okoro) | DECIDED 2026-10-02 |
+| 9 | Situs alat di browser (gaya honeypot.is, referensi DEADNET) diizinkan. Situs permanen dan fitur Tier 2 dibuktikan dulu lewat `weblab` di `src/debug/` (lihat #16) | DECIDED 2026-10-02 |
+| 10 | Profil Conrad Lindqvist: mantan aktuaris atau perwira risiko di sisi asuransi (rincian di `11-spec-m7.md` bagian I) | DECIDED 2026-10-02 (diterima lewat EKSEKUSI) |
+| 11 | Judul kerja M4 "Burn Notice", M5 "The Door", M6 "Open Register" | PROPOSAL |
+| 12 | G bernama **Greta de Souza** (perempuan). Hidup, dipecat, dijadikan penyebab resmi dalam laporan insiden, dan tak terjangkau di M5 | DECIDED 2026-10-02 |
+| 13 | Pemain hanya mengenal Greta lewat dokumen selama M5. Setelah M7 ada satu surat epilog searah (ending C tanpa surat). Percakapan dua arah (`replyable`) ditunda: Tier 2, lab dulu | DECIDED 2026-10-02 |
+| 14 | Tokoh rumah sakit: **Vivien Orchid**, CRO PacificCare, pernah di sisi asuransi (Nordhaven Mutual Assurance, asuransi fiktif di puncak rantai pemilikan SKN Capital Nominees). Memutuskan membayar dan menyebut Greta penyebab agar klaim asuransi tetap berlaku. Pembayaran lewat negosiator yang ditunjuk asuransi | DECIDED 2026-10-02 |
+| 15 | Misi baru ditulis sebagai lembar spesifikasi sebelum kode (`07-arsitektur-misi-baru.md`) | DECIDED 2026-10-02 |
+| 16 | Situs M5 dan M6 adalah **situs misi** (baseline Tier 1). Situs permanen dan fitur Tier 2 menyusul setelah `weblab` | DECIDED 2026-10-02 |
+| 17 | M5 Very Hard berlapis: OSINT dan arsip (page layer), kredensial yang harus di-crack, Firewall tersembunyi lalu SSH (network layer) | DECIDED 2026-10-02 (bentuk; rincian di `08-spec-m5-m6.md`) |
+| 18 | M6 Very Hard tanpa jaringan: page layer, halaman tersembunyi, rekaman bertentangan, gerbang CLI | DECIDED 2026-10-02 (bentuk) |
+| 19 | Umpan diterima: staf G kedua (Gareth Lim) dan dua versi pernyataan. Vivien Orchid perempuan (nama depan diganti dari Lindy) | DECIDED 2026-10-02 |
+| 20 | Konten final M5 dan M6 (nama situs, asuransi, negosiator, rantai pemilikan, tanggal, beat dokumen, laporan, kunci BACKTRACE): `09-konten-m5-m6.md` | DECIDED 2026-10-02 |
+| 21 | Firewall M5 hanya punya satu pengguna valid (`PFSense.Login` hanya membawa `{ip}` dan hanya terpancar saat sukses). Archive menjadi satu situs global yang dipakai M5 dan M6 | DECIDED 2026-10-02 |
+| 22 | Baris Operating Theatre 3 dibuat oblique di memo keputusan. Bonus Bedside-17 dipertahankan di luar rantai. Profil aktuaris Conrad diterima | DECIDED 2026-10-02 |
+| 23 | Jalur M6 tanpa jaringan diuji paling awal lewat kerangka jalan (harness SDK tiruan, lalu live). `john` tanpa lab. Persona Twotter terlihat sejak awal: diterima | DECIDED 2026-10-02 |
+| 24 | Spesifikasi dan konten M4 "Burn Notice": `10-spec-m4.md` (15 langkah, empat Router, kit rival-hacker berskrip) | DECIDED 2026-10-02 |
+| 25 | Aplikasi Sentinel DITAHAN (ongoing), di luar M4 sekarang | DECIDED 2026-10-02 |
+| 26 | Hukuman uang dibatasi saldo (serangan 1 sekitar $300, honeypot sekitar $500), stempel waktu log tetap, honeypot Paper-Moth, host kontrol Night-Shift bertetangga dengan `203.0.113.160` (registrant Bulletproof VPN Ltd.) | DECIDED 2026-10-02 (diterima lewat EKSEKUSI) |
+| 27 | Spesifikasi dan konten M7 "The Architect": `11-spec-m7.md` (12 langkah, rute RDP, HoneyCheck yang bisa salah, pelacakan waktu nyata, sepuluh cacat M4 lama diperbaiki) | DECIDED 2026-10-02 |
+| 28 | Dialog telepon dibuang: pertanyaan akhir lewat surel Custodian dan jawaban lewat kolom `choice`. Efek ending nyata: `expose`/`handoff` melepas bukti dan Greta mengirim surat, `destroy` menghancurkan C2 tanpa surat | DECIDED 2026-10-02 |
+| 29 | Conrad Lindqvist 59 tahun (lahir 1967), aktuaris yang memberi harga pada risiko yang ia ciptakan. Berkas diganti nama `master_ledger_backup.enc` dengan `manifest.txt` yang bisa dibaca | DECIDED 2026-10-02 |
+| 30 | Hadiah finale 5000 uang dan 200 xp, dibayar lewat `Bank.transaction` | DECIDED 2026-10-02 |
+| 31 | Anggaran hook: **nol edit** di M1-M3. Audit M4 sampai M7 terhadap teks M1-M3 menunjukkan semua ketergantungan sudah ada (`01-canon-dan-hook.md` bagian E) | DECIDED 2026-10-02 |
+| 32 | Registrant `whois` disamakan dengan M3: **Bulletproof VPN Ltd.** (contact `whois` titik akhir `203.0.113.160` di M3) dipakai untuk host kontrol M4 dan domain asuransi M6. "SKN-CENTRAL" tetap label peer M3 dan domain `skn-central.net`. Nama "SKN-CENTRAL Services Ltd" dibuang | DECIDED 2026-10-02 |
+| 33 | Prosa en dan zh, alamat IP, password, penyesuaian angka, nasib lab debug dan `*.original.ts`, dan hal lain di `06-pertanyaan.md` | OPEN |
+
+## Isi folder
+
+| Berkas | Isi |
+|---|---|
+| `01-canon-dan-hook.md` | Canon sekarang vs `story.md`, benang tertanam di M1-M3, pagar teks terkunci, diagnosis, anggaran hook |
+| `02-peta-misi.md` | Busur M1-M7: fungsi, kaitan hook, mekanik, situs, biaya penomoran |
+| `03-karakter.md` | Tokoh canon dan tokoh baru |
+| `04-web-layer.md` | Situs alat di browser: fakta engine, tier mekanik, katalog situs, rencana `weblab` |
+| `05-ending.md` | Matriks ending A/B/C |
+| `06-pertanyaan.md` | Pertanyaan terbuka |
+| `07-arsitektur-misi-baru.md` | Penyebab redesign M1-M3 sebagai aturan, peta berkas, perubahan global, templat lembar spesifikasi, definisi selesai |
+| `08-spec-m5-m6.md` | Lembar spesifikasi M5 dan M6: rantai gerbang, topologi, risiko |
+| `09-konten-m5-m6.md` | Konten final M5 dan M6: nama, rantai pemilikan, tanggal, beat dokumen, laporan, kunci BACKTRACE, rencana uji |
+| `10-spec-m4.md` | Spesifikasi dan konten final M4: kit berskrip, 15 langkah, empat Router, konten, risiko |
+| `11-spec-m7.md` | Spesifikasi dan konten final M7: perbaikan M4 lama, 12 langkah, HoneyCheck, pelacakan, efek ending |
+
+## Aturan main yang berlaku di semua dokumen ini
+
+- Setiap tulis di luar `src/debug/` menunggu kata EKSEKUSI dari pemilik proyek.
+- Mekanik dipilih hanya dari **Tier 1** (lihat `04-web-layer.md`). Tier 2 butuh lab
+  dan live test dulu. Tier 3 tidak dipakai.
+- Semua mod singleplayer. Fitur yang hanya terpancar di multiplayer tidak dipakai.
+- "Full mechanic, not full objective": satu objective per misi, rantai mekanik
+  berurutan lewat `middleware/` (satu gerbang per langkah, dunia terbuka per langkah).
+- Hanya M1 yang `Abandonable`. M2 dan seterusnya tidak.
+- LedgerVault (`x7k2m9vdlq4wnyt3.dark`) adalah domain permanen. Tidak ada jalur
+  teardown atau alur cerita yang menghapusnya.
+- M1-M3 tidak disentuh: anggaran hook nol edit (DECIDED, `01-canon-dan-hook.md` bagian E).
+
+## Batasan urutan implementasi (DECIDED)
+
+1. Sebelum kunci M1-M3: live test `open` di sesi Meterpreter, teks ZH M1-M3 dimainkan, toggle fokus dev
+   di `src/guard/flags.ts` kembali ke nilai commit, pekerjaan dirapikan dan di-commit
+   (`01-canon-dan-hook.md` bagian E). Setelah kunci, `docs/story.md` disinkronkan dari folder ini.
+2. M4 lama dimigrasi ke id `m07` **sebelum** M4 baru dibuat, supaya id `m04` kosong
+   (`11-spec-m7.md`, `07-arsitektur-misi-baru.md` bagian C).
+3. Jalur M6 tanpa jaringan (`networkIps: []`) diuji paling awal lewat kerangka jalan: harness SDK tiruan,
+   lalu live (`09-konten-m5-m6.md` bagian D).
+4. Tiga event di sesi RDP M7 (`attrcheck` Meterpreter-aware, `Files.Transfer` pada `download`,
+   pelacakan) diuji lewat kerangka jalan M7 sebelum konten lain (`11-spec-m7.md` bagian L).
+5. Tiap misi: lembar spesifikasi, lab untuk mekanik Tier 2 bila ada, lalu implementasi berurutan
+   `content` -> `i18n` -> `controller` -> `main` -> `websites` -> perubahan global
+   (`07-arsitektur-misi-baru.md` bagian F).
+
+## Saran urutan (PROPOSAL, belum diputuskan)
+
+Migrasi M7 (kerangka jalan lalu penuh), kerangka jalan M6, M4, M5, M6 penuh. `weblab` hanya diperlukan untuk
+situs alat permanen dan fitur Tier 2, bukan prasyarat M4-M7 (keputusan #16).
+
+## Penyerahan implementasi
+
+Implementasi akan dikerjakan agen cloud atas permintaan pemilik proyek. Prompt implementasi belum ditulis
+dan akan disusun bersama pemilik proyek. Saran urutan baca untuk agen (PROPOSAL): `README.md`,
+`07-arsitektur-misi-baru.md`, spesifikasi misi (`08`, `09`, `10`, `11`), `01-canon-dan-hook.md`,
+`04-web-layer.md` (tier dan fakta engine), lalu `03`, `05`, `06`.
