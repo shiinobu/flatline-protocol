@@ -335,16 +335,20 @@ guessed.
 | M2 | `homeLead` | `cat sync-home.txt` (exact content match, `Terminal.Cat`) |
 | M2 | `firewall` | `PFSense.Login` on the home firewall |
 | M2 | `workstation` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the workstation (the plain `exploit` flow; `Metasploit.Meterpreter.Connected` is only raised by the reverse-TCP listener, `bugs.md` #29) |
-| M2 | `shellCompany` | `open wire_authorization.pdf` once the firewall is breached (`OPEN_FILE_READ_EVENT`) |
+| M2 | `shellCompany` | `open wire_authorization.pdf` at the `meterpreter >` prompt, or on a downloaded copy, once the firewall is breached (`OPEN_FILE_READ_EVENT`) |
 | M3 | `portal` | first Save in the remote gateway's Port Forwarding panel (`Network.PortChanges` on `77.83.142.6`, the `portalReached` flag) — the gateway is a `Router`, whose TP-Link panel raises no login event (`bugs.md` #31) |
 | M3 | `parentEntity` | `Sqlmap.DumpTable` of `wire_transfers` or `Database.Connected` on Coin-Drift (one key, either route) |
 | M3 | `gateway` | `RemoteConnection.Established` with `t === "METASPLOIT"` on Vault-Line (`Metasploit.Meterpreter.Connected` is accepted too, for the reverse-TCP flow) |
-| M3 | `vpnPeer` | `cat site_to_site_backup.txt` at the gateway session (`Terminal.Cat`; a `download` + `open` of the local copy also counts, `OPEN_FILE_READ_EVENT`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
+| M3 | `vpnPeer` | `cat site_to_site_backup.txt` at the gateway session (`Terminal.Cat`; `open` of it at the same prompt, or of a downloaded local copy, also counts, `OPEN_FILE_READ_EVENT`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
 | M3 | `accomplice` | `RemoteConnection.Established` with `t === "SSH"` to Faded-Ledger (optional bonus thread; `Terminal.Explorer` there also counts but only Meterpreter/`evil-rm` raise it, `bugs.md` #33) |
 
 `open` is the project's own terminal command (`src/commands/open.ts`): it
 prints a file of any extension and emits `flatline.open.fileRead`, which is
-how a file becomes a checkpoint (`cat` only reads `.txt`/`.log`). The M1 key
+how a file becomes a checkpoint (`cat` only reads `.txt`/`.log`). At a
+`meterpreter >` prompt it reads the target's file (`src/commands/meterpreter-files.ts`:
+the session target is tracked from `RemoteConnection.Established` /
+`.Disconnected` and the path is walked with the ID-based `Files` calls,
+`bugs.md` #30; not yet live-tested), so no mission needs `download`. The M1 key
 whose trigger is a flag (`broker`, `vault`, `caseId`) is re-traced from the
 persisted flag every time `OnObjectivesStart` runs, so saves that passed a
 checkpoint before tracing existed catch up.
@@ -359,7 +363,8 @@ two groups this way: `deployLogFound` (the deploy log's `cat`) and
 triggers that previously called `this.createDialog()`, before that mechanic
 was dropped for M2 (see `docs/changelog.md` 2026-09-27: it always presents as
 an incoming phone call, but every line was `speaker: "GHOSTWIRE"`). M3 logs
-five groups (`ledger`, `capture`, `root`, `reyes`, `aftermath`). BACKTRACE
+four groups (`ledger`, `tunnel`, `reyes`, `aftermath`; the `root` group went with
+`rootgrab` on 2026-10-01 and the `tunnel` group has three lines). BACKTRACE
 renders `logs` two ways: a live preview on the still-open mission's card
 (`stateCardMarkup`, "PERSONAL LOG") and the "Personal Log" section of the
 finished M2/M3 reports (`[data-personal-log="m2"]`, `"m3"`).

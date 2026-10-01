@@ -9,12 +9,19 @@ player writes the port-forwarding rules, `docs/bugs.md` #31).
 Delete or archive once M03 reaches FINAL LOCK; not a permanent design doc
 (that's `docs/story.md` / `docs/scratch.md`).
 
+**2026-10-01 (later) — `rootgrab` has no reaction in M3 any more (NOT yet
+live-tested).** The `gatewayRooted` flag, its handler and its personal log are
+gone; `rootgrab /etc/passwd` still runs in the game but nothing in the mod
+listens. The line that log carried (the shell company and the address off the
+map are the same hand) is now the third `tunnel` line, written when the config is
+read. `open site_to_site_backup.txt` at the `meterpreter >` prompt also counts now
+(`open` reads a Meterpreter target's files, `docs/bugs.md` #30 follow-up).
+
 **2026-10-01 — migrated to the mission pipeline and live-tested (English; the
-Chinese texts were not played; `rootgrab` is optional again).** The
+Chinese texts were not played; `rootgrab` was optional again).** The
 steps below still describe what the player does, but the mission is now a gated
 chain (`src/content/m03/gates.ts`: tip, site scout, portal, NAT pivot, ledger
-dump, gateway shell, VPN config, report; `rootgrab` and the accomplice are
-optional): the ledger (section 5) comes **before** the gateway (section 6),
+dump, gateway shell, VPN config, report; the accomplice is optional): the ledger (section 5) comes **before** the gateway (section 6),
 the remote portal and ledger domains and the gateway's `nslookup` / `nmap` /
 `hydra` fixtures appear only after the public site is scouted, a forwarding rule
 saved earlier stays inert, the Vault-Line RDP rule gets its banner only after the
@@ -248,19 +255,21 @@ once its rule from node 12 is saved.
     Success opens a `meterpreter >` prompt and raises
     `RemoteConnection.Established` → key **Tunnel gateway** (`gateway`) and
     `gatewayShellObtained`. M3's first use of Metasploit.
-22. *(Optional)* `rootgrab /etc/passwd` at the `meterpreter >` prompt → prints
-    the hashed root password and raises `Metasploit.Rootgrab` → a personal-log
-    entry. Nothing depends on it; the report never checks it.
+22. *(Optional, no reaction)* `rootgrab /etc/passwd` at the `meterpreter >`
+    prompt → prints the hashed root password and raises `Metasploit.Rootgrab`;
+    since 2026-10-01 the mod no longer listens, so there is no log and no flag.
+    Nothing depends on it; the report never checks it.
 23. At the `meterpreter >` prompt **`cat site_to_site_backup.txt`** (the file
     sits at the session's root; `ls` lists it) → `Terminal.Cat` → key
     **Site-to-site config** (`vpnPeer`), `vpnConfigRead` and the `tunnel`
-    personal log. No `download`: the file is a `.txt` since round 3, so the
+    personal log (three lines since 2026-10-01). No `download`: the file is a `.txt` since round 3, so the
     engine's `cat` reads it where it lies (`docs/bugs.md` #34; the file used to
     be a `.conf`, which `cat` refuses, hence the old `download` + `open`). The
     config peers to `203.0.113.160`, labels it `SKN-CENTRAL`, notes the owner as
     SKN Capital Nominees and carries the `finance_svc` database credentials.
-    `open` at that prompt would read the player's own PC (`docs/bugs.md` #30);
-    a `download`ed copy read with `open` still counts.
+    `open site_to_site_backup.txt` at that prompt reads the target's file since
+    2026-10-01 (`docs/bugs.md` #30 follow-up, not yet live-tested) and counts the
+    same; a `download`ed copy read with `open` still counts.
 
 ## 7. Bonus — Faded-Ledger (Reyes)
 
@@ -307,7 +316,7 @@ Save in the router panel), Wire-transfer ledger (14/16), Tunnel gateway (21),
 Site-to-site config (23), Accomplice (24, bonus). The tunnel endpoint is no
 longer a key (it is an extra in the COMPLETE snapshot). One action, one key; no
 descriptions. Personal-log entries (a toast each) fire at the ledger, the
-config read (`tunnel`), `rootgrab`, the Reyes note (`cat`/`open`) and the report. At COMPLETE the M3 report
+config read (`tunnel`, three lines), the Reyes note (`cat`/`open`) and the report. At COMPLETE the M3 report
 opens with 8 Key Findings (the chain: the $2,850,000 batch reaching Skynet,
 the fixed split, the same split on all three batches — $8,350,000 in,
 $5,010,000 to the parent — the nominee name, the tunnel, the config that ties
@@ -338,16 +347,19 @@ say it "goes out same day as settlement".
 
 ## Known follow-ups (not fixed / not yet live-tested)
 
-- **`open` and relative paths.** `open` resolves a bare name from the home
-  folder (or the SSH user's home over SSH), not the current directory
-  (`docs/bugs.md` #30); whether to make `open` cwd-aware is an open proposal.
+- **`open` and relative paths.** Without a session, `open` resolves a bare name
+  from the home folder (or the SSH user's home over SSH), not the current
+  directory (`docs/bugs.md` #30); whether to make the local side cwd-aware is an
+  open proposal. At a `meterpreter >` prompt it resolves against the target's cwd
+  since 2026-10-01 (not yet live-tested).
   Its output is line by line since round 3 (`docs/bugs.md` #34).
 - **hydra + hand-typed wordlists** (node 10). Confirmed engine bug, not fixable
   from this project's source; worth reconfirming during this playtest.
 - **The plain `exploit` events** (node 21) and **`rootgrab` with a root user**
   (node 22) — first use of both in M3. Verified live 2026-09-29
   (log-confirmed): the plain `exploit` raised `RemoteConnection.Established` and
-  traced `gateway`, and `rootgrab` with a root user ran.
+  traced `gateway`, and `rootgrab` with a root user ran (the mod stopped
+  reacting to `rootgrab` on 2026-10-01).
 - **M4's `initialShellAccess`** listens for `Metasploit.Meterpreter.Connected`,
   which a plain `exploit` never raises (`docs/bugs.md` #29) — left unchanged.
 - **The router rework** (node 12, `docs/bugs.md` #31). Verified live 2026-09-29:

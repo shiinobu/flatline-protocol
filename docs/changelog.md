@@ -25,8 +25,62 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-02
+
+- **[docs] World-building design for M1-M7 written in `docs/world-building/` (specs only,
+  nothing in code).** Twelve files: README (decision log), `01-canon-dan-hook.md`,
+  `02-peta-misi.md`, `03-karakter.md`, `04-web-layer.md`, `05-ending.md`,
+  `06-pertanyaan.md`, `07-arsitektur-misi-baru.md` (rules and spec-sheet template for the
+  new missions), `08-spec-m5-m6.md` and `09-konten-m5-m6.md` (spec sheets and final content
+  for M5 and M6), `10-spec-m4.md` (M4) and `11-spec-m7.md` (M7). Decisions logged: the
+  reverse-TCP / d.reyes callback idea (`docs/idea.md` section 2) is dropped; M1-M3 are locked
+  with a hook budget of zero edits; three new missions (M4-M6) are planned and the
+  finale (old M4) becomes M7; G in the LedgerVault `found_note.txt` is Greta de Souza, the
+  hospital IT staffer (G1), dismissed and officially blamed, reached only through documents in
+  M5 and a one-way epilogue letter after M7; the hospital decision-maker is Vivien Orchid, CRO
+  of PacificCare, formerly at the fictional insurer Nordhaven Mutual; the Custodian stays
+  blank; the Architect is renamed Conrad Lindqvist (59, an actuary who priced the risk he
+  created); M5 and M6 sites are mission sites (Tier 1 baseline), M5 is Very Hard across page,
+  crack and network layers (its Firewall has a single valid user because `PFSense.Login`
+  carries only the IP and fires only on success), M6 is Very Hard with no network (verified in
+  code only, tested first); M4 "Burn Notice" reuses the rival-hacker kit with scripted strikes
+  and a four-router counter-trace, the Sentinel app is on hold; M7 fixes ten defects of the
+  old M4 (RDP route instead of an unmatched banner, the proven Splitter shape, a fallible
+  HoneyCheck, a real-time trace, the phone-call dialog replaced by a mail and a `choice` field,
+  real ending effects, reward 5000); the hook budget is zero edits (audit of M4-M7 against
+  the locked M1-M3 text) and the whois registrant of the M4 control host and the M6 insurer
+  domain is aligned with M3's existing "Bulletproof VPN Ltd."; permanent browser tool sites
+  wait for a `weblab` in
+  `src/debug/`. No world-building decision is synced into `docs/story.md` until the lock.
+  Implementation is planned for a cloud agent (its prompt is not written yet); the old M4
+  must be migrated to M7 before the new M4 exists. `docs/idea.md` got an update note for its dropped section 2. See
+  `docs/world-building/README.md`.
+
 ## 2026-10-01
 
+- **[mechanic] `open` reads a Meterpreter target's files, so no step needs
+  `download` any more (NOT yet live-tested).** M2's `shellCompanyFound` needs
+  `wire_authorization.pdf`, which `cat` refuses and which the stock path API
+  cannot reach at a `meterpreter >` prompt, so the only route was `download` then
+  `open ~/downloads/<file>`. `src/commands/meterpreter-files.ts` tracks the
+  session target from `RemoteConnection.Established` / `.Disconnected` (`t:
+  "METASPLOIT"`) and `open` walks the path from the target's root file with the
+  ID-based `Files` calls; a miss, a `~` path or no session falls back to the
+  player's own PC, so the download route still counts. The event payload is
+  unchanged, so no gate changed in M2 (`shellCompanyFound` stays on the chain; the
+  report needs the company name from the PDF). Checked in a mocked-SDK harness (40
+  checks, three broken copies fail as they should). See `docs/bugs.md` #30
+  (follow-up), `docs/mechanics.md`, `docs/architecture.md`, `docs/m02-playtest.md`
+  step 20.
+- **[mechanic] M3 no longer reacts to `rootgrab`.** `gatewayRooted`, its
+  `Metasploit.Rootgrab` handler and the `root` personal log are gone (the step was
+  already off the chain). The log's second line (the shell company and the address
+  off the map are the same hand) moved to the `vpnConfigRead` step as the third
+  `tunnel` line; the first line (it duplicated the tunnel log and said "root") was
+  dropped, en and zh. The tip mail, the objective and the report prose still say
+  "root"; that is narrative, not a gate. M4's flat `main/m04.ts` still listens to
+  `Rootgrab` and to a `Files.Transfer` download until its migration. See
+  `docs/m03-playtest.md` step 22.
 - **[milestone] The day's work is committed as five code commits and two docs
   commits.** In order: Phase 0 generic pipeline pieces (`6c8f9e7`), M2
   migration (`e01b7d1`), M3 migration (`d03a21a`), BACKTRACE card scroll

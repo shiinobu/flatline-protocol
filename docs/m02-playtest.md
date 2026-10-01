@@ -34,9 +34,11 @@ below say which). The progression files are read with the project's `open`
 command instead of the old `download`-only gate (that change dates from
 2026-09-27, see `docs/changelog.md`; the re-keyed BACKTRACE and the finance
 numbers are the new part). Watch for: the `RemoteConnection.Established`
-checkpoint (node 19). `open` cannot read a Meterpreter target's files
-(engine-verified, `docs/bugs.md` #30) — the route is `download` and then
-`open ~/downloads/<file>` (node 20).
+checkpoint (node 19). The stock path API cannot read a Meterpreter target's
+files (engine-verified, `docs/bugs.md` #30), so `open` was made
+Meterpreter-aware on 2026-10-01 (`src/commands/meterpreter-files.ts`,
+**not yet live-tested**): node 20 is `open <file>` at the `meterpreter >` prompt,
+no `download` needed; `download` and then `open ~/downloads/<file>` still works.
 
 **2026-10-01 — migrated to the mission pipeline and live-tested (English, main
 path and gates; the Chinese texts were not played).** The
@@ -178,10 +180,11 @@ purpose.
 
 ## 7. Pull the evidence and trigger the aftermath
 
-20. From the `meterpreter >` prompt, get each of the 3 rootFiles onto the
-    player's own machine with the text `download` command (the copies land in
-    `~/downloads`), then read them with **`open`** (`open ~/downloads/<file>`;
-    `cat` only reads `.txt`/`.log`, so the `.pdf` needs `open` anyway):
+20. At the `meterpreter >` prompt, read each of the 3 rootFiles where they lie
+    with **`open`** (`open wire_authorization.pdf`; the prompt starts at the
+    device root and `ls` lists them; `cat` only reads `.txt`/`.log`, so the
+    `.pdf` needs `open` anyway). No `download` is needed; a `download`ed copy
+    read with `open ~/downloads/<file>` still counts:
     `wire_authorization.pdf`
     (names **Skynet Import-Export Co.** as the shell company, the batch
     `PB-2608-01` and `$2,850,000`) → key **Shell company** (`shellCompany`),
@@ -189,9 +192,10 @@ purpose.
     additionally require the firewall breach (node 17) — quest data that
     resets per claim — so a stale local copy left over from an earlier run
     (`mods.reset` does not clear the player's files) cannot skip the RDP
-    step. `open` never reaches the *remote* file at the `meterpreter >` prompt
-    — it only sees the player's own PC (`docs/bugs.md` #30), which is why the
-    `download` comes first.
+    step. `open` reads the *target's* file at the `meterpreter >` prompt since
+    2026-10-01 (`docs/bugs.md` #30 follow-up, **not yet live-tested**; check
+    that after `back` the bare name finds nothing and `~/downloads/<file>` reads
+    the player's own PC).
 21. The first `open` of any of the 3 workstation files fires the second
     **personal-log** entry group ("Got everything... One name was never going
     to be enough.", one toast) exactly once, regardless of which file triggers

@@ -217,9 +217,9 @@ admin.
    (there is no `run`) against the dev's separate, better-defended personal
    workstation → `RemoteConnection.Established` (a plain `exploit` never
    raises `Meterpreter.Connected`, `bugs.md` #29).
-10. `download` the workstation's files, then `open` them (`cat` only reads
-    `.txt`/`.log`) — `wire_authorization.pdf` names the shell company, the
-    batch and its amount.
+10. `open` the workstation's files at the `meterpreter >` prompt (`cat` only
+    reads `.txt`/`.log`; `download` is optional) — `wire_authorization.pdf`
+    names the shell company, the batch and its amount.
 11. Dead-drop mail.
 
 ### Mission 3 — "Money Trail"
@@ -290,8 +290,8 @@ nowhere.
    comes from the gateway's own config.
 8. **Metasploit** the hardened gateway `Vault-Line` (RDP RCE:
    `use exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = the public IP,
-   `Version 7.1.9`, `exploit`) → Meterpreter → optional **Rootgrab**
-   (`rootgrab /etc/passwd`, needs the `root` user the gateway now has) →
+   `Version 7.1.9`, `exploit`) → Meterpreter (`rootgrab /etc/passwd` works, the
+   gateway has a `root` user, but nothing in the mod reacts to it) →
    `cat site_to_site_backup.txt` (a plain `.txt` at the session's root; no
    download) → its config peers to the VPN IP, labelled `SKN-CENTRAL`, owner
    `SKN Capital Nominees`: proof the money's destination and the tunnel's far

@@ -171,7 +171,7 @@ Router 77.83.142.6 (TP-Link panel)  lan 192.168.1.1   [remote.skynet-importexpor
    ├─ Device "Split-Bill"   146.185.239.12 / lan 192.168.1.5  smb:445, guest / guest -- decoy, readme only
    └─ Device "Vault-Line"   79.124.62.90 / lan 192.168.1.6   tunnel gateway
          users: svc-vpn (online) + root (rootgrab needs a root user)
-         rdp:3389 FreeRDP 7.1.9 RCE (Metasploit `exploit`) -> Meterpreter -> optional rootgrab /etc/passwd
+         rdp:3389 FreeRDP 7.1.9 RCE (Metasploit `exploit`) -> Meterpreter (rootgrab /etc/passwd works; no mod reaction)
          rootFile site_to_site_backup.txt (read with `cat` at the session's root):
          peer SKN-CENTRAL = M04_ARCHITECT_VPN_IP, owner SKN Capital Nominees,
          + finance_svc DB creds

@@ -2224,3 +2224,56 @@ harmless `Sys log file not found for <ip>`). The owner confirmed the checklist i
   `closeMissionSites("m04")`; keep those calls when it moves into
   `controller/m04/`. Live-test the site gate (a mission's site 404s before and
   after it runs) and the M3 `rootgrab` and BACKTRACE scroll fixes.
+
+## 2026-10-01 (sixth part): download and rootgrab off the gates, `open` at `meterpreter >`
+
+- **Audit.** M1 has no Metasploit, `rootgrab` or `download` step (SSH then `cat`).
+  M2's only hard dependency was `shellCompanyFound`: the PDF cannot be `cat`ed and
+  the stock path API cannot reach a Meterpreter target, so the route was
+  `download` then `open ~/downloads/...`, and the report needs the company name
+  that only that PDF carries. M3's `rootgrab` was already off the chain and only
+  wrote the `root` log. M4 (flat) still has `escalatePrivileges` (`Rootgrab`) and
+  `extractSafely` (`Files.Transfer` DOWNLOAD) as objectives; left for the M4
+  migration on purpose (the trap file is its core).
+- **Rejected: put the company name in a `.txt` (e.g. `errands.txt`) so `cat` could
+  read it.** The owner wants the PDF to stay, and a mission fact in a decoy text
+  file breaks the file tree design. Dropped.
+- **Engine read (v1.3.13, `index.js`).** `Got()` sets `isRemote = !!data.ssh_ip`;
+  the `exploit` handlers set `meterpreter` + `meterpreter_user` and
+  `setDirectory(Fr.GetById(<ip>))`, never `ssh_ip`; so `getByPath` stays on the
+  player's PC (bugs #30 was right about the path API). The SDK documents the
+  ID-based calls as not session-limited, and `RemoteConnection.Disconnected`
+  (`t: "METASPLOIT"`) is raised by `back` and by the environment's `onDestroy`.
+  That is enough for `open` to walk a target's tree from `Files.getById(<ip>)`.
+  A top-level `Events.on` is fine in a command module (the debug modules already
+  do it at import).
+- **Change.** New `src/commands/meterpreter-files.ts` (tracker + `findMeterpreterFile`),
+  `open.ts` calls it first when not on SSH, and falls back to `getByPath`; `~`
+  paths stay local so `open ~/downloads/<file>` keeps working. M3: removed
+  `gatewayRooted` (state, gate), the `Rootgrab` handler, `M03_LOG_ROOT` and its two
+  keys; `LOG_ROOT_2` became `LOG_TUNNEL_3` (en and zh), `LOG_ROOT_1` dropped. M2 gates
+  unchanged on purpose.
+- **Checks.** `tsc --noEmit` and `--noUnusedLocals` exit 0, no `//` comment and no
+  `console.log` in `src/`, line endings kept (CRLF files stayed CRLF, `open.ts` and
+  the new file are LF). Mocked-SDK harness (scratchpad `h`, a copy of `src/` and a
+  CommonJS SDK mock with a Map-backed file tree): 40 checks pass: no session gives
+  "No such file"; SSH `Established` is ignored; at the session a bare name,
+  absolute path, relative path and `..` resolve on the target; folders are
+  reported; a miss falls back to the local home; a `~` path stays local; a
+  disconnect of another IP or an SSH disconnect keeps tracking; `back` clears it;
+  over SSH only `getByPath` is called; a host without a root file falls back; M3
+  reads the config at the prompt (3 tunnel lines, `vpnPeer`, report reachable, a
+  `Rootgrab` event does nothing); M2 reads the PDF at the prompt (`shellCompany`,
+  3 aftermath lines, report reachable) and a stale local copy before the breach does
+  not advance. Negative controls (three broken copies): the old `open.ts` fails 19,
+  no Disconnected handler fails 1 (the after-`back` check), no root lookup fails 19.
+- **What the harness cannot show.** The tree walk (root id = device IP, children by
+  `name.extension`, `resolvePath` returning the target cwd at the prompt) is read
+  from the client, not run. The live test decides it; the `trace("OPEN", ...)`
+  lines name the tracked IP and every lookup.
+- **Next.** Live test: at `meterpreter >` on the M2 workstation `open
+  wire_authorization.pdf` (key `shellCompany` plus the aftermath log), after `back`
+  the same command must fail, `open ~/downloads/<file>` on a downloaded copy still
+  works; M3 `open site_to_site_backup.txt` and `cat` both trace `vpnPeer` with a
+  three-line `tunnel` log and `rootgrab` leaves no log. Then the M4 migration with the
+  same rules (shell on `RemoteConnection.Established`, `rootgrab` optional).

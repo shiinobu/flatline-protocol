@@ -1351,7 +1351,7 @@ mission deliberately requires the listener workflow.
 
 ## 30. `open` (any command built on `Files.getByPath`) sees a remote file system only over SSH, and resolves relative paths from the home folder, not the cwd — it cannot read a Meterpreter target
 
-**Status: DOCUMENTED (engine design; docs and playtests corrected, `open.ts` unchanged — proposal below)**
+**Status: DOCUMENTED (engine design; docs and playtests corrected). FOLLOW-UP 2026-10-01: `open` made Meterpreter-aware in `src/commands/meterpreter-files.ts` — NOT yet live-tested; the cwd-aware proposal below stays open for the local side**
 Found: M3 static review against the client (v1.3.13), 2026-09-29.
 
 The SDK's own `Files` doc says path operations are session-aware "while the
@@ -1382,15 +1382,41 @@ accept the local copy.
 `scratch.md` no longer claim `open` works on a remote Meterpreter file, and
 they give the `~/downloads/` path. No code changed.
 
+**Follow-up 2026-10-01 (owner: `open` should work at `meterpreter >`) — NOT yet
+live-tested.** Re-read against the client (v1.3.13, `index.js`): the path API
+stays SSH-only (the `exploit` handlers set `meterpreter`, `meterpreter_user` and
+the terminal directory, never `ssh_ip`), but the SDK documents the ID-based calls
+(`getById`, `getChildren`, `read`) as not session-limited, the exploit itself
+sets the terminal directory to `Fr.GetById(<target ip>)` (so a device's root file
+has the device IP as its id), and the engine raises `RemoteConnection.Disconnected`
+(`t: "METASPLOIT"`) from `back` and from the Metasploit environment's
+`onDestroy`. `src/commands/meterpreter-files.ts` uses exactly that: it tracks the
+session target from `RemoteConnection.Established` / `.Disconnected`, and
+`open` (when not on SSH and the path does not start with `~`) resolves the path
+with `Files.resolvePath` (cwd-aware, and in that session the cwd is the target's)
+and walks it from `Files.getById(<ip>)` with `Files.getChildren`, matching
+`name.extension`. A miss, a `~` path or no session falls back to the old local
+lookup, so `download` + `open ~/downloads/<file>` still works. The event payload
+is unchanged, so M2's `shellCompanyFound` / `aftermathShown` and M3's
+`vpnConfigRead` need no change. Checked in a mocked-SDK harness (40 checks, three
+broken copies fail as they should); the ID-walk assumptions come from reading the
+client, so the live test must confirm them: at `meterpreter >`, `open
+wire_authorization.pdf` (M2) prints the PDF and traces `shellCompany`; after
+`back` the same command says "No such file"; `open ~/downloads/<file>` on a
+downloaded copy still works. The `trace("OPEN", ...)` lines in the log show the
+tracked IP and each lookup.
+
 **Proposal (not applied, needs its own go-ahead):** make `open` cwd-aware —
 `Files.getByPath(await Files.resolvePath(target))` — so a bare name works from
 any directory, and let the "No such file" error mention `~/downloads`. Until
 then a player who `cd`s away from the home folder and types a bare name gets
 "No such file".
 
-**Takeaway:** a mission file that lives on a Meterpreter target has to be
-checkpointed on its local copy (Meterpreter `download`, then `open`); only an
-SSH session exposes the target's file system to a custom command.
+**Takeaway:** the stock path API (`getByPath`, `exists`, `getRoot`) sees a remote
+file system only over SSH. A file on a Meterpreter target is reached from a custom
+command with the ID-based calls, starting at `Files.getById(<target ip>)` (what
+`open` does since 2026-10-01); its local copy (Meterpreter `download`, then
+`open ~/downloads/<file>`) stays a valid route.
 
 ---
 
