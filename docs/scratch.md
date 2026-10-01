@@ -1749,3 +1749,478 @@ typechecked, not played.
    `SSH -> 62.210.183.77` and still no `traced accomplice`, the fault is in
    `markAccompliceReached`/`traceBacktraceFinding`, not in event delivery.
 3. The report completes with only the ledger and the config.
+
+---
+
+**2026-10-01 — M2/M3 migration notes (plan only, nothing implemented).**
+Written before touching M2 and M3, after M1 reached its LOCK. Everything below
+was read from the source, the SDK typings and the engine snapshot
+(`.reverse/extracted-1.3.13`); items marked *to verify* were not.
+
+**Decisions (owner, 2026-10-01).**
+- **i18n covers every mission, one subfolder per mission**: `i18n/m01` ..
+  `i18n/m04`, plus `i18n/global/` only for strings several missions share.
+  Languages `en` + `zh`, as in M01 (every `i18n/m01/*` file registers both).
+- **Site strings in `SharedVariables`.** `context/m01/site-strings.ts` now uses
+  `SharedVariables` under `flatline.m01.siteStrings` (was `Variables`,
+  namespace-sensitive, bugs #36). Done and typechecked. It is still session-only,
+  so `OnObjectivesStart` must keep refreshing it; `mods.reset` does not clear it.
+- **D1 chain shape (provisional)**: a spine with short parallel pairs joined by
+  the next step (`Gate.requires` is already an AND list). Parallel only where the
+  two steps give each other nothing.
+- **D2 M3 order**: strictly ledger, then gateway. The tip mail says so, the `root`
+  log line ("same owner as the money") presupposes the ledger, and the VPN config
+  carries the same `db_host`/`db_user`/`db_pass` as Coin-Drift, so gateway-first
+  hands out the database login (`Database.Connected` also counts as the ledger).
+- **D3 M3 forward rules**: a rule typed by the player stays inert until the mod
+  gives it a banner (`syncM03Forwards`). Only banner the targets whose step is
+  reached; Vault-Line 3389 only after `ledgerDumped`. The rule is never refused or
+  removed.
+- **D4 `Abandonable` only on M1.** M2-M4 never set it, so there is no Abandon
+  button and no `OnAbandon`; drop `OnAbandon` (and its `setBacktraceMission(.., "locked")`)
+  from the thin M2-M4 classes. Restarting M2-M4 is `mods.reset` only.
+- **D5** Database row text (ledger memos, `helpdesk_resets.note`) and the ledger
+  party names stay untranslated: they are system data and the reports match them.
+- **Recommendations adopted without a vote**: global `siteT` fed by the union of
+  every mission's site keys; drop `M03_LEGACY_PFSENSE_IP`; drop M2's 3306
+  `removePort`/`addPort` reconcile (confirm in the live test); keep M2/M3 backups
+  in git (commit `7386e09`), not as `.original.ts`; narrow `Gate.step` to
+  boolean-valued keys (the earlier "loosen `Gate.step`" note could not be tied to a
+  concrete need); dev-focus mail wipe (below).
+
+**Engine facts checked this session (1.3.13).**
+- `mods.reset` (`sDr`): unclaims the mod's quests (neither `OnComplete` nor
+  `OnAbandon` runs), removes only quest-bound mails, clears the mod's storage and
+  variables, closes and resets its apps. `SharedVariables` and the networks stay.
+  Because `SaveStorage` is cleared, mail ids tracked in it are lost: only a wipe by
+  sender survives a reset.
+- `Manager.Unclaim` releases listeners, drops the quest's tweets and messages and
+  its state. `OnAbandon` runs only from the quest's own `Abandon()`, i.e. the UI
+  button, which renders only when `Abandonable` is truthy.
+- `Variables` and `SharedVariables` are both in-memory and lost on exit.
+
+**Phase 0 - generic changes before M2 (core/components stay mission-blind).**
+- `DeviceKind` gains `splitter` and `printer` (M2 workstation LAN, M3 VLAN);
+  `toChild` in `components/topology.ts` handles them.
+- `DeviceSpec` gains `name` (codenames) and `vulnerabilities`; a pass after
+  `createSubnetNetwork` calls `Network.setVulnerabilities` (the SDK only accepts
+  vulnerabilities inside `domain`; the FreeRDP RCE on the M2 workstation, the
+  Closer-Rig and Vault-Line needs the call).
+- `DomainSpec` gains `vulnerabilities` and `registerDomains` passes it, so the
+  devbox and decoy subdomains can be registered by an unlock instead of at build.
+- `components/database.ts` and `WorldSpec.databases`: create once, then
+  `setTable` on every register (bugs.md #14); remove by host, never via a
+  private `databaseId` field (lost on reload).
+- A post-build restore hook for state the player authored (M3 `forwards`):
+  `core/rebuild.ts` rebuilds in a Scheduler job whose payload is only
+  `{ unlocked }`. M2 needs nothing here, its firewall breach is an `UnlockSpec`.
+- `Math.random` shuffle (`main/m02.ts:319`) becomes
+  `Random.pickMultiple(list, list.length)` in `controller/m02/world.ts` (content
+  never calls the SDK).
+- `websites/global/localize.ts` imports `context/m01/site-strings`; move the cache
+  to `context/global/site-strings.ts` and refresh it from
+  `i18n/global/site-keys.ts` (union of each mission's `site-keys.ts`) in every
+  mission's `OnObjectivesStart`. Reason: LedgerVault is a persistent M1 domain and
+  stays reachable while M2 runs; after a restart the cache is only filled by the
+  active mission, so M1's keys would render raw. *To verify:* `Localization.t` in
+  `OnModPackageLoaded` would also cover "no mission active".
+- Report: `ReportSpec` + `isReportSubmission` already fit. M3 currently drops a
+  correct but premature report in silence (`main/m03.ts:586`); answer it with
+  `sendReplacingMail` + `firstUnmetStep`, as `controller/m01/vault.ts`.
+- Personas: M3's `seedM03Persona` duplicates `components/persona.seedPersona`;
+  use `IntroSpec.personas`.
+- M1 uses all of this code: rerun the M1 smoke (still pending since the rename and
+  LOCK) after Phase 0.
+
+**M2 "The Maker".** Today: `main/m02.ts` 680 lines, `content/m02.ts` 266, no
+gate (the report is accepted without prerequisites), every domain registered at
+build, `OnAbandon` teardown.
+- Chain (flags in quest Data, all through `advanceStep`):
+  `tipReviewed` -> `rootProbed` (`Terminal.NmapScan` on the root IP) ->
+  `subdomainsEnumerated` (`Subfinder.Results`) -> [`adminsDumped` ||
+  `affiliatesDumped`] (`Sqlmap.DumpTable` on the devbox; keys `developer`,
+  `ransom`) -> `devboxAccessed` (`RemoteConnection.Established`, `t === "SSH"`,
+  *to verify* for the devbox) -> [`deployLogRead` || `homeLeadRead`]
+  (`Terminal.Cat`; keys `deployLog`, `homeLead`) -> `firewallLoggedIn`
+  (`PFSense.Login`; key `firewall`) -> `firewallBreached` (`PFSense.Changes`) ->
+  `workstationRooted` (Metasploit; key `workstation`) -> `shellCompanyFound`
+  (`open` of the pdf; key `shellCompany`) -> `reportSent` (requires
+  `shellCompanyFound` + `deployLogRead`). `aftermathShown` requires
+  `workstationRooted`. The NAS -> Closer-Rig thread stays optional, off the chain.
+- Unlocks: `subdomainLead` at `rootProbed` (the 40 subfinder domains: devbox and
+  two decoys with `SQL_INJECTION`, 37 noise domains with `needsSubnet`, plus the
+  devbox `nmap` fixture); `workstationRdp` at `firewallBreached`
+  (`removeFirewallRules` + `openPorts` on 3389), which replaces the manual restore
+  at `main/m02.ts:587-590`.
+- Databases: devbox (`admins`, `affiliates`) and the two decoys (empty tables).
+- `Terminal.Cat` matches file content exactly (`main/m02.ts:607`, `:617`); keep
+  that match but through the same lazy builder that produces the localized file,
+  or a language switch mid-mission breaks it.
+- *To verify in the live test*: sqlmap and nuclei still see the devbox and decoys
+  when their domain is registered by an unlock with `vulnerabilities`; the 3306
+  port declared on the device alone is enough; the `ssh` fixture is unused (the
+  playtest doc calls it cosmetic).
+- *Optional extra step, not decided*: `hashCracked` (`John.DecryptHash`) between
+  `adminsDumped` and `devboxAccessed`. The playtest lists `john` as step 7 and the
+  SDK has the event, but its payload was not checked, and bugs #13 limits which
+  hashes `john` can crack.
+
+**M3 "Money Trail".** Today: `main/m03.ts` 613 lines, `content/m03.ts` 410, one
+gate (`ledgerDumped && vpnConfigRead` on the report), `natPivotDone` and
+`gatewayRooted` recorded but gating nothing, domains registered at build.
+- Chain: `tipReviewed` -> `siteScouted` (`Terminal.Lynx.Lookup` or a scan of the
+  Skynet IP, pick at implementation) -> `portalReached` (`Network.PortChanges`,
+  first Save) -> `natPivotDone` (an active forward matching a target) ->
+  `ledgerDumped` (`Sqlmap.DumpTable` or `Database.Connected`) ->
+  `gatewayShellObtained` -> `gatewayRooted` -> `vpnConfigRead` -> `reportSent`
+  (requires `ledgerDumped` + `vpnConfigRead`). `accompliceReached` stays optional
+  and requires `natPivotDone`.
+- Unlocks: `gatewayLead` at `siteScouted` (domain
+  `remote.skynet-importexport.biz` -> the gateway, plus the gateway's `nslookup`,
+  `hydra` and `nmap` fixtures); `vaultLineForward` at `ledgerDumped`. On that
+  unlock re-read the router's port table and banner the stored Vault-Line rule
+  (*to verify*: reading the router ports at unlock time).
+- `forwards` (external ports are the player's choice) cannot be static: keep them
+  in quest Data and restore them through the Phase 0 hook, only when the network is
+  rebuilt. `syncM03Forwards` stays in the controller: `addPort`/`removePort` do not
+  re-raise `Network.PortChanges`.
+- `M03_LEGACY_PFSENSE_IP` goes away (see the decisions); `networkIps` is the
+  gateway and the public Skynet router.
+- Personas stay seeded at `OnStart`: reaching the handle already needs the
+  directory in the `lynx` fixture.
+
+**Cross-mission constants and imports.**
+- To `content/global/` (for example `entities.ts`): `M02_SHELL_COMPANY_NAME`
+  (M3, BACKTRACE) and `M03_PARENT_ENTITY_NAME` (M4, BACKTRACE). Drop
+  `M03_ARCHITECT_VPN_LEAD`, it only aliases `M04_ARCHITECT_VPN_IP`.
+- Re-point `applications/backtrace-facts.ts` (the one `applications -> content`
+  import), `websites/m02`, `websites/m03`. `content/global/mail-senders.ts` still
+  imports the flat `content/m04.ts` until M4 moves.
+- i18n keys for: quest title/description/objective, tip mail, report
+  subject/template/body, BACKTRACE log lines, device file contents, whois/lynx
+  text, M3 Twotter posts, the tr4c3404 and Skynet pages. Not translated: domains,
+  IPs, usernames, passwords, hashes, case ids, batch refs, nmap results, ledger
+  party names.
+
+**Order and verification.** Phase 0 -> M1 smoke -> M2 (content, i18n, controller,
+thin class; typecheck; harness with seeded random and a Database mock; live test
+by the owner; commit) -> M3 the same -> docs. Typecheck only, never esbuild;
+the owner runs `build-install.ps1`. After M3 `resetMissionNetworks` stays, M4
+still uses it. Docs to update at the end: `architecture.md` (restructure status),
+`implementation-rules.md` §11, `bugs.md`, `changelog.md`, `m02-playtest.md`,
+`m03-playtest.md`, `network-plan.md`.
+- Dev focus: `guard/flags.ts` has `DEV_FOCUS_QUEST.m01 = true` and
+  `TESTER_FOCUS_QUEST.m03 = true`; the M2 test needs `m02` in dev focus (only one
+  may be true).
+- Mail in dev focus: `onStartM01` does not run, so after `mods.reset` the old
+  Custodian mails stay. Wipe by sender in the `OnStart` of M2 and M3, only when
+  `isQuestDevFocus` is true. A normal run keeps M1's history, because the wipe stays
+  at `onStartM01`.
+
+---
+
+**2026-10-01 (later) — Phase 0 done (typechecked, harness-checked, not played).**
+Landed as planned in `core`, `components`, `middleware`, `context/global` and
+`i18n/global`; see `docs/changelog.md` and `docs/architecture.md`. Where it
+differs from the plan above:
+- `restore` is typed through a generic: `WorldSpec<R = never>` and
+  `WorldState<R = never>`; `register`, `bindWorld` and the rebuild payload carry
+  `R`. M1 keeps the default (no restore) and its rebuild payload is unchanged
+  (`{ unlocked }`).
+- Databases are applied inside `applyNetwork` (so after the awaited destroys on a
+  rebuild) and in the kept branch of `register`, and removed in `teardownWorld`
+  after the destroys. A `destroyNetwork` reply puts the whole store snapshot back
+  (bugs #35); whether that snapshot includes the Database table was not checked,
+  so the Database calls stay clear of it. *Not live-tested.*
+- `FlagKey<D>` narrows `Gate`, `Unlock`, `advanceStep` and `firstUnmetStep`
+  without touching M1's files (all of M1's data keys are boolean).
+- Left for the M2 pass: the `Random.pickMultiple` shuffle in
+  `controller/m02/world.ts`, personas through `IntroSpec`, the M3 forward banners.
+- Verification harness (it lived in the session scratchpad and will be gone): the
+  previous commit (`git archive HEAD`) and a copy of the working tree each run
+  against a CommonJS mock of the SDK placed in their own `node_modules`;
+  `tsx equiv.mts <root>` registers, unlocks and unregisters `M01_WORLD` in 5
+  scenarios and prints every SDK call. The two outputs must be identical (966
+  lines), and deleting `applyNetworkUnlocks` in the copy makes them differ. A
+  second script checks the new paths on a synthetic world (25 checks: splitter
+  and printer reach the SDK, no `vulnerabilities` key reaches
+  `createSubnetNetwork`, `setVulnerabilities` runs after its network, database
+  create-once and reconcile, restore after the build, sequential destroys, the
+  M1 payload shape, teardown order). Recreate it from this description if needed.
+- Next live check (owner): the M1 smoke again after `build-install`. The listing
+  pages and LedgerVault must show translated text, not raw keys.
+
+---
+
+**2026-10-01 (later) — M2 migrated to the pipeline (typechecked, harness-checked, not played).**
+`main/m02.ts` is a thin class over `controller/m02/`; the old 680-line quest and
+the flat `content/m02.ts` are gone (they live in commit `7386e09`). See
+`docs/changelog.md` and `docs/m02-playtest.md` §11 for the files and the live test.
+Choices made while writing it, which the plan above left open:
+- The two table dumps are a parallel branch that joins at the report, not at
+  `devboxAccessed`. The admins table is the only thing the SSH step needs; a join
+  there would make a correct SSH login before the affiliates dump silently not
+  count. `reportSent` requires `shellCompanyFound`, `deployLogRead` and
+  `affiliatesDumped`; `aftermathShown` requires `workstationRooted`.
+- `devboxAccessed` listens to `Terminal.SSH.Connected` (an IP string, which M1
+  already uses for `backendAccessed`), not `RemoteConnection.Established`.
+- The root probe is any of `Terminal.NmapScan` (IP or domain), `Terminal.Whois`
+  or `Terminal.Nslookup` on the root, so one missed payload shape cannot dead-end
+  the mission.
+- The `Math.random` shuffle is gone: all 40 subdomain records are sorted by name,
+  and since the labels are random hex the order carries nothing.
+- `M02_SHELL_COMPANY_NAME` moved to `content/global/entities.ts`; M3 (including
+  `content/m03.original.ts`), `main/m03.ts` and BACKTRACE import it there.
+- The report template and the freehand body are two i18n keys, as in M1: the
+  template keeps `{{developer_url}}` / `{{shellCompany}}` untouched for the Mail
+  template, and M1's template already relies on a placeholder it was not given
+  staying in place (the engine translates through i18next).
+- The engine's `Localization.t` returns the key itself when no mod context is
+  active (`translate`: no current mod, no lookup), which is why renders go through
+  the cache. The quest's `Title` / `Description` are read once at class load.
+- Not translated: BLACKLEDGER's page (global, not M2's), page `<title>`s and
+  descriptions (as in M1), domains, IPs, credentials, table and column names.
+- Dev focus: `onStartM02` wipes the Custodian's mails only when
+  `isQuestDevFocus("m02")`.
+- Old saves: the quest Data has new flags and lost `deployLogFound`; a save in the
+  middle of the old M2 needs `mods.reset`.
+To verify in the live test (also listed in `m02-playtest.md` §11 E): devbox and
+decoy domains registered by an unlock still count for `sqlmap` and `nuclei`; the
+3306 port declared on the device alone is enough; `Mail.Read` carries the tip's
+subject; the database calls do not collide with a `destroyNetwork` reply; the
+`ssh` fixture (kept, in the `subdomainLead` unlock) is harmless.
+Harness (session scratchpad, will be gone; recreate from this): the previous commit
+and a copy of the tree run against a CommonJS SDK mock that stores the registered
+`Localization` tables and interpolates `{{var}}`. (1) Old quest run vs the new
+`register` + full event chain, observations normalized and diffed: 21 texts, the
+router trees, domains, vulnerabilities, fixtures, database creates and tables, the
+tip mail, the report template and the firewall-breach port change are identical;
+the only difference is the six dropped 3306 `removePort`/`addPort` calls. (2) Gate
+checks: the 13 steps advance in order, an early report gets one replaced Custodian
+mail whose hint follows the first unmet step, nothing leaks before the root probe
+(one `registerDomain`, no devbox fixture), 41 domains after it in name order,
+reload keeps the network, a `mods.reset` replay destroys the six routers one at a
+time before building, completion removes the databases and routers, and 300
+random event orders (14 passes each) never break a gate or open the world early,
+all 300 eventually finish, while with the gate table emptied the same fuzz fails.
+(3) `en` / `zh` parity: 44 keys, same placeholders in both.
+
+---
+
+**2026-10-01 (later) — M3 migrated to the pipeline (typechecked, harness-checked, not played).**
+`main/m03.ts` is a thin class over `controller/m03/`; the old 613-line quest and
+the flat `content/m03.ts` are gone (they live in commit `7386e09`). See
+`docs/changelog.md` and `docs/m03-playtest.md` §11 for the files and the live
+test. M2 was live-tested first (log 19:26-19:53, all seven keys in gate order,
+no error from the mod). Choices made while writing M3, beyond the plan above:
+- **Withheld Vault-Line rule (D3), how.** Every saved rule that matches a
+  `M03_FORWARD_TARGETS` row is stored in the quest data (`forwards`, each with a
+  `bannered` flag). The banner (`removePort` + `addPort` on the device IP with
+  service and version) is written at once for every target except Vault-Line,
+  which carries `gatedBy: "ledgerDumped"`; on the ledger dump `releaseForwards`
+  rewrites the stored Vault-Line forward from the data, and a later save
+  banners it immediately. No read of the router's port table is needed, which
+  settles the "reading the router ports at unlock time" item of the plan.
+- **Saves before `portalReached` are inert.** Banners (and `natPivotDone`) only
+  happen once `portalReached` is set, so a save made before the tip is read and
+  the site scouted does nothing, and the next save after scouting carries the
+  whole rule table anyway (`newPorts` is the complete table). `natPivotDone` counts
+  only an active forward that actually got its banner.
+- **Restore.** `WorldSpec<readonly M03Forward[]>.restore` re-applies only the
+  bannered forwards after a rebuild; withheld ones are not recreated (a rebuild
+  gives the router a fresh table, so the player re-adds them).
+- **Gateway lead.** The portal domain, the ledger domain (with
+  `SQL_INJECTION`) and the gateway's `nslookup` / `nmap` / `hydra` fixtures
+  are the `gatewayLead` unlock at `siteScouted`. The device itself carries the
+  vulnerability at build (`DeviceSpec.vulnerabilities`), the domain gets it at
+  the unlock. The public recon fixtures (`lynx`, `mxlookup`, `nmap` of the
+  public IP, the two handles, `geoip` / `whois` of the Architect's endpoint)
+  stay at build, because they are the hints that precede the gate.
+- **Public-site probe.** `siteScouted` fires on `Terminal.Lynx.Lookup` or
+  `Terminal.Lynx.Search` of the domain, `Terminal.NmapScan` (IP or domain),
+  `Terminal.Whois`, `Terminal.Nslookup`, `Terminal.Mxlookup` or `Browser.Meta` on
+  it, so one payload shape that does not match cannot dead-end the mission.
+- **Personas** are seeded once from `OnStart` through `IntroSpec` (the old code
+  re-seeded them on every `OnObjectivesStart`); the handles stay reachable only
+  through the `lynx` directory.
+- **Cleanups.** `M03_LEGACY_PFSENSE_IP` and the `M03_ARCHITECT_VPN_LEAD` alias are
+  gone (BACKTRACE's `architectVpn` / `peerGateway` read `M04_ARCHITECT_VPN_IP`);
+  `M03_PARENT_ENTITY_NAME` moved to `content/global/entities.ts`, which
+  `content/m04.ts` (and `m04.original.ts`) now import it from; the `M03_PFSENSE_*`
+  names stay (the gateway is a TP-Link panel, but the names are established).
+- **Not translated:** the ledger rows and party names, the helpdesk row text
+  (D5), table and column names, the config keys (`label`, `remote_gw`, ...), the
+  IPs, handles and passwords, and the page `<title>` and description.
+- **The Reyes note log** is appended only after `accompliceReached`.
+- **Engine facts checked for M2/M3 texts (1.3.13).** The game's `i18next` is
+  initialised with `escapeValue: false` and the default `skipOnVariables`, so
+  variable values are not HTML-escaped and a placeholder that was not given a
+  value stays in the text; that is what the two-key report template (M2 and M3)
+  relies on. A mod translation without a current mod returns the key itself.
+- **Old saves** need `mods.reset`: the quest data has new flags and the shape of
+  `forwards` changed (`bannered`).
+To verify in the live test (also listed in `m03-playtest.md` §11 E): the public
+probe events match their real payloads; the ledger domain registered by the
+unlock still counts for `sqlmap`; a Vault-Line rule saved before the ledger
+really stays inert and works after the release; `mods.reset` replays the world
+without losing the finance database.
+Harness (session scratchpad, will be gone; recreate from this): the previous commit
+and a copy of the tree run against the same CommonJS SDK mock as M2.
+(1) Old quest run vs new `register` + the first two events, normalized and
+diffed: 21 texts, the router trees, domains, vulnerabilities, fixtures, database
+creates and tables, the tip mail, the report template and the personas' Twotter
+calls are identical; the only difference is the Vault-Line banner, which the old
+code wrote on the first save and the new code writes on the ledger dump with the
+same two calls. (2) Gate checks: the whole chain in order, nothing but the public
+domain after the build, saves and scouting out of order inert, the lynx probe
+opening the lead (3 domains, hydra fixtures), banners for the database and ssh
+rules only, the withheld rule remembered, an early shell not counting, the
+optional accomplice, the release on the ledger dump and on a later save,
+premature-report hints for recon / gateway / tunnel with a replaced reply,
+reload keeping the network, a `mods.reset` replay with two sequential destroys
+and the restore of the bannered forward only, completion removing routers,
+domains and the database, and 300 random event orders (14 passes each, the
+accomplice event included) that never break a gate, open the lead early or
+banner Vault-Line before the ledger, all 300 eventually finishing; with the gate
+table emptied, and separately with the Vault-Line gate removed, the same fuzz
+fails. (3) `en` / `zh` parity: 71 M3 keys, same placeholders in both. M1's 966
+recorded calls and the M2 gate checks are unchanged.
+
+---
+
+**2026-10-01 (night) — M3 live-tested; the gateway-config stall and the BACKTRACE scroll fixed.**
+Live test, log 21:13-21:42: `portal` 21:13:46, `parentEntity` + the ledger log
+21:18:04, `gateway` 21:21:40 (the Vault-Line shell only after the ledger, so the
+withheld banner worked), `accomplice` 21:29:34 + the Reyes log 21:30:05, the
+`root` log 21:38:19, `vpnPeer` + the tunnel log 21:38:28, the aftermath log and
+`m3 -> complete` with the facts snapshot 21:42:25; no error from the mod (only the
+harmless `Sys log file not found for <ip>`). The owner confirmed the checklist in
+`docs/m03-playtest.md` §11 by observation; Chinese was not played.
+- **What stalled the player for 17 minutes (21:21-21:38).** My migration made
+  `rootgrab` a prerequisite (`vpnConfigRead` required `gatewayRooted`). The
+  playtest and `docs/bugs.md` #26 had always called it optional ("Nothing depends
+  on it"), and the command is fragile: it takes exactly one argument, the path of
+  a hashed `passwd`, and answers "Invalid passwd file." for anything else. The
+  engine's default file system gives every device `/etc/passwd` with `hashed:
+  true`, so `rootgrab /etc/passwd` is the right call. The cat of the config, which
+  needs only the shell, now counts on its own; `gatewayRooted` stays as an optional
+  branch (requires the shell) that only adds the `root` log, and it is out of
+  `M03_STEP_ORDER`. The tunnel hint says "Get onto it" instead of "Root it" (en and
+  zh); the tip mail and the objective keep "root", which is narrative.
+- **Lesson for M4.** Before a step becomes a gate prerequisite, check
+  `bugs.md`, the playtest and the changelog for "optional", "nothing depends on
+  it" or an engine quirk on the command; a step the docs call optional or fragile
+  stays off the chain, even when the story reads better with it on.
+- **BACKTRACE scroll.** The in-progress card (`.locked` in
+  `applications/backtrace.html`) had no overflow inside the `.view{overflow:hidden}`
+  area, so a long card (M3 with five keys and eight log lines is 771 px against
+  584 px of view at a 640 px window) lost its bottom and could not be scrolled.
+  The fix is four CSS rules: `.locked` is a flex container with `overflow-y:auto`
+  and the scrollbar hidden like `.report-scroll`, and `.locked-card` uses
+  `margin:auto; flex:none`, which centers a short card and lets a tall one start
+  at the top and scroll. Checked in a browser against the real file with a
+  five-key, eight-line card: it scrolls to the bottom, a short card and M4's locked
+  card stay centered, a ready report still hides `.locked`. M1 and M2 cards were
+  affected too.
+- **Harness** (session scratchpad): the M3 gate script now has `rootgrab` as an
+  optional event (before the shell it does not count; after the shell it counts,
+  adds the root log and the config still needs nothing; the in-order run completes
+  with `gatewayRooted` false); the 300-order fuzz includes it and all 300 still
+  finish. M1's 966 calls, the M2 gate checks, the M3 old-vs-new comparison (only
+  the withheld Vault-Line banner differs) and the en/zh parity (71 keys) are
+  unchanged.
+
+---
+
+## 2026-10-01 — mission websites open only while their mission runs
+
+- **Symptom.** After M3 completed, `skynet-importexport.biz` still opened in the
+  browser. It was the only open item left from the M3 live test.
+- **Cause (engine 1.3.13, read from the bundle).** A mod `@RegisterWebsite` is
+  pushed into the global website list (`$vl` / `o7e()`) at mod load, and a
+  Firebear tab resolves through `_Qn(host)` = `o7e().find(w => w.Url === host)`.
+  Nothing on that path touches `Network.GetSubnetByDomain`, which is all
+  `Network.removeDomain` changes (it deletes `domain` from the subnet record). So
+  only the domain-based tools (`nslookup`, `nmap`, `sqlmap`, `nuclei`) see a
+  teardown; a website never does. The Database Manager has no list of databases
+  either: it is a host/user/password form that runs `Database.find` on the state,
+  so "no leftover database" means a new connection is refused, while a window
+  that is already connected keeps its copy until Disconnect.
+- **Fix.** `context/global/site-access.ts` keeps one `SharedVariables` value,
+  `flatline.activeMission`. Each controller calls `openMissionSites(id)` in
+  `OnObjectivesStart` (which also runs on every game load) and
+  `closeMissionSites(id)` in `OnComplete` (M1 also in `OnAbandon`, through its
+  `teardown`); M4 does the same inside its flat quest class. `close` only clears
+  the value when it is still that mission's, so M2's late `OnComplete` cannot shut
+  M3's sites. `gateMissionPages(id, pages)` in `websites/global/page-guards.ts`
+  wraps every page's `metadata` and answers `notFoundMetadata()` unless that
+  mission is the active one; it is applied to Blackwire, Frostgate, Obsidian,
+  ClearEscrow, PacificCare (M1), TR4C3404 (M2), Skynet (M3) and the C2 dashboard
+  (M4). PacificCare was a static `WebsitePageDefinition`; it is now a dynamic page
+  with the same title, description and HTML (both kinds render through the same
+  iframe path in the engine), because a static page has no `metadata` to gate.
+- **Single value, not a record per mission.** The missions are strictly
+  sequential, and `SharedVariables` is in memory and shared by every save in a
+  session. One value heals itself: the next `OnObjectivesStart` overwrites a stale
+  one, whereas a record would keep every old `true`.
+- **Known edge.** Switching to another save without quitting the game leaves the
+  previous save's value until a mission's `OnObjectivesStart` runs in the new save;
+  a save with every mission finished never runs one, so in that one case a stale
+  value from the earlier save can keep a site open until the game restarts.
+  `mods.reset` runs no `OnComplete` and keeps `SharedVariables`, but the restarted
+  M1 overwrites the value.
+- **Not gated, on purpose (owner to confirm).** LedgerVault: its domain is
+  permanent by the owner's standing decision and it already has its own seal
+  (`isM01VaultSealed`). BLACKLEDGER (`blkledger.dark`): a static story page with
+  no network, reached from M2's `deploy.log` and referenced by M3 and M4. Gating
+  either is one line (`gateMissionPages` around its pages, plus converting
+  BLACKLEDGER's static page to a dynamic one).
+- **Harness** (session scratchpad, copy of `src/` plus a generated CommonJS SDK
+  mock with a real Map-backed `SharedVariables`/`SaveStorage`): 95 checks, all
+  pass. For each of the eight sites: closed with no mission, closed over plain
+  http, closed while each other mission is active, open (no 404, https guard still
+  applies) while its own mission is active, closed again after its close. The
+  `close` semantics (idempotent, a late close of another mission is ignored), the
+  four controllers' open/close wiring (M1 also `OnAbandon`), the M2 to M3 hand-off,
+  and that LedgerVault (with its seal off) and BLACKLEDGER stay as they were.
+  Negative controls on the copy all fail as they should: gate wrapper no longer
+  gates (48 failures), M3 `OnComplete` without close (2), M4 start without open
+  (1), unconditional close (3). Typecheck and `--noUnusedLocals` clean. Not
+  live-tested.
+
+---
+
+## 2026-10-01 — commit split
+
+- **Five code commits**, each typechecked on its own staged tree (`git
+  checkout-index` into a temp folder, then `tsc --noEmit`): `6c8f9e7` Phase 0
+  (including the global site-string cache), `e01b7d1` M2, `d03a21a` M3,
+  `00d1642` BACKTRACE scroll, `5053585` the site gate. The steps share files, so
+  some files were staged in an intermediate form: the Phase 0 commit has an
+  M1-only `i18n/global/site-keys.ts`; the M2 commit adds M2 to it, carries a
+  `backtrace-facts.ts` with only the M2 imports, and re-points the old flat
+  `content/m03.ts` and `main/m03.ts` at `content/global/entities.ts` so they
+  still compile until the M3 commit deletes them; the gate lines in the three
+  controllers and the TR4C3404 and Skynet pages appear only in the site-gate
+  commit.
+- **Left out on purpose:** `docs/idea.md`, `docs/msflab-livetest-guide.md`,
+  `src/debug/rival-*` and its import line in `src/debug/index.ts`, and the
+  dev-focus toggle in `src/guard/flags.ts` (the working tree has
+  `DEV_FOCUS_QUEST.m03` true, HEAD has `m01`). `.gitignore` goes in its own
+  `chore` commit.
+- **Line endings.** The git index is LF everywhere (`core.autocrlf=true`); the
+  working tree is mixed, many files CRLF and many LF. In this session an Edit kept
+  each file's own ending (the earlier note that it rewrites to LF did not
+  reproduce), and only a file created with Write came out LF; a count per file
+  after a batch of edits is still cheap.
+- **Docs.** `rules.md` has two sections numbered 11 (the SDK-tools rule and the
+  step-gating pattern); renumbering was left to the owner, since other docs cite
+  section numbers.
+- **Next.** M4 migration (read `main/m04.ts`, `content/m04.ts`,
+  `websites/m04/architect-c2` and `docs/story.md`; look for optional or fragile
+  steps before chaining; `content/global/mail-senders.ts` and
+  `commands/attrcheck.ts` import from the flat `content/m04.ts`). M4's own
+  `OnObjectivesStart` / `teardown` already call `openMissionSites("m04")` /
+  `closeMissionSites("m04")`; keep those calls when it moves into
+  `controller/m04/`. Live-test the site gate (a mission's site 404s before and
+  after it runs) and the M3 `rootgrab` and BACKTRACE scroll fixes.

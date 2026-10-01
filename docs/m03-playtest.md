@@ -9,8 +9,21 @@ player writes the port-forwarding rules, `docs/bugs.md` #31).
 Delete or archive once M03 reaches FINAL LOCK; not a permanent design doc
 (that's `docs/story.md` / `docs/scratch.md`).
 
+**2026-10-01 — migrated to the mission pipeline and live-tested (English; the
+Chinese texts were not played; `rootgrab` is optional again).** The
+steps below still describe what the player does, but the mission is now a gated
+chain (`src/content/m03/gates.ts`: tip, site scout, portal, NAT pivot, ledger
+dump, gateway shell, VPN config, report; `rootgrab` and the accomplice are
+optional): the ledger (section 5) comes **before** the gateway (section 6),
+the remote portal and ledger domains and the gateway's `nslookup` / `nmap` /
+`hydra` fixtures appear only after the public site is scouted, a forwarding rule
+saved earlier stays inert, the Vault-Line RDP rule gets its banner only after the
+ledger is dumped, and a correct report sent too early is answered with a hint
+(section 8's "only the ledger and the config" gate is now the whole chain). The
+older notes about the build and restart (`docs/bugs.md` #31-#34) still apply.
+
 Same as M1/M2: **full mechanic, not full objective**. Every step below is
-tracked internally in `m03.ts`, but the player only ever sees **one**
+tracked internally in `controller/m03/`, but the player only ever sees **one**
 objective — "Trace BLACKLEDGER's money through Skynet Import-Export --
 break into the finance network, pull the wire-transfer ledger for the
 parent entity, root the box that tunnels the money off the map, cover your
@@ -77,6 +90,12 @@ run** — the objective ID and the quest-data flags changed (`vpnConfigPulled`
 `mods.reset` does not clear the player's own files: delete an old
 `finance_vlan_capture.log`/`.pcap` from the home folder and any downloaded
 `site_to_site_backup.*` from `~/downloads` first.
+
+M3's website (`skynet-importexport.biz`) answers the 404 page before M3 starts
+and after it completes; it is open only while M3 runs (`gateMissionPages`,
+`docs/architecture.md` "Website access"). `nslookup` of the domains is a
+separate check: teardown removes them, and a Database Manager connection to
+`185.107.56.214` is refused afterwards.
 
 ## 1. Tip mail
 
@@ -172,7 +191,7 @@ Login raises no event; Save in the Port Forwarding tab raises
       or `FORWARDED` (they differ — then `RPORT` at node 21 is the external
       port); `nmap -sV` shows `mysql mariadb` / `rdp FreeRDP 7.1.9`.
 
-## 5. Ledger thread — Coin-Drift (either order vs. section 6)
+## 5. Ledger thread — Coin-Drift (always before section 6)
 
 Recon note: the VLAN devices are reached by their **public** IPs; a LAN IP
 only works inside an SSH session (`docs/bugs.md` #27). `python3 net_tree.py
@@ -201,7 +220,7 @@ once its rule from node 12 is saved.
     sqlmap.
 17. *(Bonus, optional)* — section 7.
 
-## 6. Gateway thread — Vault-Line (either order vs. section 5)
+## 6. Gateway thread — Vault-Line (only after section 5)
 
 18. *(Removed 2026-09-29, `docs/bugs.md` #34.)* The Wireshark capture and its
     `.pcap` are gone: the Staff access notice (node 3) already names the ledger
@@ -383,3 +402,5 @@ M03_PFSENSE_IP (Router)                       77.83.142.6    [remote.skynet-impo
             no ports until forwarded: 3389 rdp (FreeRDP 7.1.9, RCE)
             rootFiles: site_to_site_backup.txt (real M04_ARCHITECT_VPN_IP peer, labelled SKN-CENTRAL)
 ```
+
+---

@@ -15,13 +15,18 @@ its own dedicated `content/` root — see below.
 
 ## Restructure status (2026-10-01)
 
-The `src/` restructure is migrating one mission at a time. **M01 already
-follows the mission pipeline below**; M02-M04 still use the older shape (one
+The `src/` restructure is migrating one mission at a time. **M01, M02 and M03
+already follow the mission pipeline below** (M02 and M03 landed on 2026-10-01
+and both passed their live test the same day); M04 still uses the older shape (one
 `main/mNN.ts` holding the quest class plus all of its helpers, fed by a flat
 `content/mNN.ts`) until their own turn. Where this document describes both,
-the pipeline is the target and the older shape is marked as such.
+the pipeline is the target and the older shape is marked as such. The generic
+additions M2 and M3 need (splitter and printer nodes, device and domain
+vulnerabilities, databases, restore data, boolean-only gates, the global
+site-string cache) landed on 2026-10-01 as "Phase 0", with M1 unchanged; the
+M2/M3 plan is in `docs/scratch.md`.
 
-## Mission pipeline (M01 today, M02-M04 next)
+## Mission pipeline (M01-M03 today, M04 next)
 
 ```text
 main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (generic, mission-blind)
@@ -49,12 +54,21 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   `destroyNetwork`, then build. Concurrent destroys overwrite each other (see
   bugs #35); `unregister` tears down the same way. `UnlockSpec` carries
   fixtures, domains, firewall rules and ports, so everything a step reveals
-  appears only when that step is reached.
+  appears only when that step is reached. A `WorldSpec` may also carry
+  `databases` (a `DatabaseSpec` per host: created once, every table re-set on
+  each register, removed by host) and `restore` (state the player authored,
+  such as M3's port-forward rules: `register` takes it in `WorldState.restore`,
+  the rebuild job carries it in its payload and calls `restore` after the
+  build). Databases are applied after a build and removed after the awaited
+  teardown, never beside a `destroyNetwork`: its reply puts the whole store
+  back (bugs #35).
   Not to be confused with entity-resolution-mods' `core/`, which is a
   different thing (see below).
 - **`components/`** — flat building blocks used by two or more missions:
-  `topology` (networks and port/firewall changes), `domains`, `fixtures`
-  (Shell command data), `persona` (Twotter), `report` (GoMail template and
+  `topology` (networks of router, splitter, firewall, printer and device
+  nodes, port/firewall changes, per-device vulnerabilities set after the
+  build), `domains` (with optional vulnerabilities), `fixtures` (Shell command
+  data), `database`, `persona` (Twotter), `report` (GoMail template and
   dual-path validation).
 - **`middleware/`** — flat step gating, the thing that keeps a mission's
   mechanics in order even when it shows a single objective:
@@ -65,8 +79,10 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   `firstUnmetStep(order, data)` finds where a player is stuck, `reachedUnlocks`
   lists the world unlocks the progress has reached. The per-mission tables
   are data and live in `content/mNN/gates.ts`: a transitive chain, each step
-  requiring its predecessor. Every listener goes through `advanceStep`; none
-  calls `SetData` for a chain step directly.
+  requiring its predecessor (a step may list several prerequisites, which is how
+  a parallel pair joins). Gates are typed on boolean flags only (`FlagKey`), so
+  a non-flag key such as M3's `forwards` can never be a step. Every listener
+  goes through `advanceStep`; none calls `SetData` for a chain step directly.
 - **`content/mNN/`** — the mission's data, one file per concern, no mission
   prefix in the file name (M01: `network`, `topology`, `fixtures`, `scan`,
   `server-files`, `irc`, `twotter`, `assets`, `mail`, `report`, `quest`,
@@ -84,17 +100,26 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   `SharedVariables`, `Random`). M01: `listing.ts` (which of the 18 listings
   wins, the regenerated category/region/code/vendor per slot; `SaveStorage`
   is the truth and is written only from mod context, a `SharedVariables`
-  mirror is what every context reads), `progress.ts` (the LedgerVault seal
-  mirror) and `site-strings.ts` (the translated-string cache the websites read
-  through `siteT`). Website renders run with no mod context, so they only
-  read the mirrors and never roll or write anything (bugs #36). Read by the
+  mirror is what every context reads) and `progress.ts` (the LedgerVault seal
+  mirror). Website renders run with no mod context, so they only read the
+  mirrors and never roll or write anything (bugs #36). Read by the
   controller, the websites and `applications/backtrace-facts.ts`; `content/`
   never imports it.
 - **Shared modules** go in a `global/` subfolder of the layer when two or more
   missions use them (`content/global/`: `characters`, `blackledger`, `finance`,
   `case`; `websites/global/`: `page-guards`, `localize`, the two error
-  templates). A layer that is mission-blind by definition (`core`,
-  `components`, `middleware`) has neither `mNN/` nor `global/` folders.
+  templates; `i18n/global/`: `site-keys`, the union of every mission's website
+  key list; `context/global/`: `site-strings`, the translated-string cache every
+  mission's websites read through `siteT`: a `SharedVariables` record
+  (`flatline.siteStrings`) that each mission's `OnObjectivesStart` refreshes
+  from all keys, because a persistent domain such as LedgerVault outlives its
+  mission and the cache is session-only; `site-access`, the mirror of which
+  mission is running: one `SharedVariables` value (`flatline.activeMission`)
+  that a controller sets in `OnObjectivesStart` and clears in `OnComplete` /
+  `OnAbandon` only if it is still its own, so a late close never shuts the next
+  mission's sites). A layer that is mission-blind by
+  definition (`core`, `components`, `middleware`) has neither `mNN/` nor
+  `global/` folders.
 
 Dependency direction (no cycles): `main` -> `controller` -> `core` /
 `components` / `middleware` / `content` / `i18n` / `context`; `core` ->
@@ -106,12 +131,27 @@ equivalence of the M01 migration was checked by running the HEAD version and
 the new version against a mocked SDK and comparing every side-effecting call
 over 17 scenarios, plus the HTML of all 18 listing pages (identical).
 
+**Website access.** A mod `@RegisterWebsite` class is always in the engine's
+website registry and Firebear finds it by host name alone, with no check of the
+network's domain table, so `Network.removeDomain` and a destroyed network never
+take a site offline (engine 1.3.13: `o7e()` / `_Qn(host)`). A mission's sites
+are therefore gated in the page layer: `gateMissionPages(mission, pages)` in
+`websites/global/page-guards.ts` wraps every page so it answers the 404 page
+unless `areMissionSitesOpen(mission)`, which is true only between that mission's
+`OnObjectivesStart` and its `OnComplete` / `OnAbandon`. Gated: every M1 site
+except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow, PacificCare),
+TR4C3404 (M2), Skynet Import-Export (M3) and the C2 dashboard (M4). Not gated,
+on purpose: LedgerVault (its domain is permanent and it has its own seal,
+`isM01VaultSealed`) and BLACKLEDGER (a static story page with no network). The
+mirror is session-only and only written by controllers, so a game that starts
+with a finished mission has every gated site closed.
+
 ## Layering
 
 ```text
 src/
   content/     — data per mission in `content/mNN/` (see the pipeline above;
-                 M02-M04 are still a flat `mNN.ts` with objective IDs, the
+                 M04 is still a flat `mNN.ts` with objective IDs, the
                  Objectives array, target IPs/hosts, nmap/lynx/dirhunter
                  fixture results, dialog trees, mail bodies, reward numbers,
                  delay constants). Shared modules sit in `content/global/`:
@@ -119,9 +159,14 @@ src/
                  `finance.ts` — the ransom money model (three batches, one
                  60/25/5/10 waterfall, USD formatting), the single source
                  of every amount in M2, M3 and BACKTRACE; it imports only
-                 `M01_CASE_ID` (from `case.ts`).
-  main/        — mNN.ts per mission. M01: a thin class that delegates to
-                 `controller/m01/`. M02-M04 (older shape): the only file
+                 `M01_CASE_ID` (from `case.ts`) — and `entities.ts`, the
+                 canon names more than one mission or BACKTRACE needs (the
+                 shell company M2 finds and M3 builds on, the parent entity
+                 M3 names and M4 reuses).
+  main/        — mNN.ts per mission. M01-M03: a thin class that delegates to
+                 `controller/m01/`, `controller/m02/`, `controller/m03/` (M02
+                 and M03 are not `Abandonable`, so they have no `OnAbandon`;
+                 only M01 can be abandoned). M04 (older shape): the only file
                  that imports its matching content/mNN.ts, registers the
                  quest, wires SDK event listeners to objective completion
                  and owns small behavior-only helpers (fixture registration,
@@ -146,7 +191,7 @@ src/
   guard/       — dev/prod gating helpers with no story content of their
                  own (`flags.ts` — isDev/isDebug/isTester, questGate/
                  isQuestDevFocus/applyDevGating, see
-                 docs/implementation-rules.md §2a). Kept separate from
+                 docs/rules.md §2a). Kept separate from
                  content/ since it's not mission data, and separate from
                  the quest files since every mission imports it.
   helpers/     — `logger.ts` (`trace`) and `network.ts` (mission network
@@ -223,8 +268,8 @@ case file), as five flat files:
   reaches the quest that called them.
 - `backtrace-facts.ts` — `BACKTRACE_KEYS` (the ordered key list per mission),
   `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
-  BACKTRACE reads mission canon (`content/m01/`, `content/m02.ts`,
-  `content/m03.ts`, `content/global/finance.ts` and the per-save winning M1 listing
+  BACKTRACE reads mission canon (`content/m01/`, `content/m02/`,
+  `content/m03/`, `content/global/finance.ts` and the per-save winning M1 listing
   from `content/m01/listing-pool.ts`). This is the one deliberate
   `applications/` → `content/` import; nothing in `content/` imports back.
 - `backtrace-debug.ts` — the `scratchbt` debug command (moved out of
@@ -258,7 +303,7 @@ and cascades the next mission like the real `AutoStart` chain, `scratchbt
 
 ### Keys, extras and Key Findings
 
-The rule (2026-09-29, `docs/implementation-rules.md` §13): **one action
+The rule (2026-09-29, `docs/rules.md` §13): **one action
 yields at most one key finding.** A *key* is one important finding and the
 only thing counted and shown while a mission runs. An *extra* is a
 supporting fact (a case ID carried over from M1, a settlement date, the
@@ -268,7 +313,9 @@ Extras reach the app only in the COMPLETE snapshot, where the report's
 **Key Findings** compose keys and extras into the chain of events. The Key
 Findings list is free-standing report copy in `backtrace.html` and may be
 longer than the key list (M1 5 findings from 4 keys, M2 9 from 7, M3 8 from
-6).
+6). In the migrated missions (M1, M2, M3) a key is traced from the `onAdvance`
+of its gate step, so only an in-order action traces it; M4 still traces from the
+raw event.
 
 ### Tracing checkpoints
 

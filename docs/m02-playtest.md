@@ -38,6 +38,15 @@ checkpoint (node 19). `open` cannot read a Meterpreter target's files
 (engine-verified, `docs/bugs.md` #30) — the route is `download` and then
 `open ~/downloads/<file>` (node 20).
 
+**2026-10-01 — migrated to the mission pipeline and live-tested (English, main
+path and gates; the Chinese texts were not played).** The
+mission is now a gated chain (§11): the numbered steps below still describe what
+the player does, but each one needs the previous one, the 40 subdomains and the
+devbox `nmap` appear only after the root is probed, the home RDP port opens at
+the firewall breach, and the report (§8) is refused, with a Custodian hint, until
+the panel tables, the deploy log and the pdf have been seen. The "no hard
+prior-step gate" remark in node 23 is obsolete.
+
 ---
 
 ## 0. Entry point
@@ -45,6 +54,11 @@ checkpoint (node 19). `open` cannot read a Meterpreter target's files
 `src/guard/flags.ts`: `isDev=true`, `DEV_FOCUS_QUEST.m02=true` (`m01=false`),
 `isTester=false`. This isolates M2 for solo testing — `QuestsToComplete=[]`,
 `AutoStart=true`, rewards forced to 0/0 while focused.
+
+M2's TR4C3404 site answers the 404 page before M2 starts and after it
+completes; it is open only while M2 runs (`gateMissionPages`,
+`docs/architecture.md` "Website access"). `blkledger.dark` stays open on
+purpose.
 
 ## 1. Tip mail
 
@@ -291,3 +305,5 @@ M02_CLOSER_RIG_ROUTER_IP (Router)             109.94.27.183
       ports: 3389 rdp (FreeRDP 2.7.3, RCE) -- open from the start, no firewall gate
       files: quota_report.txt, routing_notes.txt (seeds M04_ARCHITECT_VPN_IP)
 ```
+
+---

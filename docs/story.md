@@ -33,7 +33,7 @@ not a sequel or shared universe.
 
 Every hacking tool and every social/communication tool used to gate an
 objective must come from `@hotbunny/hackhub-content-sdk`'s native surface
-(see `docs/mechanics-reference.md`) or a custom command built strictly on
+(see `docs/mechanics.md`) or a custom command built strictly on
 its primitives (`Shell.addCommandData`/`Files.*`/`@RegisterCommand`) —
 matching the precedent entity-resolution-mods set with `filestat`/
 `bootlog`/`zgrep`. Anything outside that requires stopping to discuss with
@@ -233,7 +233,7 @@ Twotter personas (Reyes + a red-herring), three decoys, and a capture that
 genuinely produces M4's lead. Objectives collapsed to a **single**
 `reportFindings`, matching M1/M2. Engine-level detail and every unverified
 assumption: `docs/scratch.md` (last two sections); topology:
-`docs/network-plan.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
+`docs/network.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
 implementation kept at `src/content/m03.original.ts`/`src/main/m03.original.ts`.
 
 **Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
@@ -328,7 +328,7 @@ the same nominee, is what M4 builds on.
 ### Mission 4 — "The Architect"
 
 **Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
-plot/chain below is unchanged; what changed (see `docs/network-plan.md`)
+plot/chain below is unchanged; what changed (see `docs/network.md`)
 is purely technical: the VPN IP traced in step 1 is now literally the
 real network's Router address (previously a disconnected OSINT-only
 lead), gated behind a `Firewall`+`Splitter`, with two new honeypot decoys
@@ -413,7 +413,7 @@ not four separate jobs.
   no `Network.createSubnetNetwork`/`nmap` fixture** — modeled as a Tor-style
   hidden service that ordinary IP-based scanning can't reach, not an
   oversight. Confirmed explicitly by the user (2026-09-22/23) rather than
-  fixed under the new port-443-realism rule (`docs/implementation-rules.md`
+  fixed under the new port-443-realism rule (`docs/rules.md`
   §12).
 - **M1's PacificCare Health (`pacificcare-health.org`) website exists in
   source (`src/websites/m01/pacificcare-health/`) but is deliberately not
@@ -436,7 +436,7 @@ to code:
   against the base game's own official tutorial quest. Final chain
   described in section 4 above.
   **2026-09-20 mechanics redesign applied on top of this** (see
-  `docs/network-plan.md`): added a perimeter `Firewall` device (8 → 9
+  `docs/network.md`): added a perimeter `Firewall` device (8 → 9
   objectives), redesigned every IP/`lanIp`, moved network/domain/cookie
   registration from `OnStart` into an idempotent `OnObjectivesStart`
   reconcile (destroy-then-recreate, matching the pattern `docs/bugs.md`
@@ -505,20 +505,20 @@ to code:
 - [x] Custom commands needed: `attrcheck` for M4's booby-trapped file,
   built (`src/commands/attrcheck.ts`). No `salesledger`-style command was
   needed for M1 in the end — `cat` against the ledger file covered it.
-- [ ] Full live-test pass for M3 and M4. M2 was played end-to-end on
-  2026-09-24 (`docs/m02-playtest.md`) and that run proved most of what this
-  bullet used to list as unproven — `PFSense.Changes` gated on a login flag,
-  `Subfinder.Results`, `Nuclei.Results`, Metasploit (a plain `exploit`, not
-  a low-priv shell then `Rootgrab`) — plus `Network.openPort()` on a device
-  two levels deep. M3 was live-tested only up to the router crack (pass 1); the
-  panel turned out to be a TP-Link page whose Save raises `Network.PortChanges`,
-  not `PFSense.*`, so the pivot was rebuilt around player-written forwarding
-  rules on 2026-09-29 (`bugs.md` #31); everything
-  after the crack is unplayed, and `docs/m03-playtest.md` lists what to watch —
-  Wireshark as an App, `open` on a mod-written `.pcap`/`.conf`, hydra's
-  default user, and the `RemoteConnection.Established` gateway checkpoint.
+- [ ] Full live-test pass for M4. M2 was played end-to-end on 2026-09-24
+  (`docs/m02-playtest.md`) and again on 2026-10-01 after its pipeline
+  migration; that run proved most of what this bullet used to list as
+  unproven — `PFSense.Changes` gated on a login flag, `Subfinder.Results`,
+  `Nuclei.Results`, Metasploit (a plain `exploit`, not a low-priv shell then
+  `Rootgrab`) — plus `Network.openPort()` on a device two levels deep. M3 was
+  played end-to-end on 2026-10-01 after its pipeline migration (the log shows
+  every BACKTRACE key traced and `m3 -> complete`): the panel is a TP-Link
+  page whose Save raises `Network.PortChanges`, not `PFSense.*`, so the pivot
+  is built around player-written forwarding rules (`bugs.md` #31). Its one
+  stall, `rootgrab` having become a gate prerequisite, was fixed the same day
+  (it is optional again).
   M4 has not been played: its `Firewall` rule reaching a `Device` nested
-  inside a sibling `Splitter` is untested (see `docs/network-plan.md`'s M4
+  inside a sibling `Splitter` is untested (see `docs/network.md`'s M4
   section for the fallback if it doesn't), and its `initialShellAccess`
   listens to an event a plain `exploit` never raises (`docs/bugs.md` #29).
   See `docs/scratch.md` for the full list of deviations/assumptions pending

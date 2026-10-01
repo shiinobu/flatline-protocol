@@ -291,7 +291,7 @@ investigation tooling, not shipped behavior.
 Hard project-wide constraint, not specific to any one mission: every
 hacking tool and every social/communication tool used to gate an objective
 must come from `@hotbunny/hackhub-content-sdk`'s native surface (see
-`docs/mechanics-reference.md`'s Master Tool Registry) or a custom command
+`docs/mechanics.md`'s Master Tool Registry) or a custom command
 built strictly on its primitives (`Shell.addCommandData`/`Files.*`/
 `@RegisterCommand`). Anything outside that requires stopping to discuss
 with the user first — this was explicit and repeated in the original
@@ -371,6 +371,14 @@ Every mission from M2 on follows what M1 proved in the live test:
 3. **Gate pages with a read-only mirror**: a page that must stay closed until
    a step (M1's LedgerVault) reads a `SharedVariables` flag written from mod
    context. A page render never rolls, writes or calls `SaveStorage` (bugs #36).
+   **A mission's sites are open only while that mission runs.** The engine
+   finds a `@RegisterWebsite` by host name alone, so `removeDomain` and a
+   destroyed network never close a site. Wrap the `Pages` of every mission
+   site in `gateMissionPages(mission, pages)` (`websites/global/page-guards.ts`);
+   the controller calls `openMissionSites` in `OnObjectivesStart` and
+   `closeMissionSites` in `OnComplete` / `OnAbandon`
+   (`context/global/site-access.ts`). A site that must outlive its mission
+   (LedgerVault, BLACKLEDGER) is the explicit exception.
 4. **Early completion gets a reply, not silence**: a submission that is
    correct but premature is answered once (`sendReplacingMail`, tracked by id).
 5. **Mails**: `Mail.send` mail survives `mods.reset` and `getInbox().subject` is
@@ -380,5 +388,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    an unawaited one. Use `core/register` / `unregister`, which defer to a
    sequential awaited Scheduler job (bugs #35).
 7. **FINAL LOCK** (§9-10): `trace()` removed from the mission's source, zero
-   comments, `tsc` clean. M1 reached it on 2026-10-01; M2-M4 migrate to this
-   pipeline one mission at a time, each with a live test before the next.
+   comments, `tsc` clean. M1 reached it on 2026-10-01; M2 and M3 migrated to
+   this pipeline the same day and both passed their live test; M4 is next, one
+   mission at a time, each with a live test before the next. Only M1 is `Abandonable`, so
+   M2-M4 have no `OnAbandon`; restarting them is `mods.reset`.

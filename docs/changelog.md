@@ -16,13 +16,131 @@ duplicated here — this file is an index, not the source of truth:
 Categories: `bug`, `mechanic`, `docs`, `milestone`, or a new one if none
 fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 (bugs — inherited SDK facts plus this project's own findings),
-`docs/mechanics-reference.md` (tools/commands), `docs/implementation-rules.md`
-(process/structure standards).
+`docs/mechanics.md` (tools/commands), `docs/rules.md` (process/structure
+standards). Older entries keep the file names they were written with:
+`mechanics-reference.md`, `implementation-rules.md` and `network-plan.md` are
+now `mechanics.md`, `rules.md` and `network.md`. The Indonesian live-test
+checklists they point to (§11 of the M2 and M3 playtests, §9-10 of M1's) were
+removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
 ## 2026-10-01
 
+- **[milestone] The day's work is committed as five code commits and two docs
+  commits.** In order: Phase 0 generic pipeline pieces (`6c8f9e7`), M2
+  migration (`e01b7d1`), M3 migration (`d03a21a`), BACKTRACE card scroll
+  (`00d1642`), mission websites gated by the active mission (`5053585`); then
+  the doc renames and the doc sync. Each code commit typechecks on its own.
+  Left out on purpose: the idea plan (`docs/idea.md`), the msflab guide, the
+  rival-hacker prototype (`src/debug/rival-*` and its import in
+  `src/debug/index.ts`), and the per-test dev-focus toggle in
+  `src/guard/flags.ts`.
+- **[docs] Three docs were renamed and their pointers fixed.**
+  `implementation-rules.md` is now `rules.md`, `mechanics-reference.md` is
+  `mechanics.md`, `network-plan.md` is `network.md`. Pointers in
+  `architecture.md`, `bugs.md`, `story.md`, `rules.md` and this file's header
+  follow; dated entries keep the names they were written with. `rules.md` §11
+  gained the rule that a mission's sites are open only while it runs, and
+  `story.md`'s live-test bullet records the 2026-10-01 M2 and M3 passes.
+- **[mechanic] Mission websites are now open only while their mission is
+  running.** After M3 completed, `skynet-importexport.biz` still opened in
+  Firebear: the engine finds a mod `@RegisterWebsite` by host name alone, so
+  `Network.removeDomain` and the destroyed router never reached it. Every
+  mission site now goes through `gateMissionPages(mission, pages)`
+  (`websites/global/page-guards.ts`) and answers the 404 page unless the
+  mission is the active one (`flatline.activeMission`, written by the
+  controllers: set in `OnObjectivesStart`, cleared in `OnComplete` /
+  `OnAbandon`). Covers M1 (Blackwire, Frostgate, Obsidian, ClearEscrow,
+  PacificCare; PacificCare's static page became a dynamic one), M2 TR4C3404, M3
+  Skynet and M4's C2 dashboard. Left open on purpose: LedgerVault (permanent
+  domain, its own seal) and BLACKLEDGER (static story page). Checked against a
+  mocked SDK (95 checks, four negative controls) and typecheck; not yet
+  live-tested. See `docs/architecture.md` (Website access).
+- **[bug] M3 stalled at the gateway config: `rootgrab` had become a gate
+  prerequisite.** In the live test the config read traced nothing, because the
+  chain required `gatewayRooted` before `vpnConfigRead` and `rootgrab` had
+  answered "Invalid passwd file" (it takes exactly one argument, `rootgrab
+  /etc/passwd`, `docs/bugs.md` #26). `rootgrab` is optional again, as in the
+  playtest: `vpnConfigRead` needs only `gatewayShellObtained`, `gatewayRooted`
+  is an optional branch that adds the `root` personal log, and the early-report
+  hint no longer says "root it". The gate table is code only, so a save in
+  progress continues after a rebuild. See `docs/m03-playtest.md` §11.
+- **[bug] BACKTRACE's in-progress card was cut off and could not be scrolled.**
+  The card (TRACED SO FAR + PERSONAL LOG, up to 5 keys and 8 log lines in M3)
+  lives in `.locked`, which had no overflow inside the `overflow:hidden` view, so
+  the bottom was clipped on a short window. `.locked` now scrolls like the
+  finished report (`overflow-y:auto`, scrollbar hidden), and the card centers
+  with `margin:auto` when it fits. Checked in a browser against the real CSS
+  with a 5-key, 8-line card at 640 px height: it scrolls to the bottom, a short
+  card and M4's locked card stay centered, a ready report still hides `.locked`.
+- **[milestone] M3 migrated to the mission pipeline and live-tested the same
+  day (English; the Chinese texts were not played).** The 21:13-21:42 run
+  reached `m3 -> complete` with all five BACKTRACE keys and every personal log
+  in order (the Vault-Line shell came only after the ledger, as designed), and
+  the gateway-config stall above was fixed afterwards. `main/m03.ts` is a thin
+  class over
+  `controller/m03/` (`recon`, `pivot`, `gateway`, `forwards`, `report`, `world`,
+  `spec`); `content/m03.ts` became `content/m03/` (`state`, `gates`, `network`,
+  `topology`, `ledger`, `database`, `fixtures`, `scan`, `server-files`, `twotter`,
+  `mail`, `report`, `quest`, `intro`), the parent entity name moved to
+  `content/global/entities.ts` (M4 and BACKTRACE import it there), and every
+  player-facing text has an `en` + `zh` key (`i18n/m03/core.ts`, the Twotter
+  personas in `i18n/m03/twotter.ts`, the Skynet page in `i18n/m03/site.ts`). The
+  mission is a gated chain (`tipReviewed` -> `siteScouted` -> `portalReached` ->
+  `natPivotDone` -> `ledgerDumped` -> `gatewayShellObtained` -> `vpnConfigRead` ->
+  `reportSent`; `gatewayRooted` and `accompliceReached` stay optional): the
+  ledger now comes before the gateway, the portal domain, the ledger domain and
+  the gateway's `nslookup` / `nmap` / `hydra` fixtures appear only after the
+  public site is scouted (`gatewayLead`), a rule the player saves before that
+  stays inert, and the Vault-Line rule only gets its RDP banner after the ledger
+  is dumped (the rule is never refused; it is banner-released on the dump or on
+  the next save). The player-written forwards live in the quest data and are
+  restored after a rebuild through `WorldSpec.restore`. M3 is not `Abandonable`;
+  a correct report that comes too early gets a Custodian reply with a hint
+  instead of silence. Same networks, fixtures, database, texts, mail, template and
+  personas as before (compared against the previous commit over a mocked SDK);
+  the only difference is the withheld Vault-Line banner. See
+  `docs/m03-playtest.md` §11, `docs/scratch.md`.
+- **[milestone] M2 migrated to the mission pipeline and live-tested the same
+  day (English; the Chinese texts were not played).** The 19:26-19:53 run reached
+  `m2 -> complete` with all seven BACKTRACE keys traced in gate order, the log
+  held no error from the mod, and the owner confirmed the hidden-until-probe
+  subdomains, the early-report reply, `nuclei`, the `mods.reset` replay and the
+  teardown. `main/m02.ts` is a thin class over
+  `controller/m02/` (`recon`, `devbox`, `home`, `report`, `world`, `spec`);
+  `content/m02.ts` became `content/m02/` (`state`, `gates`, `network`, `topology`,
+  `database`, `fixtures`, `scan`, `server-files`, `mail`, `report`, `quest`,
+  `intro`), the shell company name moved to `content/global/entities.ts`, and
+  every player-facing text has an `en` + `zh` key (`i18n/m02/core.ts`, the two
+  tr4c3404 pages in `i18n/m02/site.ts`). The mission is now a gated chain
+  (`tipReviewed` -> `rootProbed` -> `subdomainsEnumerated` -> `adminsDumped` /
+  `affiliatesDumped` -> `devboxAccessed` -> `deployLogRead` / `homeLeadRead` ->
+  `firewallLoggedIn` -> `firewallBreached` -> `workstationRooted` ->
+  `shellCompanyFound` -> `reportSent`): the 40 subdomains and the devbox `nmap`
+  appear only after the root probe, the home RDP opens at the breach, the
+  report needs the dumped panel, the deploy log and the pdf, and an early
+  correct report gets a Custodian reply with a hint. BACKTRACE keys trace from
+  the gate step. M2 is not `Abandonable` (only M1 is). The subdomain build order
+  is now the label order instead of `Math.random`; the 3306 `removePort` /
+  `addPort` reconcile is gone. Same networks, fixtures, databases, texts, mail
+  and template as before (compared against the previous commit over a mocked
+  SDK); the new chain was fuzzed over 300 random event orders. See
+  `docs/m02-playtest.md` §11, `docs/scratch.md`.
+- **[milestone] Phase 0 of the M2/M3 migration: generic pipeline additions, M1
+  unchanged.** `core/types.ts` gained `splitter` / `printer` device kinds,
+  `name` and `vulnerabilities` on `DeviceSpec` (set with
+  `Network.setVulnerabilities` right after the build), `vulnerabilities` on
+  `DomainSpec`, `WorldSpec.databases` (new `components/database.ts`, applied after
+  a build and removed after the awaited teardown) and `WorldSpec.restore`
+  (carried through the rebuild job's payload), and gates typed on boolean flags
+  (`FlagKey`). The site-string cache moved from `context/m01/site-strings.ts` to
+  `context/global/site-strings.ts` (`SharedVariables`, key `flatline.siteStrings`,
+  fed by the union in `i18n/global/site-keys.ts`). Typecheck clean; against a
+  mocked SDK the previous commit and the new tree record the same 966 calls for
+  `M01_WORLD` in 5 scenarios (a removed unlock is detected), and 25 checks cover
+  the new paths. Not played in the game yet. See `docs/architecture.md`,
+  `docs/scratch.md` (M2/M3 migration notes).
 - **[milestone] M1 FINAL LOCK; the pipeline is ready for M2-M4.** Live test
   2026-10-01 passed (network, mail, listing, jump-step gating). Investigation
   `trace()` calls were removed from `core/`, `middleware/`, `context/m01/` and

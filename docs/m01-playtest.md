@@ -35,6 +35,12 @@ post), flip to `isTester=true` + `TESTER_FOCUS_QUEST.m01=true` (or a full
 `isDev=false`/`isTester=false` production build) and claim the mission by
 opening the post in the HackHub feed.
 
+M1's market and company sites (Blackwire, Frostgate, Obsidian, ClearEscrow,
+PacificCare) answer the 404 page before M1 starts and after it completes or is
+abandoned; they are open only while M1 runs (`gateMissionPages`,
+`docs/architecture.md` "Website access"). LedgerVault stays open on purpose
+(permanent domain, its own seal).
+
 ---
 
 ## 1. Tip mail & the "opsadmin" near-miss
@@ -274,58 +280,3 @@ The 12 still-ACTIVE listings (4 per marketplace) are unaffected —
 static content, opaque paths only for `dirhunter` consistency.
 
 ---
-
-## 9. Tes langsung pasca-restrukturisasi `src/` — to the point (2026-10-01)
-
-Yang berubah hanya susunan kode M1 (`controller/m01/`, `core/`, `components/`, `middleware/`, `content/m01/`, `i18n/m01/`, `context/m01/`, `index.ts`); perilaku harus **sama persis**. Uji otomatis (SDK tiruan: 17 skenario panggilan SDK + HTML 18 halaman listing) sudah identik dengan versi lama. Tes ini membuktikannya di game asli. Langkah bernomor merujuk ke bagian 1–7 di atas.
-
-### A. Persiapan (±3 menit)
-
-1. `src/guard/flags.ts`: set `isDebug = false`; `DEV_FOCUS_QUEST`: `m01: true`, `m03: false` (hanya satu yang boleh `true`). Alasan: `isDebug = true` mengunci semua misi, dan fokus M3 yang sekarang aktif juga mengunci M1.
-2. Jalankan `.uild-install.ps1`, lalu restart HackHub (atau `mods.reset flatline-protocol`).
-3. Mulai **save baru**. M1 ter-claim otomatis dan mail tip sudah menunggu.
-4. Buka `%APPDATA%hackhublogshackhub-<tanggal>.log`: harus ada `FLATLINE PROTOCOL COMPLETELY LOADED!`, dan tidak boleh ada baris error, `Cannot find`, atau `Mod "null"`.
-5. Di terminal, perintah `repel`, `rivallab`, `msflab`, `sysdiag`, `sysrepair` harus **tidak dikenali** (gating debug). `scratchbt` memang masih ada.
-
-### B. Jalur utama (±15 menit) — ikuti bagian 1–7, centang:
-
-- [ ] Langkah 5: membuka listing pemenang memunculkan kunci BACKTRACE **Broker identified** + satu toast log. Listing lain (decoy) tidak memunculkannya.
-- [ ] `lynx X7xS3NTRY9` **sebelum** langkah 5 tidak memberi alamat `x7xsentry9.tech`; **sesudahnya** alamat itu muncul (gerbang dunia "brokerLead").
-- [ ] Langkah 10–11: `python3 jwt_decoder.py <token>` hanya berhasil setelah `kimai` dijalankan pada IP firewall yang benar.
-- [ ] Langkah 12–13: `ssh X7xS3NTRY9@<ip be7>` **ditolak sebelum** perubahan pfSense disimpan, dan **berhasil sesudahnya** (gerbang dunia "backendSsh").
-- [ ] Langkah 17: `cat sales_ledger.log` memunculkan **Buyer linked**.
-- [ ] Langkah 18–19: dekripsi `openssl` lalu `weechat relay.blkledger.dark` (password `n0ledger`) berhasil dan obrolan terbaca.
-- [ ] Langkah 20: membuka LedgerVault memunculkan **Vault reached**; klik folder `Q3-2026-SEA` memunculkan **Case file opened**.
-- [ ] Langkah 7 (gerbang laporan): kirim laporan yang **benar** *sebelum* LedgerVault dibuka → tidak terjadi apa-apa. Setelah LedgerVault dibuka, kirim lewat template "Mission 1 Findings" → diterima, misi selesai.
-- [ ] (Opsional, di percobaan lain) laporan teks bebas yang persis `buildM01ReportBody` juga diterima.
-
-### C. Tes muat-ulang (inti `register` yang idempoten, ±5 menit)
-
-Ulangi di dua titik: sesudah langkah 5, dan sesudah langkah 13.
-
-1. Tutup game lalu buka save yang sama (atau jalankan `mods.reset flatline-protocol`).
-2. Harus tetap: kunci BACKTRACE yang sudah tercatat ada, `lynx X7xS3NTRY9` masih menampilkan `x7xsentry9.tech` (setelah langkah 5), `ssh` ke backend masih bisa (setelah langkah 13), dan listing pemenang **tidak berubah** (tidak diacak ulang).
-3. Hot-reload: jalankan ulang `build-install` saat game terbuka di tengah misi; hasilnya harus sama.
-
-### D. Selesai / abandon (±2 menit)
-
-- Setelah laporan diterima (atau jika misi di-abandon): `lynx X7xS3NTRY9` dan `nslookup frostgate-exchange.mkt` tidak lagi dijawab data mod (fixture dibersihkan).
-- `x7k2m9vdlq4wnyt3.dark` (LedgerVault) **tetap bisa dibuka**: domain ini sengaja tidak pernah dibongkar.
-
-### E. M2–M4
-
-Hanya jalur import yang berubah (website kini diimpor dari `main/mNN.ts`, konten global dipindah ke `content/global/`). Cukup pastikan A.4 bersih. Opsional: set fokus ke `m02`, dan pastikan M2 ter-claim otomatis serta `tr4c3404.dev` terbuka.
-
-### F. Jika ada yang beda
-
-Catat nomor langkah, hasil yang diharapkan vs yang terjadi, dan baris log `[FP]` di sekitarnya (entri baru di `docs/bugs.md`), lalu kabari saya.
-
-## 10. Tes lompat-langkah dan gating — M1 LOCKED (2026-10-01)
-
-Hasil live test 2026-10-01: jaringan, email, listing, dan gating **sudah sesuai**. Ulangi ini setelah `mods.reset`:
-
-- [ ] `subfinder -d x7xsentry9.tech` **sebelum** membuka listing pemenang → kosong; sesudahnya `be7.` dan `fw7.` muncul.
-- [ ] Buka `x7k2m9vdlq4wnyt3.dark` sebelum IRC → 404; sesudah `weechat relay.blkledger.dark` tersambung → terbuka.
-- [ ] Kirim report yang benar terlalu dini → objektif tidak selesai, masuk **satu** mail "not yet" dari the Custodian (dikirim ulang = diganti).
-- [ ] Jalur berurutan penuh → report diterima, BACKTRACE M1 menampilkan temuan dan **Personal Log**.
-- [ ] `mods.reset` berkali-kali → tiap pengirim (`drop@drop.null`, `ghost.tip@ghost.index`) hanya satu mail, vault tersegel lagi, `be7`/`fw7` tidak hilang.

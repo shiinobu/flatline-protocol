@@ -305,7 +305,7 @@ itself generating LAN-visible traffic, not a Browser-app page load.
 **Fix (workaround, not a real fix):** M01's cookie/session-token discovery
 mechanic was redesigned away from Wireshark entirely — the token is now
 delivered via a base64-"encrypted" file the player finds and decrypts
-with `openssl` (see `docs/mechanics-reference.md`), a mechanic confirmed
+with `openssl` (see `docs/mechanics.md`), a mechanic confirmed
 against the base game's own official tutorial quest source strings.
 
 **Takeaway:** don't design an objective around Wireshark capturing
@@ -570,7 +570,7 @@ same behavior until proven otherwise.
 **Status: RESOLVED (caught in code review, before live-test)**
 Found: M01, 2026-09-20, during the mechanics redesign that added a
 `Firewall` child device gating the backend's SSH port (see
-`docs/network-plan.md`). Two related mistakes, both in the same new code:
+`docs/network.md`). Two related mistakes, both in the same new code:
 
 1. **Near-miss re-confirming entry 6/12:** the first draft added `await`
    before `registerM01Network()`'s `Network.destroyNetwork(M01_ROUTER_IP)`
