@@ -198,7 +198,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .text-btn{border:0;background:transparent;padding:0;cursor:pointer;color:#c7caca;font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.25px;text-transform:uppercase}.text-btn:hover{color:var(--red)}
 .report-link .text-btn{padding:8px 20px;border:1px solid #3a3f43;background:rgba(255,255,255,.02);font-size:11px;line-height:13px;letter-spacing:1.8px;font-weight:700;transition:color var(--ease),border-color var(--ease),background var(--ease)}.report-link .text-btn:hover{border-color:var(--red);background:rgba(240,32,43,.07)}
 
-.locked{position:relative;z-index:2;flex:1;min-height:0;display:grid;place-items:center;padding:28px}.locked-card{width:min(480px,90%);border:1px solid var(--line);background:rgba(14,16,17,.92);padding:34px;text-align:center}
+.locked{position:relative;z-index:2;flex:1;min-height:0;display:flex;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;padding:28px}.locked::-webkit-scrollbar{display:none}.locked-card{margin:auto;flex:none;width:min(480px,90%);border:1px solid var(--line);background:rgba(14,16,17,.92);padding:34px;text-align:center}
 .locked-glyph{font:19px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted)}.locked-title{margin-top:13px;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .locked-status{margin-top:7px;font:10px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:1.7px;text-transform:uppercase;color:var(--muted)}.locked-copy{margin:13px auto 0;max-width:360px;color:#8f9598;font-size:13px;line-height:1.7}
 
