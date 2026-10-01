@@ -6,11 +6,11 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { buildM01HomeSoldLots, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
-import { renderM01ListingPage } from "../../../content/m01-listing-templates.js";
-import { M01_FROSTGATE_DOMAIN } from "../../../content/m01.js";
-import { localizeHtml } from "../../shared/localize.js";
-import { requireHttps, securePage } from "../../shared/page-guards.js";
+import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/m01/listing.js";
+import { renderM01ListingPage } from "../listing-page.js";
+import { M01_FROSTGATE_DOMAIN } from "../../../content/m01/network.js";
+import { localizeHtml } from "../../global/localize.js";
+import { notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import adminPage from "./admin.html";
 import homePage from "./home.html";
@@ -29,10 +29,12 @@ const homeListing = (path: string, html: string, title: string, description: str
         if (denied) return denied;
 
         const soldLots = buildM01HomeSoldLots("frostgate");
-        const injectedHtml = html.replace(
-            /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
-            `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
-        );
+        const injectedHtml = soldLots
+            ? html.replace(
+                  /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
+                  `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
+              )
+            : html;
 
         return { title, description, html: localizeHtml(injectedHtml) };
     },
@@ -44,8 +46,10 @@ const soldListing = (path: string, slotId: string): DynamicWebsitePageDefinition
         const denied = requireHttps(context);
         if (denied) return denied;
 
-        const resolution = ensureM01ListingResolution();
-        const resolved = resolution.slots[slotId];
+        const resolution = getM01ListingResolution();
+        const resolved = resolution?.slots[slotId];
+        if (!resolution || !resolved) return notFoundMetadata();
+
         const isWinner = resolution.winnerId === slotId;
         const slot = { id: slotId, site: "frostgate" as const, domain: M01_FROSTGATE_DOMAIN, path, nodeLabel: "FG-00" };
 

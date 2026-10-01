@@ -114,7 +114,7 @@ purpose. What changed:
   `docs/bugs.md` entries 20 and 21.
 
 The pre-redesign implementation is kept for reference at
-`src/content/m01.original.ts` / `src/main/m01-quest.original.ts`.
+`src/content/m01.original.ts` / `src/main/m01.original.ts`.
 
 **Target:** X7xS3NTRY9, the initial access broker who sold the hospital's
 network access. They sell through three marketplaces
@@ -189,7 +189,7 @@ across three candidate hosts was added, and the home network became a
 Splitter with a real NAS and four decoys — the chain below is only patched
 for the money and the `open` step (5, 9, 10), read the playtest for the
 rest. Pre-redesign
-implementation kept at `src/content/m02.original.ts`/`src/main/m02-quest.original.ts`.
+implementation kept at `src/content/m02.original.ts`/`src/main/m02.original.ts`.
 
 **Target:** TR4C3#404, the ransomware toolkit developer / affiliate-panel
 admin.
@@ -207,7 +207,7 @@ admin.
    2026-08-14, batch `PB-2608-01`). It holds three batches in all (the
    others are `LOG-EU-2209` and `FIN-NA-0091`), each with the panel's 25%
    share — the same money M3 follows out of the shell company
-   (`src/content/finance.ts`).
+   (`src/content/global/finance.ts`).
 6. `john`/`hashcat` — cracks the admin's password hash pulled from that
    same dump.
 7. `ssh` — into the dev's real server.
@@ -234,7 +234,7 @@ genuinely produces M4's lead. Objectives collapsed to a **single**
 `reportFindings`, matching M1/M2. Engine-level detail and every unverified
 assumption: `docs/scratch.md` (last two sections); topology:
 `docs/network-plan.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
-implementation kept at `src/content/m03.original.ts`/`src/main/m03-quest.original.ts`.
+implementation kept at `src/content/m03.original.ts`/`src/main/m03.original.ts`.
 
 **Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
 laundering front — defended like a real corporate target: OSINT-hardened
@@ -309,7 +309,7 @@ nowhere.
 11. Dead-drop mail: shell company, parent entity, and the recurring
     tunnel endpoint.
 
-**The money (one model for M2 and M3, `src/content/finance.ts`):** BLACKLEDGER
+**The money (one model for M2 and M3, `src/content/global/finance.ts`):** BLACKLEDGER
 splits every ransom batch the same way — 60% to SKN Capital Nominees (booked as
 a "management fee", the Architect's cut), 25% to TR4C3404 Consulting
 ("consulting fees (logistics)", the toolkit developer), 5% to X7xSentry9
@@ -334,7 +334,7 @@ real network's Router address (previously a disconnected OSINT-only
 lead), gated behind a `Firewall`+`Splitter`, with two new honeypot decoys
 ("Null-Crown", "Ash-Vector") alongside the C2 host as an extra
 red-herring layer. Objective count unchanged. Pre-redesign implementation
-kept at `src/content/m04.original.ts`/`src/main/m04-quest.original.ts`.
+kept at `src/content/m04.original.ts`/`src/main/m04.original.ts`.
 
 **Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
 Nominees. Deliberate convergence point of all three prior threads
@@ -456,14 +456,14 @@ to code:
   on so an external tester can validate this pass — **do not mark FINAL
   LOCK again until their results come back.**
 - [x] M2 "The Maker" — mechanics redesigned 2026-09-20 (`src/content/m02.ts`,
-  `src/main/m02-quest.ts`, `src/websites/m02/a7xcodeface/`), not yet
+  `src/main/m02.ts`, `src/websites/m02/a7xcodeface/`), not yet
   live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
   pass run. Workstation now sits behind a `Network.createWifiNetwork` AP
   (Router-wrapping-child-Device shape applies automatically, per
   `bugs.md` entry 5) instead of the flat internet-facing router the
   pre-redesign version used.
 - [x] M3 "Money Trail" — mechanics redesigned 2026-09-20 (`src/content/m03.ts`,
-  `src/main/m03-quest.ts`, `src/websites/m03/skynet-importexport/`), not
+  `src/main/m03.ts`, `src/websites/m03/skynet-importexport/`), not
   yet live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
   pass run. pfSense's finance VLAN already used the correct
   Router-wrapping-child-Device shape pre-redesign; now wraps a `Splitter`
@@ -472,14 +472,14 @@ to code:
   Metasploit tunnel gateway, NAT-gated ports, `192.168.1.x` LAN, capture →
   M4 lead, collapsed to one objective) — see §4 and `docs/scratch.md`; not
   yet live-tested. **Follow-up 2026-09-29:** one money model shared with M2
-  (`src/content/finance.ts`, a 12-row ledger), the capture/config read with
+  (`src/content/global/finance.ts`, a 12-row ledger), the capture/config read with
   `open` (`.pcap`/`.conf`), hydra's default `guest` user, a `root` user on
   the gateway, and BACKTRACE's M3 keys/report; `tsc --noEmit` clean, not
   played. **Late 2026-09-29:** the gateway is a TP-Link `Router` panel (not a
   pfSense), so the pivot is now player-written port-forwarding rules completed
   through `Network.PortChanges` (`bugs.md` #31); not played.
 - [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
-  `src/main/m04-quest.ts`, `src/websites/m04/architect-c2/`,
+  `src/main/m04.ts`, `src/websites/m04/architect-c2/`,
   `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`
   clean, independent code-reviewer pass run. The pre-redesign version had
   the C2 host as a flat top-level `Router` with direct SSH access — the

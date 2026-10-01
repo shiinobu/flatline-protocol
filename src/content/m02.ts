@@ -1,9 +1,9 @@
 import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
-import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
-import { BLACKLEDGER_DOMAIN } from "./blackledger.js";
-import { RANSOM_BATCH_EU, RANSOM_BATCH_HOSPITAL, RANSOM_BATCH_NA, RANSOM_SPLIT_PERCENT, formatUsd, splitRansom } from "./finance.js";
-import { M01_CASE_ID } from "./m01.js";
+import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./global/characters.js";
+import { BLACKLEDGER_DOMAIN } from "./global/blackledger.js";
+import { RANSOM_BATCH_EU, RANSOM_BATCH_HOSPITAL, RANSOM_BATCH_NA, RANSOM_SPLIT_PERCENT, formatUsd, splitRansom } from "./global/finance.js";
+import { M01_CASE_ID } from "./global/case.js";
 
 export const M02_ROOT_DOMAIN = "tr4c3404.dev";
 export const M02_ROOT_IP = "203.0.113.140";

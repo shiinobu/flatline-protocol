@@ -1,7 +1,7 @@
 import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
-import { DEAD_DROP_CONTACT } from "./characters.js";
-import { M01_BUYER_ALIAS } from "./m01.js";
+import { DEAD_DROP_CONTACT } from "./global/characters.js";
+import { M01_BUYER_ALIAS } from "./m01/server-files.js";
 
 export const M02_ROOT_DOMAIN = "a7xcodeface.dev";
 export const M02_ROOT_IP = "203.0.113.140";

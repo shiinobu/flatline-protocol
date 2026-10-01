@@ -6,8 +6,11 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M01_LEDGERVAULT_DOMAIN, M01_PROJECT_OPENED_EVENT } from "../../../content/m01.js";
-import { localizeHtml } from "../../shared/localize.js";
+import { M01_LEDGERVAULT_DOMAIN } from "../../../content/m01/network.js";
+import { M01_PROJECT_OPENED_EVENT } from "../../../content/m01/quest.js";
+import { isM01VaultSealed } from "../../../context/m01/progress.js";
+import { localizeHtml } from "../../global/localize.js";
+import { notFoundMetadata } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -26,11 +29,14 @@ export class LedgerVaultWebsite extends Website {
     Pages: DynamicWebsitePageDefinition[] = [
         {
             path: "/",
-            metadata: (): PageMetadata => ({
-                title: "LedgerVault",
-                description: "Private project storage.",
-                html: localizeHtml(homePage),
-            }),
+            metadata: (): PageMetadata =>
+                isM01VaultSealed()
+                    ? notFoundMetadata()
+                    : {
+                          title: "LedgerVault",
+                          description: "Private project storage.",
+                          html: localizeHtml(homePage),
+                      },
         },
     ];
 }

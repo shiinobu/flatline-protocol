@@ -5,9 +5,9 @@ export const isDebug = false;
 export const isTester = false;
 
 export const DEV_FOCUS_QUEST = {
-    m01: false,
+    m01: true,
     m02: false,
-    m03: true,
+    m03: false,
     m04: false,
 } as const;
 

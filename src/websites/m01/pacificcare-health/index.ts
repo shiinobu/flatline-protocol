@@ -1,6 +1,6 @@
 import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/hackhub-content-sdk";
 
-import { M01_HOSPITAL_DOMAIN } from "../../../content/m01.js";
+import { M01_HOSPITAL_DOMAIN } from "../../../content/m01/network.js";
 
 import homePage from "./home.html";
 

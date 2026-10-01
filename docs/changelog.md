@@ -21,8 +21,127 @@ fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 
 ---
 
+## 2026-10-01
+
+- **[milestone] M1 FINAL LOCK; the pipeline is ready for M2-M4.** Live test
+  2026-10-01 passed (network, mail, listing, jump-step gating). Investigation
+  `trace()` calls were removed from `core/`, `middleware/`, `context/m01/` and
+  the M1 websites; the "why" notes live in `docs/bugs.md` #35-#38. The `state/`
+  folder is now `context/`. See `docs/architecture.md`,
+  `docs/implementation-rules.md` §11.
+- **[mechanic] M1 step order is enforced end to end.** `content/m01/gates.ts`
+  is a 13-step transitive chain and every listener goes through
+  `middleware/advanceStep`; the broker domains (`x7xsentry9.tech`, `be7.`,
+  `fw7.`) are registered only on the `brokerLead` unlock; the LedgerVault page
+  is a 404 until the IRC step; a correct report sent too early gets a short
+  "not yet" reply from the Custodian (one mail, replaced, with a hint for the
+  first missing stage). BACKTRACE's M1 report now shows the Personal Log. See
+  `docs/bugs.md` #38, `docs/m01-playtest.md` §10.
+- **[bug] Mod mails piled up after `mods.reset`.** `mods.reset` does not remove
+  mail sent with `Mail.send`, and `Mail.getInbox().subject` is blank for it, so
+  matching by subject never worked. `onStartM01` now withdraws everything from
+  the mod's sender addresses; the early-report reply is tracked by id. See
+  `docs/bugs.md` #37.
+- **[bug] The listing winner flipped and pages disagreed with the quest.** A
+  website render runs with no mod context, so its own roll went to a different
+  namespace. The roll now happens in mod context, is mirrored to
+  `SharedVariables`, and renders only read it. See `docs/bugs.md` #36.
+- **[bug] `be7`/`fw7` appeared and vanished after `mods.reset`.** Concurrent
+  `destroyNetwork` calls overwrite each other; M1 rebuilds through a sequential
+  awaited job (`core/rebuild.ts`). Follow-up to #32; see `docs/bugs.md` #35.
+- **[docs] `helpers/network.ts` folded into `components/topology.ts`.** M2-M4
+  import `networksExist` / `resetMissionNetworks` from there until they are
+  migrated.
+
+- **[mechanic] `src/` restructure phase B: M01 migrated to the mission
+  pipeline, behavior unchanged.** `main/m01.ts` (1053 lines) is now a thin
+  quest class that delegates to `controller/m01/` (`index`, `spec`, `report`,
+  `irc`, and the listeners grouped as `recon`, `breach`, `access`, `vault`).
+  Generic, mission-blind code is new: `core/` (`register`, `unregister`,
+  `unlock`, `seed`, `types`), `components/` (`topology`, `domains`,
+  `fixtures`, `persona`, `report`) and `middleware/gate.ts` (`canAdvance`,
+  `reachedUnlocks`); M01's world, intro and gate tables are data in
+  `content/m01/` (`world`, `intro`, `gates`, `topology`, `fixtures`, `state`).
+  `content/m01.ts` (440 lines) was split by line range into
+  `content/m01/*` (zero lines lost, same 149 exports plus 4 helper
+  constants), the ten M01 i18n files moved to `i18n/m01/` without the `m01-`
+  prefix, `characters`, `finance` and `blackledger` moved to
+  `content/global/` with the new `content/global/case.ts` (`M01_CASE_ID`), and
+  `websites/shared/` became `websites/global/`. Import paths changed in M02/M03
+  content, `main/m02.ts`, `backtrace-facts.ts`, the websites and the four
+  `.original.ts` backups; none of their logic changed. Verification:
+  `tsc --noEmit` clean at every step, and the HEAD version of M01 and the new
+  one were run against a mocked SDK and compared call by call over 17 scenarios
+  (fields, `OnStart`, four `OnObjectivesStart` variants, a 12-step event
+  walkthrough including the gates and both report paths, `OnComplete`,
+  `OnAbandon`): identical. Not live-tested in HackHub yet. Open items: the
+  data/state split of `listing-pool.ts` and `site-strings-cache.ts`, the 100-line
+  `renderM01ListingPage` (pre-existing), M02-M04, and docs sync for
+  `implementation-rules.md`. See `docs/architecture.md` ("Mission pipeline").
+- **[mechanic] `src/` restructure phase B follow-up: M01 data made pure,
+  state split out, `index.ts` reduced to `main/` + `debug/`.**
+  `content/m01/topology.ts` is now plain data (`RouterSpec`/`DeviceSpec` in
+  `core/types.ts`; `components/topology` calls `Network.createUser` and maps
+  the kinds to `NetworkDeviceType`). `listing-pool.ts` was split into the data
+  file (slots, categories, regions, types) and the new `context/m01/listing.ts`
+  (resolution, getters, `buildM01HomeSoldLots`); `site-strings-cache.ts` became
+  `i18n/m01/site-keys.ts` (key list) plus `context/m01/site-strings.ts`
+  (`refreshM01SiteStrings`, `siteT`); `M01_WORLD` moved to
+  `controller/m01/world.ts`; the 100-line `renderM01ListingPage` moved to
+  `websites/m01/listing-page.ts` and is split into section renderers. The
+  mocked-SDK comparison against HEAD was re-run (network definitions now
+  compared with sorted keys): 17 scenarios identical, and the HTML of all 18
+  listing pages is byte-identical. The four `.gitkeep` files were removed.
+  `src/index.ts` now imports only `main/index.ts` and `debug/index.ts`;
+  `main/global.ts` imports BACKTRACE and the commands, each `main/mNN.ts`
+  imports its own websites, and a reachability check shows every file that
+  registers something is still reachable (registration order changed: debug
+  now loads after the missions). Not live-tested; the checklist is at the
+  bottom of `docs/m01-playtest.md`. Deferred on purpose: M02-M04 migration
+  (after the M01 live test), folding `helpers/network.ts` into
+  `components/topology.ts`, and the full rewrite of
+  `docs/implementation-rules.md`.
+- **[bug] Debug tooling no longer leaks outside `isDebug`.** `src/debug/`
+  registered its commands (`msflab`, `repel`, `rivallab`, `sysdiag`,
+  `sysrepair`), the `RivalHackerStrike` side quest, Scheduler handlers and
+  event listeners unconditionally, so a build with `isDebug = false` still
+  shipped them. New `src/debug/debug-gate.ts` (`registerDebugCommand`,
+  `registerDebugQuest`) leaves a class unregistered when `isDebug` is off, and
+  every top-level `Scheduler.register`/`Events.on` in `msf-lab`, `rival-banner`,
+  `rival-breach` and `rival-hacker-lab` sits behind `if (isDebug)`
+  (`quiet-start` already was). Typecheck only; not yet confirmed in-game with
+  `isDebug = false`. Still ungated, left on purpose: `scratchbt` in
+  `src/applications/backtrace-debug.ts`.
+- **[docs] `src/` restructure started: phase A, `main/` quest files renamed.**
+  `src/main/mNN-quest.ts` and `mNN-quest.original.ts` are now `mNN.ts` and
+  `mNN.original.ts` (8 files, plain file moves, no content change); the four
+  imports in `src/index.ts` follow. Each quest's `Name` (`flatline.mNN`) is
+  untouched, so saves are unaffected. Naming rule recorded in
+  `docs/architecture.md`: inside a per-mission subfolder the file name drops the
+  `mNN-` prefix, and a module used by two or more missions stays in its layer
+  folder without a subfolder. Other docs kept the old file names until
+  the phase B docs sync; earlier changelog and bug entries keep them as history.
+
 ## 2026-09-29
 
+- **[bug] `msflab` banners fixed, traces added, live-test guide written.** The
+  lab wrote every port's `version` as `1.0.0`, but the client splits `version`
+  at its last space into a service name and a version and compares the name
+  with the module's service, so all ten targets would have answered "Port N
+  could not be accessed". Banners are now `<Service> 1.0.0` and the port's
+  `service` field carries the protocol. `src/debug/msf-lab.ts` now logs
+  `[FP][MSFLAB]` lines (use, set, search, nmap, each attempt with the port row
+  the engine saw, success, session), plus one line at load, one per `msflab`
+  run and, with `isDebug`, one per terminal command. Telnet's internal port 23
+  is confirmed from the client. The lab now uses fixed IPs in the M1 router
+  shape (router `198.18.0.1`, hosts `198.18.0.2`–`.11`, LAN
+  `192.168.1.2`–`.11`); this supersedes the random router address in the entry
+  below. The first live attempt failed for two reasons that were not the
+  addresses: the guide wrote `nmap -sV <ip>`, but the client reads the first
+  argument as the IP and answers `Usage: nmap [ip address]` (the form is
+  `nmap <ip> -sV`), and `msflab up` had never been run. The guide was rewritten
+  to lead with the custom command. Not yet run in game — see
+  docs/msflab-livetest-guide.md.
 - **[bug] #32 fix extended to M1, M2 and M4.** Their quest data gained
   `networkBuilt`, and `OnObjectivesStart` builds the network (the
   `resetMissionNetworks` destroy included) only when the flag is false or an

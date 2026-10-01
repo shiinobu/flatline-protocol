@@ -13,43 +13,148 @@ flat top-level folders, plus entity-resolution-mods' single most
 load-bearing rule (content/logic split) applied inside `main/` instead of
 its own dedicated `content/` root — see below.
 
+## Restructure status (2026-10-01)
+
+The `src/` restructure is migrating one mission at a time. **M01 already
+follows the mission pipeline below**; M02-M04 still use the older shape (one
+`main/mNN.ts` holding the quest class plus all of its helpers, fed by a flat
+`content/mNN.ts`) until their own turn. Where this document describes both,
+the pipeline is the target and the older shape is marked as such.
+
+## Mission pipeline (M01 today, M02-M04 next)
+
+```text
+main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (generic, mission-blind)
+ (thin class)    (assembles)       +  content/mNN/ . i18n/mNN/              (the mission's data)
+```
+
+- **`main/mNN.ts`** — one thin `@RegisterQuest` class: class fields come from
+  the controller's spec and each hook (`OnStart`, `OnObjectivesStart`,
+  `OnComplete`, `OnAbandon`, `CreateData`) is one line that calls the
+  controller. No data, no helpers.
+- **`controller/mNN/`** — the only place that assembles a mission: `index.ts`
+  (the four hooks), `spec.ts` (quest fields), `report.ts` (the mission's
+  report matcher), the event listeners grouped by phase (M01: `recon.ts`,
+  `breach.ts`, `access.ts`, `vault.ts`) and anything only that mission uses
+  (M01's IRC server, `irc.ts`). Listeners receive the quest instance, since
+  `Data`, `Events`, `SetData` and `completeObjective` are public on `Quest`.
+- **`core/`** — flat, mission-blind functions that only call components:
+  `register(world, state)` (idempotent, rebuilds the world from progress and
+  returns whether the network was rebuilt), `unregister(world)`,
+  `unlock(world, name)`, `seed(intro)`; the spec types live in `types.ts`.
+  `register` builds in place when no router exists (first install), keeps the
+  network when progress and routers agree, and otherwise (routers exist but
+  the quest data was reset, e.g. `mods.reset`) schedules a rebuild job
+  (`rebuild.ts`, bound once per world with `bindWorld`): sequential awaited
+  `destroyNetwork`, then build. Concurrent destroys overwrite each other (see
+  bugs #35); `unregister` tears down the same way. `UnlockSpec` carries
+  fixtures, domains, firewall rules and ports, so everything a step reveals
+  appears only when that step is reached.
+  Not to be confused with entity-resolution-mods' `core/`, which is a
+  different thing (see below).
+- **`components/`** — flat building blocks used by two or more missions:
+  `topology` (networks and port/firewall changes), `domains`, `fixtures`
+  (Shell command data), `persona` (Twotter), `report` (GoMail template and
+  dual-path validation).
+- **`middleware/`** — flat step gating, the thing that keeps a mission's
+  mechanics in order even when it shows a single objective:
+  `advanceStep(quest, gates, step, onAdvance)` sets a progress flag only when
+  every prerequisite flag is already set (and then runs the step's side
+  effects: unlock, BACKTRACE finding, log, `completeObjective`), `canAdvance` /
+  `missingFlags` answer the same question without writing,
+  `firstUnmetStep(order, data)` finds where a player is stuck, `reachedUnlocks`
+  lists the world unlocks the progress has reached. The per-mission tables
+  are data and live in `content/mNN/gates.ts`: a transitive chain, each step
+  requiring its predecessor. Every listener goes through `advanceStep`; none
+  calls `SetData` for a chain step directly.
+- **`content/mNN/`** — the mission's data, one file per concern, no mission
+  prefix in the file name (M01: `network`, `topology`, `fixtures`, `scan`,
+  `server-files`, `irc`, `twotter`, `assets`, `mail`, `report`, `quest`,
+  `state`, `intro`, `gates`, `listing-pool`). `topology.ts` is plain data (a
+  `RouterSpec` tree; `components/topology` turns it into SDK definitions);
+  `intro.ts` bundles the spec `core/seed` consumes. The only SDK call left in
+  content is `Localization.t`, evaluated lazily inside builders. The spec
+  `core/register` consumes (`M01_WORLD`) lives in `controller/m01/world.ts`,
+  because it reads per-save state.
+- **`i18n/mNN/`** — the mission's `Localization` key tables (and
+  `site-keys.ts`, the list of keys its websites need); each file registers its
+  strings when imported, so every one must stay reachable from the import
+  graph.
+- **`context/mNN/`** — per-save runtime context (`SaveStorage`,
+  `SharedVariables`, `Random`). M01: `listing.ts` (which of the 18 listings
+  wins, the regenerated category/region/code/vendor per slot; `SaveStorage`
+  is the truth and is written only from mod context, a `SharedVariables`
+  mirror is what every context reads), `progress.ts` (the LedgerVault seal
+  mirror) and `site-strings.ts` (the translated-string cache the websites read
+  through `siteT`). Website renders run with no mod context, so they only
+  read the mirrors and never roll or write anything (bugs #36). Read by the
+  controller, the websites and `applications/backtrace-facts.ts`; `content/`
+  never imports it.
+- **Shared modules** go in a `global/` subfolder of the layer when two or more
+  missions use them (`content/global/`: `characters`, `blackledger`, `finance`,
+  `case`; `websites/global/`: `page-guards`, `localize`, the two error
+  templates). A layer that is mission-blind by definition (`core`,
+  `components`, `middleware`) has neither `mNN/` nor `global/` folders.
+
+Dependency direction (no cycles): `main` -> `controller` -> `core` /
+`components` / `middleware` / `content` / `i18n` / `context`; `core` ->
+`components`; `context` -> `content`; `websites` -> `content` / `i18n` /
+`context`; `content` imports only types from `core/types.ts`. `core`,
+`components` and `middleware` never import `controller`, `content` or
+`context`. Behavior
+equivalence of the M01 migration was checked by running the HEAD version and
+the new version against a mocked SDK and comparing every side-effecting call
+over 17 scenarios, plus the HTML of all 18 listing pages (identical).
+
 ## Layering
 
 ```text
 src/
-  content/     — mNN.ts per mission: pure data only (objective IDs, the
+  content/     — data per mission in `content/mNN/` (see the pipeline above;
+                 M02-M04 are still a flat `mNN.ts` with objective IDs, the
                  Objectives array, target IPs/hosts, nmap/lynx/dirhunter
                  fixture results, dialog trees, mail bodies, reward numbers,
-                 delay constants). No SDK imports, no `this`, no behavior.
-                 Small shared modules hold what more than one mission (or
-                 BACKTRACE) reads: `characters.ts`, `blackledger.ts` and
+                 delay constants). Shared modules sit in `content/global/`:
+                 `characters.ts`, `blackledger.ts`, `case.ts` and
                  `finance.ts` — the ransom money model (three batches, one
                  60/25/5/10 waterfall, USD formatting), the single source
                  of every amount in M2, M3 and BACKTRACE; it imports only
-                 `M01_CASE_ID`.
-  main/        — mNN-quest.ts per mission: the only file that imports its
-                 matching content/mNN.ts. Registers the quest, wires SDK
-                 event listeners to objective completion, owns small
-                 behavior-only helpers (fixture registration, mail-send
-                 wrappers, event handlers) that don't belong in content/.
+                 `M01_CASE_ID` (from `case.ts`).
+  main/        — mNN.ts per mission. M01: a thin class that delegates to
+                 `controller/m01/`. M02-M04 (older shape): the only file
+                 that imports its matching content/mNN.ts, registers the
+                 quest, wires SDK event listeners to objective completion
+                 and owns small behavior-only helpers (fixture registration,
+                 mail-send wrappers, event handlers).
+  controller/ core/ components/ middleware/ i18n/ context/
+               — the mission pipeline layers, described above.
   commands/    — custom @RegisterCommand terminal commands with no native
-                 SDK equivalent (e.g. a future attrcheck for Mission 4's
-                 booby-trapped file).
+                 SDK equivalent (`attrcheck` for Mission 4's booby-trapped
+                 file, `open`).
   applications/ — custom desktop Apps: currently BACKTRACE, GHOSTWIRE's
                   case file (the @RegisterApp class, its HTML, and the
                   SaveStorage state + facts helpers the quests use). Flat,
                   no per-app subfolders — see "Applications: BACKTRACE"
                   below.
   websites/    — Website page registrations (@RegisterWebsite/Host/Pages)
-                 + their HTML, one subfolder per site (M1's marketplaces
-                 and LedgerVault, TR4C3#404's panel, Skynet Import-Export's
-                 public site, etc.).
+                 + their HTML, one subfolder per site under the mission
+                 (`m01/` marketplaces and LedgerVault, `m02/` TR4C3#404's
+                 panel, `m03/` Skynet Import-Export's public site, ...).
+                 `global/` holds the page guards (`requireHttps`,
+                 `securePage`, `notFoundPage`), `localize.ts` and the two
+                 shared error templates.
   guard/       — dev/prod gating helpers with no story content of their
-                 own (currently dev-flag.ts — isDev/questGate/
+                 own (`flags.ts` — isDev/isDebug/isTester, questGate/
                  isQuestDevFocus/applyDevGating, see
                  docs/implementation-rules.md §2a). Kept separate from
                  content/ since it's not mission data, and separate from
-                 main/ since every mission's quest file imports it.
+                 the quest files since every mission imports it.
+  helpers/     — `logger.ts` (`trace`) and `network.ts` (mission network
+                 reset/exist checks, used by `components/topology.ts` and
+                 the not-yet-migrated missions).
+  debug/       — prototypes and live-test tooling (msf-lab, rival-hacker
+                 lab, quiet-start); every registration is gated on
+                 `isDebug` through `debug/debug-gate.ts`.
   index.ts     — production bootstrap: which missions are actually active
                  (import list is the single source of truth, same
                  convention as entity-resolution-mods).
@@ -64,9 +169,11 @@ cross-mission feature that belongs to no single mission's `content/` or
 
 ## The one rule carried over from entity-resolution-mods
 
-**Content and logic never mix, in either direction.** `content/mNN.ts` is a
-single, ungated value — never forked by a dev flag, never containing
-`this` or an SDK call. `main/mNN-quest.ts` imports its content and adds
+**Content and logic never mix, in either direction.** A mission's content is
+a single, ungated value — never forked by a dev flag, never containing
+`this` or quest behavior (it may hold pure builders that call
+`Localization.t` or the SDK's data factories such as `Network.createUser`).
+The controller (older shape: `main/mNN.ts`) imports the content and adds
 behavior only. This is the rule entity-resolution-mods learned the hard way
 (`HackhubPost` and the phone-call `Dialog` tree were both missed on a first
 pass and left inline in a quest file — see that project's
@@ -82,7 +189,7 @@ project's 16-quest campaign a single canonical, testable state model
 independent of the HackHub SDK. FLATLINE PROTOCOL's SaveStorage/state needs
 are expected to be small enough (4 missions, a handful of flags/evidence
 items) that `Shell`/`Files`/`SaveStorage` calls living directly in
-`main/mNN-quest.ts` should be sufficient. **Revisit this if that stops
+`main/mNN.ts` should be sufficient. **Revisit this if that stops
 being true** (e.g. if cross-mission state tracking — the recurring
 dead-drop contact, the VPN-IP thread from M3→M4 — turns out to need more
 than a couple of shared flags) rather than assuming the flat structure is
@@ -116,9 +223,9 @@ case file), as five flat files:
   reaches the quest that called them.
 - `backtrace-facts.ts` — `BACKTRACE_KEYS` (the ordered key list per mission),
   `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
-  BACKTRACE reads mission canon (`content/m01.ts`, `content/m02.ts`,
-  `content/m03.ts`, `content/finance.ts` and the per-save winning M1 listing
-  from `content/m01-listing-pool.ts`). This is the one deliberate
+  BACKTRACE reads mission canon (`content/m01/`, `content/m02.ts`,
+  `content/m03.ts`, `content/global/finance.ts` and the per-save winning M1 listing
+  from `content/m01/listing-pool.ts`). This is the one deliberate
   `applications/` → `content/` import; nothing in `content/` imports back.
 - `backtrace-debug.ts` — the `scratchbt` debug command (moved out of
   `src/debug/scratch.ts` on 2026-09-29 since it is ongoing BACKTRACE tooling,
@@ -133,7 +240,7 @@ State is one `SaveStorage` key, `backtrace`:
 { m1..m4: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> }, logs?: <string>[] } }
 ```
 
-Each `main/mNN-quest.ts` writes the status from `OnStart` (`progress`),
+Each `main/mNN.ts` writes the status from `OnStart` (`progress`),
 `OnComplete` (`complete`, stamped with `Time.now()`) and `OnAbandon`
 (`locked`). `facts` grow in two ways, and only one of them is per action. A
 checkpoint inside a quest calls `traceBacktraceFinding(mission, key)` the
@@ -223,26 +330,37 @@ fact renders as "—".
 
 Missions are `m01`-`m04` (not `q01`-`q16` — this project has no "quest"
 numbering precedent of its own, and "mission" matches the story's own
-framing): `content/m01.ts`, `main/m01-quest.ts`. Mission titles for
+framing): `content/m01/`, `main/m01.ts`. Mission titles for
 reference: m01 "Jejak Pertama", m02 "Sang Pembuat", m03 "Jalur Uang", m04
 "Sang Dalang".
+
+Inside a per-mission subfolder (`<layer>/m01/`) a file name does not repeat
+the mission prefix, because the folder already names the mission:
+`content/m01/listing-pool.ts`, not `content/m01/m01-listing-pool.ts`. A
+module used by two or more missions goes in a `global/` subfolder of the same
+layer (`content/global/finance.ts`, `websites/global/page-guards.ts`). A layer
+that only holds mission-independent code (`core/`, `components/`,
+`middleware/`) has neither `mNN/` nor `global/` folders. This applies as files
+move into per-mission subfolders; the `src/` restructure is in progress
+(`docs/changelog.md`, 2026-10-01).
 
 ## Bootstrap flow
 
 ```text
 src/index.ts
   imports (side-effect registration, decorator-driven):
-    applications/*.js
-    commands/*.js
-    websites/*/index.js
-    main/m01-quest.js .. m04-quest.js
+    main/index.js     (-> global.js, m01.js .. m04.js)
+    debug/index.js    (-> msf-lab, quiet-start, rival-hacker-lab)
   ↓
   @RegisterModPackage class extends Bootstrap
-    OnModPackageLoaded()   -> (SaveStorage load, once state persistence exists)
-    OnModPackageUnloaded() -> (SaveStorage save, once state persistence exists)
+    OnModPackageLoaded()   -> logs that the package loaded
 ```
 
-Currently `index.ts` is an empty `Bootstrap` shell — no missions registered
-yet. Adding a mission to production means adding its imports here in
-sequential order (`m01` → `m02` → `m03` → `m04`), once its own
-live-validation gate passes.
+`index.ts` imports only `main/` and `debug/` (plus the SDK and the `trace`
+helper for its load log). `main/global.ts` pulls in the shared features
+(BACKTRACE, `attrcheck`, `open`), and each `main/mNN.ts` imports its own
+mission's websites before the quest class, so a mission's registrations travel
+with it. `debug/index.ts` is inert unless `isDebug`. A static check confirmed
+that the 22 files that register something are all still reachable from
+`index.ts` (91 reachable files before, the same 91 plus the three new barrels
+after).

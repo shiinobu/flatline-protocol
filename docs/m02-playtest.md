@@ -7,7 +7,7 @@ archive once M02 reaches FINAL LOCK; not a permanent design doc (that's
 `docs/story.md` / `docs/scratch.md`).
 
 Same as M1: **full mechanic, not full objective**. Every step below is
-tracked internally in `m02-quest.ts`, but the player only ever sees **one**
+tracked internally in `m02.ts`, but the player only ever sees **one**
 objective — "Trace the toolkit developer behind the affiliate panel --
 breach it from the root domain down to the dev server, dig up a lead to the
 developer's home network, and pull the financial document that names the
@@ -27,7 +27,7 @@ for the full bug log from the redesign that led here (the Splitter
 architecture bug and its resolution).
 
 **2026-09-29 follow-up (NOT yet live-tested):** M2 now shares one money model
-with M3 (`src/content/finance.ts`) — the `affiliates` table has new columns and
+with M3 (`src/content/global/finance.ts`) — the `affiliates` table has new columns and
 dates, `deploy.log` / `wire_authorization.pdf` / `quota_report.txt` state the
 batch amount and date — and BACKTRACE traces **one key per action** (nodes
 below say which). The progression files are read with the project's `open`

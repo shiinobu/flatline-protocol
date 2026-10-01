@@ -122,7 +122,7 @@ superseded on 2026-09-24 by a Firewall-behind-a-Splitter shape, the same
 `Router` with a TP-Link panel and uses `Network.PortChanges`, `bugs.md` #31) -- no Wi-Fi
 cracking in the shipped mission (confirmed: zero `Fern`/`Bettercap`/
 `WifiConnected`/`createWifiNetwork` references anywhere in `src/`). The
-diagram below reflects what `m02-quest.ts` actually implements; full
+diagram below reflects what `m02.ts` actually implements; full
 node-by-node detail (every decoy device, port and credential) is in
 `docs/m02-playtest.md`'s appendix, already verified line-by-line against
 source.
@@ -196,7 +196,7 @@ assumption: `docs/scratch.md` (last section).
 net_tree.py` lists them, the capture names two), Vault-Line gained a `root`
 user, the hydra fixture answers to `guest` (the engine's default `-l`) as well
 as `admin` on `<ip>:80`, the ledger became 12 rows from the shared money model
-(`src/content/finance.ts`), and the capture/config are `.pcap`/`.conf` read
+(`src/content/global/finance.ts`), and the capture/config are `.pcap`/`.conf` read
 with `open`. Recorded in `bugs.md` #25-#29.
 
 **Late 2026-09-29 (router rework, `bugs.md` #31):** the "pfSense" above is
@@ -295,3 +295,10 @@ Procedure actually followed, same as M1's:
 
 **Not yet done for any of M2/M3/M4:** a live-test in HackHub. Everything
 above is static/logical verification only.
+
+## Update 2026-10-01 — broker domains unlock with the listing
+
+`x7xsentry9.tech`, `be7.x7xsentry9.tech` and `fw7.x7xsentry9.tech` are no longer
+registered when the network is built; they are part of the `brokerLead` unlock
+(`UnlockSpec.domains`) and appear only after the winning listing is opened. The routers,
+devices and ports are unchanged. See `docs/architecture.md` (core) and bugs #38.

@@ -4,7 +4,7 @@ import type {
     TwotterTweetInteraction,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./characters.js";
+import { DEAD_DROP_CONTACT, M04_ARCHITECT_VPN_IP } from "./global/characters.js";
 import {
     RANSOM_BATCHES,
     RANSOM_BATCHES_Q3,
@@ -16,9 +16,9 @@ import {
     splitRansom,
     totalRansom,
     type RansomBatch,
-} from "./finance.js";
+} from "./global/finance.js";
 import { M02_SHELL_COMPANY_NAME } from "./m02.js";
-import { M01_CASE_ID } from "./m01.js";
+import { M01_CASE_ID } from "./global/case.js";
 
 export const M03_ARCHITECT_VPN_LEAD = M04_ARCHITECT_VPN_IP;
 

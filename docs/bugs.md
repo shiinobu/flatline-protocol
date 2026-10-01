@@ -1617,3 +1617,63 @@ was missing — and the Wireshark step itself was judged pointless.
 **Takeaway:** a gate that fails silently must never hide a requirement the player
 has no other way to discover; and when a step is judged weird in play, remove it
 rather than gate on it.
+
+## 35. After `mods.reset` M1's `be7` / `fw7` appeared and vanished at random — concurrent `destroyNetwork` replies overwrite each other (follow-up to #32)
+
+**Status: FIXED and LIVE-TESTED (2026-10-01).**
+`mods.reset` clears the quest Data (`networkBuilt` false) but not the networks, so
+`register` took the rebuild path with all five routers present and fired five
+unawaited `destroyNetwork` calls. Each call posts a snapshot of the whole store to a
+worker and, on reply, replaces the store with that snapshot minus its router
+(`SetSubnets`, `SetFiles`, `setEntireData`; client 1.3.13). The five snapshots are
+identical, so the last reply wins: one random router vanished (`be7` or `fw7`) and
+every domain registered after the call was lost. Teardown had the same shape and left
+four of five routers alive. **Fix:** `core/register` builds in place when no router
+exists, keeps the network when progress and routers agree, and otherwise schedules a
+job (`core/rebuild.ts`) that destroys the routers one at a time with `await` inside a
+`Scheduler` handler (the hook itself is synchronous and loses the mod context on an
+`await`), then builds. M2-M4 still use `resetMissionNetworks` until migrated.
+
+---
+
+## 36. A website render has no mod context — `SaveStorage` / `Variables` there are a different namespace, so the page rolled its own listing winner
+
+**Status: FIXED and LIVE-TESTED (2026-10-01).**
+`metadata()` is called directly by the website adapter with no mod pushed, so
+`SaveStorage` resolves to `__unknown__`, and `Variables` follows the stack too. The
+`Events.on` bridge pushes the mod only for `SaveStorage` and permissions, not for
+`Variables`, which explains #20. `ensureM01ListingResolution()` called from a render
+found nothing, rolled a second winner and overwrote the `Variables` cache the quest
+reads; the log showed the winner flipping for one second. **Fix:** the roll happens in
+mod context (`OnStart` rolls, `OnObjectivesStart` ensures), `SaveStorage` stays the
+truth, a `SharedVariables` mirror (no namespace) is what every context reads, renders
+only read it and fall back to the default HTML or a 404. This also fixes the ledger
+code being built as `PENDING-0000` before any roll existed.
+
+---
+
+## 37. Mod mails pile up after `mods.reset` — the reset skips `Mail.send` mail and `Mail.getInbox().subject` is blank
+
+**Status: FIXED and LIVE-TESTED (2026-10-01).**
+The reset message counts `0 mail(s)`: only quest-bound mail is reset. A custom mail is
+stored as `{ from, to, content: { custom, title, data } }`, and `getInbox()` reads a
+top-level `title`/`subject` that does not exist, so matching on subject never fired.
+**Fix:** `onStartM01` withdraws every inbox mail whose `from` is one of the mod's
+senders (`content/global/mail-senders.ts`) before seeding; the early-report reply is
+tracked by the id `Mail.send` returns. Side effect: the Custodian's M2-M4 mails also
+disappear when M1 replays, which is right after a reset.
+
+---
+
+## 38. M1 could be completed by jumping steps — gates covered 3 of 13 steps and the world leaked the next step
+
+**Status: FIXED and LIVE-TESTED (2026-10-01).**
+In the live test `subfinder x7xsentry9.tech` worked without `lynx` (the domains were
+registered at build; only `nslookup` / `lynx` were unlock-gated), the LedgerVault page
+set `vaultVisited` directly, and the report was accepted after the vault visit alone.
+**Fix:** the transitive 13-step chain in `content/m01/gates.ts`; every listener through
+`middleware/advanceStep`; broker domains in the `brokerLead` unlock; LedgerVault a 404
+until `chatConfirmed` (`SharedVariables` seal, cleared on complete/abandon); an early
+but correct report is answered by the Custodian. A harness that fired the 14 events in
+300 random orders against a mocked SDK showed the flags always form a prefix of the
+chain; with the gate table emptied it failed 300/300.

@@ -15,13 +15,21 @@ reworded; rules about SDK behavior are unchanged.
 
 ## 1. File split: `content/` declares, `main/` files call
 
+> **Restructure in progress (2026-10-01).** M01 already follows the mission
+> pipeline in `docs/architecture.md` (`main/m01.ts` is a thin class that
+> delegates to `controller/m01/`; data lives in `content/m01/` and
+> `i18n/m01/`; generic behavior in `core/`, `components/` and `middleware/`).
+> This section and the rest of this file still describe the shape M02-M04 have
+> until they are migrated, and will be rewritten once all four missions follow
+> the pipeline.
+
 - `src/content/mNN.ts` holds every piece of **data** a mission needs:
   target IPs/hosts, objective IDs, the `Objectives` array, nmap/lynx/
   dirhunter fixture results, network port lists, reward numbers, mail
   subjects/bodies/templates, delay constants (`setTimeout` durations),
   template IDs/labels, feed-post definitions, and the phone-call `Dialog`
   tree (all `QuestDialogDefinition` branches/lines — pure narrative data).
-- `src/main/mNN-quest.ts` is the **only** quest file — it only **imports
+- `src/main/mNN.ts` is the **only** quest file — it only **imports
   and uses** those declarations. No local `const` literal arrays/objects
   duplicating content that `content/` already owns.
 - Exception: small **helper functions** (fixture registration, host
@@ -49,10 +57,16 @@ Ported from entity-resolution-mods' `src/content/dev-flag.ts` (that
 project's own §7), adapted to this project's `mNN` mission ids and moved
 into its own `src/guard/` folder (see `docs/architecture.md`) since it's
 gating logic, not mission content or quest behavior.
-`src/guard/dev-flag.ts` exports:
+`src/guard/flags.ts` exports:
 
 - `isDev` — a single boolean, on while missions are still being built and
   live-tested.
+- `isDebug` — turns on the tooling in `src/debug/` (every registration there
+  goes through `debug/debug-gate.ts`). It **also** makes `questGate` return
+  `[DEV_ISOLATION_LOCK]` for every mission, so a build with `isDebug = true`
+  cannot start any story mission: flip it to `false` to play M01-M04.
+- `isTester` / `TESTER_FOCUS_QUEST` — the same focus mechanism for an external
+  tester build (`isQuestTesterFocus`); inert while `isTester` is `false`.
 - `DEV_FOCUS_QUEST` — a `{m01..m04: boolean}` map with **at most one**
   entry `true` at a time (the file throws at import time if more than one
   is set) — the mission currently under active test.
@@ -70,8 +84,10 @@ gating logic, not mission content or quest behavior.
   makes a mission's full objective list visible immediately for testing,
   rather than waiting on the real chain order.
 
-Every mission's production file (`src/main/mNN-quest.ts`) wires exactly
-three fields off this:
+Every mission wires exactly three fields off this (M01: in
+`src/controller/m01/spec.ts`, read by the class in `main/m01.ts`; M02-M04: in
+their `src/main/mNN.ts` until migrated). The generic layers (`core/`,
+`components/`, `middleware/`) never import `guard/`:
 
 ```ts
 override QuestsToComplete = questGate("m0N", [ /* real prerequisite mission ids */ ]);
@@ -191,7 +207,7 @@ duplicate it on every restart.
 
 Every `Website`'s HTTP behavior follows the target's own nmap-fixture port
 80/443 status. Shared, mission-agnostic building blocks for this live in
-`src/websites/shared/page-guards.ts` (`requireHttps`/`securePage`/
+`src/websites/global/page-guards.ts` (`requireHttps`/`securePage`/
 `notFoundPage`) plus their two error templates in the same folder — every
 mission imports from there rather than keeping its own local
 `http-error.html` copy and inline protocol check.
@@ -328,10 +344,10 @@ dump traced 5, M3's ledger dump 4) "makes no sense".
 Details, the checkpoint table and how to add a key: `docs/architecture.md`
 (Applications: BACKTRACE).
 
-## 14. Money numbers come from `src/content/finance.ts`
+## 14. Money numbers come from `src/content/global/finance.ts`
 
 Every amount, date and split that appears in M2, M3 or BACKTRACE is derived
-from the one batch table and waterfall in `content/finance.ts` (three ransom
+from the one batch table and waterfall in `content/global/finance.ts` (three ransom
 batches, 60% parent / 25% panel / 5% broker / 10% retained, `splitRansom`,
 `totalRansom`, `formatUsd`). Never type a currency amount into mission
 content, a fixture, a report body or the BACKTRACE HTML by hand: M3's ledger
@@ -339,3 +355,30 @@ once said $42,000 while M2's ransom was $2,850,000 because two files held
 two copies of the number. The HTML preview sample in `backtrace.html` is the
 one deliberate hardcoded copy (it renders outside the game) and must be
 updated together with the model.
+
+## 11. Step gating and engine contexts — the M1 pattern (LOCKED 2026-10-01)
+
+Every mission from M2 on follows what M1 proved in the live test:
+
+1. **One gate table per mission** (`content/mNN/gates.ts`): a transitive chain,
+   each progress flag requiring its predecessor, plus the `Unlock` table. All
+   listeners call `advanceStep`; nothing sets a chain flag directly. The
+   objective list may stay short — the mechanics still run in order.
+2. **World information unlocks per step**, not at build: domains, fixtures,
+   firewall rules and pages that reveal the next step go in an `UnlockSpec`
+   (`fixtures`, `domains`, `removeFirewallRules`, `openPorts`). `subfinder`
+   reads the Network store, so a domain registered at build is a leak.
+3. **Gate pages with a read-only mirror**: a page that must stay closed until
+   a step (M1's LedgerVault) reads a `SharedVariables` flag written from mod
+   context. A page render never rolls, writes or calls `SaveStorage` (bugs #36).
+4. **Early completion gets a reply, not silence**: a submission that is
+   correct but premature is answered once (`sendReplacingMail`, tracked by id).
+5. **Mails**: `Mail.send` mail survives `mods.reset` and `getInbox().subject` is
+   blank. Wipe the mod's own senders at the first mission's `OnStart`
+   (`withdrawMailFrom`) and track later replies by id (bugs #37).
+6. **Networks**: never fire `destroyNetwork` concurrently or build right after
+   an unawaited one. Use `core/register` / `unregister`, which defer to a
+   sequential awaited Scheduler job (bugs #35).
+7. **FINAL LOCK** (§9-10): `trace()` removed from the mission's source, zero
+   comments, `tsc` clean. M1 reached it on 2026-10-01; M2-M4 migrate to this
+   pipeline one mission at a time, each with a live test before the next.

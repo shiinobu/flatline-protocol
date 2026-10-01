@@ -1,6 +1,6 @@
 import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
-import { DEAD_DROP_CONTACT } from "./characters.js";
+import { DEAD_DROP_CONTACT } from "./global/characters.js";
 import { M02_SHELL_COMPANY_NAME } from "./m02.js";
 
 export const M03_SKYNET_DOMAIN = "skynet-importexport.biz";

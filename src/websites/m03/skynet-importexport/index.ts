@@ -5,7 +5,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { M03_SKYNET_DOMAIN } from "../../../content/m03.js";
-import { securePage as page } from "../../shared/page-guards.js";
+import { securePage as page } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 

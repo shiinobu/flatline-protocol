@@ -1,6 +1,6 @@
 import type { QuestDialogDefinition, QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
-import { DEAD_DROP_CONTACT } from "./characters.js";
+import { DEAD_DROP_CONTACT } from "./global/characters.js";
 import { M03_PARENT_ENTITY_NAME } from "./m03.js";
 
 export const M04_ARCHITECT_VPN_IP = "203.0.113.160";

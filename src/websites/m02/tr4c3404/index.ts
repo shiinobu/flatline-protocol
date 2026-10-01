@@ -5,7 +5,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { M02_ADMIN_PATH, M02_ROOT_DOMAIN } from "../../../content/m02.js";
-import { securePage as page } from "../../shared/page-guards.js";
+import { securePage as page } from "../../global/page-guards.js";
 
 import adminPage from "./admin.html";
 import homePage from "./home.html";

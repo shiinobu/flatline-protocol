@@ -5,7 +5,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { M04_C2_IP, M04_LEGACY_CMS_PATH } from "../../../content/m04.js";
-import { securePage as page } from "../../shared/page-guards.js";
+import { securePage as page } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 import legacyCmsPage from "./legacy-cms.html";

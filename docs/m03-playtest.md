@@ -10,7 +10,7 @@ Delete or archive once M03 reaches FINAL LOCK; not a permanent design doc
 (that's `docs/story.md` / `docs/scratch.md`).
 
 Same as M1/M2: **full mechanic, not full objective**. Every step below is
-tracked internally in `m03-quest.ts`, but the player only ever sees **one**
+tracked internally in `m03.ts`, but the player only ever sees **one**
 objective — "Trace BLACKLEDGER's money through Skynet Import-Export --
 break into the finance network, pull the wire-transfer ledger for the
 parent entity, root the box that tunnels the money off the map, cover your
@@ -296,7 +296,7 @@ both to one hand, the human way in, and what is unresolved), the Shell Company
 and Parent Entity cards, the personal log and evidence EV-M3-01 (the
 waterfall). `scratchbt m3 keys` lists the keys in-game.
 
-## 10. The money (single model: `src/content/finance.ts`)
+## 10. The money (single model: `src/content/global/finance.ts`)
 
 Every batch is split the same way: **60%** SKN Capital Nominees, **25%**
 TR4C3404 Consulting, **5%** X7xSentry9 Brokerage, **10%** retained by Skynet.
