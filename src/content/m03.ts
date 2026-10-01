@@ -17,7 +17,7 @@ import {
     totalRansom,
     type RansomBatch,
 } from "./global/finance.js";
-import { M02_SHELL_COMPANY_NAME } from "./m02.js";
+import { M02_SHELL_COMPANY_NAME } from "./global/entities.js";
 import { M01_CASE_ID } from "./global/case.js";
 
 export const M03_ARCHITECT_VPN_LEAD = M04_ARCHITECT_VPN_IP;

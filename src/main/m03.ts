@@ -98,7 +98,7 @@ import {
     type M03ForwardTarget,
     type M03TwotterPost,
 } from "../content/m03.js";
-import { M02_SHELL_COMPANY_NAME } from "../content/m02.js";
+import { M02_SHELL_COMPANY_NAME } from "../content/global/entities.js";
 import { applyDevGating, isQuestDevFocus, isQuestTesterFocus, questGate } from "../guard/flags.js";
 import "../websites/m03/skynet-importexport/index.js";
 

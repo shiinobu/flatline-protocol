@@ -12,20 +12,17 @@ import { ensureM01ListingResolution } from "../context/m01/listing.js";
 import { M01_BROKER_ALIAS, M01_LEDGERVAULT_DOMAIN } from "../content/m01/network.js";
 import { M01_LEDGERVAULT_PROJECT } from "../content/m01/report.js";
 import { M01_BUYER_ALIAS } from "../content/m01/server-files.js";
+import { M02_SHELL_COMPANY_NAME } from "../content/global/entities.js";
+import { M02_DEV_SUBDOMAIN, M02_FIREWALL_IP, M02_WORKSTATION_IP, M02_WORKSTATION_ROUTER_IP } from "../content/m02/network.js";
 import {
     M02_CASE_BATCH_REF,
     M02_CASE_MATCH_RANSOM_AMOUNT,
     M02_CASE_MATCH_SETTLED_AT,
     M02_CASE_PANEL_SHARE,
-    M02_DEPLOY_PAYLOAD_NAME,
-    M02_DEV_SUBDOMAIN,
-    M02_FIREWALL_IP,
-    M02_SHELL_COMPANY_NAME,
     M02_VICTIM_CASE_ID_EU,
     M02_VICTIM_CASE_ID_NA,
-    M02_WORKSTATION_IP,
-    M02_WORKSTATION_ROUTER_IP,
-} from "../content/m02.js";
+} from "../content/m02/report.js";
+import { M02_DEPLOY_PAYLOAD_NAME } from "../content/m02/server-files.js";
 import {
     M03_ACCOMPLICE_USERNAME,
     M03_ARCHITECT_VPN_LEAD,
