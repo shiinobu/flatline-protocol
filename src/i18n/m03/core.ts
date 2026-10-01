@@ -22,8 +22,7 @@ export const M03_I18N_KEY = {
     LOG_LEDGER_2: "M03.LOG.LEDGER.2",
     LOG_TUNNEL_1: "M03.LOG.TUNNEL.1",
     LOG_TUNNEL_2: "M03.LOG.TUNNEL.2",
-    LOG_ROOT_1: "M03.LOG.ROOT.1",
-    LOG_ROOT_2: "M03.LOG.ROOT.2",
+    LOG_TUNNEL_3: "M03.LOG.TUNNEL.3",
     LOG_REYES_1: "M03.LOG.REYES.1",
     LOG_REYES_2: "M03.LOG.REYES.2",
     LOG_AFTERMATH_1: "M03.LOG.AFTERMATH.1",
@@ -118,9 +117,7 @@ Localization.registerAll({
         [M03_I18N_KEY.LOG_TUNNEL_1]:
             "The gateway's own config names the far end of that tunnel after every batch. Not a customer. Not a vendor.",
         [M03_I18N_KEY.LOG_TUNNEL_2]: "Whatever's on the far end of that tunnel is who I actually came for.",
-        [M03_I18N_KEY.LOG_ROOT_1]:
-            "Got root on the gateway. The tunnel peer's right there in the config, same owner as the money.",
-        [M03_I18N_KEY.LOG_ROOT_2]:
+        [M03_I18N_KEY.LOG_TUNNEL_3]:
             "The shell company and the address off the map are the same hand. That's the thread into the top.",
         [M03_I18N_KEY.LOG_REYES_1]:
             "Reyes kept a file called do_not_open_at_work. People don't write that unless they already know.",
@@ -266,8 +263,7 @@ Localization.registerAll({
         [M03_I18N_KEY.LOG_LEDGER_2]: "{{gross}} 里有 {{parent}} 最终落在 {{entity}}。纸糊的墙。",
         [M03_I18N_KEY.LOG_TUNNEL_1]: "网关自己的配置里，写着每一批结算之后那条隧道的另一端。不是客户，也不是供应商。",
         [M03_I18N_KEY.LOG_TUNNEL_2]: "隧道另一端的那个东西，才是我真正要找的人。",
-        [M03_I18N_KEY.LOG_ROOT_1]: "拿到网关的 root 了。隧道对端就写在配置里，和资金同一个所有者。",
-        [M03_I18N_KEY.LOG_ROOT_2]: "空壳公司和那个不在地图上的地址，是同一只手。这就是通往顶层的那根线。",
+        [M03_I18N_KEY.LOG_TUNNEL_3]: "空壳公司和那个不在地图上的地址，是同一只手。这就是通往顶层的那根线。",
         [M03_I18N_KEY.LOG_REYES_1]: "Reyes 留了一个叫 do_not_open_at_work 的文件。人们不会写这种东西，除非早就心里有数。",
         [M03_I18N_KEY.LOG_REYES_2]: "她还是把账对平了。孩子，薪水。人就是这样被拖下水的。",
         [M03_I18N_KEY.LOG_AFTERMATH_1]: "Nominees。不是所有者，而是别人躲在背后的一个名字。",

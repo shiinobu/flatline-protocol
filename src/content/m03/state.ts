@@ -13,7 +13,6 @@ export interface M03QuestData {
     readonly natPivotDone: boolean;
     readonly ledgerDumped: boolean;
     readonly gatewayShellObtained: boolean;
-    readonly gatewayRooted: boolean;
     readonly vpnConfigRead: boolean;
     readonly accompliceReached: boolean;
     readonly reportSent: boolean;
@@ -28,7 +27,6 @@ export const createM03Data = (): M03QuestData => ({
     natPivotDone: false,
     ledgerDumped: false,
     gatewayShellObtained: false,
-    gatewayRooted: false,
     vpnConfigRead: false,
     accompliceReached: false,
     reportSent: false,

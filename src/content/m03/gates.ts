@@ -21,7 +21,6 @@ export const M03_GATES: readonly Gate<M03QuestData>[] = [
     { step: "ledgerDumped", requires: ["natPivotDone"] },
     { step: "gatewayShellObtained", requires: ["ledgerDumped"] },
     { step: "vpnConfigRead", requires: ["gatewayShellObtained"] },
-    { step: "gatewayRooted", requires: ["gatewayShellObtained"] },
     { step: "accompliceReached", requires: ["natPivotDone"] },
     { step: "reportSent", requires: ["ledgerDumped", "vpnConfigRead"] },
 ];

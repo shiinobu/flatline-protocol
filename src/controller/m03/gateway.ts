@@ -8,7 +8,6 @@ import { M03_ACCOMPLICE_IP, M03_ACCOMPLICE_LAN_IP, M03_VAULTLINE_IP } from "../.
 import {
     M03_LOG_AFTERMATH,
     M03_LOG_REYES,
-    M03_LOG_ROOT,
     M03_LOG_TUNNEL,
     M03_OBJECTIVE_IDS,
 } from "../../content/m03/quest.js";
@@ -69,12 +68,6 @@ const bindShell = (quest: M03Quest): void => {
         if (data.ip !== M03_VAULTLINE_IP) return;
 
         markShell(quest);
-    });
-
-    quest.Events.on("Metasploit.Rootgrab", (data) => {
-        if (data.ip !== M03_VAULTLINE_IP) return;
-
-        advanceStep(quest, M03_GATES, "gatewayRooted", () => appendBacktraceLogs("m3", M03_LOG_ROOT()));
     });
 };
 

@@ -16,10 +16,7 @@ export const M03_LOG_LEDGER = (): readonly string[] => [
 export const M03_LOG_TUNNEL = (): readonly string[] => [
     Localization.t(M03_I18N_KEY.LOG_TUNNEL_1),
     Localization.t(M03_I18N_KEY.LOG_TUNNEL_2),
-];
-export const M03_LOG_ROOT = (): readonly string[] => [
-    Localization.t(M03_I18N_KEY.LOG_ROOT_1),
-    Localization.t(M03_I18N_KEY.LOG_ROOT_2),
+    Localization.t(M03_I18N_KEY.LOG_TUNNEL_3),
 ];
 export const M03_LOG_REYES = (): readonly string[] => [
     Localization.t(M03_I18N_KEY.LOG_REYES_1),
