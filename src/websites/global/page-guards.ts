@@ -1,5 +1,7 @@
 import type { DynamicWebsitePageDefinition, PageContext, PageMetadata } from "@hotbunny/hackhub-content-sdk";
 
+import { areMissionSitesOpen } from "../../context/global/site-access.js";
+import type { QuestId } from "../../guard/flags.js";
 import httpErrorPage from "./http-error-400.html";
 import { localizeHtml } from "./localize.js";
 import notFoundPage404 from "./not-found-404.html";
@@ -35,3 +37,13 @@ export const notFoundPage = (path: string): DynamicWebsitePageDefinition => ({
     path,
     metadata: notFoundMetadata,
 });
+
+export const gateMissionPages = (
+    mission: QuestId,
+    pages: readonly DynamicWebsitePageDefinition[],
+): DynamicWebsitePageDefinition[] =>
+    pages.map((definition) => ({
+        ...definition,
+        metadata: (context: PageContext): PageMetadata | null =>
+            areMissionSitesOpen(mission) ? definition.metadata(context) : notFoundMetadata(),
+    }));

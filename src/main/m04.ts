@@ -10,6 +10,7 @@ import {
 import { setBacktraceMission } from "../applications/backtrace-state.js";
 import { ATTRCHECK_REVEALED_EVENT } from "../commands/attrcheck.js";
 import { networksExist as missionNetworksExist, resetMissionNetworks } from "../components/topology.js";
+import { closeMissionSites, openMissionSites } from "../context/global/site-access.js";
 import {
     M04_ARCHITECT_NMAP_RESULT,
     M04_ARCHITECT_REAL_NAME,
@@ -252,6 +253,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     override OnObjectivesStart() {
+        openMissionSites("m04");
         const networkKept = this.Data.networkBuilt && missionNetworksExist([M04_ARCHITECT_VPN_IP]);
         if (!networkKept) registerM04Network();
         registerM04ShellFixtures();
@@ -412,6 +414,7 @@ export class FlatlineM04Quest extends Quest<M04QuestData> {
     }
 
     private teardown(): void {
+        closeMissionSites("m04");
         resetM04ShellFixtures();
         Network.destroyNetwork(M04_ARCHITECT_VPN_IP);
     }

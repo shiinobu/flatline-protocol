@@ -5,6 +5,7 @@ import { FLATLINE_MAIL_SENDERS } from "../../content/global/mail-senders.js";
 import { M03_UNLOCKS } from "../../content/m03/gates.js";
 import { M03_INTRO } from "../../content/m03/intro.js";
 import { M03_PREMATURE_MAIL_SLOT } from "../../content/m03/mail.js";
+import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import { M03_WORLD } from "./world.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
@@ -28,6 +29,7 @@ export const onStartM03 = (): void => {
 };
 
 export const onObjectivesStartM03 = (quest: M03Quest): void => {
+    openMissionSites("m03");
     refreshSiteStrings();
 
     const networkBuilt = register(M03_WORLD, {
@@ -46,6 +48,7 @@ export const onObjectivesStartM03 = (quest: M03Quest): void => {
 };
 
 export const onCompleteM03 = (): void => {
+    closeMissionSites("m03");
     setBacktraceMission("m3", "complete");
     withdrawSlotMail(M03_PREMATURE_MAIL_SLOT);
     unregister(M03_WORLD);

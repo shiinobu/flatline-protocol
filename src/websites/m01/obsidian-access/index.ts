@@ -10,7 +10,7 @@ import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/
 import { renderM01ListingPage } from "../listing-page.js";
 import { M01_OBSIDIAN_DOMAIN } from "../../../content/m01/network.js";
 import { localizeHtml } from "../../global/localize.js";
-import { notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import adminPage from "./admin.html";
 import eduPageApac6641 from "./edu-apac-6641.html";
@@ -67,7 +67,7 @@ export class ObsidianAccessWebsite extends Website {
     Host = M01_OBSIDIAN_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         homeListing("/", homePage, "Obsidian Access", "Verified network access, mirror listings."),
         page("/listings/p7s3-61va/", ispPageNa2207, "Obsidian Access — ISP-NA-2207", "Regional ISP, NA region."),
         page("/listings/q0t6-94wb/", eduPageApac6641, "Obsidian Access — EDU-APAC-6641", "University network, APAC region."),
@@ -81,5 +81,5 @@ export class ObsidianAccessWebsite extends Website {
         soldListing("/listings/g7j5-49rm/", "obsidian.ispapac4420"),
         page("/admin/", adminPage, "Obsidian Access — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Obsidian Access — Vendor Portal", "Reseller access."),
-    ];
+    ]);
 }

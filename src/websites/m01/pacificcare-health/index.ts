@@ -1,6 +1,12 @@
-import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/hackhub-content-sdk";
+import {
+    RegisterWebsite,
+    Website,
+    type DynamicWebsitePageDefinition,
+    type PageMetadata,
+} from "@hotbunny/hackhub-content-sdk";
 
 import { M01_HOSPITAL_DOMAIN } from "../../../content/m01/network.js";
+import { gateMissionPages } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -10,7 +16,14 @@ export class PacificCareHealthWebsite extends Website {
     Host = M01_HOSPITAL_DOMAIN;
     Icon = "";
 
-    Pages: WebsitePageDefinition[] = [
-        { path: "/", title: "PacificCare Health", html: homePage, description: "Regional hospital network, SEA." },
-    ];
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
+        {
+            path: "/",
+            metadata: (): PageMetadata => ({
+                title: "PacificCare Health",
+                description: "Regional hospital network, SEA.",
+                html: homePage,
+            }),
+        },
+    ]);
 }

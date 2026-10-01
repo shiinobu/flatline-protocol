@@ -10,7 +10,7 @@ import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/
 import { renderM01ListingPage } from "../listing-page.js";
 import { M01_DOMAIN } from "../../../content/m01/network.js";
 import { localizeHtml } from "../../global/localize.js";
-import { notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import accPage52 from "./acc-52.html";
 import adminPage from "./admin.html";
@@ -72,7 +72,7 @@ export class BlackwireNetworkWebsite extends Website {
     Host = M01_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         homeListing("/", homePage, "Blackwire Network — Storefront", "Verified network access, sold as-is."),
         page("/listings/h3k8-27ns/", lotPage88, "Blackwire Network — RETAIL-EU-2231", "Retail chain, EU region."),
         page("/listings/i6l2-50ot/", lotPage91, "Blackwire Network — ISP-APAC-6604", "Regional ISP, APAC."),
@@ -86,5 +86,5 @@ export class BlackwireNetworkWebsite extends Website {
         soldListing("/listings/u5x1-63fa/", "blackwire.opn102"),
         page("/admin/", adminPage, "Blackwire Network — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Blackwire Network — Vendor Portal", "Reseller access."),
-    ];
+    ]);
 }

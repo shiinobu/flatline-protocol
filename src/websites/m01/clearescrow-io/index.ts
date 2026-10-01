@@ -10,7 +10,7 @@ import { M01_ESCROW_DOMAIN } from "../../../content/m01/network.js";
 import { M01_LISTING_SLOTS } from "../../../content/m01/listing-pool.js";
 import { getM01ListingResolution } from "../../../context/m01/listing.js";
 import { localizeHtml } from "../../global/localize.js";
-import { requireHttps } from "../../global/page-guards.js";
+import { gateMissionPages, requireHttps } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -49,7 +49,7 @@ export class ClearEscrowWebsite extends Website {
     Host = M01_ESCROW_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         {
             path: "/",
             metadata: (context: PageContext): PageMetadata => {
@@ -71,5 +71,5 @@ export class ClearEscrowWebsite extends Website {
                 };
             },
         },
-    ];
+    ]);
 }

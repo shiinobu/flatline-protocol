@@ -5,6 +5,7 @@ import { FLATLINE_MAIL_SENDERS } from "../../content/global/mail-senders.js";
 import { M02_UNLOCKS } from "../../content/m02/gates.js";
 import { M02_INTRO } from "../../content/m02/intro.js";
 import { M02_PREMATURE_MAIL_SLOT } from "../../content/m02/mail.js";
+import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import { M02_WORLD } from "./world.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
@@ -28,6 +29,7 @@ export const onStartM02 = (): void => {
 };
 
 export const onObjectivesStartM02 = (quest: M02Quest): void => {
+    openMissionSites("m02");
     refreshSiteStrings();
 
     const networkBuilt = register(M02_WORLD, {
@@ -45,6 +47,7 @@ export const onObjectivesStartM02 = (quest: M02Quest): void => {
 };
 
 export const onCompleteM02 = (): void => {
+    closeMissionSites("m02");
     setBacktraceMission("m2", "complete");
     withdrawSlotMail(M02_PREMATURE_MAIL_SLOT);
     unregister(M02_WORLD);

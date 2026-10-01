@@ -13,6 +13,7 @@ import {
 import { clearM01VaultSeal, setM01VaultSealed } from "../../context/m01/progress.js";
 import { M01_WORLD } from "./world.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
+import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import { reachedUnlocks } from "../../middleware/gate.js";
 import { bindM01Access } from "./access.js";
@@ -35,6 +36,7 @@ const retraceFindings = (quest: M01Quest): void => {
 };
 
 const teardown = (): void => {
+    closeMissionSites("m01");
     resetM01ListingResolution();
     clearM01VaultSeal();
     withdrawSlotMail(M01_PREMATURE_MAIL_SLOT);
@@ -53,6 +55,7 @@ export const onStartM01 = (): void => {
 export const onObjectivesStartM01 = (quest: M01Quest): void => {
     ensureM01ListingResolution();
     setM01VaultSealed(!quest.Data.chatConfirmed);
+    openMissionSites("m01");
     refreshSiteStrings();
 
     const networkBuilt = register(M01_WORLD, {

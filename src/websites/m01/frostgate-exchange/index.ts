@@ -10,7 +10,7 @@ import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/
 import { renderM01ListingPage } from "../listing-page.js";
 import { M01_FROSTGATE_DOMAIN } from "../../../content/m01/network.js";
 import { localizeHtml } from "../../global/localize.js";
-import { notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import adminPage from "./admin.html";
 import homePage from "./home.html";
@@ -67,7 +67,7 @@ export class FrostgateExchangeWebsite extends Website {
     Host = M01_FROSTGATE_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         homeListing("/", homePage, "Frostgate Exchange", "Verified network access, sold as-is."),
         page("/listings/l5o1-49rw/", telecomPageEu5518, "Frostgate Exchange — TELECOM-EU-5518", "Telecom carrier, EU region."),
         page("/listings/m8p4-72sx/", retailPageApac3390, "Frostgate Exchange — RETAIL-APAC-3390", "Retail chain, APAC region."),
@@ -81,5 +81,5 @@ export class FrostgateExchangeWebsite extends Website {
         soldListing("/listings/a7d1-67lg/", "frostgate.govapac9042"),
         page("/admin/", adminPage, "Frostgate Exchange — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Frostgate Exchange — Vendor Portal", "Reseller access."),
-    ];
+    ]);
 }
