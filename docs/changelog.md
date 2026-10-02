@@ -27,6 +27,33 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 6 of the M4-M7 run: M05 is complete.** The 13-step chain of `08-spec-m5-m6.md` §B,
+  with two parallel pairs (the 2025/2026 captures joining at `staffArchiveCompared`, and the archive
+  branch joining the `lynx` profile at `edgeMapped`) and the three archive documents parallel off the
+  session. Added: the Echoline Archive with two dated captures of the same hospital IT page (two names
+  gone from the later one, only one of them pushed), the LeakIndex breach lookup with ten records and
+  three shared decoy hashes, the hospital subnet behind `remote.pacificcare-health.org`, the pfSense
+  step with one account and two LAN-addressed deny rules, Cold-Chart's incident folder (decision memo,
+  draft and filed finding, acknowledgement, USB ticket, asset register), the optional Bedside-17 beat
+  that puts the M01 vault note back where it came from, the five-column report, the six m5 BACKTRACE
+  keys with a report card and four personal-log beats, the 1200 payout, and the full Chinese text.
+  See `docs/m05-playtest.md`.
+- **[mechanic] A website `Exports` function used as a mission gate for the second time in the project.**
+  `leakindex.net` calls `flatlineOpenLeakRecord(id)`; the mission counts record 1 and traces every
+  other id as a decoy. M01 passes a string, M05 a number — untested live (`docs/m05-playtest.md` §15).
+- **[mechanic] M05 reads M01's vault event without importing M01.** `src/content/global/vault-hook.ts`
+  re-declares `flatline.m01.projectOpened` and the `q3` folder id, so the locked M01 content stays
+  untouched and the no-cross-mission-import rule holds.
+- **[mechanic] Every crackable hash in M05 is the genuine MD5 of a password declared on a device.**
+  `docs/bugs.md` #13 — `john` never consults the `Shell` fixture system, so a hash only resolves if the
+  engine put it in its registry from a device's `users` array. All four are now asserted in the harness.
+- **[bug] Dropped a redundant `nmap` fixture on the hospital edge address.** The edge is a real router,
+  so the fixture would have printed a frozen port list over the live scan, which is the trap
+  `docs/bugs.md` #2 describes from the other side: an `nmap` print fixture succeeds whether or not any
+  real device exists behind it.
+- **[docs] `docs/m05-playtest.md` written as the full 15-section walkthrough**, including the capture
+  comparison, the decoy records, the john step and the Chinese pass.
+
 - **[milestone] Phase 5 of the M4-M7 run: M04 is complete.** The 15-step chain of `10-spec-m4.md` §C,
   with steps 5 and 6 deliberately parallel and joining at 7 so repairing the desktop without reading
   the incident log cannot stall the mission. Added: the scripted second strike and the desktop breach

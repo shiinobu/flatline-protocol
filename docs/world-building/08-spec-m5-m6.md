@@ -170,3 +170,67 @@ nilai, rekaman, dan kolom laporan: `09-konten-m5-m6.md` bagian C.
 Nama, rantai, jumlah rekaman, bonus `PC-IT-017`, asuransi dan negosiator sudah DECIDED
 (`09-konten-m5-m6.md`, `06-pertanyaan.md`). Tersisa untuk implementasi: prosa en dan zh, alamat IP,
 password `<P>` dan hash, dan apakah `replyable` diuji di lab (`06-pertanyaan.md` G1-f).
+
+---
+
+## Catatan implementasi (2026-10-02, fase 2)
+
+Fase 2: **kerangka jalan M6** saja, bukan misi penuh. Tujuannya satu — menjalankan
+jalur `networkIps: []` di dalam permainan untuk pertama kalinya (bagian C5,
+"Risiko"). Yang masuk: lima langkah pertama rantai bagian C, situs Registry dengan
+jalur buram `/entity/r7k4/` dan halaman tak-tertaut `/filings/archive/`, fixture
+`whois`/`nslookup` tanpa subnet, dan satu tujuan laporan. Yang **belum**: HostTrail,
+halaman Archive M6, arsip 2019/2024 yang bertabrakan, perbandingan snapshot, tautan
+asuransi dan infrastruktur, rekaman Conrad Lindqvist, cermin konsekuensi M1-M3 ke
+`SharedVariables`, laporan 5 kolom, kunci BACKTRACE m6, dan teks zh. Skrip uji:
+`docs/m06-playtest.md`. Fase 7 melanjutkan dari titik ini.
+
+## Catatan implementasi (2026-10-02, fase 6)
+
+Fase 6: **M5 penuh**, 13 langkah sesuai bagian B.
+
+**Bentuk rantai.** Dua pasang paralel, bukan satu garis. Snapshot 2025 dan 2026
+berdiri sendiri lalu bergabung di `staffArchiveCompared`; cabang arsip itu
+bergabung dengan profil `lynx` Greta di `edgeMapped`. Tiga dokumen insiden
+(`acknowledgement`, `decision_memo`, `usb_ticket`) juga paralel, bergantung hanya
+pada sesi arsip, supaya urutan bacanya bebas dan tidak ada langkah yang bisa
+menguncinya. Laporan menunggu ketiganya.
+
+**Nilai yang dipilih agen** (bisa diveto):
+
+| Hal | Nilai | Alasan |
+|---|---|---|
+| Edge rumah sakit | `198.244.91.37` / `remote.pacificcare-health.org` | satu-satunya node yang perlu domain |
+| Splitter / Firewall | `37.120.145.62` / `193.29.57.184` | LAN `192.168.1.2` dan `.3` |
+| Cold-Chart (arsip) | `141.98.252.76`, LAN `192.168.1.4`, ssh 22 | sasaran aturan deny pertama |
+| Bedside-17 | `80.94.92.118`, LAN `192.168.1.5`, rdp 3389, FreeRDP 6.0.4, `it.station` daring | bonus bluekeep, bukan langkah |
+| Tiga pengalih (Lead-Apron, Pay-Station, printer) | `45.142.193.29` / `176.113.115.84` / `195.133.40.17` | LAN `.6`-`.8`, port tertutup sejak build |
+| `echoline.net` / `leakindex.net` | `185.31.164.22` / `91.229.23.105` | situs, tanpa subnet |
+| Jalur snapshot | `/s/8fq2/` (2025-11-03) dan `/s/8fq7/` (2026-09-02) | buram, karena `dirhunter` mencetak semua jalur terdaftar (#40) |
+| Password Greta | `Marigold2019` | MD5-nya `a3106b24578d51822fb862154d11b89d` |
+| Password pengalih | `radiology2021`, `billing-desk-04`, `printroom01` | tiga hash pengalih di tabel LeakIndex |
+| Hadiah | 1200 | kontrak terkecil dalam rangkaian, sesuai D1 |
+
+**Semua hash adalah MD5 sungguhan dari password yang dideklarasikan pada
+perangkat.** `docs/bugs.md` #13: `john` tidak pernah membaca sistem fixture
+`Shell`, jadi hash hanya bisa dipecahkan kalau mesin sendiri memasukkannya ke
+registri lewat array `users` sebuah perangkat. Keempatnya diperiksa di harness.
+
+**Tanggal.** Tidak ada tanggal baru. Semua dari `13` §B: 2026-08-11 (media
+dihubungkan), 2026-08-14 (insiden dan pembayaran), 2026-08-15 (draf), 2026-08-18
+(tanda tangan), 2026-08-19 (temuan final), 2026-08-24 (ditutup), 2026-07-31
+(kontrak Gareth berakhir), 2025-11-03 dan 2026-09-02 (dua snapshot). Jeda
+02:41 -> 09:02 = 6 jam 21 menit, nilai yang diminta laporan.
+
+**Penyimpangan.** (1) LeakIndex memakai `Exports` sebagai gerbang dan mengirim
+**angka**, bukan string seperti M01; belum diuji live, dicatat di
+`docs/m05-playtest.md` §15. (2) Kait M01 dibaca lewat
+`src/content/global/vault-hook.ts` yang **menyalin ulang** nama event dan id
+folder `q3`, bukan mengimpor konten M01 yang terkunci — aturan tanpa impor
+antar-misi tetap utuh. (3) Fixture `nmap` untuk alamat edge dibuang: edge adalah
+router sungguhan, dan fixture cetak akan menimpa pemindaian hidup. (4) Snapshot
+2026 menghilangkan **dua** nama, bukan satu: Gareth Lim karena kontraknya memang
+berakhir, Greta tanpa alasan apa pun — itulah pengalihnya, dan `Gareth Lim`
+adalah jawaban `door` yang ditolak laporan. (5) Plugin `frontend-design`
+**tidak tersedia** di lingkungan ini, jadi LeakIndex dan halaman Echoline
+dirancang manual mengikuti brief prompt §6.

@@ -2575,3 +2575,58 @@ runs on `register`'s *keep* path. It does not, and should not: the keep path
 leaves an existing network alone, and a port opened earlier is still open because
 the network survives (#35). Only the build and rebuild paths apply
 `UnlockSpec.openPorts`. The suite now asserts both halves of that.
+
+---
+
+## Phase 6 — M05 "The Door"
+
+**Why the chain has two parallel pairs.** The spec's §B reads as a line, but two
+pairs of steps have no reason to be ordered. The 2025 and 2026 captures are the
+same action twice on different URLs, so they are separate flags joining at
+`staffArchiveCompared`; that whole branch and Greta's `lynx` profile both hang
+off `vaultRevisited` and join at `edgeMapped`. The three incident documents hang
+off the archive session and join at the report. Twelve harness checks cover the
+joins and the refusals: skipping any step in the strictly sequential middle
+(`edgeMapped` through `archiveAccessed`) blocks everything after it, and either
+branch alone cannot open the edge.
+
+**The decoy is a second missing name, not a wrong name.** The later capture drops
+Gareth Lim as well as Greta, and the capture itself says his contract ended
+2026-07-31. So the comparison gives two candidates and the paperwork decides
+between them — which is why `Gareth Lim` is the report's rejected `door` answer
+and why his `lynx` profile exists at all.
+
+**LeakIndex hashes had to be real.** `docs/bugs.md` #13: `john` never consults
+`Shell.addCommandData`, so a hash resolves only if the engine already put it in
+its own registry from a device's `users` array. All four hashes in the table are
+the genuine MD5 of a password declared on a node in the M05 topology, so every
+record in the table is crackable and three of them lead to a decoy box with a
+readme. The harness asserts both halves: the MD5 identity, and that each password
+is declared somewhere in the topology.
+
+**`Exports` sends a number here.** M01's `flatlineOpenProject` passes a folder
+string; `flatlineOpenLeakRecord` passes `record.id`. The page builds its rows in
+JS from the injected array and binds a click handler per row, so the id never
+goes through the DOM as text. If the number does not survive the bridge live, the
+fallback is M01's exact shape — send `String(id)` and parse it in the controller.
+
+**A redundant fixture I removed.** `buildM05BreachLookupFixtures` registered
+`nmap <edge ip>` with a frozen port list. The edge is a real router in the
+topology, so that fixture would have printed over the live scan — the inverse of
+`docs/bugs.md` #2, where a print fixture succeeds with no device behind it at
+all. Dropped it, and `M05_EDGE_NMAP_RESULT` with it; the step now depends on the
+subnet actually existing, which is the thing worth testing live.
+
+**Three harness assertions that were wrong, not the code.** (1) A linear
+out-of-order sweep flagged `ticketRead` and `gretaProfiled` as leaks — both are
+parallel siblings, so the sweep now runs only over the sequential middle, with
+explicit checks for the two joins. (2) `M05_LOG_NOTES` writes two entries, not
+one, so the log-count checks were off by one from the start. (3)
+`appendBacktraceLogs` filters entries it has already written, which is worth its
+own check rather than something to work around.
+
+**`trace` call locations added for M05** (removed at FINAL LOCK):
+`controller/m05/recon.ts` (`probe:vault-revisited`, `probe:snapshot-seen`,
+`probe:edge-mapped`), `controller/m05/crack.ts` (`probe:leak-record-opened` with
+match/decoy, `probe:password-cracked`), `controller/m05/access.ts`
+(`probe:firewall-login`, `probe:archive-accessed`, `probe:bedside-bonus`).
