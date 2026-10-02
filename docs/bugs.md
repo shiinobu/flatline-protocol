@@ -2001,3 +2001,69 @@ a readable file after failing the trace — and the mission is still completable
 because the penalty, the desktop breach and the re-armed trace do not depend on
 it. The **destroy** ending does use `Files.remove(id)` on the same file, which is
 one-way and therefore safe.
+
+---
+
+## 50. UNVERIFIED: a `Website.Exports` function called with a number, and a quest gate that depends on it
+
+**Status: OPEN (harness only; M05's live test answers it).**
+Raised: M05, 2026-10-02.
+
+M01 proved the pattern: `LedgerVaultWebsite.Exports.flatlineOpenProject(folder)`
+is called from page JS as a bare global, the mod emits
+`flatline.m01.projectOpened`, and the quest listener advances. It has only ever
+been called with a **string**.
+
+M05's LeakIndex calls `flatlineOpenLeakRecord(record.id)` with a **number** (the
+record's integer id, 1-10), and `controller/m05/crack.ts` compares
+`data.id !== M05_CORRECT_LEAK_RECORD_ID` with `!==`, so a value that arrives as
+`"1"` instead of `1` would silently never match and step 7 would be unreachable.
+The page builds each row in JS and binds one click handler per row, so the id
+never passes through the DOM as text — but the bridge between the page iframe and
+the mod is not ours, and nothing says it preserves types.
+
+**Fallback if the live test shows the step never fires:** send
+`String(record.id)` from the page and parse it in the listener
+(`Number.parseInt(String(data.id), 10)`). Both ends are one line.
+`docs/m05-playtest.md` §6 is the step to watch; the probe line is
+`[FP][M05] probe:leak-record-opened id=1 (match)`.
+
+The same mission also relies on `Terminal.Lynx.Search` carrying a **bare string**
+rather than an object, which is how M01's listener reads it. M05 binds both
+shapes (`.Lookup` with `{input}` and `.Search` with a string), so whichever the
+engine raises, the step advances; the untested half is simply dead rather than
+broken.
+
+---
+
+## 51. UNVERIFIED: a numeric progress stage in `SharedVariables` read from a website render, and eleven dynamic pages on one site
+
+**Status: OPEN (harness only; M06's live test answers it).**
+Raised: M06, 2026-10-02.
+
+Entry #20 and #36 established what a `Website`'s `metadata()` can see: not
+`SaveStorage`, and `Variables` / `SharedVariables` only when they were written
+from a real game-event listener. M05 gates two sites on **booleans** written that
+way. M06 gates eleven record pages, the filing archive, HostTrail and one
+Echoline capture on a **number** — one monotonic stage 0-5 in
+`flatline.m06.stage` (`context/m06/progress.ts`), compared with `>=` at render
+time.
+
+Two things could go wrong and neither shows up in a harness that stubs the SDK:
+
+1. **The number comes back as a string or as `undefined`.** `readM06Stage()`
+   falls back to `0`, which fails closed: every record 404s and the mission looks
+   like it never started. If that happens, log `readM06Stage()` first; the fix is
+   to store the stage as a string and parse it, or to store five booleans as M05
+   does.
+2. **`dirhunter` output length.** M06 registers 14 paths on `pcr-registry.org`,
+   the most the project has put on one site. #40 says `dirhunter` prints every
+   registered path; it does not say what happens past some number of them. If the
+   list is truncated, the hidden `/filings/archive/` may not be printed at all,
+   and step 5 becomes unreachable by the route the spec intends. The paths are
+   opaque codes for the same reason, so a truncated list is the only failure mode
+   here, not a spoiler.
+
+`docs/m06-playtest.md` §1 and §6 are the steps to watch. The probe lines are
+`[FP][M06] probe:stage=<n>` and
+`[FP][M06] probe:dirhunter-no-subnet host=pcr-registry.org`.
