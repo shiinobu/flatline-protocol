@@ -23,6 +23,7 @@ export const M07_MANIFEST_FILE_EXTENSION = "txt";
 export const M07_LEDGER_FILE_NAME = "master_ledger_backup";
 export const M07_LEDGER_FILE_EXTENSION = "enc";
 export const M07_LEDGER_FILE_CONTENT = "AES256-CBC::[REDACTED-BINARY-BLOB]";
+export const M07_LEDGER_WIPED_CONTENT = (): string => Localization.t(M07_I18N_KEY.DEVICE_LEDGER_WIPED);
 
 export const M07_ASH_GATE_BACKUP_FILE_NAME = "ash-gate_backup";
 export const M07_ASH_GATE_BACKUP_FILE_EXTENSION = "txt";

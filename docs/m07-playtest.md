@@ -1,9 +1,16 @@
-# M07 "The Architect" — Playtest Script (phase 1: walking skeleton)
+# M07 "The Architect" — Playtest Script (phase 4: full mission)
 
-Status: **use once, disposable** — step-by-step script for the M07 walking
-skeleton as implemented in phase 1 of the M4-M7 run, on this session's working
-branch. Delete or archive once M07 reaches FINAL LOCK; not a permanent design
-doc (that is `docs/world-building/11-spec-m7.md`).
+Status: **use once, disposable** — step-by-step script for the full M07 as
+implemented in phase 4 of the M4-M7 run. Supersedes the phase-1 skeleton script
+that used to live here. Delete or archive once M07 reaches FINAL LOCK; not a
+permanent design doc (that is `docs/world-building/11-spec-m7.md`).
+
+**What changed since the skeleton.** The 3389 shortcut is gone (the port is
+closed until the firewall step opens it), the five bare probes are gone, and the
+mission now ships the real 240-second tracking, HoneyCheck, the designed
+`/legacy-cms/` node table, the `choice` field with its three ending effects,
+Greta's epilogue letters, the 5000 payout, the six BACKTRACE keys with a report
+card, and the full Chinese text.
 
 **What phase 1 is for.** M07 is the old M4 migrated to mission id `m07`
 (world-building README, "Batasan urutan implementasi" #2). The point of this
@@ -144,30 +151,39 @@ mail**. Touching it never advances the chain and, in this build, costs nothing
 ## 5. ash-gate
 
 1. Browse to `http://194.60.38.12` — the pfSense panel.
-2. Log in as `fw.admin` with the password from the backup file.
-   Expect the panel to open. Internally `firewallLoggedIn`.
-   A wrong user or password must **not** open it: ash-gate has exactly one
-   valid user (`app-asar-reference.md` E-9).
+2. Log in as `fw.admin` with the password from the backup file. Internally
+   `firewallLoggedIn`. A wrong user or password must **not** open it: ash-gate
+   has exactly one valid user (E-9).
 3. Open **Firewall Rules**, delete or edit the 3389 rule, and **Save**.
-   Expect the panel's green confirmation. Internally `firewallBreached`, which
-   lifts the 3389 rule and opens the port.
+   Internally `firewallBreached`, which lifts the rule, opens the port and
+   traces the `firewall` key.
 4. Re-scan: `nmap -sV 203.0.113.161` now shows `3389 OPEN`.
 
-> **Watch this and report what you see.** 3389 is `active` from the build in
-> this skeleton (a phase-1 shortcut), so the RDP session in section 6 may work
-> **before** you ever log into ash-gate. Either outcome is a real finding:
-> - RDP refused before the Save → the deny rule reaches a device nested inside
->   a sibling Splitter. Good news, and it closes an open question
->   (`docs/bugs.md` #45).
-> - RDP works before the Save → the rule never matched, and the real gate is
->   the port's `active` flag plus `Network.openPort`, exactly as M2 relies on.
->
-> Either way the chain still requires the Save, because `advanceStep` will not
-> set `shellObtained` until `firewallBreached` is set.
+> **Before the Save, the RDP exploit must fail**, because the port is
+> `active: false` from the build now. If it succeeds early, report it: that
+> would mean `openPort` is not the real gate. (The phase-1 build opened 3389
+> deliberately to reach the events; that shortcut is removed.)
 
 ---
 
-## 6. The C2 session — the three events phase 1 exists to prove
+## 6. HoneyCheck — the tool that is confidently wrong
+
+Browse to `https://honeycheck.net/` and check each of the three hosts:
+
+| Host | HoneyCheck says | The truth |
+|---|---|---|
+| `203.0.113.161` | **Not a honeypot**, 91% | correct |
+| `185.220.101.42` | **Clean**, 88% | **wrong — this is the honeypot** |
+| `146.70.44.18` | **Likely honeypot**, 71% | **wrong — this is the real dead box** |
+
+The footnote says so out loud: *"This is not a foolproof method."* The honest
+discriminator is section 2's banner check, not this site. Confirm the page works
+at a narrow window too (the search is `<input>` + JS, never a `<form>`, because
+the iframe has no `allow-forms`, E-10).
+
+---
+
+## 7. The C2 session and the 240-second trace
 
 ```
 msfconsole
@@ -178,147 +194,150 @@ set Version 5.2.1
 exploit
 ```
 
-`Version` must be exactly `5.2.1` — the engine splits the port's
-`FreeRDP 5.2.1` banner and compares the version part
-(`app-asar-reference.md` E-11). The C2's online user is `svc-cms`.
+On success: internally `shellObtained`, the `c2` key is traced, and **the
+countdown banner appears at 04:00** — `SESSION TRACED`, turning red near the
+end. `[FP][M07] banner shown ip=203.0.113.161 totalMs=240000`.
 
-**Expected at a `meterpreter >` prompt:**
+Then, at `meterpreter >`:
 
-| # | Do this | Expect in the log |
-|---|---|---|
-| 1 | the `exploit` above succeeds | `[FP][M07] probe:metasploit-session { targetIp: '203.0.113.161', targetPort: 3389, fromIp: ..., user: 'svc-cms' }` then `[FP][M07] probe:tracking-armed { id: ..., delay: { realMs: 60000 } }` |
-| 2 | `ls` | `manifest.txt` and `master_ledger_backup.enc` |
-| 3 | `cat manifest.txt` | `[FP][M07] probe:manifest-cat { name: 'manifest', extension: 'txt' }` |
-| 4 | `attrcheck master_ledger_backup.enc` | the SELF_DESTRUCT_ON_READ warning, then `[FP][M07] probe:attrcheck-revealed { id: ..., name: 'master_ledger_backup' }` |
-| 5 | `download master_ledger_backup.enc` | `[FP][M07] probe:ledger-download { type: 'DOWNLOAD', name: 'master_ledger_backup', ... }` then `[FP][M07] probe:tracking-disarmed` |
+| Do this | Expect |
+|---|---|
+| `ls` | `manifest.txt` and `master_ledger_backup.enc` |
+| `cat manifest.txt` | the MASTER LEDGER INDEX; internally `manifestRead`, key `manifest`, two personal-log lines |
+| `attrcheck master_ledger_backup.enc` | the SELF_DESTRUCT_ON_READ warning; internally `trapRevealed` |
+| `download master_ledger_backup.enc` | internally `fileExtracted`, key `ledger`, banner flips to **EXTRACTION COMPLETE**, and the Custodian's *"what now?"* mail arrives |
 
-Steps 3, 4 and 5 are the ones that have never been proven in this session
-type. Internally they set `shellObtained`, `manifestRead`, `trapRevealed` and
-`fileExtracted`.
+**`manifest.txt` must read** as five settled accounts (Northstar 2020 NA,
+Rheinland 2023 EU, LOG-EU-2209 $1,400,000 2026-05-02, FIN-NA-0091 $4,100,000
+2026-07-22, CASE-A7X-0417 $2,850,000 2026-08-14), the PacificCare note
+classifying it *employee negligence (G. de Souza)* prepared with V. Orchid and
+approved by Nordhaven on 2026-08-17, the watch line `d.reyes: monitor`, and the
+closing *every account, settled.* Any `{{placeholder}}` or raw `M07.` key is a
+finding.
 
-**`manifest.txt` must read as MASTER LEDGER INDEX** with five settled
-accounts (Northstar 2020 NA, Rheinland 2023 EU, LOG-EU-2209 $1,400,000
-2026-05-02, FIN-NA-0091 $4,100,000 2026-07-22, CASE-A7X-0417 $2,850,000
-2026-08-14), the PacificCare note classifying it as *employee negligence
-(G. de Souza)* prepared with V. Orchid and approved by Nordhaven on
-2026-08-17, the watch line `d.reyes: monitor`, and the closing
-`every account, settled.` **If any amount or date shows as `{{something}}` or
-as a raw `M07.` key, stop and report it.**
-
-**Also try (optional, outside the chain):** `open master_ledger_backup.enc`
-before the download. Expect one mail from `watchdog@architect-c2.dark`
-("unauthorized access detected") and the file **still there** — in this build
-nothing is deleted and no deadline is cut (phase 4 adds both).
+**`repel 203.0.113.161` must do nothing useful.** The trace is deliberately not
+repellable — expect *"No active intrusion detected."* If it cancels the
+countdown, that is a finding.
 
 ---
 
-## 7. Skeleton probes
+## 8. Failing the trace on purpose (second run)
 
-Four unconditional `trace` calls plus one bare Scheduler deadline, all in
-`src/controller/m07/probes.ts`. They are **not gated**: they log even if you
-reach an event out of order, which is exactly what makes them useful.
+Get the session, read the manifest, run `attrcheck`, then **wait out the four
+minutes**.
 
-| Probe | Log line | Fires on |
-|---|---|---|
-| metasploit session | `[FP][M07] probe:metasploit-session` | `RemoteConnection.Established`, `t === "METASPLOIT"`, `targetIp` = C2 |
-| tracking armed | `[FP][M07] probe:tracking-armed` | same event; schedules a 60-second real-time job |
-| manifest read | `[FP][M07] probe:manifest-cat` | `Terminal.Cat` of `manifest.txt` |
-| attrcheck | `[FP][M07] probe:attrcheck-revealed` | the mod event `flatline.m07.attrcheckRevealed` |
-| extraction | `[FP][M07] probe:ledger-download` | `Files.Transfer` `DOWNLOAD` of `master_ledger_backup` |
-| tracking disarmed | `[FP][M07] probe:tracking-disarmed` | the same download, cancelling the job |
-| tracking expired | `[FP][M07] probe:tracking-expired` | the 60-second job firing because you did not download in time |
+Expect: `[FP][M07] trace expired penalty=500` (or `min(balance, 500)`), the
+banner flips to **TRACE COMPLETE**, `[FP][M07] ledger payload wiped`, and **the
+desktop is breached** — black screen, `RECOVERY MODE // RUN SYSDIAG`.
 
-**The tracking probe is the one worth deliberately failing.** Get the session,
-then do nothing for about 70 real-world seconds and watch for
-`probe:tracking-expired`. There is **no banner, no penalty and no file
-deletion** in this build — the probe only answers whether a `{ realMs }`
-Scheduler job survives a live session, which is what phase 4's 240-second
-deadline is built on. Opening a new session re-arms exactly one job.
+Recovery, exactly as in M04 (the same kit):
 
-Also worth reporting: whether `probe:tracking-expired` still fires if you
-`back` out of the session, and whether it fires after `mods.reset`.
+1. `sysdiag` **inside the Meterpreter session must refuse**: *"only runs on this
+   machine. Disconnect first."* Type `back` first.
+2. `sysdiag` locally → the component table.
+3. Restore the right build from `~/compositor/recovery/` and the backup config.
+4. `sysrepair --rebuild` → desktop restored.
+
+Then open a **new** session to the C2. Expect
+`[FP][M07] ledger payload restored` and a fresh 04:00 countdown, and
+`download` now works. **There is no dead end:** the firewall stays open, and the
+file's payload comes back.
+
+> Also confirm that **downloading the wiped file does nothing** while it is
+> wiped — `fileExtracted` must not be set by a wiped payload.
+
+**Deviation to be aware of:** the spec says the `.enc` "self-deletes". It is
+implemented as *payload wiped in place* and restored by `Files.write`, because
+`Files.create` only takes a `parentPath` and path resolution never reaches a
+Meterpreter target (`docs/bugs.md` #30). `docs/bugs.md` #49 records it.
 
 ---
 
-## 8. Report
+## 9. Opening the `.enc` directly (optional, outside the chain)
+
+`open master_ledger_backup.enc` before downloading it:
+
+- one mail from `watchdog@architect-c2.dark`
+- a toast: *"That read was logged. You have less time now."*
+- the countdown **re-arms at 02:00**, not 04:00
+- the file is **not** deleted
+
+Doing it twice must not halve it again.
+
+---
+
+## 10. The report, the choice and the three endings
 
 Compose to `drop@drop.null` with the **Mission 7 Findings** template:
 
 - `architect` → `Conrad Lindqvist`
-- `evidence` → `employee negligence (G. de Souza)` — the classification exactly
-  as `manifest.txt` prints it. Case and extra spaces are forgiven; a different
-  summary is not.
+- `evidence` → `employee negligence (G. de Souza)`
+- `choice` → one of `expose`, `handoff`, `destroy`
 
-Expected: the single objective completes, `[FP][Backtrace] m7 -> complete`.
+Case and spacing are forgiven; a fourth word is rejected, and so is an empty
+choice.
 
-**Send it early on purpose too.** Before the download, send the same correct
-report: expect **one** reply from `drop@drop.null`, subject *"not yet"*, whose
-middle paragraph points at the step you are actually missing. Sending again
-replaces that reply rather than stacking a second one.
+| `choice` | Expect |
+|---|---|
+| `expose` | Greta's letter arrives from `greta.desouza@postbox.my`; two personal-log lines; the C2 network stays up |
+| `handoff` | Greta's other letter (a lawyer called, it will take years); two personal-log lines; network stays up |
+| `destroy` | **no letter at all** — the inbox stays silent; two personal-log lines; the ledger file is removed and `[FP][M07] C2 network torn down (destroy ending)` appears, and the four C2 nodes leave the Network Map |
 
-The `choice` field (`expose` / `handoff` / `destroy`), the "What now?" mail and
-the real ending effects are phase 4; this build ends at the report.
+Then: `[FP][Backtrace] m7 -> complete` and `[FP][M07] reward skipped under
+focus: 5000`. The 5000 only pays in a **production** run (D1), which needs
+`flatline.m06` first.
+
+Sending the report before the extraction gets one *"not yet"* reply.
 
 ---
 
-## 9. Known follow-ups (not fixed / not yet live-tested)
+## 11. BACKTRACE
+
+Open the app. M07 now has a full report card: Summary, eight Key Findings,
+Entities, Evidence and the Personal Log. Six keys are counted while the mission
+runs, one per action:
+
+| Key | Earned by |
+|---|---|
+| `nodes` | the `/legacy-cms/` node table opened |
+| `credential` | `ash-gate_backup.txt` read |
+| `firewall` | the panel saved |
+| `c2` | the Meterpreter session |
+| `manifest` | `manifest.txt` read |
+| `ledger` | the download |
+
+---
+
+## 12. Chinese pass
+
+Replay in Simplified Chinese. Everything above has zh text, **including the
+countdown banner**, whose labels are passed in already localized through its
+`Variables` view (a widget loaded by path never sees `{{t:KEY}}` —
+`docs/bugs.md` #48). Watch for any English leaking into the banner, the node
+table, HoneyCheck, the manifest, the mails or Greta's letter.
+
+---
+
+## 13. Known follow-ups (not fixed / not yet live-tested)
 
 1. **`attrcheck` and `open` at a `meterpreter >` prompt are still unproven in
-   game.** Both resolve through the ID-based walk in
-   `src/commands/meterpreter-files.ts` (`docs/bugs.md` #30 follow-up). Section 6
-   steps 4 and 5 are that test. If `attrcheck master_ledger_backup.enc` says
-   "No such file", the walk is wrong, not the mission.
-2. **Whether a Firewall nested in a Splitter protects its sibling devices**
-   (`docs/bugs.md` #45) — section 5's watch note.
-3. **`Files.Transfer` on a Meterpreter `download`** has not been seen on this
-   route before (`11-spec-m7.md` §K).
-4. **No reward is paid.** `Rewards` is unset by design (prompt §8 D1) and the
-   `Bank.transaction` payout of 5000 is phase 4.
-5. **3389 is open from the build.** Phase 4 sets it `active: false` and lets
-   the firewall step open it.
-6. **BACKTRACE shows no M07 keys.** `BACKTRACE_KEYS.m7` is empty until phase 4.
-7. **Chinese text is absent** for M07 (see the header).
-
----
-
-## Appendix — network topology reference
-
-```
-M07_ROUTER_IP (Router)  203.0.113.160   lan 192.168.1.1
-   = M04_ARCHITECT_VPN_IP, the endpoint M3 ends on. Constant NOT renamed:
-     the locked M2 and M3 import it from content/global/characters.ts.
-   ports: none of its own
-   └─ M07_SPLITTER_IP (Splitter)   45.76.180.9    lan 192.168.1.2
-      pure pass-through
-      ├─ M07_FIREWALL_IP (Firewall)  194.60.38.12  lan 192.168.1.3   isIpHidden
-      │     "ash-gate". ONE valid user: fw.admin / Ashgate#2022r2
-      │     (PFSense.Login carries only { ip }, so a second valid user would
-      │      open the gate too -- app-asar-reference.md E-9)
-      │     ports: 80 http (its own panel)
-      │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.4
-      │            destination is the C2's lanIp, never its public IP (E-8),
-      │            and there is no port-22 rule without a destination, which
-      │            would also cut SSH to Null-Crown and Ash-Vector
-      ├─ M07_C2_IP (Device)          203.0.113.161 lan 192.168.1.4
-      │     users: svc-cms (online, what bluekeep needs), root
-      │     ports: 443 https "LegacyCMS 2.1" (active)
-      │            3389 rdp "FreeRDP 5.2.1" (active FROM THE BUILD in phase 1)
-      │     vulnerabilities: RCE, FreeRDP 5.2.1
-      │     rootFiles: manifest.txt · master_ledger_backup.enc
-      │     website: "/" and "/legacy-cms/", gated to m07
-      ├─ M07_NULLCROWN_IP (Device)   185.220.101.42 lan 192.168.1.5  "Null-Crown"
-      │     THE HONEYPOT, written off 2019 but running OpenSSH 9.6
-      │     user: admin / admin -- 22 ssh
-      │     files: backup_old.bak (dead end) -- SSH here raises one watchdog mail
-      └─ M07_ASHVECTOR_IP (Device)   146.70.44.18   lan 192.168.1.6  "Ash-Vector"
-            THE REAL DEAD BOX, written off 2022, OpenSSH 5.3 to match
-            user: admin / admin -- 22 ssh
-            files: ash-gate_backup.txt (fw.admin credential, dated 2022)
-```
-
-Every `lanIp` is `192.168.1.x` because the engine's `IsLocalIp` accepts only
-that prefix (`app-asar-reference.md` E-7); the old M4's `172.16.0.x` could
-never have worked. Public IPs and codenames are the old M4's, unchanged
-(`11-spec-m7.md` §E).
+   game** (`docs/bugs.md` #30 follow-up). Section 7 is that test.
+2. **`Files.Transfer` on a Meterpreter `download`** has not been seen on this
+   route (`11` §K).
+3. **A `{ realMs }` Scheduler job across a live session** (`docs/bugs.md` #46) —
+   the 240-second deadline rests on it.
+4. **Whether a Firewall nested in a Splitter blocks its siblings**
+   (`docs/bugs.md` #45). With the shortcut gone, the port's `active` flag is the
+   gate either way.
+5. **The wiped-payload mechanic** (`docs/bugs.md` #49) and whether `Files.write`
+   reaches a remote root file at all.
+6. **The banner widget path** `components/incident-banner.html`
+   (`docs/bugs.md` #48).
+7. **The reward path is unverified** (`docs/bugs.md` #42) and only pays outside
+   focus.
+8. **HoneyCheck is a mission site gated to m07**, not a permanent tool site;
+   making it permanent waits on `weblab` (`04-web-layer.md` §E).
+9. **No `frontend-design` pass.** That plugin is not available in the build
+   environment; both new surfaces follow the briefs in prompt §6 by hand.
 
 ---

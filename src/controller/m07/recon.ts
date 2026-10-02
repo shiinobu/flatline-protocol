@@ -1,4 +1,6 @@
+import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M07_GATES } from "../../content/m07/gates.js";
+import { M07_LOG_NODES } from "../../content/m07/quest-logs.js";
 import { M07_DEAD_DROP_EMAIL, M07_TIP_SUBJECT } from "../../content/m07/mail.js";
 import { M07_C2_IP, M07_LEGACY_CMS_PATH } from "../../content/m07/network.js";
 import { unlock } from "../../core/index.js";
@@ -27,20 +29,27 @@ const bindEdgeScan = (quest: M07Quest): void => {
     });
 };
 
+const markDashboard = (quest: M07Quest): void => {
+    advanceStep(quest, M07_GATES, "dashboardFound", () => {
+        traceBacktraceFinding("m7", "nodes");
+        appendBacktraceLogs("m7", M07_LOG_NODES());
+    });
+};
+
 const bindDashboard = (quest: M07Quest): void => {
     quest.Events.on("Browser.Meta", (data) => {
         if (data.protocol !== "https:") return;
         if (data.hostname !== M07_C2_IP) return;
         if (normalizePath(data.pathname) !== normalizePath(M07_LEGACY_CMS_PATH)) return;
 
-        advanceStep(quest, M07_GATES, "dashboardFound");
+        markDashboard(quest);
     });
 
     quest.Events.on("Terminal.Dirhunter", (data) => {
         if (normalizeHost(data.host) !== M07_C2_IP) return;
         if (!data.results.includes(M07_LEGACY_CMS_PATH)) return;
 
-        advanceStep(quest, M07_GATES, "dashboardFound");
+        markDashboard(quest);
     });
 };
 

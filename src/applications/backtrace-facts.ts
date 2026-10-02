@@ -30,6 +30,18 @@ import {
     M03_VAULTLINE_CODENAME,
     M03_VPN_PEER_LABEL,
 } from "../content/m03/network.js";
+import {
+    M07_ASHVECTOR_CODENAME,
+    M07_C2_IP,
+    M07_FIREWALL_IP,
+    M07_FIREWALL_LABEL,
+    M07_FIREWALL_USERNAME,
+    M07_NULLCROWN_CODENAME,
+    M07_RDP_PORT,
+    M07_C2_SERVICE_USERNAME,
+} from "../content/m07/network.js";
+import { M07_ARCHITECT_REAL_NAME } from "../content/m07/report.js";
+import { M07_EVIDENCE_CLASSIFICATION, M07_LEDGER_FILE_NAME } from "../content/m07/server-files.js";
 import type { BacktraceFacts, BacktraceMissionId } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
@@ -41,7 +53,7 @@ export const BACKTRACE_KEYS = {
     m4: [],
     m5: [],
     m6: [],
-    m7: [],
+    m7: ["nodes", "credential", "firewall", "c2", "manifest", "ledger"],
 } as const satisfies Readonly<Record<BacktraceMissionId, readonly string[]>>;
 
 export type BacktraceKey<M extends BacktraceMissionId> = (typeof BACKTRACE_KEYS)[M][number];
@@ -108,10 +120,31 @@ const buildM3Facts = (): BacktraceFacts => {
     };
 };
 
+const buildM7Facts = (): BacktraceFacts => {
+    const totals = totalRansom(RANSOM_BATCHES);
+
+    return {
+        nodes: `${M07_NULLCROWN_CODENAME} + ${M07_ASHVECTOR_CODENAME} listed decommissioned`,
+        credential: `${M07_FIREWALL_USERNAME} @ ${M07_FIREWALL_LABEL}`,
+        firewall: `${M07_FIREWALL_IP} opened, ${M07_RDP_PORT} reachable`,
+        c2: `${M07_C2_IP} (${M07_C2_SERVICE_USERNAME})`,
+        manifest: `${RANSOM_BATCHES.length + 2} settled accounts`,
+        ledger: `${M07_LEDGER_FILE_NAME} extracted intact`,
+        architect: M07_ARCHITECT_REAL_NAME,
+        parentEntity: M03_PARENT_ENTITY_NAME,
+        caseId: M01_CASE_ID,
+        evidence: M07_EVIDENCE_CLASSIFICATION,
+        allBatches: formatUsd(totals.gross),
+        allToParent: formatUsd(totals.parent),
+        architectVpn: M04_ARCHITECT_VPN_IP,
+    };
+};
+
 const FACT_BUILDERS: Readonly<Partial<Record<BacktraceMissionId, () => BacktraceFacts>>> = {
     m1: buildM1Facts,
     m2: buildM2Facts,
     m3: buildM3Facts,
+    m7: buildM7Facts,
 };
 
 export const buildBacktraceFacts = (mission: BacktraceMissionId): BacktraceFacts =>

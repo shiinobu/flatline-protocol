@@ -8,7 +8,7 @@ import {
     type CommandTools,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { currentStrike, repelStrike, repelTargetFor } from "../components/intrusion.js";
+import { currentRepellableStrike, repelStrike, repelTargetFor } from "../components/intrusion.js";
 import { KIT_I18N_KEY } from "../i18n/global/kit.js";
 
 export const INTRUSION_REPELLED_EVENT = "flatline.intrusion.repelled";
@@ -35,7 +35,7 @@ export class RepelCommand extends Command {
             return;
         }
 
-        const strike = currentStrike();
+        const strike = currentRepellableStrike();
         if (strike !== null && strike.ip === ip) {
             repelStrike(strike.prefix);
             tools.printSuccess(Localization.t(KIT_I18N_KEY.REPEL_SEVERED, { ip }));

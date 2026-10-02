@@ -282,3 +282,53 @@ di teks.
 `[FP][M07] probe:metasploit-session`, `probe:manifest-cat`,
 `probe:attrcheck-revealed`, `probe:ledger-download`, dan pasangan
 `probe:tracking-armed` / `probe:tracking-disarmed` / `probe:tracking-expired`.
+
+## Catatan implementasi (2026-10-02, fase 4)
+
+Fase 4: **M7 penuh**. Semua yang fase 1 tunda sudah masuk.
+
+**Dicabut dari kerangka.** Port 3389 tidak lagi `active` sejak build
+(`M07_RDP_OPEN_FROM_BUILD = false`), dan lima probe telanjang di
+`controller/m07/probes.ts` dihapus bersama berkasnya.
+
+**Yang ditambahkan.** Pelacakan 240 detik di atas kit fase 3 (dipasang di
+langkah 8, dipasang lagi di setiap sesi baru ke C2 sampai `fileExtracted`,
+dipangkas jadi 120 detik bila `.enc` dibuka dengan `open`); HoneyCheck di
+`websites/global/honeycheck/` dengan penilaian yang sengaja salah pada kedua
+kotak mati; tabel status node `/legacy-cms/` yang dirancang; kolom `choice`
+dengan ketiga efek ending; dua surat epilog Greta dan kesunyian pada `destroy`;
+hadiah 5000 lewat `Bank.transaction`; enam kunci BACKTRACE m7 dengan kartu
+laporan penuh di `backtrace.html`; dan teks zh lengkap.
+
+**Nilai yang dipilih agen** (bisa diveto):
+
+| Hal | Nilai | Alasan |
+|---|---|---|
+| `honeycheck.net` | `185.93.2.117` | IP publik baru, tidak bertabrakan |
+| Tanggal sampel HoneyCheck | 2026-10-01 | di dalam batas hari-cerita M7 (2026-10-03) |
+| Tenggat dipangkas | 120 detik | separuh dari 240, sesuai bagian G |
+| Penalti pelacakan | `min(saldo, 500)` | bagian G |
+| Label node di `/legacy-cms/` | `index-01`, `ash-gate`, `node-07`, `node-11` | kedua kotak mati diberi label dan peran yang sama supaya tabel tidak membocorkan mana yang honeypot |
+
+**Tanggal.** Tidak ada tanggal baru selain **2026-10-01** (stempel sampel
+HoneyCheck), yang memenuhi aturan `13` §A.3. `manifest.txt` tetap dari
+`finance.ts`; `ash-gate_backup.txt` tetap 2022; tabel node tetap 2019 dan 2022.
+Surat Greta dan log pribadi per ending tanpa tanggal (sudut pandang sesudah M7,
+diizinkan `13` §A.3).
+
+**Penyimpangan.** (1) `.enc` tidak dihapus lalu dibuat ulang, melainkan
+**payload-nya ditimpa** dan dipulihkan lewat `Files.write` pada berkas yang
+ditemukan lewat jalan-id; alasannya di `docs/bugs.md` #49 (`Files.create` hanya
+menerima `parentPath`, dan path tidak pernah menjangkau target Meterpreter,
+#30). Tanpa ini misi bisa jalan buntu, yang bagian G larang. Gerbangnya juga
+memeriksa bendera `ledgerWiped`, jadi kebenarannya tidak bergantung pada
+penulisan berkas. (2) Pelacakan diberi `repellable: false` di kit, supaya pemain
+tidak bisa membatalkan hitung mundurnya sendiri dengan `repel <ip C2>`.
+(3) HoneyCheck dibungkus `gateMissionPages("m07")` sebagai situs misi, bukan
+situs alat permanen (menunggu `weblab`, `04-web-layer.md` §E). (4) Plugin
+`frontend-design` **tidak tersedia** di lingkungan build, jadi kedua permukaan
+dirancang manual mengikuti brief prompt §6; dicatat di laporan sesuai perintah
+prompt.
+
+**Uji pemilik:** `docs/m07-playtest.md` (sudah ditulis ulang untuk misi penuh,
+13 bagian termasuk jalur gagal, ketiga ending, dan lintasan zh).

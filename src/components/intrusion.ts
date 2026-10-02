@@ -27,6 +27,7 @@ export interface StrikeSpec {
     readonly ip: string;
     readonly alias: string;
     readonly deadlineRealMs: number;
+    readonly repellable?: boolean;
     readonly banner: IntrusionBannerText;
     readonly mail?: IntrusionMail;
     readonly toast?: string;
@@ -38,6 +39,7 @@ interface ActiveStrike {
     readonly strikeId: string;
     readonly ip: string;
     readonly alias: string;
+    readonly repellable: boolean;
 }
 
 export interface IntrusionHandlers {
@@ -81,6 +83,11 @@ export const currentStrike = (): ActiveStrike | null => {
     return prefix === null ? null : activeStrike(prefix);
 };
 
+export const currentRepellableStrike = (): ActiveStrike | null => {
+    const strike = currentStrike();
+    return strike !== null && strike.repellable ? strike : null;
+};
+
 const clearActiveStrike = (prefix: string): void => {
     SaveStorage.set(activeKey(prefix), null);
     if ((SaveStorage.get<string | null>(ACTIVE_PREFIX_KEY) ?? null) === prefix) {
@@ -95,6 +102,7 @@ export const beginStrike = (spec: StrikeSpec): void => {
         strikeId: spec.strikeId,
         ip: spec.ip,
         alias: spec.alias,
+        repellable: spec.repellable ?? true,
     };
     SaveStorage.set(activeKey(spec.prefix), strike);
     SaveStorage.set(ACTIVE_PREFIX_KEY, spec.prefix);
@@ -141,6 +149,8 @@ const finishStrike = (prefix: string, outcome: IncidentOutcome): ActiveStrike | 
 };
 
 export const repelStrike = (prefix: string): ActiveStrike | null => finishStrike(prefix, "severed");
+
+export const escapeStrike = (prefix: string): ActiveStrike | null => finishStrike(prefix, "severed");
 
 export const abandonStrike = (prefix: string): void => {
     Scheduler.cancelKind(DEADLINE_JOB);

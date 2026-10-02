@@ -27,6 +27,31 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 4 of the M4-M7 run: M07 is complete.** The phase-1 shortcut (3389 open from the
+  build) and the five bare probes are gone. Added: the 240-second real-time tracking on the phase-3
+  kit (re-armed on every new session to the C2 until `fileExtracted`, halved by opening the `.enc`),
+  HoneyCheck (`websites/global/honeycheck/`, verdicts deliberately wrong on both dead boxes), the
+  designed `/legacy-cms/` node-status table, the `choice` field with all three ending effects, Greta's
+  two epilogue letters (and deliberate silence on `destroy`), the 5000 payout, the six m7 BACKTRACE
+  keys with a full report card in `backtrace.html`, and the complete Chinese text. See
+  `docs/m07-playtest.md` and `docs/bugs.md` #49.
+- **[mechanic] The M07 trace is not repellable.** `components/intrusion.ts` grew a `repellable` flag
+  so `repel` ignores a strike that is a trace rather than an intruder; without it a player could have
+  typed `repel <C2 ip>` and cancelled their own countdown.
+- **[mechanic] The ledger payload is wiped in place, not deleted** (`docs/bugs.md` #49). `Files.create`
+  takes only a `parentPath` and path resolution never reaches a Meterpreter target (#30), so a deleted
+  root file could not be restored and the mission would dead-end. Failure writes a cleared marker and a
+  new session writes the real blob back, both through the id-based walk; `fileExtracted` additionally
+  requires `ledgerWiped` to be false, so downloading a wiped file never counts.
+- **[mechanic] The banner's text is localized before it reaches the widget**, which is what makes the
+  Chinese pass work for the countdown: a widget loaded by `Desktop.addWidget({ src })` never passes
+  through `localizeHtml`.
+- **[docs] No `frontend-design` pass was possible.** That plugin is not available in the build
+  environment (prompt §6 requires saying so rather than skipping silently); `/legacy-cms/` and
+  HoneyCheck follow the briefs in §6 by hand — self-contained HTML, no `<form>`, every string through
+  `{{t:KEY}}`, system fonts, inline CSS only, responsive from 360 px, `:focus-visible` and
+  `prefers-reduced-motion`, and designed empty and unknown states.
+
 - **[milestone] Phase 3 of the M4-M7 run: the rival-hacker kit becomes generic, and M04 gets a
   walking skeleton.** New mission-blind components: `components/intrusion.ts` (scripted strikes
   through `Scheduler`, no `Math.random`), `components/desktop-breach.ts`, `components/desktop-lock.ts`,

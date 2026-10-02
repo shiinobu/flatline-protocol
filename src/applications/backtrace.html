@@ -538,7 +538,58 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 <section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">BURN NOTICE</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 <section id="m5" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE DOOR</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 <section id="m6" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">OPEN REGISTER</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
-<section id="m7" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE ARCHITECT</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m7" class="view" data-report="none">
+<div class="report">
+  <div class="report-head">
+    <div><div class="report-code">MISSION 07</div><h1 class="report-title">THE ARCHITECT</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+  </div>
+
+  <div class="report-grid">
+    <div class="report-main">
+      <section class="rsec">
+        <div class="rsec-title">SUMMARY</div>
+        <p class="rsec-copy">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
+      </section>
+
+      <section class="rsec">
+        <div class="rsec-title">KEY FINDINGS</div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">That account opened the edge filter and the index host's remote port: <span class="code" data-fact="m7.firewall">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">A session on <span class="code" data-fact="m7.c2">—</span> reached the file the whole chain pointed at.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">The master ledger index carries <span class="code" data-fact="m7.manifest">—</span>, totalling <span class="code" data-fact="m7.allBatches">—</span>, of which <span class="code" data-fact="m7.allToParent">—</span> went to <span data-fact="m7.parentEntity">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">The hospital's entry (<span class="code" data-fact="m7.caseId">—</span>) is classified <span class="code" data-fact="m7.evidence">—</span>, prepared with the hospital's own risk officer and approved by the insurer three days after the payout.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The backup was taken whole rather than opened: <span class="code" data-fact="m7.ledger">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">08</div><div class="finding-text">The Architect is <span data-fact="m7.architect">—</span>, who priced the losses he was arranging and booked them as a flat line.</div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="report-side">
+      <section class="rsec">
+        <div class="rsec-title">ENTITIES</div>
+        <div class="entity-cards">
+          <button class="entity-card" data-entity="parent"><div class="entity-type">Parent Entity</div><div class="entity-name" data-fact="m7.parentEntity">—</div><div class="entity-source">CONFIRMED // M7</div></button>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">EVIDENCE</div>
+        <div class="evidence-list">
+          <div class="evidence-item"><span class="evidence-id">EV-M7-01</span><span class="evidence-name" data-fact="m7.ledger">—</span></div>
+          <div class="evidence-item"><span class="evidence-id">EV-M7-02</span><span class="evidence-name" data-fact="m7.manifest">—</span></div>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">PERSONAL LOG</div>
+        <div data-personal-log="m7"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="locked"></div>
+</section>
 
 <section id="board" class="view active">
 <div class="caseboard">
@@ -668,12 +719,13 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
   const MISSION_IDS = ['m1','m2','m3','m4','m5','m6','m7'];
-  const REPORT_MISSIONS = ['m1','m2','m3'];
+  const REPORT_MISSIONS = ['m1','m2','m3','m7'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'BURN NOTICE',m5:'THE DOOR',m6:'OPEN REGISTER',m7:'THE ARCHITECT'};
   const KEY_LABELS = {
     m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
     m2:{developer:'Developer server',ransom:'Payout pattern',deployLog:'Deploy log',homeLead:'Home network lead',firewall:'Home firewall',workstation:'Home workstation',shellCompany:'Shell company'},
-    m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'}
+    m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'},
+    m7:{nodes:'Node inventory',credential:'Edge credential',firewall:'Edge opened',c2:'Index host session',manifest:'Master ledger index',ledger:'Ledger extracted'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const PREVIEW_STATE = {

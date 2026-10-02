@@ -2,15 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>C2 Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t:M07.SITE.CMS.RESTRICTED_TITLE}}</title>
 <style>
-    body { background:#050506; color:#9aa0a6; font-family: monospace; padding: 32px; }
-    h1 { color:#ff3344; }
-    .tag { color:#555; }
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0a0a0c;color:#8f949a;font-family:"Courier New",Courier,monospace}
+main{max-width:34ch;text-align:center}
+h1{margin:0 0 10px;font-size:17px;font-weight:normal;letter-spacing:.18em;text-transform:uppercase;color:#c6434f}
+p{margin:0;font-size:12px;line-height:1.7;color:#6d7278}
 </style>
 </head>
 <body>
-<h1>Restricted</h1>
-<p class="tag">no public content is served at this address.</p>
+<main>
+<h1>{{t:M07.SITE.CMS.RESTRICTED_TITLE}}</h1>
+<p>{{t:M07.SITE.CMS.RESTRICTED_BODY}}</p>
+</main>
 </body>
 </html>

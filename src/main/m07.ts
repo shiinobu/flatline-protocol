@@ -1,5 +1,6 @@
 import { Quest, RegisterQuest } from "@hotbunny/hackhub-content-sdk";
 
+import "../websites/global/honeycheck/index.js";
 import "../websites/m07/architect-c2/index.js";
 import type { M07QuestData } from "../content/m07/state.js";
 import {

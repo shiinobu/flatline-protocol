@@ -14,3 +14,13 @@ export const buildM07Objectives = (): QuestObjectiveDefinition[] => [
 ];
 
 export const M07_REWARD_MONEY = 5000;
+export const M07_REWARD_DESCRIPTION = "The Architect — contract settled";
+
+export const M07_SAVE_PREFIX = "flatline.m07";
+export const M07_SCOPE = "M07";
+
+export const M07_TRACE_STRIKE_ID = "trace";
+export const M07_TRACE_DEADLINE_REAL_MS = 240_000;
+export const M07_TRACE_HALVED_REAL_MS = 120_000;
+export const M07_TRACE_PENALTY = 500;
+export const M07_HONEYPOT_PENALTY = 500;

@@ -1960,3 +1960,44 @@ queries and synthetic double-click, with its release failsafe (three attempts,
 then unlock) unchanged, and `mods.reset` during an active strike is handled only
 through `Game.SessionStarted`. `docs/m04-playtest.md` §5 is the test the owner
 asked for.
+
+---
+
+## 49. `Files.create` cannot re-create a file on a Meterpreter target, so M07 wipes the payload instead of deleting the file
+
+**Status: DOCUMENTED (design consequence); the write path itself is UNVERIFIED and M07's phase-4 build is the live test.**
+Found: M07 full implementation, 2026-10-02.
+
+`11-spec-m7.md` §G says that when M07's 240-second trace expires the `.enc`
+"self-deletes", and that it is re-created with `Files.create` inside a handler
+when a new session to the C2 opens. The second half cannot work as written:
+
+- `FileCreateOptions` offers only `parentPath`, never a parent **id**.
+- Path operations are session-aware **only over SSH** (`docs/bugs.md` #30). A
+  Meterpreter session sets `meterpreter` / `meterpreter_user`, not `ssh_ip`, so
+  any `parentPath` resolves against the **player's own** machine, not the C2.
+
+So a deleted root file on the C2 could be removed but never put back, which
+would dead-end the mission — exactly what `11` §G forbids ("Tidak ada jalan
+buntu").
+
+**What was implemented instead.** Failure overwrites the payload in place with
+`Files.write(id, <cleared marker>)` after locating the file through the
+id-based walk (`Files.getById(<target ip>)` then `getChildren`, the same route
+`commands/meterpreter-files.ts` uses). Opening a new session restores the real
+blob with `Files.write(id, <real content>)`. Both directions are id-based, which
+the SDK documents as not session-limited, and they are symmetric, so there is
+nothing to create.
+
+The gate does not depend on the wipe: `fileExtracted` additionally requires the
+mission's own `ledgerWiped` flag to be false, so a `Files.Transfer` of a wiped
+file never counts as the extraction. That flag is quest data, so it is reliable
+even if the file write itself fails.
+
+**What the live test has to confirm:** that `Files.write` on a remote root file
+found by the id walk actually takes effect, and that `cat` / `download` then see
+the new content. If it does not, the consequence is cosmetic — the player keeps
+a readable file after failing the trace — and the mission is still completable,
+because the penalty, the desktop breach and the re-armed trace do not depend on
+it. The **destroy** ending does use `Files.remove(id)` on the same file, which is
+one-way and therefore safe.

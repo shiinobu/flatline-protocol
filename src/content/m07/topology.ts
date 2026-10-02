@@ -44,7 +44,7 @@ import {
     M07_MANIFEST_FILE_NAME,
 } from "./server-files.js";
 
-export const M07_RDP_OPEN_FROM_BUILD = true;
+export const M07_RDP_OPEN_FROM_BUILD = false;
 
 const buildFirewall = (): DeviceSpec => ({
     kind: "firewall",

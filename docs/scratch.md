@@ -2480,3 +2480,59 @@ but not on the address, so a synthetic event with a decoy IP advanced the step.
 The real `repel` command cannot emit that, but the listener now checks the IP as
 well. 80 checks for M04, including the `mods.reset`-during-a-strike path and the
 `min(balance, amount)` penalty cap.
+
+---
+
+## 2026-10-02 — M07 full (phase 4 of the M4-M7 run)
+
+**Why the trace needed a `repellable` flag.** The 240-second trace reuses
+`components/intrusion.ts`, whose active strike is keyed on an IP, and `repel`
+severs the active strike when the IP matches. The trace's IP is the C2's, which
+the player knows, so without a flag `repel 203.0.113.161` would have cancelled
+the countdown. `StrikeSpec.repellable` defaults to true; M07 passes false, and
+`repel` reads `currentRepellableStrike()`.
+
+**Why the `.enc` is wiped rather than deleted.** See `docs/bugs.md` #49. The
+short version: `Files.create` has no parent **id**, and `parentPath` never
+resolves onto a Meterpreter target, so a deleted remote file could not be put
+back and the mission would dead-end. `Files.write` works in both directions on a
+file found through the id walk. The gate also checks the mission's own
+`ledgerWiped` flag, so correctness does not rest on the file write succeeding.
+
+**Why HoneyCheck's markers carry a default literal.** `var DATA = /*__X__*/;` is
+not parsable before injection, so `node --check` on the extracted script block
+failed. M1's proven form puts the marker **in front of** a real literal
+(`= /*__M01_SOLD_LOTS__*/[ ... ]`), and the injector replaces marker plus
+literal. HoneyCheck now does the same with `[]` and `{}`, which keeps the file
+valid JS at rest and after injection.
+
+**Why the ending runs from the report handler, not `OnComplete`.** The choice
+arrives in the report's own fields, and `OnComplete` has no access to it beyond
+quest data. `applyM07Ending` runs at the end of the `Mail.Sent` handler, so the
+`Mail.send` of Greta's letter is synchronous in the tick of its trigger
+(rules §5) and the `unregister` of the destroy ending goes through
+`core/unregister`'s sequential teardown (#35). `endingApplied` makes it
+idempotent.
+
+**`trace` call locations for M07** (the owner removes these at FINAL LOCK):
+`controller/m07/tracking.ts` (trace expired, window halved, payload wiped /
+restored, both "not reachable" misses) and `controller/m07/ending.ts` (ending
+applied, ledger removed, network torn down). The phase-1 `probes.ts` is deleted.
+
+**`frontend-design` is not installed in this environment.** Checked the skill
+list; only the Anthropic/general skills are present. Both new surfaces were
+designed by hand against the §6 brief: `/legacy-cms/` is a 2011-era admin panel
+(beveled title bar, fieldsets, gradient table headers, Verdana, pill states) and
+HoneyCheck is a single-focus checker (one card, large verdict word, confidence
+line, dashed empty state, warm-grey paper). Both carry viewport metas, no
+`<form>`, no external loads, `:focus-visible`, `prefers-reduced-motion`, and a
+narrow-window layout.
+
+**Harness.** 63 new checks for the full mission (shortcut removed, six keys
+traced once each by an in-order walk, the 240/120-second deadlines, the failure
+and recovery path end to end, all three endings with their letter-or-silence and
+teardown-or-not, the reward, and the HoneyCheck and node-table data), plus 25
+render checks that actually render the three new pages and assert no `{{t:}}` or
+data marker survives, no page carries a date past the M7 story day, http gets the
+400 page and an m07 page 404s while another mission runs. The phase-1 suites were
+updated rather than left contradicting phase 4.

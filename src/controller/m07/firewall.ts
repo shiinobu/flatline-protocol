@@ -1,3 +1,4 @@
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M07_GATES } from "../../content/m07/gates.js";
 import { M07_FIREWALL_IP } from "../../content/m07/network.js";
 import { unlock } from "../../core/index.js";
@@ -13,6 +14,9 @@ export const bindM07Firewall = (quest: M07Quest): void => {
     });
 
     quest.Events.on("PFSense.Changes", () => {
-        advanceStep(quest, M07_GATES, "firewallBreached", () => unlock(M07_WORLD, "commandHostRdp"));
+        advanceStep(quest, M07_GATES, "firewallBreached", () => {
+            unlock(M07_WORLD, "commandHostRdp");
+            traceBacktraceFinding("m7", "firewall");
+        });
     });
 };

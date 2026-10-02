@@ -1,5 +1,6 @@
 import { Mail } from "@hotbunny/hackhub-content-sdk";
 
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M07_GATES } from "../../content/m07/gates.js";
 import {
     M07_HONEYPOT_ALERT_CONTENT,
@@ -48,17 +49,21 @@ const bindSessions = (quest: M07Quest): void => {
     });
 };
 
+const markCredential = (quest: M07Quest): void => {
+    advanceStep(quest, M07_GATES, "credentialRead", () => traceBacktraceFinding("m7", "credential"));
+};
+
 const bindCredential = (quest: M07Quest): void => {
     quest.Events.on("Terminal.Cat", (data) => {
         if (!isAshGateBackup(data)) return;
 
-        advanceStep(quest, M07_GATES, "credentialRead");
+        markCredential(quest);
     });
 
     quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
         if (!isAshGateBackup(data)) return;
 
-        advanceStep(quest, M07_GATES, "credentialRead");
+        markCredential(quest);
     });
 };
 
