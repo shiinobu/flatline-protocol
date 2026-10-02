@@ -3,7 +3,9 @@ import { M07_GATES } from "../../content/m07/gates.js";
 import { M07_LOG_NODES } from "../../content/m07/quest-logs.js";
 import { M07_DEAD_DROP_EMAIL, M07_TIP_SUBJECT } from "../../content/m07/mail.js";
 import { M07_C2_IP, M07_LEGACY_CMS_PATH } from "../../content/m07/network.js";
+import { setM07DashboardOpen } from "../../context/m07/progress.js";
 import { unlock } from "../../core/index.js";
+import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M07Quest } from "./types.js";
 import { M07_WORLD } from "./world.js";
@@ -25,7 +27,10 @@ const bindEdgeScan = (quest: M07Quest): void => {
     quest.Events.on("Terminal.NmapScan", (data) => {
         if (data.ip !== M07_C2_IP || !data.versionScan) return;
 
-        advanceStep(quest, M07_GATES, "edgeScanned", () => unlock(M07_WORLD, "legacyCms"));
+        advanceStep(quest, M07_GATES, "edgeScanned", () => {
+            unlock(M07_WORLD, "legacyCms");
+            setM07DashboardOpen(true);
+        });
     });
 };
 
@@ -47,9 +52,8 @@ const bindDashboard = (quest: M07Quest): void => {
 
     quest.Events.on("Terminal.Dirhunter", (data) => {
         if (normalizeHost(data.host) !== M07_C2_IP) return;
-        if (!data.results.includes(M07_LEGACY_CMS_PATH)) return;
 
-        markDashboard(quest);
+        trace("M07", `probe:dirhunter-c2 listed=${data.results.includes(M07_LEGACY_CMS_PATH)}`);
     });
 };
 

@@ -62,7 +62,7 @@ Localization.registerAll({
         [M07_SITE_KEY.CMS_ROLE_EDGE]: "edge filter",
         [M07_SITE_KEY.CMS_ROLE_RELAY]: "relay",
         [M07_SITE_KEY.CMS_NODE_FOOT]:
-            "Decommissioned nodes are retained in this table until the next inventory pass.",
+            "Decommissioned nodes are retained in this table until the next inventory pass. Their maintenance accounts still carry the factory default login.",
         [M07_SITE_KEY.CMS_PANEL_SESSION]: "Session",
         [M07_SITE_KEY.CMS_SESSION_NOTE]: "Administrative session. Changes are written on save.",
         [M07_SITE_KEY.CMS_FOOTER]: "LegacyCMS 2.1 — internal deployment",
@@ -106,7 +106,7 @@ Localization.registerAll({
         [M07_SITE_KEY.CMS_ROLE_INDEX]: "索引",
         [M07_SITE_KEY.CMS_ROLE_EDGE]: "边界过滤",
         [M07_SITE_KEY.CMS_ROLE_RELAY]: "中继",
-        [M07_SITE_KEY.CMS_NODE_FOOT]: "已注销的节点会保留在本表中，直到下一次资产盘点。",
+        [M07_SITE_KEY.CMS_NODE_FOOT]: "已注销的节点会保留在本表中，直到下一次资产盘点。它们的维护账户仍在使用出厂默认登录。",
         [M07_SITE_KEY.CMS_PANEL_SESSION]: "会话",
         [M07_SITE_KEY.CMS_SESSION_NOTE]: "管理会话。更改在保存时写入。",
         [M07_SITE_KEY.CMS_FOOTER]: "LegacyCMS 2.1 — 内部部署",

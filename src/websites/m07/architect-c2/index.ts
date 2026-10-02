@@ -9,8 +9,9 @@ import {
 import { M07_NODE_ROWS } from "../../../content/m07/legacy-cms.js";
 import { M07_C2_IP, M07_LEGACY_CMS_PATH } from "../../../content/m07/network.js";
 import { siteT } from "../../../context/global/site-strings.js";
+import { isM07DashboardOpen } from "../../../context/m07/progress.js";
 import { M07_SITE_KEY } from "../../../i18n/m07/site.js";
-import { gateMissionPages, requireHttps, securePage as page } from "../../global/page-guards.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage as page } from "../../global/page-guards.js";
 import { localizeHtml } from "../../global/localize.js";
 
 import homePage from "./home.html";
@@ -37,12 +38,17 @@ const renderLegacyCms = (): string =>
 
 const legacyCms = (): DynamicWebsitePageDefinition => ({
     path: M07_LEGACY_CMS_PATH,
-    metadata: (context: PageContext): PageMetadata =>
-        requireHttps(context) ?? {
-            title: "LegacyCMS 2.1 — Admin",
-            description: "Unpatched legacy CMS instance.",
-            html: renderLegacyCms(),
-        },
+    metadata: (context: PageContext): PageMetadata => {
+        if (!isM07DashboardOpen()) return notFoundMetadata();
+
+        return (
+            requireHttps(context) ?? {
+                title: "LegacyCMS 2.1 — Admin",
+                description: "Unpatched legacy CMS instance.",
+                html: renderLegacyCms(),
+            }
+        );
+    },
 });
 
 @RegisterWebsite

@@ -65,7 +65,7 @@ const bindTrap = (quest: M07Quest): void => {
     });
 
     quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
-        if (!isLedger(data) || quest.Data.fileExtracted) return;
+        if (!isLedger(data) || !quest.Data.shellObtained || quest.Data.fileExtracted || quest.Data.traceHalved) return;
 
         Mail.send({
             from: M07_WATCHDOG_EMAIL,

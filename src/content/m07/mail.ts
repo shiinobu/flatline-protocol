@@ -3,13 +3,17 @@ import { Localization, type MailDefinition } from "@hotbunny/hackhub-content-sdk
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { DEAD_DROP_CONTACT, GRETA_PRIVATE_EMAIL, M04_ARCHITECT_VPN_IP } from "../global/characters.js";
 import type { M07Step } from "./gates.js";
+import { M07_HONEYCHECK_DOMAIN } from "./honeycheck.js";
 
 export const M07_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M07_WATCHDOG_EMAIL = "watchdog@architect-c2.dark";
 
 export const M07_TIP_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_TIP_SUBJECT);
 export const M07_TIP_CONTENT = (): string =>
-    Localization.t(M07_I18N_KEY.MAIL_TIP_CONTENT, { endpoint: M04_ARCHITECT_VPN_IP });
+    Localization.t(M07_I18N_KEY.MAIL_TIP_CONTENT, {
+        endpoint: M04_ARCHITECT_VPN_IP,
+        honeycheck: M07_HONEYCHECK_DOMAIN,
+    });
 
 export const M07_HONEYPOT_ALERT_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_HONEYPOT_SUBJECT);
 export const M07_HONEYPOT_ALERT_CONTENT = (): string => Localization.t(M07_I18N_KEY.MAIL_HONEYPOT_CONTENT);

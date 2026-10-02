@@ -1,6 +1,11 @@
 import { Files, Localization, Mail, UI, type FileInfo } from "@hotbunny/hackhub-content-sdk";
 
-import { beginStrike, escapeStrike, registerIntrusionHandlers } from "../../components/intrusion.js";
+import {
+    beginStrike,
+    escapeStrike,
+    registerIntrusionHandlers,
+    strikeRemainingRealMs,
+} from "../../components/intrusion.js";
 import { startBreach } from "../../components/desktop-breach.js";
 import { penalty } from "../../components/reward.js";
 import { M07_C2_IP } from "../../content/m07/network.js";
@@ -125,10 +130,11 @@ export const resumeM07Trace = async (quest: M07Quest): Promise<void> => {
 export const halveM07Trace = (quest: M07Quest): void => {
     if (quest.Data.fileExtracted || quest.Data.traceHalved) return;
 
+    const remaining = strikeRemainingRealMs();
     quest.SetData("traceHalved", true);
     Mail.send(M07_TRACE_WARNING_MAIL());
     UI.toast(Localization.t(M07_I18N_KEY.TOAST_HALVED), "warning");
-    armTrace(M07_TRACE_HALVED_REAL_MS);
+    armTrace(remaining === null ? M07_TRACE_HALVED_REAL_MS : Math.min(remaining, M07_TRACE_HALVED_REAL_MS));
     trace(M07_SCOPE, "trace window halved");
 };
 

@@ -1,4 +1,4 @@
-import { Mail, SaveStorage, Scheduler, UI, type MailDefinition } from "@hotbunny/hackhub-content-sdk";
+import { Mail, SaveStorage, Scheduler, Time, UI, type MailDefinition } from "@hotbunny/hackhub-content-sdk";
 
 import { trace } from "../helpers/logger.js";
 import {
@@ -175,5 +175,5 @@ export const strikeRemainingRealMs = (): number | null => {
     const jobs = Scheduler.list(DEADLINE_JOB);
     if (jobs.length === 0) return null;
     const remaining = Scheduler.remaining(jobs[0].id);
-    return remaining === null ? null : remaining;
+    return remaining === null ? null : Time.toRealMs(remaining);
 };

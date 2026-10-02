@@ -3,6 +3,7 @@ import { Mail } from "@hotbunny/hackhub-content-sdk";
 import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { sendReplacingMail } from "../../components/mail.js";
 import { isReportSubmission } from "../../components/report.js";
+import { M07_CHOICE_DESTROY } from "../../content/m07/choice.js";
 import { M07_GATES, M07_STEP_ORDER } from "../../content/m07/gates.js";
 import {
     M07_DEAD_DROP_EMAIL,
@@ -14,7 +15,7 @@ import { M07_OBJECTIVE_IDS } from "../../content/m07/quest.js";
 import { M07_LEDGER_FILE_NAME } from "../../content/m07/server-files.js";
 import type { M07Choice } from "../../content/m07/state.js";
 import { advanceStep, firstUnmetStep } from "../../middleware/gate.js";
-import { applyM07Ending } from "./ending.js";
+import { destroyM07Network, recordM07Ending } from "./ending.js";
 import { M07_REPORT_SPEC, readM07Choice } from "./report.js";
 import { endM07Trace } from "./tracking.js";
 import type { M07Quest } from "./types.js";
@@ -56,8 +57,11 @@ const bindReport = (quest: M07Quest): void => {
         if (!isReportSubmission(M07_REPORT_SPEC, data.subject, data.content)) return;
 
         const choice = parseChoice(data.subject, data.content);
+        if (choice === null) return;
+
         const accepted = advanceStep(quest, M07_GATES, "reportSent", () => {
-            if (choice !== null) quest.SetData("choice", choice);
+            quest.SetData("choice", choice);
+            recordM07Ending(quest, choice);
             quest.completeObjective(M07_OBJECTIVE_IDS.reportFindings);
         });
         if (!accepted) {
@@ -68,7 +72,7 @@ const bindReport = (quest: M07Quest): void => {
             return;
         }
 
-        await applyM07Ending(quest);
+        if (choice === M07_CHOICE_DESTROY) await destroyM07Network();
     });
 };
 

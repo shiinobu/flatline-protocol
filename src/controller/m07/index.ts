@@ -10,7 +10,8 @@ import { M07_PREMATURE_MAIL_SLOT } from "../../content/m07/mail.js";
 import { M07_REWARD_DESCRIPTION, M07_REWARD_MONEY, M07_SAVE_PREFIX, M07_SCOPE } from "../../content/m07/quest.js";
 import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
-import { bindWorld, register, seed, unregister } from "../../core/index.js";
+import { clearM07Progress, setM07DashboardOpen } from "../../context/m07/progress.js";
+import { bindWorld, register, seed } from "../../core/index.js";
 import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
 import { reachedUnlocks } from "../../middleware/gate.js";
 import { bindM07DeadBox } from "./deadbox.js";
@@ -37,6 +38,7 @@ export const onStartM07 = (): void => {
 export const onObjectivesStartM07 = (quest: M07Quest): void => {
     openMissionSites("m07");
     refreshSiteStrings();
+    setM07DashboardOpen(quest.Data.edgeScanned);
 
     const networkBuilt = register(M07_WORLD, {
         networkBuilt: quest.Data.networkBuilt,
@@ -57,6 +59,7 @@ export const onObjectivesStartM07 = (quest: M07Quest): void => {
 
 export const onCompleteM07 = (): void => {
     closeMissionSites("m07");
+    clearM07Progress();
     setBacktraceMission("m7", "complete");
     withdrawSlotMail(M07_PREMATURE_MAIL_SLOT);
     abandonStrike(M07_SAVE_PREFIX);
@@ -66,5 +69,4 @@ export const onCompleteM07 = (): void => {
         description: M07_REWARD_DESCRIPTION,
         skip: isQuestDevFocus("m07") || isQuestTesterFocus("m07"),
     });
-    unregister(M07_WORLD);
 };

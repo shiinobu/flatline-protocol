@@ -56,6 +56,7 @@ export const M07_MANIFEST_CONTENT = (): string =>
         ].join("\n"),
         hospitalCaseRef: RANSOM_BATCH_HOSPITAL.caseRef,
         hospitalName: M01_HOSPITAL_NAME,
+        ledgerFile: `${M07_LEDGER_FILE_NAME}.${M07_LEDGER_FILE_EXTENSION}`,
         scapegoat: GRETA_SHORT_NAME,
         riskOfficer: VIVIEN_ORCHID_SHORT_NAME,
         insurer: M07_INSURER_SHORT_NAME,
