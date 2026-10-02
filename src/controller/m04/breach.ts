@@ -4,7 +4,7 @@ import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/b
 import { DESKTOP_RESTORED_EVENT, startBreach } from "../../components/desktop-breach.js";
 import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
 import { M04_GATES } from "../../content/m04/gates.js";
-import { M04_HUNTER_EMAIL, M04_INTRUDER_IP } from "../../content/m04/network.js";
+import { M04_HUNTER_EMAIL, M04_STATIC_HOP_IP } from "../../content/m04/network.js";
 import { M04_LOG_BREACH } from "../../content/m04/quest-logs.js";
 import {
     M04_BREACH_DELAY_REAL_MS,
@@ -40,7 +40,7 @@ const runBreach = async (): Promise<void> => {
         {
             scope: M04_SCOPE,
             mission: "m04",
-            ip: M04_INTRUDER_IP,
+            ip: M04_STATIC_HOP_IP,
             alias: M04_STRIKE_BREACH_ID,
             buildIncidentLog: buildM04IncidentLog,
         },

@@ -1,4 +1,5 @@
 import { COMPOSITOR_VERSION } from "../../components/desktop-breach.js";
+import { M04_R1_IP } from "../../content/m04/network.js";
 import { M04_INCIDENT_CLOCK } from "../../content/m04/quest.js";
 
 const SECOND_STEPS: readonly string[] = [
@@ -16,7 +17,7 @@ const SECOND_STEPS: readonly string[] = [
 
 export const buildM04IncidentLog = (expectedBuild: string, ip: string): string =>
     [
-        `${M04_INCIDENT_CLOCK} compositord[812]: inbound session from ${ip}:443 accepted`,
+        `${M04_INCIDENT_CLOCK} compositord[812]: inbound session from ${ip}:443 accepted (nat gateway ${M04_R1_IP})`,
         `${SECOND_STEPS[1]} compositord[812]: session ${ip} holds uid 0`,
         `${SECOND_STEPS[2]} compositor[1140]: loaded module compositor v${COMPOSITOR_VERSION} build ${expectedBuild}`,
         `${SECOND_STEPS[3]} compositor[1140]: remote session requested module unload`,

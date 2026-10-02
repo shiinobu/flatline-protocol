@@ -7,7 +7,8 @@ export const M04_STATIC_HOP_LAN_IP = "192.168.1.2";
 export const M04_STATIC_HOP_CODENAME = "Static-Hop";
 export const M04_STATIC_HOP_USERNAME = "svc";
 export const M04_STATIC_HOP_PASSWORD = "relay-swap-07";
-export const M04_R1_PANEL_USERNAME = "admin";
+export const M04_R1_PANEL_USERNAME = M04_STATIC_HOP_USERNAME;
+export const M04_R1_COMMON_USER = "admin";
 
 export const M04_R2_IP = "87.121.52.196";
 export const M04_R2_LAN_IP = "192.168.1.1";
@@ -48,4 +49,8 @@ export const M04_DOMAIN_RECORDS: readonly DomainSpec[] = [];
 
 export const M04_R1_HYDRA_TARGET = `${M04_R1_IP}:${M04_HTTP_PORT}`;
 export const M04_HYDRA_DEFAULT_USER = "guest";
-export const M04_R1_HYDRA_USERS: readonly string[] = [M04_HYDRA_DEFAULT_USER, M04_R1_PANEL_USERNAME];
+export const M04_R1_HYDRA_USERS: readonly string[] = [
+    M04_HYDRA_DEFAULT_USER,
+    M04_R1_COMMON_USER,
+    M04_R1_PANEL_USERNAME,
+];
