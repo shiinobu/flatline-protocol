@@ -114,8 +114,6 @@ const removeBanner = (): void => {
 Scheduler.register(TICK_JOB, runTick);
 Scheduler.register(CLEAR_JOB, removeBanner);
 
-export const incidentBannerIp = (): string | null => storedIncident()?.ip ?? null;
-
 export const showIncidentBanner = (spec: IncidentBannerSpec): void => {
     const incident: StoredIncident = {
         scope: spec.scope,
@@ -161,12 +159,4 @@ export const dismissIncidentBanner = (): void => {
     Scheduler.cancelKind(CLEAR_JOB);
     SaveStorage.set(INCIDENT_KEY, null);
     removeBanner();
-};
-
-export const restoreIncidentBanner = (): void => {
-    if (storedIncident() === null) {
-        removeBanner();
-        return;
-    }
-    runTick();
 };

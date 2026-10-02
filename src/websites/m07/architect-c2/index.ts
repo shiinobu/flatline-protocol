@@ -12,7 +12,7 @@ import { siteT } from "../../../context/global/site-strings.js";
 import { isM07DashboardOpen } from "../../../context/m07/progress.js";
 import { M07_SITE_KEY } from "../../../i18n/m07/site.js";
 import { gateMissionPages, notFoundMetadata, requireHttps, securePage as page } from "../../global/page-guards.js";
-import { localizeHtml } from "../../global/localize.js";
+import { fillMarkers, localizeHtml } from "../../global/localize.js";
 
 import homePage from "./home.html";
 import legacyCmsPage from "./legacy-cms.html";
@@ -28,13 +28,14 @@ const retiredLabel = (label: string): string => {
 };
 
 const renderLegacyCms = (): string =>
-    localizeHtml(legacyCmsPage)
-        .replace("/*__NODE_C2__*/", nodeAddress("index-01"))
-        .replace("/*__NODE_FIREWALL__*/", nodeAddress("ash-gate"))
-        .replace("/*__NODE_NULLCROWN__*/", nodeAddress("node-07"))
-        .replace("/*__NODE_ASHVECTOR__*/", nodeAddress("node-11"))
-        .replace("/*__RETIRED_NULLCROWN__*/", retiredLabel("node-07"))
-        .replace("/*__RETIRED_ASHVECTOR__*/", retiredLabel("node-11"));
+    fillMarkers(localizeHtml(legacyCmsPage), {
+        NODE_C2: nodeAddress("index-01"),
+        NODE_FIREWALL: nodeAddress("ash-gate"),
+        NODE_NULLCROWN: nodeAddress("node-07"),
+        NODE_ASHVECTOR: nodeAddress("node-11"),
+        RETIRED_NULLCROWN: retiredLabel("node-07"),
+        RETIRED_ASHVECTOR: retiredLabel("node-11"),
+    });
 
 const legacyCms = (): DynamicWebsitePageDefinition => ({
     path: M07_LEGACY_CMS_PATH,

@@ -20,7 +20,7 @@ import {
 import { M06_STAGE, isM06ShellStruckOff, isM06StageOpen } from "../../../context/m06/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M06_SITE_KEY } from "../../../i18n/m06/site.js";
-import { localizeHtml } from "../../global/localize.js";
+import { fillDataMarker, fillMarker, fillMarkers, localizeHtml } from "../../global/localize.js";
 import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
 
 import filingsArchivePage from "./filings-archive.html";
@@ -108,16 +108,17 @@ const updatedLine = (): string =>
     escape(siteT(M06_SITE_KEY.REGISTRY_UPDATED).replace("{{date}}", M06_REGISTRY_UPDATED));
 
 const renderRecord = (record: RegistryRecord): string =>
-    localizeHtml(recordPage)
-        .replace("/*__REC_KIND__*/", escape(siteT(SUBTITLE_KEYS[record.kind])))
-        .replace("/*__REC_TITLE__*/", escape(record.title))
-        .replace("/*__REC_FLAG__*/", FLAGGED_STATUS_KEYS.includes(record.statusKey) ? " flag" : "")
-        .replace("/*__REC_STATUS__*/", escape(siteT(record.statusKey)))
-        .replace("/*__REC_FIELDS__*/", renderFields(record.fields))
-        .replace("/*__REC_TABLE__*/", renderTable(record))
-        .replace("/*__REC_NOTES__*/", renderNotes(record.noteKeys, record.noteVars))
-        .replace("/*__REC_LINKS__*/", renderLinks(record))
-        .replace("/*__REC_UPDATED__*/", updatedLine());
+    fillMarkers(localizeHtml(recordPage), {
+        REC_KIND: escape(siteT(SUBTITLE_KEYS[record.kind])),
+        REC_TITLE: escape(record.title),
+        REC_FLAG: FLAGGED_STATUS_KEYS.includes(record.statusKey) ? " flag" : "",
+        REC_STATUS: escape(siteT(record.statusKey)),
+        REC_FIELDS: renderFields(record.fields),
+        REC_TABLE: renderTable(record),
+        REC_NOTES: renderNotes(record.noteKeys, record.noteVars),
+        REC_LINKS: renderLinks(record),
+        REC_UPDATED: updatedLine(),
+    });
 
 const openRecords = (): readonly RegistryRecord[] =>
     buildM06Records(isM06ShellStruckOff()).filter((record) => isM06StageOpen(record.stage));
@@ -132,10 +133,15 @@ const searchPayload = (): readonly Record<string, string>[] =>
     }));
 
 const renderHome = (): string =>
-    localizeHtml(homePage)
-        .replace("/*__REG_DATA__*/[]", JSON.stringify(searchPayload()))
-        .replace("/*__REG_TEXT__*/{}", JSON.stringify({ count: siteT(M06_SITE_KEY.SEARCH_COUNT) }))
-        .replace("/*__REG_UPDATED__*/", updatedLine());
+    fillMarker(
+        fillDataMarker(
+            fillDataMarker(localizeHtml(homePage), "REG_DATA", JSON.stringify(searchPayload())),
+            "REG_TEXT",
+            JSON.stringify({ count: siteT(M06_SITE_KEY.SEARCH_COUNT) }),
+        ),
+        "REG_UPDATED",
+        updatedLine(),
+    );
 
 const renderFilings = (): string => {
     const rows = buildM06Records(isM06ShellStruckOff())
@@ -155,9 +161,7 @@ const renderFilings = (): string => {
         })
         .join("");
 
-    return localizeHtml(filingsArchivePage)
-        .replace("/*__FIL_ROWS__*/", rows)
-        .replace("/*__FIL_UPDATED__*/", updatedLine());
+    return fillMarkers(localizeHtml(filingsArchivePage), { FIL_ROWS: rows, FIL_UPDATED: updatedLine() });
 };
 
 const staged = (

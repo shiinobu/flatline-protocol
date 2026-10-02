@@ -70,8 +70,6 @@ const CORRUPT_CONFIG = "@@ profile table overwritten by remote session @@\n0x00 
 const storedBreach = (): BreachState | null => SaveStorage.get<BreachState | null>(BREACH_KEY) ?? null;
 
 export const isBreachActive = (): boolean => storedBreach() !== null;
-export const breachMission = (): string | null => storedBreach()?.mission ?? null;
-export const breachExpectedBuild = (): string | null => storedBreach()?.expectedBuild ?? null;
 
 const pickBuild = (): string => COMPOSITOR_BUILDS[Random.number(0, COMPOSITOR_BUILDS.length - 1)];
 

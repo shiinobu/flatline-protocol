@@ -15,9 +15,6 @@ export const M06_REPORT_CHAIN = `${M06_MUTUAL_NAME}, ${M06_HOLDINGS_NAME}, ${M03
 export const M06_REPORT_PROOF = "shared certificate and registrant Bulletproof VPN Ltd.";
 export const M06_REPORT_FRONT = `${M06_VOSS_NAME} is a nominee, not the owner`;
 
-export const M06_REPORT_REJECTED_ARCHITECT = M06_VOSS_NAME;
-export const M06_REPORT_REJECTED_PROOF = "the registered agent filed it";
-
 export const M06_REPORT_ARCHITECT_TERMS: readonly string[] = ["lindqvist"];
 export const M06_REPORT_ARCHITECT_REJECTED_TERMS: readonly string[] = ["voss"];
 export const M06_REPORT_ROLE_CHAIR_TERMS: readonly string[] = ["chair", "主席"];

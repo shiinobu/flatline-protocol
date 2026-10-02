@@ -69,10 +69,6 @@ export const registerRepelTarget = (target: RepelTarget): void => {
     repelTargets.set(target.ip, target);
 };
 
-export const clearRepelTarget = (ip: string): void => {
-    repelTargets.delete(ip);
-};
-
 export const repelTargetFor = (ip: string): RepelTarget | null => repelTargets.get(ip) ?? null;
 
 export const activeStrike = (prefix: string): ActiveStrike | null =>

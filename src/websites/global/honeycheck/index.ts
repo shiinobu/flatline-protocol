@@ -14,7 +14,7 @@ import {
 import { siteT } from "../../../context/global/site-strings.js";
 import { M07_SITE_KEY } from "../../../i18n/m07/site.js";
 import { gateMissionPages, requireHttps } from "../../global/page-guards.js";
-import { localizeHtml } from "../../global/localize.js";
+import { fillDataMarker, localizeHtml } from "../../global/localize.js";
 
 import homePage from "./home.html";
 
@@ -41,9 +41,11 @@ const verdictText = (): Record<string, string> => ({
 });
 
 const renderHome = (): string =>
-    localizeHtml(homePage)
-        .replace("/*__HONEYCHECK_DATA__*/[]", JSON.stringify(M07_HONEYCHECK_RECORDS.map(toPayload)))
-        .replace("/*__HONEYCHECK_TEXT__*/{}", JSON.stringify(verdictText()));
+    fillDataMarker(
+        fillDataMarker(localizeHtml(homePage), "HONEYCHECK_DATA", JSON.stringify(M07_HONEYCHECK_RECORDS.map(toPayload))),
+        "HONEYCHECK_TEXT",
+        JSON.stringify(verdictText()),
+    );
 
 const home = (): DynamicWebsitePageDefinition => ({
     path: "/",

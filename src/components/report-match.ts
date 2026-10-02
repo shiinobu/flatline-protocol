@@ -18,8 +18,5 @@ export const answerHasAny = (value: unknown, needles: readonly string[]): boolea
 export const answerHasAll = (value: unknown, needles: readonly string[]): boolean =>
     needles.every((needle) => answerIncludes(value, needle));
 
-export const answerHasToken = (value: unknown, token: string): boolean =>
-    normalizeAnswer(value).split(" ").includes(normalizeAnswer(token));
-
 export const answerNumbers = (value: unknown): readonly string[] =>
     typeof value === "string" ? (value.normalize("NFKC").match(/\d+/g) ?? []) : [];

@@ -9,13 +9,12 @@ import {
 import { M06_CERT_RECORDS } from "../../../content/m06/hosttrail.js";
 import { M06_HOSTTRAIL_DOMAIN } from "../../../content/m06/network.js";
 import { M06_STAGE, isM06StageOpen } from "../../../context/m06/progress.js";
-import { localizeHtml } from "../../global/localize.js";
+import { fillDataMarker, localizeHtml } from "../../global/localize.js";
 import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
-const renderHome = (): string =>
-    localizeHtml(homePage).replace("/*__HT_DATA__*/[]", JSON.stringify(M06_CERT_RECORDS));
+const renderHome = (): string => fillDataMarker(localizeHtml(homePage), "HT_DATA", JSON.stringify(M06_CERT_RECORDS));
 
 @RegisterWebsite
 export class HostTrailWebsite extends Website {
