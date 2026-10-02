@@ -1,13 +1,16 @@
 # FLATLINE PROTOCOL — Network & Mechanics Redesign Plan
 
-Status: **M1, M2, M3, M4 all implemented** (M1 in the first pass on
-2026-09-20, M2-M4 in a second pass the same day). Every mission's
-pre-redesign implementation is kept for reference at
+Status (2026-10-02): **all seven missions implemented.** M1 landed in the first
+pass on 2026-09-20, M2-M4 in a second pass the same day, M2 and M3 were
+redesigned and live-tested on 2026-10-01, and on 2026-10-02 the old M4 became
+mission id `m07` while `m04`, `m05` and `m06` were written from their specs.
+Every mission's pre-redesign implementation is kept for reference at
 `src/content/m0X.original.ts`/`src/main/m0X-quest.original.ts`. **None of
-M2, M3 or M4 has been live-tested yet** — `tsc --noEmit` is clean and an
-independent code-reviewer pass ran, but nothing beyond that. `docs/story.md`
-remains the source of truth for plot/characters; this document covers the
-*mechanics* layer only.
+M4-M7 has been live-tested yet** — `tsc --noEmit` is clean and each mission has
+a mocked-SDK harness, but nothing beyond that; the scripts are
+`docs/m04-playtest.md` through `docs/m07-playtest.md`. `docs/story.md` remains
+the source of truth for plot/characters; this document covers the *mechanics*
+layer only.
 
 That code-reviewer pass caught and fixed 2 HIGH-severity issues before
 any live-test: M03's `registerM03Database` had regressed to the exact
@@ -221,7 +224,101 @@ network. (2) The report no longer waits for the player to remove their rules.
 (3) Faded-Ledger gained an `ssh:22` target: the bonus is an SSH login as d.reyes,
 because `Terminal.Explorer` is unreachable for that host.
 
-## M7 — "The Architect" (migrated from the old M4 on 2026-10-02; walking skeleton, not yet live-tested)
+## M4 — "Burn Notice" (written 2026-10-02; full mission, not yet live-tested)
+
+The new `m04` has no single network: it is **four one-device subnets**, because
+the relays belong to different operators and nothing routes between them. Each
+subnet reuses the same LAN addressing (`192.168.1.1` router, `.2` device),
+which is legal because `IsLocalIp` only cares about the prefix and each subnet
+is created separately.
+
+```
+Router  193.164.228.17  lan 192.168.1.1   (relay 1's own panel, cracked with hydra)
+└─ Device "Static-Hop"  141.77.202.84  lan 192.168.1.2
+      svc / relay-swap-07 · 22 ssh (opened by the hydra step)
+      files: auth.log (five outbound sessions; one matches the breach minute)
+
+Router  87.121.52.196  lan 192.168.1.1
+└─ Device "Quiet-Mirror"  45.155.204.31  lan 192.168.1.2
+      ops / mirror.night.9 · 22 ssh (opened by reading auth.log)
+      files: watchdog.conf · old_targets.txt
+
+Router  176.97.210.63  lan 192.168.1.1
+└─ Device "Paper-Moth"  194.26.192.118  lan 192.168.1.2
+      honeypot, admin/admin · touching it costs money, outside the chain
+
+Router  91.222.174.46  lan 192.168.1.1
+└─ Device "Night-Shift"  203.0.113.159  lan 192.168.1.2
+      the scheduling host. whois/geoip answer Bulletproof VPN Ltd. —
+      the same registrant as 203.0.113.160, the endpoint M3 ends on
+```
+
+The intruder (`62.197.136.44`) is **not a network node**: it only ever appears
+in the player's own firewall log and in the strike state, so there is nothing to
+connect to and nothing to scan. The two strikes, the desktop breach and the
+`repel` / `sysdiag` / `sysrepair` loop are the shared kit in `src/components/`,
+not topology.
+
+## M5 — "The Door" (written 2026-10-02; full mission, not yet live-tested)
+
+One hospital subnet, the M2 shape (Router, Splitter, hidden Firewall, Devices)
+that has already live-tested.
+
+```
+Router  198.244.91.37  (remote.pacificcare-health.org)  lan 192.168.1.1
+│     ports: 443 https active · 80 http closed
+└─ Splitter  37.120.145.62  lan 192.168.1.2
+   ├─ Firewall  193.29.57.184  lan 192.168.1.3  isIpHidden
+   │     ONE valid user: g.desouza / Marigold2019 (the credential the leak gives up)
+   │     ports: 80 http (its own pfSense panel)
+   │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.5
+   ├─ Device "Cold-Chart"  141.98.252.76  lan 192.168.1.4
+   │     g.desouza (+ root) · 22 ssh, closed until the firewall step
+   │     rootFiles: /ir/2026-08-14/ (decision memo, draft, final finding,
+   │                acknowledgement) · /ir/tickets/ (USB ticket, asset register)
+   ├─ Device "Bedside-17"  80.94.92.118  lan 192.168.1.5
+   │     it.station online (+ root) · 3389 rdp "FreeRDP 6.0.4", closed until the
+   │     firewall step · vulnerabilities: RCE, FreeRDP 6.0.4  (bluekeep bonus)
+   │     rootFiles: found_note.txt · usb_history.log
+   ├─ Device "Lead-Apron"  45.142.193.29  lan 192.168.1.6   decoy, pacs / radiology2021
+   ├─ Device "Pay-Station"  176.113.115.84  lan 192.168.1.7  decoy, billing / billing-desk-04
+   └─ Printer  195.133.40.17  lan 192.168.1.8               decoy, admin / printroom01
+```
+
+Each firewall rule's `destination` is its target's **LAN** address (E-8), and
+the firewall has exactly one user because `PFSense.Login` carries only `{ip}`
+(E-9). Every decoy password is the genuine MD5 of a hash published in the
+LeakIndex table, so `john` can crack any row and three of them lead somewhere
+harmless (`docs/bugs.md` #13). `echoline.net` and `leakindex.net` are sites with
+**no subnet**, resolved by `nslookup` fixtures only.
+
+## M6 — "Open Register" (written 2026-10-02; full mission, not yet live-tested)
+
+The project's only **zero-network mission**: `networkIps: []` and
+`networks: () => []`. There is no topology at all, and all four of its domains
+are resolved by `whois` / `nslookup` fixtures with no `Network.registerDomain`
+call behind them (E-1).
+
+```
+pcr-registry.org      38.242.76.19    the register: 11 records on 5 stages,
+                                      plus the unlinked /filings/archive/
+marlowepryce.biz      87.236.19.144   the registered agent (whois gate, step 4)
+nordhaven-mutual.com  193.42.33.58    the insurer (whois gate, step 8 —
+                                      registrant Bulletproof VPN Ltd.)
+portal.nordhaven-mutual.com  193.42.33.60
+hosttrail.net         45.133.1.76     the certificate lookup, open from step 6
+echoline.net          185.31.164.22   one archived capture of the agent record
+vpn.skn-central.net   203.0.113.160   nslookup only; the endpoint M3 ends on,
+                                      sharing one certificate with the portal
+```
+
+Page access is gated by a single monotonic stage number in `SharedVariables`
+(`context/m06/progress.ts`), because a website render has no mod context and
+cannot read `SaveStorage` (`docs/bugs.md` #36). Every record path is an opaque
+code, because `dirhunter` prints every registered path and a mod cannot hide a
+page (#40).
+
+## M7 — "The Architect" (migrated from the old M4 on 2026-10-02; full mission, not yet live-tested)
 
 The old M4 is now mission id `m07` so the new missions can take M4-M6
 (world-building README, "Batasan urutan implementasi" #2). Public IPs and
@@ -278,10 +375,10 @@ ash-gate has **exactly one** valid user because `PFSense.Login` carries only
 `{ ip }` and fires only on a credential match: a second valid user would open
 the same gate (E-9, world-building README #21).
 
-**Phase-1 skeleton only:** 3389 is `active` from the build
-(`M07_RDP_OPEN_FROM_BUILD`) so the RDP events can be reached without walking
-the firewall step. Phase 4 sets it `active: false` and lets
-`UnlockSpec.openPorts` open it.
+3389 is `active: false` from the build (`M07_RDP_OPEN_FROM_BUILD = false`) and
+is opened by `UnlockSpec.openPorts` when the firewall step completes. The
+phase-1 skeleton shipped it open so the RDP events could be reached without
+walking the firewall; that shortcut is gone.
 
 ## M4 (old, now M7) — the 2026-09-20 design as it was implemented
 

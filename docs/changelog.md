@@ -27,6 +27,28 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 8 of the M4-M7 run: wrap-up.** One review pass over the whole M4-M7 diff, the
+  findings fixed, and the three documents that describe the result brought in line with it.
+- **[bug] M07's honeypot cost nothing.** `M07_HONEYPOT_PENALTY` was declared and never charged, so
+  touching Null-Crown sent the watchdog mail and took no money — `11-spec-m7.md` §F requires both.
+  `controller/m07/deadbox.ts` now charges `min(balance, 500)` once, guarded by the same flag as the
+  mail, and six harness checks cover it.
+- **[bug] Dead constants removed** after a scan for exported symbols nothing imports:
+  `M04_HUNTER_ALIAS`, `M05_LOCKED_AT`, `M05_LEAK_SOURCE_YEARS`, `M06_SKN_APEX_DOMAIN` and
+  `M07_C2_CMS_BUILD` (the last duplicated a literal already in `/legacy-cms/`).
+- **[mechanic] M06's resignation note is data-driven.** It interpolated nothing and hard-coded the
+  name and the date that `content/m06/network.ts` already holds; `siteT` takes vars, so the note now
+  uses them and `M06_BRANDT_RESIGNED` is the single source for that date.
+- **[docs] `manifest.json` now says "across seven missions"** instead of four.
+- **[docs] `docs/architecture.md` synced:** the restructure is finished (all seven missions on the
+  pipeline, M04-M07 not yet live-tested), the BACKTRACE shape is `m1..m7`, nothing shows "REPORT
+  PENDING" any more, and the checkpoint table gained the 24 M4-M7 rows.
+- **[docs] `docs/network.md` synced:** M4's four one-device subnets, M5's hospital subnet, M6's
+  zero-network domain list, and M7's section corrected now that the 3389 shortcut is gone.
+- **[mechanic] Three new permanent static checks:** no mission imports another mission's files, every
+  i18n key is registered in both `en` and `zh`, and no date in a mission's files is later than that
+  mission's story day.
+
 - **[milestone] Phase 7 of the M4-M7 run: M06 is complete.** The phase-2 five-step subset is now the
   ten-step chain of `08-spec-m5-m6.md` §C, with two parallel pairs (the 2019/2024 filings joining at
   `snapshotsCompared`, and the insurer page joining the insurer `whois` at `identityProven`). Added:

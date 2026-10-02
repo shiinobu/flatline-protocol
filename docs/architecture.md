@@ -13,20 +13,27 @@ flat top-level folders, plus entity-resolution-mods' single most
 load-bearing rule (content/logic split) applied inside `main/` instead of
 its own dedicated `content/` root — see below.
 
-## Restructure status (2026-10-01)
+## Restructure status (2026-10-02)
 
-The `src/` restructure is migrating one mission at a time. **M01, M02 and M03
-already follow the mission pipeline below** (M02 and M03 landed on 2026-10-01
-and both passed their live test the same day); M04 still uses the older shape (one
+The `src/` restructure is **finished: all seven missions follow the mission
+pipeline below.** M01 landed on 2026-09-20, M02 and M03 on 2026-10-01 (both
+passed their live test the same day), and M04-M07 on 2026-10-02 in one run:
+the old M4 was migrated to mission id `m07` and rewritten as "The Architect",
+and `m04` was rebuilt as "Burn Notice", with `m05` ("The Door") and `m06`
+("Open Register") written from their specs. The older shape (one
 `main/mNN.ts` holding the quest class plus all of its helpers, fed by a flat
-`content/mNN.ts`) until their own turn. Where this document describes both,
-the pipeline is the target and the older shape is marked as such. The generic
-additions M2 and M3 need (splitter and printer nodes, device and domain
-vulnerabilities, databases, restore data, boolean-only gates, the global
-site-string cache) landed on 2026-10-01 as "Phase 0", with M1 unchanged; the
-M2/M3 plan is in `docs/scratch.md`.
+`content/mNN.ts`) survives only in the `*.original.ts` reference copies, which
+are not built. **None of M04-M07 has been live-tested yet** — `tsc --noEmit` is
+clean and every mission has a mocked-SDK harness, but nothing beyond that; the
+per-mission scripts are `docs/m04-playtest.md` through `docs/m07-playtest.md`.
+The generic additions M2 and M3 needed (splitter and printer nodes, device and
+domain vulnerabilities, databases, restore data, boolean-only gates, the global
+site-string cache) landed on 2026-10-01 as "Phase 0"; the ones M4-M7 needed
+(`components/reward.ts`, `components/intrusion.ts`, the desktop-breach and
+incident-banner kit, `commands/repel.ts`, `sysdiag`, `sysrepair`) landed with
+their own phases, and the plans are in `docs/scratch.md`.
 
-## Mission pipeline (M01-M03 today, M04 next)
+## Mission pipeline (all seven missions)
 
 ```text
 main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (generic, mission-blind)
@@ -282,7 +289,7 @@ case file), as five flat files:
 State is one `SaveStorage` key, `backtrace`:
 
 ```text
-{ m1..m4: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> }, logs?: <string>[] } }
+{ m1..m7: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> }, logs?: <string>[] } }
 ```
 
 Each `main/mNN.ts` writes the status from `OnStart` (`progress`),
@@ -294,7 +301,8 @@ mission becomes `progress`) — **one call per action, one key per call**.
 `OnComplete` then replaces the partial set with the full snapshot (every key
 plus every extra), taken before the quest's teardown wipes per-save data such
 as the M1 listing resolution, so a finished report always has every value.
-M4 has no facts yet and shows "REPORT PENDING". An App iframe can read
+Every mission carries keys and a report card as of 2026-10-02; nothing shows
+"REPORT PENDING" any more. An App iframe can read
 `SaveStorage` — unlike a `Website`'s `metadata()` (`docs/bugs.md` #20) —
 confirmed in-game with the `scratchbt` debug command (`src/applications/backtrace-debug.ts`):
 `scratchbt <mission> <status>` sets the state (facts included on `complete`)
@@ -313,9 +321,9 @@ Extras reach the app only in the COMPLETE snapshot, where the report's
 **Key Findings** compose keys and extras into the chain of events. The Key
 Findings list is free-standing report copy in `backtrace.html` and may be
 longer than the key list (M1 5 findings from 4 keys, M2 9 from 7, M3 8 from
-6). In the migrated missions (M1, M2, M3) a key is traced from the `onAdvance`
-of its gate step, so only an in-order action traces it; M4 still traces from the
-raw event.
+6, M4 7 from 6, M5 8 from 6, M6 8 from 6, M7 8 from 6). In every mission a key
+is traced from the `onAdvance` of its gate step, so only an in-order action
+traces it.
 
 ### Tracing checkpoints
 
@@ -342,6 +350,31 @@ guessed.
 | M3 | `vpnPeer` | `cat site_to_site_backup.txt` at the gateway session (`Terminal.Cat`; `open` of it at the same prompt, or of a downloaded local copy, also counts, `OPEN_FILE_READ_EVENT`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
 | M3 | `accomplice` | `RemoteConnection.Established` with `t === "SSH"` to Faded-Ledger (optional bonus thread; `Terminal.Explorer` there also counts but only Meterpreter/`evil-rm` raise it, `bugs.md` #33) |
 
+| M4 | `probe` | the first strike repelled with `repel <ip>` (`INTRUSION_REPELLED_EVENT` from `components/intrusion.ts`, the `intruderRepelled` flag) |
+| M4 | `breach` | the scripted second strike reaching the desktop (`breachBegan`, raised by the mission's own Scheduler job, not a player action) |
+| M4 | `relay1` | `RemoteConnection.Established` with `t === "SSH"` on Static-Hop, after its router panel is cracked with `hydra` |
+| M4 | `relay2` | `RemoteConnection.Established` with `t === "SSH"` on Quiet-Mirror — reachable only once `auth.log` on relay 1 is read |
+| M4 | `control` | `cat watchdog.conf` on relay 2 (`Terminal.Cat`, the `controlFound` flag) |
+| M4 | `origin` | `whois` or `geoip` on the control host's address (`Terminal.Whois` / `Terminal.Geoip`, the `originLinked` flag) |
+| M5 | `dismissed` | both dated Echoline captures of the hospital IT page visited (`Browser.Meta` x2 joining at `staffArchiveCompared`) |
+| M5 | `greta` | `lynx` on the administrator's handle (`Terminal.Lynx.Lookup` or `.Search`, the `gretaProfiled` flag) |
+| M5 | `archive` | `RemoteConnection.Established` with `t === "SSH"` on Cold-Chart, the clinical archive |
+| M5 | `statement` | `cat acknowledgement_gdesouza.txt` (`Terminal.Cat`, or `open` at the same prompt) |
+| M5 | `decisionMemo` | `cat decision_memo.txt` |
+| M5 | `usbTicket` | `cat usb_ticket_PC-IT-017.txt` |
+| M6 | `nominees` | the nominee company's own register record opened (`Browser.Meta` on `/entity/r7k4/`) |
+| M6 | `registeredAgent` | `whois` on the registered agent's domain (`Terminal.Whois`, the `agentIdentified` flag) |
+| M6 | `ownershipChange` | both superseded ownership filings read (`Browser.Meta` x2 joining at `snapshotsCompared`) |
+| M6 | `insurer` | the insurer's register record opened, which is where the officer's position is published |
+| M6 | `infra` | `whois` on the insurer's domain, which answers with M3's own registrant (`Terminal.Whois`) |
+| M6 | `architect` | the officer record, reachable only once the insurer page **and** the insurer `whois` are both done |
+| M7 | `nodes` | the hidden dashboard on the index host visited over https (`Browser.Meta`, the `dashboardFound` flag) |
+| M7 | `credential` | `cat ash-gate_backup.txt` on the forgotten relay (`Terminal.Cat`, the `credentialRead` flag) |
+| M7 | `firewall` | first Save in the edge filter's pfSense panel (`PFSense.Changes`, the `firewallBreached` flag) |
+| M7 | `c2` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the index host (`shellObtained`) |
+| M7 | `manifest` | `cat manifest.txt` at that session (`Terminal.Cat`) |
+| M7 | `ledger` | `Files.Transfer` `DOWNLOAD` of the ledger backup, refused while the payload is wiped (`fileExtracted`) |
+
 `open` is the project's own terminal command (`src/commands/open.ts`): it
 prints a file of any extension and emits `flatline.open.fileRead`, which is
 how a file becomes a checkpoint (`cat` only reads `.txt`/`.log`). At a
@@ -366,8 +399,13 @@ an incoming phone call, but every line was `speaker: "GHOSTWIRE"`). M3 logs
 four groups (`ledger`, `tunnel`, `reyes`, `aftermath`; the `root` group went with
 `rootgrab` on 2026-10-01 and the `tunnel` group has three lines). BACKTRACE
 renders `logs` two ways: a live preview on the still-open mission's card
-(`stateCardMarkup`, "PERSONAL LOG") and the "Personal Log" section of the
-finished M2/M3 reports (`[data-personal-log="m2"]`, `"m3"`).
+(`stateCardMarkup`, "PERSONAL LOG") and the "Personal Log" section of every
+finished report that has one (`[data-personal-log="m2"]` through `"m7"`). M4
+logs three groups (`probe`, `breach`, `origin`), M5 four (`dismissed`,
+`archive`, `statement` and, outside the chain, the administrator's own notes and
+the Bedside-17 note), M6 six (the nominee record, the ownership change, the
+insurer, the certificate, the officer record and the archived capture) and M7
+one group per ending.
 
 To add a key: add it to `BACKTRACE_KEYS` and to the mission's builder in
 `backtrace-facts.ts`, give it a title in the script's `KEY_LABELS`, and call

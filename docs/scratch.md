@@ -2691,3 +2691,45 @@ cleared storage; `freshQuest(true)` now sets it after the clear.
 `probe:hosttrail-page`), `controller/m06/recon.ts` (`probe:agent-whois`,
 `probe:insurer-whois`, `probe:dirhunter-no-subnet`), `controller/m06/index.ts`
 (`probe:stage`, `probe:m3-consequence`, `probe:zero-network`).
+
+---
+
+## Phase 8 — the review pass
+
+**What the review actually found.** One behavioural bug and a handful of dead
+constants. The bug is the kind only a cross-check between spec and code finds:
+`M07_HONEYPOT_PENALTY = 500` existed, was never passed to `penalty()`, and
+`11-spec-m7.md` §F says touching Null-Crown costs both a warning mail *and*
+money. M04's equivalent (Paper-Moth) charges correctly, which is probably why it
+read as done. The harness had no check for it because the phase-4 suite only
+asserted the mail.
+
+**How the dead code was found.** A one-off script over `src/**/*.ts` that counts
+every reference to each exported symbol outside its own export line. It flags the
+`@RegisterWebsite` / `@RegisterQuest` classes (expected — the decorator is the
+only consumer) and the `*_REJECTED_*` report constants (used by the harness,
+which lives outside the repo), and after those, six genuinely unreferenced
+constants. Worth re-running before any future lock.
+
+**Three checks that are now permanent**, because each one caught something real
+during the run and would have caught it earlier:
+
+1. **No mission imports another mission's files.** `content/m06/records.ts`
+   reached into `content/m07/report.ts` for `Conrad Lindqvist`, and
+   `content/m04/fixtures.ts` reached into M03's i18n earlier in the run. The
+   scanner walks every `src/{content,controller,i18n,context,websites}/m0N/`
+   file and fails on an import from a different `m0N`. Global surfaces
+   (`websites/global/echoline/`, `applications/backtrace-facts.ts`) are outside
+   the scan by design — they are allowed to read mission content.
+2. **Every i18n key is registered in both `en` and `zh`.** A key present in one
+   bundle only falls back to English silently, which is exactly the failure a
+   Chinese playtest is supposed to catch and a reviewer never will.
+3. **No date in a mission's files is later than that mission's story day.** The
+   rule was already in the prompt and in `13-story-timeline.md` §A.3; now it is
+   enforced for all four new missions at once.
+
+**What the review did not touch.** The two things most likely to be wrong are
+still unverifiable from here: whether a `Firewall` nested in a `Splitter`
+protects its siblings (`docs/bugs.md` #45) and whether a `{realMs}` Scheduler job
+survives a live Meterpreter session (#46). Both are live-test questions, both are
+written up, and both have a fallback recorded in their own entry.
