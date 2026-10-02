@@ -65,6 +65,7 @@ import {
     M05_USB_HISTORY_FILE_NAME,
     M05_USB_TICKET_CONTENT,
     M05_USB_TICKET_FILE_NAME,
+    M05_VAR_FOLDER,
 } from "./server-files.js";
 
 const folder = (name: string, children: NetworkFileMap[]): NetworkFileMap => ({
@@ -76,16 +77,18 @@ const folder = (name: string, children: NetworkFileMap[]): NetworkFileMap => ({
 const txt = (name: string, data: string): NetworkFileMap => ({ name, extension: M05_TXT, data });
 
 const buildColdChartFiles = (): NetworkFileMap[] => [
-    folder(M05_IR_FOLDER, [
-        folder(M05_IR_DATE_FOLDER, [
-            txt(M05_DECISION_MEMO_FILE_NAME, M05_DECISION_MEMO_CONTENT()),
-            txt(M05_FINDING_DRAFT_FILE_NAME, M05_FINDING_DRAFT_CONTENT()),
-            txt(M05_FINDING_FINAL_FILE_NAME, M05_FINDING_FINAL_CONTENT()),
-            txt(M05_ACKNOWLEDGEMENT_FILE_NAME, M05_ACKNOWLEDGEMENT_CONTENT()),
-        ]),
-        folder(M05_IR_TICKETS_FOLDER, [
-            txt(M05_USB_TICKET_FILE_NAME, M05_USB_TICKET_CONTENT()),
-            txt(M05_ASSET_REGISTER_FILE_NAME, M05_ASSET_REGISTER_CONTENT()),
+    folder(M05_VAR_FOLDER, [
+        folder(M05_IR_FOLDER, [
+            folder(M05_IR_DATE_FOLDER, [
+                txt(M05_DECISION_MEMO_FILE_NAME, M05_DECISION_MEMO_CONTENT()),
+                txt(M05_FINDING_DRAFT_FILE_NAME, M05_FINDING_DRAFT_CONTENT()),
+                txt(M05_FINDING_FINAL_FILE_NAME, M05_FINDING_FINAL_CONTENT()),
+                txt(M05_ACKNOWLEDGEMENT_FILE_NAME, M05_ACKNOWLEDGEMENT_CONTENT()),
+            ]),
+            folder(M05_IR_TICKETS_FOLDER, [
+                txt(M05_USB_TICKET_FILE_NAME, M05_USB_TICKET_CONTENT()),
+                txt(M05_ASSET_REGISTER_FILE_NAME, M05_ASSET_REGISTER_CONTENT()),
+            ]),
         ]),
     ]),
 ];

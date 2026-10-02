@@ -6,6 +6,7 @@ import { M01_LEDGERVAULT_PROJECT_LABEL } from "../global/case.js";
 import { RANSOM_BATCH_HOSPITAL, formatUsd } from "../global/finance.js";
 import { M05_BEDSIDE_ASSET_TAG, M05_GRETA_USERNAME } from "./network.js";
 
+export const M05_VAR_FOLDER = "var";
 export const M05_IR_FOLDER = "ir";
 export const M05_IR_DATE_FOLDER = "2026-08-14";
 export const M05_IR_TICKETS_FOLDER = "tickets";
