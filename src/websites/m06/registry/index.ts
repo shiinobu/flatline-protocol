@@ -79,8 +79,10 @@ const renderTable = (record: RegistryRecord): string => {
     ].join("");
 };
 
-const renderNotes = (noteKeys: readonly string[]): string =>
-    noteKeys.map((key) => `<p class="note">${escape(siteT(key))}</p>`).join("");
+const renderNotes = (
+    noteKeys: readonly string[],
+    vars: Readonly<Record<string, string>>,
+): string => noteKeys.map((key) => `<p class="note">${escape(siteT(key, vars))}</p>`).join("");
 
 const renderLinks = (record: RegistryRecord): string => {
     if (record.links.length === 0) return "";
@@ -106,7 +108,7 @@ const renderRecord = (record: RegistryRecord): string =>
         .replace("/*__REC_STATUS__*/", escape(siteT(record.statusKey)))
         .replace("/*__REC_FIELDS__*/", renderFields(record.fields))
         .replace("/*__REC_TABLE__*/", renderTable(record))
-        .replace("/*__REC_NOTES__*/", renderNotes(record.noteKeys))
+        .replace("/*__REC_NOTES__*/", renderNotes(record.noteKeys, record.noteVars))
         .replace("/*__REC_LINKS__*/", renderLinks(record))
         .replace("/*__REC_UPDATED__*/", updatedLine());
 

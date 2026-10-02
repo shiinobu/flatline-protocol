@@ -32,7 +32,6 @@ export const M04_NIGHT_SHIFT_LAN_IP = "192.168.1.2";
 export const M04_NIGHT_SHIFT_CODENAME = "Night-Shift";
 
 export const M04_INTRUDER_IP = "62.197.136.44";
-export const M04_HUNTER_ALIAS = "sentry";
 export const M04_HUNTER_TAG = "SENTRY";
 export const M04_HUNTER_EMAIL = "sentry@darknull.io";
 export const M04_WATCHDOG_EMAIL = "watchdog@architect-c2.dark";

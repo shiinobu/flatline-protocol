@@ -57,6 +57,7 @@ export interface RegistryRecord {
     readonly tableRows: readonly (readonly string[])[];
     readonly tableCaptionKey: string;
     readonly noteKeys: readonly string[];
+    readonly noteVars: Readonly<Record<string, string>>;
     readonly links: readonly RecordLink[];
 }
 
@@ -105,6 +106,7 @@ const buildNominees = (): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_OFFICERS,
     noteKeys: [M06_SITE_KEY.NOTE_BRANDT, M06_SITE_KEY.ENTITY_NOTE],
+    noteVars: { name: M06_BRANDT_NAME, date: M06_BRANDT_RESIGNED },
     links: [
         { path: M06_VOSS_PATH, label: M06_VOSS_NAME },
         { path: M06_AGENT_PATH, label: M06_AGENT_NAME },
@@ -130,6 +132,7 @@ const buildAgent = (shellStatusKey: string): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_CLIENTS,
     noteKeys: [M06_SITE_KEY.NOTE_AGENT_SCOPE],
+    noteVars: {},
     links: [
         { path: M06_NOMINEES_PATH, label: M06_SKN_FULL_NAME },
         { path: M06_SHELL_PATH, label: M02_SHELL_COMPANY_NAME },
@@ -154,6 +157,7 @@ const buildShell = (statusKey: string, contactKey: string | undefined): Registry
     tableRows: [],
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_SHELL],
+    noteVars: {},
     links: [{ path: M06_AGENT_PATH, label: M06_AGENT_NAME }],
 });
 
@@ -176,6 +180,7 @@ const buildVoss = (): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_APPOINTMENTS,
     noteKeys: [M06_SITE_KEY.NOTE_VOSS],
+    noteVars: {},
     links: [{ path: M06_NOMINEES_PATH, label: M06_SKN_FULL_NAME }],
 });
 
@@ -196,6 +201,7 @@ const buildFiling2019 = (): RegistryRecord => ({
     tableRows: [],
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_FILING_2019],
+    noteVars: {},
     links: [{ path: M06_HALVARD_PATH, label: M06_HALVARD_NAME }],
 });
 
@@ -217,6 +223,7 @@ const buildFiling2024 = (): RegistryRecord => ({
     tableRows: [],
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_FILING_2024],
+    noteVars: {},
     links: [
         { path: M06_HALVARD_PATH, label: M06_HALVARD_NAME },
         { path: M06_HOLDINGS_PATH, label: M06_HOLDINGS_NAME },
@@ -240,6 +247,7 @@ const buildHalvard = (): RegistryRecord => ({
     tableRows: [],
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_HALVARD],
+    noteVars: {},
     links: [],
 });
 
@@ -267,6 +275,7 @@ const buildHoldings = (): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_OFFICERS,
     noteKeys: [M06_SITE_KEY.NOTE_HOLDINGS],
+    noteVars: {},
     links: [
         { path: M06_MUTUAL_PATH, label: M06_MUTUAL_NAME },
         { path: M06_NOMINEES_PATH, label: M06_SKN_FULL_NAME },
@@ -293,6 +302,7 @@ const buildMutual = (): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_OFFICERS,
     noteKeys: [M06_SITE_KEY.NOTE_MUTUAL],
+    noteVars: {},
     links: [
         { path: M06_ORCHID_PATH, label: VIVIEN_ORCHID_FULL_NAME },
         { path: M06_HOLDINGS_PATH, label: M06_HOLDINGS_NAME },
@@ -314,6 +324,7 @@ const buildOrchid = (): RegistryRecord => ({
     tableRows: [[M06_MUTUAL_NAME, M06_SITE_KEY.ROLE_CYBER_RISK, M06_ORCHID_PERIOD]],
     tableCaptionKey: M06_SITE_KEY.CAPTION_APPOINTMENTS,
     noteKeys: [M06_SITE_KEY.NOTE_ORCHID],
+    noteVars: {},
     links: [{ path: M06_MUTUAL_PATH, label: M06_MUTUAL_NAME }],
 });
 
@@ -340,6 +351,7 @@ const buildArchitect = (): RegistryRecord => ({
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_APPOINTMENTS,
     noteKeys: [M06_SITE_KEY.NOTE_ARCHITECT],
+    noteVars: {},
     links: [
         { path: M06_MUTUAL_PATH, label: M06_MUTUAL_NAME },
         { path: M06_HOLDINGS_PATH, label: M06_HOLDINGS_NAME },

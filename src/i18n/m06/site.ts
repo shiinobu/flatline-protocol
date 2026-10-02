@@ -211,7 +211,7 @@ Localization.registerAll({
 
         [M06_SITE_KEY.ENTITY_NOTE]:
             "Officers and shareholdings are published only where the entity has filed them. Historic filings are retained.",
-        [M06_SITE_KEY.NOTE_BRANDT]: "Tomas Brandt resigned as director on 2022-06-13.",
+        [M06_SITE_KEY.NOTE_BRANDT]: "{{name}} resigned as director on {{date}}.",
         [M06_SITE_KEY.NOTE_AGENT_SCOPE]:
             "A registered agent files on instruction. The registry does not hold the identity of the person giving that instruction.",
         [M06_SITE_KEY.NOTE_SHELL]:
@@ -352,7 +352,7 @@ Localization.registerAll({
         [M06_SITE_KEY.SUB_FILING]: "提交时的备案",
 
         [M06_SITE_KEY.ENTITY_NOTE]: "高管与持股情况仅在实体已备案时公布。历史备案一并留存。",
-        [M06_SITE_KEY.NOTE_BRANDT]: "Tomas Brandt 于 2022-06-13 辞去董事职务。",
+        [M06_SITE_KEY.NOTE_BRANDT]: "{{name}} 于 {{date}} 辞去董事职务。",
         [M06_SITE_KEY.NOTE_AGENT_SCOPE]:
             "注册代理人依指示备案。登记处不保存下达该指示之人的身份。",
         [M06_SITE_KEY.NOTE_SHELL]:

@@ -16,8 +16,6 @@ export interface LeakRecord {
     readonly hash: string;
 }
 
-export const M05_LEAK_SOURCE_YEARS = { medvendor: "2025", foodforum: "2022" } as const;
-
 export const M05_LEAK_RECORDS: readonly LeakRecord[] = [
     { id: 1, email: M05_GRETA_WORK_EMAIL, source: "medvendor", year: "2025", hash: M05_GRETA_HASH },
     { id: 2, email: GRETA_PRIVATE_EMAIL, source: "foodforum", year: "2022", hash: M05_PAY_STATION_HASH },

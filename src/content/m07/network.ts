@@ -19,7 +19,6 @@ export const M07_C2_IP = "203.0.113.161";
 export const M07_C2_LAN_IP = "192.168.1.4";
 export const M07_C2_SERVICE_USERNAME = "svc-cms";
 export const M07_C2_CMS_VERSION = "LegacyCMS 2.1";
-export const M07_C2_CMS_BUILD = "2011.04";
 export const M07_C2_RDP_VERSION = "FreeRDP 5.2.1";
 
 export const M07_NULLCROWN_IP = "185.220.101.42";

@@ -20,7 +20,6 @@ export const M06_HOSTTRAIL_DOMAIN = "hosttrail.net";
 export const M06_HOSTTRAIL_IP = "45.133.1.76";
 
 export const M06_SKN_VPN_HOST = "vpn.skn-central.net";
-export const M06_SKN_APEX_DOMAIN = "skn-central.net";
 
 export const M06_NOMINEES_PATH = "/entity/r7k4/";
 export const M06_HALVARD_PATH = "/entity/h3p8/";

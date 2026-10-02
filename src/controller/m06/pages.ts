@@ -37,7 +37,7 @@ const REGISTRY_STEPS: readonly (readonly [string, M06Step])[] = [
     [M06_ARCHITECT_PATH, "identityProven"],
 ];
 
-const afterStep = (quest: M06Quest, step: M06Step): void => {
+const afterStep = (step: M06Step): void => {
     if (step === "nomineesRead") {
         traceBacktraceFinding("m6", "nominees");
         appendBacktraceLogs("m6", M06_LOG_NOMINEES());
@@ -53,10 +53,7 @@ const afterStep = (quest: M06Quest, step: M06Step): void => {
     if (step === "identityProven") {
         traceBacktraceFinding("m6", "architect");
         appendBacktraceLogs("m6", M06_LOG_IDENTITY());
-        return;
     }
-
-    void quest;
 };
 
 const joinFilings = (quest: M06Quest): void => {
@@ -77,7 +74,7 @@ const visitRegistry = (quest: M06Quest, pathname: string): void => {
     if (match === undefined) return;
 
     const step = match[1];
-    advanceStep(quest, M06_GATES, step, () => afterStep(quest, step));
+    advanceStep(quest, M06_GATES, step, () => afterStep(step));
 
     if (step === "filing2019Seen" || step === "filing2024Seen") joinFilings(quest);
 };

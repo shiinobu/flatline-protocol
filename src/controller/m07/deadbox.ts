@@ -1,6 +1,7 @@
 import { Mail } from "@hotbunny/hackhub-content-sdk";
 
 import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { penalty } from "../../components/reward.js";
 import { M07_GATES } from "../../content/m07/gates.js";
 import {
     M07_HONEYPOT_ALERT_CONTENT,
@@ -8,11 +9,13 @@ import {
     M07_WATCHDOG_EMAIL,
 } from "../../content/m07/mail.js";
 import { M07_ASHVECTOR_IP, M07_NULLCROWN_IP } from "../../content/m07/network.js";
+import { M07_HONEYPOT_PENALTY } from "../../content/m07/quest.js";
 import {
     M07_ASH_GATE_BACKUP_FILE_EXTENSION,
     M07_ASH_GATE_BACKUP_FILE_NAME,
 } from "../../content/m07/server-files.js";
 import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M07Quest } from "./types.js";
 
@@ -34,6 +37,8 @@ const warnOnDecoy = (quest: M07Quest): void => {
         subject: M07_HONEYPOT_ALERT_SUBJECT(),
         content: M07_HONEYPOT_ALERT_CONTENT(),
     });
+    const charged = penalty("M07", M07_HONEYPOT_PENALTY, "Decommissioned host probed — loss");
+    trace("M07", `probe:honeypot-touched penalty=${charged}`);
 };
 
 const bindSessions = (quest: M07Quest): void => {

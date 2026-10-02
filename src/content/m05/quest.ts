@@ -16,6 +16,5 @@ export const buildM05Objectives = (): QuestObjectiveDefinition[] => [
 export const M05_REWARD_MONEY = 1200;
 export const M05_REWARD_DESCRIPTION = "The Door — contract settled";
 
-export const M05_LOCKED_AT = "02:41";
 export const M05_PAID_AT = "09:02";
 export const M05_GAP_TEXT = "6 hours 21 minutes";
