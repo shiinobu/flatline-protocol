@@ -234,3 +234,52 @@ berakhir, Greta tanpa alasan apa pun — itulah pengalihnya, dan `Gareth Lim`
 adalah jawaban `door` yang ditolak laporan. (5) Plugin `frontend-design`
 **tidak tersedia** di lingkungan ini, jadi LeakIndex dan halaman Echoline
 dirancang manual mengikuti brief prompt §6.
+
+## Catatan implementasi (2026-10-02, fase 7)
+
+Fase 7: **M6 penuh**, 10 langkah sesuai bagian C2. Semua yang fase 2 tunda sudah masuk.
+
+**Bentuk rantai.** Dua pasang paralel. Pengajuan 2019 dan 2024 berdiri sendiri
+(`filing2019Seen`, `filing2024Seen`) lalu bergabung di `snapshotsCompared`; cabang asuransi
+(`insurerLinked`, kunjungan halaman) dan cabang infrastruktur (`infraLinked`, `whois`) berdiri
+sendiri lalu bergabung di `identityProven`. Rekaman Conrad hanya terbuka sesudah keduanya.
+
+**Gerbang halaman lewat satu angka tahap.** `context/m06/progress.ts` menyimpan satu tahap
+monotonik 0-5 di `SharedVariables` (pola #36: render situs tidak punya konteks mod, jadi tidak
+bisa membaca `SaveStorage` sendiri). Setiap rekaman menyatakan tahap pembukanya; pencarian di
+halaman depan hanya menerbitkan rekaman yang sudah terbuka, jadi pencarian itu sekaligus
+penunjuk kemajuan. `setM06Stage` menolak turun.
+
+**Nilai yang dipilih agen** (bisa diveto):
+
+| Hal | Nilai | Alasan |
+|---|---|---|
+| `nordhaven-mutual.com` / portal | `193.42.33.58` / `193.42.33.60` | domain asuransi dan portalnya |
+| `hosttrail.net` | `45.133.1.76` | situs alat, tanpa subnet |
+| Nomor perusahaan | PC-114772 (SKN), PC-079550 (agen), PC-132277 (Skynet), PC-098431 (Halvard), PC-141009 (Holdings), PC-061845 (Mutual) | satu format, satu yurisdiksi |
+| Jalur rekaman | `/entity/r7k4/`, `/entity/m8w5/`, `/entity/s2k9/`, `/entity/h3p8/`, `/entity/n5v1/`, `/entity/n5v4/`, `/officer/a4t7/`, `/officer/v6r3/`, `/officer/c9m2/`, `/filings/f19x/`, `/filings/f24x/` | buram, karena `dirhunter` mencetak semua jalur terdaftar (#40) |
+| Snapshot Archive M6 | `/s/3kq8/`, 2026-09-30 | hari-cerita M6, batas "paling akhir" di `13` E |
+| Sidik sertifikat bersama | `9c:41:ab:...:5d:86` | satu sertifikat untuk `vpn.skn-central.net` dan `portal.nordhaven-mutual.com` |
+| Sertifikat agen | sidik berbeda, satu nama | agen bukan bagian dari infrastruktur operator |
+| Hadiah | 1800 | di antara M5 (1200) dan M7 (5000) |
+
+**Tanggal.** Tidak ada tanggal baru. Semua dari `13` §B: 2017-03-09, 2021-11-30, 2021-12-02,
+2022-06-13, 2022-06-14, 2024-03-01, periode 2009-2018, 2018-2024, 2019-2024, dan tahun pengajuan
+2019 dan 2024 (tahun saja, karena `13` §B hanya memastikan tahunnya). Stempel Registry, HostTrail
+dan snapshot: 2026-09-30, batas yang `13` §E izinkan. HostTrail memakai "pertama/terakhir terlihat"
+alih-alih masa berlaku sertifikat, supaya tidak perlu tanggal di masa depan.
+
+**Konsekuensi M1-M3.** Controller membaca status `backtrace` m3 di `OnObjectivesStart` dan
+mencerminkannya ke `SharedVariables`. M3 selesai: Skynet Import-Export berstatus "struck off" di
+Registry hidup, dan `d.reyes` tertulis "no longer listed" di snapshot Archive. Keduanya warna, bukan
+gerbang; rantai tidak berubah bila M3 belum selesai.
+
+**Penyimpangan.** (1) Dua pengajuan berada di Registry sendiri, bukan di Echoline: `09` C2 memang
+menempatkan snapshot 2019 dan 2024 di `/filings/archive/`. Echoline tetap mendapat satu halaman
+Archive M6, yaitu snapshot rekaman agen. (2) `Conrad Lindqvist` dipindahkan ke
+`content/global/characters.ts`; M06 tidak boleh mengimpor `content/m07/`, dan static check sekarang
+gagal pada impor antar-misi apa pun. (3) HostTrail dibuka pada tahap 4, bukan sejak awal, supaya
+`portal.nordhaven-mutual.com` tidak bocor sebelum asuransi ditemukan. (4) Langkah 7 memakai satu
+kunjungan halaman: rekaman Mutual sendiri yang memuat jabatan Vivien Orchid, jadi tidak perlu dua
+kunjungan. (5) Plugin `frontend-design` **tidak tersedia**, jadi Registry, HostTrail dan snapshot
+dirancang manual mengikuti brief prompt §6.

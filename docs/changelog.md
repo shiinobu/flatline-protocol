@@ -27,6 +27,35 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 7 of the M4-M7 run: M06 is complete.** The phase-2 five-step subset is now the
+  ten-step chain of `08-spec-m5-m6.md` §C, with two parallel pairs (the 2019/2024 filings joining at
+  `snapshotsCompared`, and the insurer page joining the insurer `whois` at `identityProven`). Added:
+  the register as a searchable index over eleven records opened in five stages, Alexander Voss as the
+  faced-nominee decoy, the conflicting ownership filings and the two-day gap that resolves them, the
+  Nordhaven Holdings and Nordhaven Mutual records with Vivien Orchid's position, HostTrail
+  (`websites/m06/hosttrail/`) and the shared certificate, the insurer `whois` landing on M3's own
+  registrant, Conrad Lindqvist's record behind a two-branch gate, the five-column report, the six m6
+  BACKTRACE keys with a report card and seven personal-log beats, and the full Chinese text.
+  See `docs/m06-playtest.md`.
+- **[mechanic] M1-M3 consequences are mirrored out of the `backtrace` state** at
+  `OnObjectivesStart` (`docs/bugs.md` #36 — a website render has no mod context, so it cannot read
+  `SaveStorage`). A completed M3 makes the shell company read "struck off" on the live register and
+  delists the finance analyst as the filing contact in the archived capture.
+- **[mechanic] A page gate held as a numeric stage in `SharedVariables`.** `context/m06/progress.ts`
+  keeps one monotonic stage 0-5; each record declares the stage that opens it, and the register's
+  search publishes only what is open, so the search itself is the progress gauge.
+- **[mechanic] Every registry path is opaque** (`/entity/r7k4/`, `/officer/c9m2/`) because
+  `dirhunter` prints every registered path and a mod cannot hide one (`docs/bugs.md` #40).
+- **[mechanic] The Echoline Archive now serves two missions.** Its index groups captures by the page
+  they are of, and each group is gated by its own mission's progress.
+- **[bug] A missing unlock call, caught by the harness:** `agentIdentified` advanced the chain but
+  never called `unlock(M06_WORLD, "filingArchive")`, so the archive lookup fixtures were never
+  registered. Fixed in `controller/m06/recon.ts`.
+- **[mechanic] `Conrad Lindqvist` moved to `content/global/characters.ts`** so M06 and M07 can both
+  name him without importing each other; the static checks now fail on any mission-to-mission import.
+- **[docs] `docs/m06-playtest.md` rewritten as the full 14-section walkthrough**, keeping the four
+  zero-network engine questions the skeleton existed to answer.
+
 - **[milestone] Phase 6 of the M4-M7 run: M05 is complete.** The 13-step chain of `08-spec-m5-m6.md` §B,
   with two parallel pairs (the 2025/2026 captures joining at `staffArchiveCompared`, and the archive
   branch joining the `lynx` profile at `edgeMapped`) and the three archive documents parallel off the

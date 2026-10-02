@@ -2630,3 +2630,64 @@ own check rather than something to work around.
 `probe:edge-mapped`), `controller/m05/crack.ts` (`probe:leak-record-opened` with
 match/decoy, `probe:password-cracked`), `controller/m05/access.ts`
 (`probe:firewall-login`, `probe:archive-accessed`, `probe:bedside-bonus`).
+
+---
+
+## Phase 7 — M06 "Open Register"
+
+**The register had to become a search.** The skeleton linked its one record from
+the home page, which does not scale to eleven and makes the chain's gating
+visible as a list that grows. A search box over the records currently open reads
+as an ordinary companies registry, hides nothing behind a link the player has to
+notice, and turns "is Nordhaven in here yet?" into a question the player can ask
+the page directly. The injected payload holds only open records, so the search is
+also the progress gauge.
+
+**Why the paths are opaque.** `dirhunter` prints every registered path of a mod
+site and a mod cannot hide a page (`docs/bugs.md` #40), so `/officer/lindqvist/`
+would have named the answer in the output of the command the mission *wants* the
+player to run. Every record lives at a short code instead, and the harness
+asserts no path matches a company or a person's name.
+
+**One stage, not five booleans.** M05 gates its two sites with two booleans. M06
+has five page groups, so `context/m06/progress.ts` keeps a single monotonic
+number and each record declares the stage that opens it. `setM06Stage` refuses to
+go backwards, so an out-of-order event cannot close a page the player already
+reached. `stageForM06(data)` is pure and tested on its own.
+
+**The two-day gap is the whole puzzle.** The 2019 filing names Halvard Trust. The
+2024 filing withholds the owner. Neither page says who the owner is — the answer
+comes from a third record (Halvard, dissolved 2021-11-30), a fourth (Nordhaven
+Holdings, incorporated 2021-12-02) and the cross-reference line on the 2024
+filing saying the holding was declared by the counterparty rather than by the
+entity. That is why both filings have to be read before anything opens.
+
+**Lindqvist had to move.** `content/m06/records.ts` wanted `Conrad Lindqvist`,
+which lived in `content/m07/report.ts` — a mission-to-mission import the rules
+forbid. He now lives in `content/global/characters.ts` and M07 re-exports him
+under its old name, so nothing downstream changed. The static checks grew a
+scanner that walks every `src/{content,controller,i18n,context,websites}/m0N/`
+file and fails on an import from a different `m0N`, so the next one gets caught
+at the harness rather than in review.
+
+**A real bug the harness caught.** `agentIdentified` advanced the chain and
+traced its key but never called `unlock(M06_WORLD, "filingArchive")`, so the
+Echoline lookup fixtures were never registered — the mission would have reached
+the archive step with `nslookup echoline.net` still dead. One check
+("the agent unlock brings the archive lookup") is the only thing that noticed.
+
+**Four harness assertions that were wrong, not the code.** (1) A linear
+out-of-order sweep flagged `registryReached`: any register page counts as
+reaching the register, so visiting a record directly satisfies both steps in one
+action, which is correct and now has its own check. (2) Two scenarios called
+`walk(q, "snapshotsCompared")`, which is not one of the walk's own step names, so
+the walk ran to the end and the mission was already finished. (3) The log count
+is seven, not six — `infraLinked` writes the certificate beat as well. (4) Three
+M3-consequence checks set the `backtrace` state and then called a fixture that
+cleared storage; `freshQuest(true)` now sets it after the clear.
+
+**`trace` call locations added for M06** (removed at FINAL LOCK):
+`controller/m06/pages.ts` (`probe:registry-page`, `probe:archive-capture`,
+`probe:hosttrail-page`), `controller/m06/recon.ts` (`probe:agent-whois`,
+`probe:insurer-whois`, `probe:dirhunter-no-subnet`), `controller/m06/index.ts`
+(`probe:stage`, `probe:m3-consequence`, `probe:zero-network`).
