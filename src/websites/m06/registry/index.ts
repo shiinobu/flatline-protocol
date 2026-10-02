@@ -84,10 +84,17 @@ const renderNotes = (
     vars: Readonly<Record<string, string>>,
 ): string => noteKeys.map((key) => `<p class="note">${escape(siteT(key, vars))}</p>`).join("");
 
-const renderLinks = (record: RegistryRecord): string => {
-    if (record.links.length === 0) return "";
+const linkOpen = (path: string): boolean => {
+    const target = buildM06Records(false).find((entry) => entry.path === path);
 
-    const items = record.links
+    return target === undefined || isM06StageOpen(target.stage);
+};
+
+const renderLinks = (record: RegistryRecord): string => {
+    const open = record.links.filter((link) => linkOpen(link.path));
+    if (open.length === 0) return "";
+
+    const items = open
         .map((link) => `<li><a href="${escape(link.path)}">${escape(link.label)}</a></li>`)
         .join("");
 

@@ -12,7 +12,6 @@ export interface M06QuestData {
     readonly identityProven: boolean;
     readonly reportSent: boolean;
     readonly captureSeen: boolean;
-    readonly certificateSeen: boolean;
     readonly networkBuilt: boolean;
 }
 
@@ -30,6 +29,5 @@ export const createM06Data = (): M06QuestData => ({
     identityProven: false,
     reportSent: false,
     captureSeen: false,
-    certificateSeen: false,
     networkBuilt: false,
 });

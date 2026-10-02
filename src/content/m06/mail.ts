@@ -4,7 +4,12 @@ import { M06_I18N_KEY } from "../../i18n/m06/core.js";
 import { DEAD_DROP_CONTACT } from "../global/characters.js";
 import { M03_PARENT_ENTITY_NAME } from "../global/entities.js";
 import type { M06Step } from "./gates.js";
-import { M06_REGISTRY_DOMAIN, M06_REGISTRY_JURISDICTION } from "./network.js";
+import {
+    M06_HOSTTRAIL_DOMAIN,
+    M06_INSURER_PORTAL_HOST,
+    M06_REGISTRY_DOMAIN,
+    M06_REGISTRY_JURISDICTION,
+} from "./network.js";
 
 export const M06_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 
@@ -15,6 +20,15 @@ export const M06_TIP_CONTENT = (): string =>
         registry: M06_REGISTRY_DOMAIN,
         entity: M03_PARENT_ENTITY_NAME,
     });
+
+export const M06_HOSTS_LEAD_MAIL = (): MailDefinition => ({
+    from: M06_DEAD_DROP_EMAIL,
+    subject: Localization.t(M06_I18N_KEY.MAIL_HOSTS_SUBJECT),
+    content: Localization.t(M06_I18N_KEY.MAIL_HOSTS_CONTENT, {
+        hosttrail: M06_HOSTTRAIL_DOMAIN,
+        portal: M06_INSURER_PORTAL_HOST,
+    }),
+});
 
 export const M06_PREMATURE_MAIL_SLOT = "m06.prematureReply";
 export const M06_PREMATURE_SUBJECT = (): string => Localization.t(M06_I18N_KEY.MAIL_PREMATURE_SUBJECT);

@@ -20,6 +20,7 @@ import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import {
     M06_STAGE,
     clearM06Progress,
+    resetM06Stage,
     setM06ShellStruckOff,
     setM06Stage,
 } from "../../context/m06/progress.js";
@@ -50,7 +51,7 @@ export const stageForM06 = (data: M06QuestData): number => {
     if (data.snapshotsCompared) return M06_STAGE.ownership;
     if (data.hiddenFilingsFound) return M06_STAGE.filings;
     if (data.agentIdentified) return M06_STAGE.archive;
-    if (data.registryReached) return M06_STAGE.register;
+    if (data.registryReached || data.tipReviewed) return M06_STAGE.register;
 
     return M06_STAGE.closed;
 };
@@ -68,6 +69,7 @@ const mirrorConsequences = (): void => {
 };
 
 const bindStageSync = (quest: M06Quest): void => {
+    quest.Events.on("Mail.Read", () => syncStage(quest));
     quest.Events.on("Browser.Meta", () => syncStage(quest));
     quest.Events.on("Terminal.Whois", () => syncStage(quest));
 };
@@ -91,7 +93,7 @@ export const onObjectivesStartM06 = (quest: M06Quest): void => {
     openMissionSites("m06");
     refreshSiteStrings();
     mirrorConsequences();
-    setM06Stage(stageForM06(quest.Data));
+    resetM06Stage(stageForM06(quest.Data));
 
     const networkBuilt = register(M06_WORLD, {
         networkBuilt: quest.Data.networkBuilt,

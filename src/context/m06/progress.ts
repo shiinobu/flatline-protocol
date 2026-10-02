@@ -20,6 +20,8 @@ export const setM06Stage = (stage: number): void => {
     SharedVariables.set(M06_STAGE_KEY, stage);
 };
 
+export const resetM06Stage = (stage: number): void => SharedVariables.set(M06_STAGE_KEY, stage);
+
 export const isM06StageOpen = (stage: number): boolean => readM06Stage() >= stage;
 
 export const setM06ShellStruckOff = (struckOff: boolean): void =>

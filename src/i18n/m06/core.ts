@@ -7,6 +7,8 @@ export const M06_I18N_KEY = {
 
     MAIL_TIP_SUBJECT: "M06.MAIL.TIP.SUBJECT",
     MAIL_TIP_CONTENT: "M06.MAIL.TIP.CONTENT",
+    MAIL_HOSTS_SUBJECT: "M06.MAIL.HOSTS.SUBJECT",
+    MAIL_HOSTS_CONTENT: "M06.MAIL.HOSTS.CONTENT",
     MAIL_PREMATURE_SUBJECT: "M06.MAIL.PREMATURE.SUBJECT",
     MAIL_PREMATURE_INTRO: "M06.MAIL.PREMATURE.INTRO",
     MAIL_PREMATURE_OUTRO: "M06.MAIL.PREMATURE.OUTRO",
@@ -50,6 +52,12 @@ Localization.registerAll({
             "Somebody filed it, somebody keeps filing it, and the register in {{jurisdiction}} keeps every version it was ever given.",
             "",
             "Start with the register: {{registry}}. Read what it says about {{entity}}, then read what it used to say.",
+        ].join("\n"),
+
+        [M06_I18N_KEY.MAIL_HOSTS_SUBJECT]: "who runs the machines",
+        [M06_I18N_KEY.MAIL_HOSTS_CONTENT]: [
+            "The register tells you who is on paper. It does not tell you who runs the machines.",
+            "{{hosttrail}} records which certificate a host presents, and who else presents it. Start with the insurer's customer portal: {{portal}}.",
         ].join("\n"),
 
         [M06_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "not yet",
@@ -104,7 +112,7 @@ Localization.registerAll({
         [M06_I18N_KEY.LOG_CAPTURE_1]:
             "The archived capture still lists the analyst as the filing contact. The live page does not. Somebody tidied up after us.",
         [M06_I18N_KEY.LOG_CERTIFICATE_1]:
-            "One certificate, two hostnames: the tunnel endpoint from the wire transfers and the insurer's own portal. Whoever holds the key serves both.",
+            "The insurer's domain is registered to the same name as the tunnel endpoint the wire transfers walked to. A registrar lists a name on a form. What the machines present is harder to tidy up.",
 
         [M06_I18N_KEY.OSINT_WHOIS_AGENT_CONTACT]: "Marlowe & Pryce Corporate Services",
         [M06_I18N_KEY.OSINT_WHOIS_INSURER_CONTACT]: "Bulletproof VPN Ltd.",
@@ -121,6 +129,12 @@ Localization.registerAll({
             "有人替它备案，而且一直在备案，而 {{jurisdiction}} 的登记册会保留它收到过的每一个版本。",
             "",
             "从登记册开始：{{registry}}。先看它现在怎么写 {{entity}}，再看它过去怎么写。",
+        ].join("\n"),
+
+        [M06_I18N_KEY.MAIL_HOSTS_SUBJECT]: "谁在运行那些机器",
+        [M06_I18N_KEY.MAIL_HOSTS_CONTENT]: [
+            "登记册告诉你纸面上是谁。它不会告诉你是谁在运行那些机器。",
+            "{{hosttrail}} 会记录一台主机出示的是哪张证书，以及还有谁出示同一张。先从保险人的客户门户 {{portal}} 查起。",
         ].join("\n"),
 
         [M06_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "还不到时候",
@@ -171,9 +185,9 @@ Localization.registerAll({
         [M06_I18N_KEY.LOG_CAPTURE_1]:
             "存档快照里，那位分析师还挂着备案联系人。实时页面上已经没有了。有人在我们后面收拾过。",
         [M06_I18N_KEY.LOG_CERTIFICATE_1]:
-            "一张证书，两个主机名：汇款用的隧道端点，和保险人自己的门户。持有私钥的那一方同时在给两边服务。",
+            "保险人的域名登记在与汇款隧道端点相同的名字之下。注册商记录的只是表格上的名字，机器自己出示的东西就没那么容易收拾干净。",
 
         [M06_I18N_KEY.OSINT_WHOIS_AGENT_CONTACT]: "Marlowe & Pryce Corporate Services",
-        [M06_I18N_KEY.OSINT_WHOIS_INSURER_CONTACT]: "Bulletproof VPN Ltd.",
+        [M06_I18N_KEY.OSINT_WHOIS_INSURER_CONTACT]: "防弹 VPN 有限公司",
     },
 });

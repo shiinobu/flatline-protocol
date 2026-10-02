@@ -54,6 +54,7 @@ export const M06_SITE_KEY = {
     LABEL_SUBJECT: "M06.SITE.LABEL.SUBJECT",
     LABEL_CROSSREF: "M06.SITE.LABEL.CROSSREF",
     LABEL_WEBSITE: "M06.SITE.LABEL.WEBSITE",
+    LABEL_PORTAL: "M06.SITE.LABEL.PORTAL",
 
     VALUE_SEE_FILINGS: "M06.SITE.VALUE.SEE_FILINGS",
     VALUE_OTHER_APPOINTMENTS: "M06.SITE.VALUE.OTHER_APPOINTMENTS",
@@ -183,6 +184,7 @@ Localization.registerAll({
         [M06_SITE_KEY.LABEL_SUBJECT]: "Subject",
         [M06_SITE_KEY.LABEL_CROSSREF]: "Shareholding declared against this entity by",
         [M06_SITE_KEY.LABEL_WEBSITE]: "Website as filed",
+        [M06_SITE_KEY.LABEL_PORTAL]: "Customer portal",
 
         [M06_SITE_KEY.VALUE_SEE_FILINGS]: "As last filed; superseded filings are retained",
         [M06_SITE_KEY.VALUE_OTHER_APPOINTMENTS]: "411 further appointments, not itemised",
@@ -325,6 +327,7 @@ Localization.registerAll({
         [M06_SITE_KEY.LABEL_SUBJECT]: "事项",
         [M06_SITE_KEY.LABEL_CROSSREF]: "就本实体申报持股的一方",
         [M06_SITE_KEY.LABEL_WEBSITE]: "备案所载网站",
+        [M06_SITE_KEY.LABEL_PORTAL]: "客户门户",
 
         [M06_SITE_KEY.VALUE_SEE_FILINGS]: "以最后一次备案为准；被取代的备案一并留存",
         [M06_SITE_KEY.VALUE_OTHER_APPOINTMENTS]: "另有 411 项任职，未逐项列明",

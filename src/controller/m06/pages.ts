@@ -1,6 +1,9 @@
+import { Mail } from "@hotbunny/hackhub-content-sdk";
+
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M06_ARCHIVE_PATH } from "../../content/m06/archive.js";
 import { M06_GATES } from "../../content/m06/gates.js";
+import { M06_HOSTS_LEAD_MAIL } from "../../content/m06/mail.js";
 import {
     M06_ARCHITECT_PATH,
     M06_ECHOLINE_DOMAIN,
@@ -61,6 +64,7 @@ const joinFilings = (quest: M06Quest): void => {
         traceBacktraceFinding("m6", "ownershipChange");
         appendBacktraceLogs("m6", M06_LOG_OWNERSHIP());
         unlock(M06_WORLD, "ownershipRecords");
+        Mail.send(M06_HOSTS_LEAD_MAIL());
     });
 };
 

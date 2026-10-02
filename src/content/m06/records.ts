@@ -22,6 +22,7 @@ import {
     M06_HOLDINGS_INCORPORATED,
     M06_HOLDINGS_PATH,
     M06_INSURER_DOMAIN,
+    M06_INSURER_PORTAL_HOST,
     M06_MUTUAL_PATH,
     M06_NOMINEES_INCORPORATED,
     M06_NOMINEES_PATH,
@@ -294,6 +295,7 @@ const buildMutual = (): RegistryRecord => ({
         field(M06_SITE_KEY.LABEL_JURISDICTION, M06_REGISTRY_JURISDICTION),
         localized(M06_SITE_KEY.LABEL_STATUS, M06_SITE_KEY.STATUS_ACTIVE),
         field(M06_SITE_KEY.LABEL_WEBSITE, M06_INSURER_DOMAIN),
+        field(M06_SITE_KEY.LABEL_PORTAL, M06_INSURER_PORTAL_HOST),
     ],
     tableHeadKeys: [M06_SITE_KEY.COL_NAME, M06_SITE_KEY.COL_ROLE, M06_SITE_KEY.COL_PERIOD],
     tableRows: [
@@ -305,6 +307,7 @@ const buildMutual = (): RegistryRecord => ({
     noteVars: {},
     links: [
         { path: M06_ORCHID_PATH, label: VIVIEN_ORCHID_FULL_NAME },
+        { path: M06_ARCHITECT_PATH, label: ARCHITECT_REAL_NAME },
         { path: M06_HOLDINGS_PATH, label: M06_HOLDINGS_NAME },
     ],
 });

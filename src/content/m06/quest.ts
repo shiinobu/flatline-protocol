@@ -13,5 +13,5 @@ export const buildM06Objectives = (): QuestObjectiveDefinition[] => [
     },
 ];
 
-export const M06_REWARD_MONEY = 1800;
+export const M06_REWARD_MONEY = 4000;
 export const M06_REWARD_DESCRIPTION = "Open Register — contract settled";
