@@ -5,18 +5,11 @@ import {
     RegisterCommand,
     type CommandAutoComplete,
     type CommandTools,
-    type FileInfo,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { findMeterpreterFile } from "./meterpreter-files.js";
+import { findSessionFile } from "./meterpreter-files.js";
 
 export const OPEN_FILE_READ_EVENT = "flatline.open.fileRead";
-
-const findFile = async (target: string): Promise<FileInfo | null> => {
-    if (Files.isRemoteSession()) return Files.getByPath(target);
-
-    return (await findMeterpreterFile(target)) ?? Files.getByPath(target);
-};
 
 @RegisterCommand({ default: true, scope: "both" })
 export class OpenCommand extends Command {
@@ -35,7 +28,7 @@ export class OpenCommand extends Command {
         }
 
         const target = args[0];
-        const file = await findFile(target);
+        const file = await findSessionFile(target);
         if (!file) {
             tools.printError(`No such file: ${target}`);
             return;

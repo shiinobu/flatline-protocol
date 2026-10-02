@@ -52,3 +52,9 @@ export const findMeterpreterFile = async (target: string): Promise<FileInfo | nu
 
     return found;
 };
+
+export const findSessionFile = async (target: string): Promise<FileInfo | null> => {
+    if (Files.isRemoteSession()) return Files.getByPath(target);
+
+    return (await findMeterpreterFile(target)) ?? Files.getByPath(target);
+};
