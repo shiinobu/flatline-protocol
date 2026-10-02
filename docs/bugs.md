@@ -1703,3 +1703,103 @@ until `chatConfirmed` (`SharedVariables` seal, cleared on complete/abandon); an 
 but correct report is answered by the Custodian. A harness that fired the 14 events in
 300 random orders against a mocked SDK showed the flags always form a prefix of the
 chain; with the gate table emptied it failed 300/300.
+
+---
+
+## 39. `Network.registerDomain` and `Network.setVulnerabilities` do nothing without a subnet at that IP, and `registerDomain` overwrites the subnet's `domain` when one exists
+
+**Status: RESOLVED (rule; first met in M1, engine read 2026-10-02).**
+Found: M1 recon layer live test, 2026-09-20 — `subfinder` reported "No subdomains found" and
+`python3 net_tree.py` reported "Subnet not found" for every domain that had only ever received a bare
+`Network.registerDomain`, while `nslookup`, `whois`, `geoip` and `nmap` kept answering, because those are
+shell fixtures that never read the subnet.
+Root cause (engine 1.3.13, `docs/app-asar-reference.md` E-1 and E-2): `registerDomain` looks up the subnet
+at the IP and only then calls `UpdateSubnet({ ...subnet, domain: { name, vulnerabilities } })`; with no
+subnet it returns without a word. `setVulnerabilities` behaves the same. `subfinder` needs a subnet whose
+`domain.name` equals the query and lists the subnets whose `domain.name` ends with it. A second
+`registerDomain` on the same IP replaces the first.
+**Rule:** a domain that must be real gets a subnet first (`DomainSpec.needsSubnet: true` creates a bare
+`Device`); `needsSubnet: false` only works when a subnet already exists at that IP, otherwise the
+registration is lost. One IP carries one domain name. A zero-network mission (M6, `networkIps: []`) can
+answer `whois` and `nslookup` from fixtures, but `subfinder` and `net_tree.py` will not see its domains.
+
+---
+
+## 40. `dirhunter` prints every registered path of a website, and a mod cannot hide a page
+
+**Status: RESOLVED (rule; known since M1, engine read 2026-10-02).**
+`dirhunter <host>` finds the `Website` by host name, prints every page whose `isHidden` is falsy, and
+raises `Terminal.Dirhunter` with `{ host, results }`, where `results` lists the path of every page. SDK
+page definitions (0.25.0 included) have no `isHidden`, so every page a mod registers is printed.
+`docs/m01-playtest.md` already records this ("no engine-level way to hide a mod-registered page"), and
+M1's listing paths are opaque tokens for that reason (`docs/changelog.md`, 2026-09-22). The lookup is by
+host in the website registry, not by subnet (`docs/app-asar-reference.md` E-3).
+**Rule:** "hidden" means registered but not linked. Path names never leak an answer or the next step:
+opaque tokens, or one dynamic pattern such as `/entity/:id`. Do not design a step around `dirhunter`
+finding nothing. Open (static reading only): whether a host with no subnet and no registered domain can
+be scanned in the running game; the M6 walking skeleton confirms it live.
+
+---
+
+## 41. Firewall rule `destination` is compared with the target's `lanIp`, and `IsLocalIp` accepts only `192.168.1.x`: the old M4 rules could never match
+
+**Status: RESOLVED for the design (rule; engine read 2026-10-02). The old M4 code (`content/m04.ts`,
+`main/m04.ts`, never played) still has the defect until its migration to M7.**
+Found: static reading of the engine while specifying M4-M7, 2026-10-02 (`docs/app-asar-reference.md` E-7
+and E-8).
+The engine blocks a request to `ip:port` when the firewall protecting `ip` has a deny rule for that port
+whose `source` is empty or the requester and whose `destination` is empty or **equals the target subnet's
+`lanIp`**. The old M4 defined `{ allowed: false, port: 22 | 3389, destination: M04_C2_IP }`, the C2's
+public IP, so neither rule could ever match. The pfSense panel's Save also validates every rule: a
+`destination` that is not `192.168.1.x` (`IsLocalIp` is `startsWith("192.168.1.")`) is rejected with
+"outside this network", so the player could not save while such a rule stayed in the list and
+`PFSense.Changes` would never fire. A rule with no `destination` blocks the port for every device of the
+network (M1 and M2 ship such rules, each port belonging to one device).
+**Rules:** the `lanIp` of every node behind a panel the player edits is `192.168.1.x` (M2 and M3 already
+are; M1's routers use `192.168.1.x` to `192.168.5.x`); a rule's `destination` is the target's `lanIp` or
+empty; never a port-22 rule without a `destination` where other devices need SSH (M7's Null-Crown and
+Ash-Vector); never a Deny rule on port 80 with an empty destination (the panel rejects it as a lockout);
+`Network.removeFirewallRule(ip, port)` removes every rule with that port. M7's LAN side moves from
+`172.16.0.x` to `192.168.1.x` (`docs/world-building/11-spec-m7.md` §B #11).
+
+---
+
+## 42. `Quest.Rewards` with `AutoComplete` did not pay in the rival-hacker lab
+
+**Status: WORKAROUND (pay with `Bank.transaction`; XP is not paid).**
+Found: rival-hacker lab live test, 2026-10-01 (`src/debug/rival-hacker-lab.ts`) — `OnComplete` ran but the
+declared reward never reached the bank. The engine's own payout (the quest store's `Complete`) is guarded
+by `Rewards != null && Rewards.Money`, and a quest without `Rewards` never builds one
+(`docs/app-asar-reference.md` E-5), so the cause was not found. Money in M4-M7 is paid with
+`Bank.transaction` inside `OnComplete`, the quest's `Rewards` stays unset, and the payout is skipped under
+dev or tester focus (README decisions #30 and #34 in `docs/world-building/`). The SDK `Bank` pays money
+only. Open: whether M1-M3's `Rewards` pay in a production-mode run (their playtests record rewards forced
+to 0/0 while focused), and where XP from `Rewards` would be granted (not traced).
+
+---
+
+## 43. Files have no timestamps: dates exist only in file names and contents
+
+**Status: RESOLVED (rule; engine read 2026-10-02).**
+The SDK file types (`FileDefinition`, `FileInfo`, `FileCreateOptions`, `NetworkFileMap`) have no date
+field, the `Files.create` bridge hands the engine only `{ id, name, extension, data, isFolder, parent }`,
+and `ls` prints names only (`docs/app-asar-reference.md` E-6). Story dates therefore live in file names
+and contents and come from `docs/world-building/13-story-timeline.md`, never from `Time.now()`,
+`Date.now()` or `new Date()`: the in-game clock runs on its own calendar and is unrelated to story time.
+
+---
+
+## 44. `mods.reset`: exact scope
+
+**Status: RESOLVED (rules; engine read 2026-10-02).**
+`mods.reset <modId>` unclaims the mod's quests (`Manager.Unclaim`: listeners released, the quest's tweets
+and messages removed; `OnComplete` and `OnAbandon` do not run), removes quest-bound mail and quest posts,
+clears the mod's `SaveStorage` and `Variables`, and resets and closes the mod's apps. It does not touch
+networks (#35), `SharedVariables`, mail created with `Mail.send` (#37) or the player's own filesystem
+(`docs/app-asar-reference.md` E-4).
+**Rules:** (1) a checkpoint on a file that can linger on the player's PC also requires a quest-data flag
+set in this playthrough; (2) cleanup written in `OnAbandon` never runs on a reset, so the rebuild path of
+`core/register` does the cleaning; (3) `SharedVariables` mirrors can be stale until `OnStart` or
+`OnObjectivesStart` rewrites them; (4) right after a reset the world is rebuilt by a `Scheduler` job
+(`core/rebuild.ts`, 250 ms), so a tool used inside that window can report a missing target: retry before
+concluding that a mission is broken.
