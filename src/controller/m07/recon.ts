@@ -9,6 +9,8 @@ import { M07_WORLD } from "./world.js";
 const normalizeHost = (host: string): string =>
     host.toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
 
+const normalizePath = (path: string): string => path.replace(/\/$/, "");
+
 const bindTip = (quest: M07Quest): void => {
     quest.Events.on("Mail.Read", (data) => {
         if (data.from !== M07_DEAD_DROP_EMAIL || data.subject !== M07_TIP_SUBJECT()) return;
@@ -27,7 +29,9 @@ const bindEdgeScan = (quest: M07Quest): void => {
 
 const bindDashboard = (quest: M07Quest): void => {
     quest.Events.on("Browser.Meta", (data) => {
-        if (data.hostname !== M07_C2_IP || data.pathname !== M07_LEGACY_CMS_PATH) return;
+        if (data.protocol !== "https:") return;
+        if (data.hostname !== M07_C2_IP) return;
+        if (normalizePath(data.pathname) !== normalizePath(M07_LEGACY_CMS_PATH)) return;
 
         advanceStep(quest, M07_GATES, "dashboardFound");
     });
