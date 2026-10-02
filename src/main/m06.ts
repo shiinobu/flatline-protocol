@@ -1,5 +1,7 @@
 import { Quest, RegisterQuest } from "@hotbunny/hackhub-content-sdk";
 
+import "../websites/global/echoline/index.js";
+import "../websites/m06/hosttrail/index.js";
 import "../websites/m06/registry/index.js";
 import type { M06QuestData } from "../content/m06/state.js";
 import {

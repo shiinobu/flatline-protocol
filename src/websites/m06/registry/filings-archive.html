@@ -6,22 +6,25 @@
 <title>{{t:M06.SITE.FILINGS.TITLE}}</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:24px;background:#f6f5f1;color:#1d1f21;font-family:Georgia,"Times New Roman",serif;line-height:1.6}
+:root{--paper:#f6f5f1;--ink:#1d1f21;--mute:#5a5f63;--rule:#d6d3cc;--link:#1a4f8a;--flag:#8a3b1a;--flagbg:#fbf0e8}
+body{margin:0;padding:24px;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.6}
 .wrap{max-width:900px;margin:auto}
-header{border-bottom:2px solid #1d1f21;padding-bottom:12px;margin-bottom:24px}
+header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px}
 .brand{font-size:22px;font-weight:bold}
-.tagline{font-size:13px;color:#5a5f63}
+.tagline{font-size:13px;color:var(--mute)}
 nav{font-size:13px;margin-bottom:18px}
 h1{font-size:19px;font-weight:normal;margin:0 0 8px}
-.intro{font-size:14px;color:#44484b;max-width:60ch}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:20px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #d6d3cc}
-th{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#5a5f63}
-.notice{margin-top:24px;padding:10px 12px;border-left:3px solid #8a6d1a;background:#f0ead7;font-size:13px}
-a{color:#1a4f8a}
-a:focus-visible{outline:2px solid #1a4f8a;outline-offset:2px}
-footer{margin-top:32px;padding-top:12px;border-top:1px solid #d6d3cc;font-size:12px;color:#5a5f63}
-@media(max-width:560px){body{padding:16px}}
+.intro{font-size:14px;color:#44484b;max-width:68ch}
+.notice{margin:18px 0 0;padding:10px 12px;border:1px solid #d8b196;background:var(--flagbg);color:var(--flag);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:22px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
+th{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute)}
+a{color:var(--link)}
+a:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-size:12px;color:var(--mute)}
+.updated{margin-top:4px}
+@media(max-width:640px){body{padding:16px}th:nth-child(2),td:nth-child(2){display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -34,15 +37,18 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid #d6d3cc;font-size:1
 <main>
 <h1>{{t:M06.SITE.FILINGS.TITLE}}</h1>
 <p class="intro">{{t:M06.SITE.FILINGS.INTRO}}</p>
-<table>
-<thead><tr><th>{{t:M06.SITE.FILINGS.COL_YEAR}}</th><th>{{t:M06.SITE.FILINGS.COL_SUBJECT}}</th><th>{{t:M06.SITE.FILINGS.COL_STATE}}</th></tr></thead>
-<tbody>
-<tr><td colspan="3">{{t:M06.SITE.FILINGS.EMPTY}}</td></tr>
-</tbody>
-</table>
 <p class="notice">{{t:M06.SITE.FILINGS.NOTICE}}</p>
+<table>
+<thead><tr>
+<th scope="col">{{t:M06.SITE.FILINGS.COL_YEAR}}</th>
+<th scope="col">{{t:M06.SITE.FILINGS.COL_SUBJECT}}</th>
+<th scope="col">{{t:M06.SITE.FILINGS.COL_STATE}}</th>
+<th scope="col"></th>
+</tr></thead>
+<tbody>/*__FIL_ROWS__*/</tbody>
+</table>
 </main>
-<footer>{{t:M06.SITE.REGISTRY.FOOTER}}</footer>
+<footer>{{t:M06.SITE.REGISTRY.FOOTER}}<div class="updated">/*__FIL_UPDATED__*/</div></footer>
 </div>
 </body>
 </html>

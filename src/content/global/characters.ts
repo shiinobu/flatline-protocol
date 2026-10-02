@@ -26,3 +26,5 @@ export const VIVIEN_ORCHID_FULL_NAME = "Vivien Orchid";
 export const VIVIEN_ORCHID_SHORT_NAME = "V. Orchid";
 
 export const FINANCE_ANALYST_HANDLE = "d.reyes";
+
+export const ARCHITECT_REAL_NAME = "Conrad Lindqvist";

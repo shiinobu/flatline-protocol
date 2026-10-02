@@ -83,6 +83,15 @@ const applyFinding = (mission: BacktraceMissionId, key: string): boolean => {
     return true;
 };
 
+export const backtraceMissionStatus = (mission: BacktraceMissionId): BacktraceMissionStatus => {
+    try {
+        return readBacktraceState()[mission].status;
+    } catch (error: unknown) {
+        trace("Backtrace", `${mission} status unavailable`, describeError(error));
+        return "locked";
+    }
+};
+
 export const setBacktraceMission = (mission: BacktraceMissionId, status: BacktraceMissionStatus): void => {
     try {
         applyMission(mission, status);

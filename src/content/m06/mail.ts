@@ -25,6 +25,10 @@ const M06_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M06Step, string>>> = {
     nomineesRead: M06_I18N_KEY.MAIL_PREMATURE_HINT_NOMINEES,
     agentIdentified: M06_I18N_KEY.MAIL_PREMATURE_HINT_AGENT,
     hiddenFilingsFound: M06_I18N_KEY.MAIL_PREMATURE_HINT_FILINGS,
+    snapshotsCompared: M06_I18N_KEY.MAIL_PREMATURE_HINT_SNAPSHOTS,
+    insurerLinked: M06_I18N_KEY.MAIL_PREMATURE_HINT_INSURER,
+    infraLinked: M06_I18N_KEY.MAIL_PREMATURE_HINT_INFRA,
+    identityProven: M06_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY,
 };
 
 export const buildM06PrematureReply = (unmetStep: M06Step | undefined): MailDefinition => {

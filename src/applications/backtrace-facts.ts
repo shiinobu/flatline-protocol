@@ -36,6 +36,24 @@ import { M05_BEDSIDE_ASSET_TAG, M05_COLD_CHART_CODENAME } from "../content/m05/n
 import { M05_ACK_DATE, M05_NEGOTIATOR, M05_USB_DATE } from "../content/m05/server-files.js";
 import { M05_GAP_TEXT, M05_PAID_AT } from "../content/m05/quest.js";
 import {
+    M06_AGENT_NAME,
+    M06_HALVARD_DISSOLVED,
+    M06_HOLDINGS_INCORPORATED,
+    M06_INSURER_PORTAL_HOST,
+    M06_NOMINEES_INCORPORATED,
+    M06_REGISTRY_JURISDICTION,
+    M06_SKN_VPN_HOST,
+} from "../content/m06/network.js";
+import {
+    M06_ARCHITECT_CHAIR_PERIOD,
+    M06_HALVARD_NAME,
+    M06_HOLDINGS_NAME,
+    M06_ORCHID_PERIOD,
+    M06_SKN_FULL_NAME,
+    M06_VOSS_APPOINTMENTS,
+    M06_VOSS_NAME,
+} from "../content/m06/records.js";
+import {
     M04_HUNTER_TAG,
     M04_INTRUDER_IP,
     M04_NIGHT_SHIFT_CODENAME,
@@ -66,7 +84,7 @@ export const BACKTRACE_KEYS = {
     m3: ["portal", "parentEntity", "gateway", "vpnPeer", "accomplice"],
     m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
     m5: ["dismissed", "greta", "archive", "statement", "decisionMemo", "usbTicket"],
-    m6: [],
+    m6: ["nominees", "registeredAgent", "ownershipChange", "insurer", "infra", "architect"],
     m7: ["nodes", "credential", "firewall", "c2", "manifest", "ledger"],
 } as const satisfies Readonly<Record<BacktraceMissionId, readonly string[]>>;
 
@@ -160,6 +178,21 @@ const buildM5Facts = (): BacktraceFacts => ({
     caseId: M01_CASE_ID,
 });
 
+const buildM6Facts = (): BacktraceFacts => ({
+    nominees: `${M06_SKN_FULL_NAME}, ${M06_REGISTRY_JURISDICTION}, incorporated ${M06_NOMINEES_INCORPORATED}`,
+    registeredAgent: M06_AGENT_NAME,
+    ownershipChange: `${M06_HALVARD_NAME} (dissolved ${M06_HALVARD_DISSOLVED}) to ${M06_HOLDINGS_NAME}`,
+    insurer: `${M07_INSURER_NAME}. ${VIVIEN_ORCHID_FULL_NAME}, Head of Cyber Risk ${M06_ORCHID_PERIOD}`,
+    infra: `${M06_SKN_VPN_HOST} shares a certificate with ${M06_INSURER_PORTAL_HOST}`,
+    architect: `${M07_ARCHITECT_REAL_NAME}, Chairman Risk Committee, ${M07_INSURER_NAME} (${M06_ARCHITECT_CHAIR_PERIOD})`,
+    front: `${M06_VOSS_NAME}, ${M06_VOSS_APPOINTMENTS} appointments on record`,
+    registrant: M04_WHOIS_REGISTRANT,
+    peerGateway: M04_ARCHITECT_VPN_IP,
+    holdings: M06_HOLDINGS_NAME,
+    incorporated: M06_HOLDINGS_INCORPORATED,
+    caseId: M01_CASE_ID,
+});
+
 const buildM7Facts = (): BacktraceFacts => {
     const totals = totalRansom(RANSOM_BATCHES);
 
@@ -186,6 +219,7 @@ const FACT_BUILDERS: Readonly<Partial<Record<BacktraceMissionId, () => Backtrace
     m3: buildM3Facts,
     m4: buildM4Facts,
     m5: buildM5Facts,
+    m6: buildM6Facts,
     m7: buildM7Facts,
 };
 

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t:M06.SITE.HT.BRAND}}</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#101418;--panel:#171d23;--ink:#dde4ea;--mute:#7c8794;--line:#232b34;--edge:#303a45;--accent:#57b0a3;--focus:#79cfc1}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.6}
+.wrap{max-width:660px;margin:0 auto;padding:42px 20px 44px}
+header{margin-bottom:26px}
+.brand{margin:0;font-size:22px;font-weight:600;letter-spacing:.02em}
+.brand span{color:var(--accent)}
+.tagline{margin:4px 0 0;font-size:12px;color:var(--mute)}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px}
+label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+.row{display:flex;gap:8px}
+input{flex:1 1 auto;min-width:0;padding:9px 11px;border:1px solid var(--edge);background:#0b0f13;color:var(--ink);font:inherit}
+input::placeholder{color:#5a6673}
+input:focus-visible{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+button{flex:0 0 auto;padding:9px 16px;border:1px solid var(--edge);background:#1f2831;color:var(--ink);font:inherit;cursor:pointer}
+button:hover{background:#263140}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.state{margin-top:18px;padding:14px;border:1px dashed var(--line);font-size:12px;color:var(--mute)}
+.card{margin-top:20px;background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--accent);padding:18px}
+.card h2{margin:0 0 14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+dl{margin:0;display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px}
+dt{color:var(--mute)}
+dd{margin:0;word-break:break-all}
+ul{list-style:none;margin:0;padding:0}
+li{padding:1px 0}
+li.hit{color:var(--accent)}
+.note{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:#616c78}
+.hide{display:none}
+@media(max-width:520px){.wrap{padding:26px 15px}.row{flex-direction:column}button{width:100%}dl{grid-template-columns:1fr;gap:1px}dd{margin-bottom:8px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 class="brand">Host<span>Trail</span></h1>
+  <p class="tagline">{{t:M06.SITE.HT.TAGLINE}}</p>
+</header>
+<main>
+<section class="panel">
+  <label for="h">{{t:M06.SITE.HT.PROMPT}}</label>
+  <div class="row">
+    <input id="h" type="text" autocomplete="off" spellcheck="false"
+           placeholder="{{t:M06.SITE.HT.PLACEHOLDER}}" aria-label="{{t:M06.SITE.HT.ARIA}}">
+    <button id="go" type="button">{{t:M06.SITE.HT.BUTTON}}</button>
+  </div>
+</section>
+<section aria-live="polite">
+  <div id="empty" class="state">{{t:M06.SITE.HT.EMPTY}}</div>
+  <div id="none" class="state hide">{{t:M06.SITE.HT.NONE}}</div>
+  <div id="card" class="card hide">
+    <h2>{{t:M06.SITE.HT.RESULT_TITLE}}</h2>
+    <dl>
+      <dt>{{t:M06.SITE.HT.LABEL_HOST}}</dt><dd id="rhost"></dd>
+      <dt>{{t:M06.SITE.HT.LABEL_ADDRESS}}</dt><dd id="raddr"></dd>
+      <dt>{{t:M06.SITE.HT.LABEL_FINGERPRINT}}</dt><dd id="rfp"></dd>
+      <dt>{{t:M06.SITE.HT.LABEL_NAMES}}</dt><dd><ul id="rnames"></ul></dd>
+      <dt>{{t:M06.SITE.HT.LABEL_FIRST}}</dt><dd id="rfirst"></dd>
+      <dt>{{t:M06.SITE.HT.LABEL_LAST}}</dt><dd id="rlast"></dd>
+    </dl>
+    <p class="note">{{t:M06.SITE.HT.NOTE}}</p>
+  </div>
+</section>
+</main>
+<footer>{{t:M06.SITE.HT.FOOTER}}</footer>
+</div>
+<script>
+(function () {
+  var DATA = /*__HT_DATA__*/[];
+  var input = document.getElementById("h");
+  var empty = document.getElementById("empty");
+  var none = document.getElementById("none");
+  var card = document.getElementById("card");
+  var names = document.getElementById("rnames");
+
+  function show(el, on) {
+    el.className = el.className.replace(/\s*hide\s*/g, " ").trim() + (on ? "" : " hide");
+  }
+
+  function render(raw) {
+    var q = String(raw || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    while (names.firstChild) names.removeChild(names.firstChild);
+    if (q === "") { show(empty, true); show(none, false); show(card, false); return; }
+
+    var hit = null;
+    for (var i = 0; i < DATA.length; i += 1) { if (DATA[i].host.toLowerCase() === q) { hit = DATA[i]; break; } }
+    if (hit === null) { show(empty, false); show(none, true); show(card, false); return; }
+
+    show(empty, false); show(none, false); show(card, true);
+    document.getElementById("rhost").textContent = hit.host;
+    document.getElementById("raddr").textContent = hit.address;
+    document.getElementById("rfp").textContent = hit.fingerprint;
+    document.getElementById("rfirst").textContent = hit.firstSeen;
+    document.getElementById("rlast").textContent = hit.lastSeen;
+    for (var j = 0; j < hit.names.length; j += 1) {
+      var li = document.createElement("li");
+      li.textContent = hit.names[j];
+      if (hit.names[j].toLowerCase() !== q) li.className = "hit";
+      names.appendChild(li);
+    }
+  }
+
+  document.getElementById("go").addEventListener("click", function () { render(input.value); });
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") render(input.value); });
+})();
+</script>
+</body>
+</html>

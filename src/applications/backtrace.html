@@ -620,7 +620,55 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 </div>
 <div class="locked"></div>
 </section>
-<section id="m6" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">OPEN REGISTER</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m6" class="view" data-report="none">
+<div class="report">
+  <div class="report-head">
+    <div><div class="report-code">MISSION 06</div><h1 class="report-title">OPEN REGISTER</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+  </div>
+  <div class="report-grid">
+    <div class="report-main">
+      <section class="rsec">
+        <div class="rsec-title">SUMMARY</div>
+        <p class="rsec-copy">The company the ransom money answered to is a filing cabinet with a signature in it. The public register keeps every version it was ever given, and the versions disagree: the owner named in one filing had already been wound up when the next was made, and the company that replaced it was incorporated two days later. Follow the shareholding up and it ends at an insurer. Follow the address sideways and it ends at the same registrant as the tunnel the payouts walked down. One man sits on both: <span data-fact="m6.architect">—</span>.</p>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">KEY FINDINGS</div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">The entity itself is a nominee company and nothing else: <span data-fact="m6.nominees">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">Everything filed for it is filed by one agent, <span data-fact="m6.registeredAgent">—</span>, who files on instruction the register does not record.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">Its director is a professional: <span data-fact="m6.front">—</span>. The appointment is real and the interest behind it is not his.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">The two ownership filings cannot both be true: <span data-fact="m6.ownershipChange">—</span>. The later filing withheld the owner instead of naming one, and the replacement declared the holding itself.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">That replacement, <span data-fact="m6.holdings">—</span>, was incorporated <span class="code" data-fact="m6.incorporated">—</span> — two days after the previous owner was dissolved — and its shareholder is an insurer: <span data-fact="m6.insurer">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">The insurer's own domain is registered to <span class="code" data-fact="m6.registrant">—</span>, the same registrant as <span class="code" data-fact="m6.peerGateway">—</span>, the endpoint the wire transfers already answered to.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The two are served by the same operator: <span data-fact="m6.infra">—</span>. A shared certificate means a shared private key, which is a person, not a coincidence.</div></div>
+          <div class="finding"><div class="finding-num">08</div><div class="finding-text">The name the register finally gives up is <span data-fact="m6.architect">—</span>, who chaired the committee deciding what the insurer pays and sat on the board of the company that owns the account it was paid into.</div></div>
+        </div>
+      </section>
+    </div>
+    <div class="report-side">
+      <section class="rsec">
+        <div class="rsec-title">ENTITIES</div>
+        <div class="entity-cards">
+          <button class="entity-card" data-entity="parent"><div class="entity-type">Parent Entity</div><div class="entity-name" data-fact="m3.parentEntity">—</div><div class="entity-source">CONFIRMED // M6</div></button>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">EVIDENCE</div>
+        <div class="evidence-list">
+          <div class="evidence-item"><span class="evidence-id">EV-M6-01</span><span class="evidence-name" data-fact="m6.ownershipChange">—</span></div>
+          <div class="evidence-item"><span class="evidence-id">EV-M6-02</span><span class="evidence-name" data-fact="m6.infra">—</span></div>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">PERSONAL LOG</div>
+        <div data-personal-log="m6"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="locked"></div>
+</section>
 <section id="m7" class="view" data-report="none">
 <div class="report">
   <div class="report-head">
@@ -802,7 +850,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
   const MISSION_IDS = ['m1','m2','m3','m4','m5','m6','m7'];
-  const REPORT_MISSIONS = ['m1','m2','m3','m4','m5','m7'];
+  const REPORT_MISSIONS = ['m1','m2','m3','m4','m5','m6','m7'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'BURN NOTICE',m5:'THE DOOR',m6:'OPEN REGISTER',m7:'THE ARCHITECT'};
   const KEY_LABELS = {
     m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
@@ -810,6 +858,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
     m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'},
     m4:{probe:'Intruder address',breach:'Desktop breach',relay1:'Relay 1',relay2:'Relay 2',control:'Control host',origin:'Origin registrant'},
     m5:{dismissed:'Staff list changed',greta:'Named administrator',archive:'Archive access',statement:'Signed acknowledgement',decisionMemo:'Decision memo',usbTicket:'USB ticket'},
+    m6:{nominees:'Nominee company',registeredAgent:'Registered agent',ownershipChange:'Ownership change',insurer:'Insurer linked',infra:'Shared certificate',architect:'Named officer'},
     m7:{nodes:'Node inventory',credential:'Edge credential',firewall:'Edge opened',c2:'Index host session',manifest:'Master ledger index',ledger:'Ledger extracted'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
