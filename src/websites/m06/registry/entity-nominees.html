@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t:M06.SITE.ENTITY.TITLE}}</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:#f6f5f1;color:#1d1f21;font-family:Georgia,"Times New Roman",serif;line-height:1.6}
+.wrap{max-width:900px;margin:auto}
+header{border-bottom:2px solid #1d1f21;padding-bottom:12px;margin-bottom:24px}
+.brand{font-size:22px;font-weight:bold}
+.tagline{font-size:13px;color:#5a5f63}
+nav{font-size:13px;margin-bottom:18px}
+h1{font-size:19px;font-weight:normal;margin:0 0 4px}
+.section{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#5a5f63;margin:24px 0 8px}
+dl{display:grid;grid-template-columns:200px 1fr;gap:8px 16px;margin:0;font-size:14px}
+dt{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#5a5f63;align-self:center}
+dd{margin:0}
+.note{margin-top:22px;font-size:13px;color:#44484b;max-width:60ch}
+a{color:#1a4f8a}
+a:focus-visible{outline:2px solid #1a4f8a;outline-offset:2px}
+footer{margin-top:32px;padding-top:12px;border-top:1px solid #d6d3cc;font-size:12px;color:#5a5f63}
+@media(max-width:560px){body{padding:16px}dl{grid-template-columns:1fr;gap:2px 0}dt{margin-top:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="brand">{{t:M06.SITE.REGISTRY.BRAND}}</div>
+<div class="tagline">{{t:M06.SITE.REGISTRY.TAGLINE}}</div>
+</header>
+<nav><a href="/">{{t:M06.SITE.REGISTRY.NAV_HOME}}</a></nav>
+<main>
+<h1>{{t:M06.SITE.ENTITY.TITLE}}</h1>
+<div class="section">{{t:M06.SITE.ENTITY.SECTION_PARTICULARS}}</div>
+<dl>
+<dt>{{t:M06.SITE.ENTITY.LABEL_NUMBER}}</dt><dd>PC-114772</dd>
+<dt>{{t:M06.SITE.ENTITY.LABEL_INCORPORATED}}</dt><dd>2017-03-09</dd>
+<dt>{{t:M06.SITE.ENTITY.LABEL_JURISDICTION}}</dt><dd>Port Calder</dd>
+<dt>{{t:M06.SITE.ENTITY.LABEL_AGENT}}</dt><dd>Marlowe &amp; Pryce Corporate Services &middot; marlowepryce.biz</dd>
+<dt>{{t:M06.SITE.ENTITY.LABEL_STATUS}}</dt><dd>{{t:M06.SITE.REGISTRY.STATUS_ACTIVE}}</dd>
+</dl>
+<p class="note">{{t:M06.SITE.ENTITY.NOTE}}</p>
+</main>
+<footer>{{t:M06.SITE.REGISTRY.FOOTER}}</footer>
+</div>
+</body>
+</html>

@@ -2390,3 +2390,37 @@ HTML `<script>`, `{{t:KEY}}` registration, no clock-derived dates, reachability
 from `src/index.ts`). One bug found was in the **mock**, not the mod: it
 replaced a language bundle per `registerAll` call instead of merging, so the
 last mission's table wiped the earlier ones.
+
+---
+
+## 2026-10-02 — M06 skeleton (phase 2 of the M4-M7 run)
+
+**Why a 5-step subset and not the full 10.** Phase 2's job is the zero-network
+path, not M6's content. The subset keeps the spec's order
+(`tipReviewed → registryReached → nomineesRead → agentIdentified →
+hiddenFilingsFound`) and stops where the skeleton's content stops, so phase 7
+appends `snapshotsCompared`, `insurerLinked`, `infraLinked`, `identityProven`
+and re-points `reportSent` at `identityProven` without reordering anything.
+
+**Why the entity path is `/entity/r7k4/` and not a readable slug.** `dirhunter`
+prints every registered path (E-3). `/entity/skn-capital-nominees/` would name
+the answer in the output. E-3 suggests either opaque tokens or one dynamic
+pattern such as `/entity/:id`; `PageContext.params` exists in the SDK, but
+**nothing in this repo uses a dynamic path yet**, so it is unproven in this
+engine build. Opaque tokens are what M1 ships and live-tested, so the skeleton
+uses those. If phase 7 wants `/entity/:id` it needs its own live check first.
+
+**Why `register` returning `true` on a zero-network world is fine.** See
+`docs/bugs.md` #47. The harness asserts it rather than asserting `false`, which
+was my first (wrong) expectation.
+
+**`trace` call locations for M06** (the owner removes these at FINAL LOCK):
+`controller/m06/index.ts` — `probe:zero-network register built=<bool>`;
+`controller/m06/recon.ts` — `probe:registry-page`, `probe:agent-whois`,
+`probe:dirhunter-no-subnet`. The `probe:dirhunter-no-subnet` line prints the
+full path list so the owner can paste it into the finding.
+
+**Reward.** `components/reward.ts` is new and shared: `payReward` carries the
+D1 rule (pay in `OnComplete`, never `Quest.Rewards`, skip under focus with a
+`trace`) and `penalty` carries `min(balance, amount)` for the M4/M7 kit. M6 is
+1800, continuing 250 / 400 / 600 / 800 and staying under M7's 5000.

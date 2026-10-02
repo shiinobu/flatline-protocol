@@ -1871,3 +1871,41 @@ downloaded in time) or `probe:tracking-expired` (you did not). Also worth
 checking: whether it still expires after `back`, and whether it survives
 `mods.reset`. The probe and this entry are removed once phase 4 builds the real
 240-second deadline on the answer.
+
+---
+
+## 47. UNVERIFIED: a mission with no network at all (`networkIps: []`)
+
+**Status: OPEN (code read plus harness; M06's phase-2 walking skeleton is the live test).**
+Raised: M06 skeleton, 2026-10-02.
+
+M06 is designed with `networkIps: []` and `networks: () => []`
+(`docs/world-building/08-spec-m5-m6.md` §C1). Read against the code that path is
+sound, and a mocked-SDK harness (52 checks) confirms the following, but **none
+of it has run in the game**:
+
+- `register(world, { networkBuilt: false, unlocked: [] })` returns **`true`** on
+  the first call, because `existingNetworkIps([]).length === 0` takes the
+  build-in-place branch. `applyNetwork` then calls `buildNetworks([])`, which is
+  an empty loop, so nothing is created and the controller still records
+  `networkBuilt`. The `true` is "the world was applied", not "a network exists".
+- Every later call takes the keep path, because `networksExist([])` compares
+  `0 === 0` and is **vacuously true**.
+- `unregister` still schedules its teardown job; `destroyNetworksInOrder([])`
+  iterates nothing.
+- No `createSubnetNetwork`, no `registerDomain`, no `destroyNetwork` is ever
+  called, so the Network Map app should stay empty for the whole mission.
+
+**What the live test has to confirm** (`docs/m06-playtest.md`): that such a
+mission starts, runs its gates and completes; that the Network Map gains
+nothing; and above all that `dirhunter <host>` lists a mod site's registered
+paths with **no subnet anywhere in the mission** (E-3 says the lookup is by host
+name only, `docs/bugs.md` #40 — but every live confirmation so far came from M1,
+which does have networks).
+
+**Why it is not a gamble.** The mission's own gates are page visits
+(`Browser.Meta`) and a `whois` fixture, both of which are live-proven in M1-M3
+and neither of which needs a subnet (E-1 for fixtures, E-3 for the site
+lookup). `dirhunter` is only a discovery aid: the gate is the visit to
+`/filings/archive/`, so even if `dirhunter` turned out to need a subnet the page
+is still reachable by typing its address, and the mission is still completable.

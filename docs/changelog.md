@@ -27,6 +27,24 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 2 of the M4-M7 run: the M06 walking skeleton, the project's first mission with
+  no network at all.** `content/m06/*`, `i18n/m06/` (en + zh), `controller/m06/*`, `main/m06.ts` and
+  the Port Calder Companies Registry site (`websites/m06/registry/`, three pages). `networkIps: []`
+  and `networks: () => []`: nothing reaches `createSubnetNetwork` or `registerDomain`. A 5-step
+  subset of the spec's 10-step chain, in the spec's order, ending in a 2-column report; phase 7
+  extends both. See `docs/m06-playtest.md` and `docs/bugs.md` #47.
+- **[mechanic] The register's entity record uses an opaque token path** (`/entity/r7k4/`) and the
+  filings archive is registered but linked from nowhere, because `dirhunter` prints every registered
+  path and a readable slug would hand over the answer (`docs/app-asar-reference.md` E-3).
+  `marlowepryce.biz` and `vpn.skn-central.net` exist only as `whois` / `nslookup` fixtures, never as
+  registered domains (E-1).
+- **[mechanic] `components/reward.ts`:** `payReward` pays with `Bank.transaction` and skips under
+  dev or tester focus with a `trace`, `penalty` charges `min(Bank.getBalance(), amount)`. One place
+  for the rule in prompt §8 D1 and README #34, shared by the remaining missions. M6 pays 1800.
+- **[docs] `docs/bugs.md` #47:** what the `networkIps: []` path does according to the code and the
+  harness, what the live test still has to confirm, and why the mission is completable even if
+  `dirhunter` turns out to need a subnet.
+
 - **[docs] Phase 1 merged into `clouds-modify`; the implementation prompt now drives one run for
   phases 2-8.** `phase1-m07-skeleton` (4 commits, reviewed read-only: diff guard empty, §2.3
   baseline clean on SDK 0.25.0) was fast-forwarded into `clouds-modify`.
