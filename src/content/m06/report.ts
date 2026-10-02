@@ -18,6 +18,16 @@ export const M06_REPORT_FRONT = `${M06_VOSS_NAME} is a nominee, not the owner`;
 export const M06_REPORT_REJECTED_ARCHITECT = M06_VOSS_NAME;
 export const M06_REPORT_REJECTED_PROOF = "the registered agent filed it";
 
+export const M06_REPORT_ARCHITECT_TERMS: readonly string[] = ["lindqvist"];
+export const M06_REPORT_ARCHITECT_REJECTED_TERMS: readonly string[] = ["voss"];
+export const M06_REPORT_ROLE_CHAIR_TERMS: readonly string[] = ["chair", "主席"];
+export const M06_REPORT_ROLE_RISK_TERMS: readonly string[] = ["risk", "风险"];
+export const M06_REPORT_CHAIN_TERMS: readonly string[] = ["mutual", "holdings", "nominee"];
+export const M06_REPORT_PROOF_CERTIFICATE_TERMS: readonly string[] = ["certificate", "cert", "证书"];
+export const M06_REPORT_PROOF_REGISTRANT_TERMS: readonly string[] = ["bulletproof", "防弹"];
+export const M06_REPORT_FRONT_TERMS: readonly string[] = ["voss"];
+export const M06_REPORT_FRONT_NOMINEE_TERMS: readonly string[] = ["nominee", "front", "not the owner", "名义", "代持", "不是所有人"];
+
 const reportFacts = (): Record<string, string> => ({
     architect: M06_REPORT_ARCHITECT,
     role: M06_REPORT_ROLE,
@@ -27,7 +37,7 @@ const reportFacts = (): Record<string, string> => ({
 });
 
 export const M06_REPORT_TEMPLATE_CONTENT = (): string =>
-    Localization.t(M06_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT, reportFacts());
+    Localization.t(M06_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT);
 
 export const buildM06ReportBody = (): string =>
     Localization.t(M06_I18N_KEY.MAIL_REPORT_BODY, reportFacts());

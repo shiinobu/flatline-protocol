@@ -16,15 +16,14 @@ export const M07_REPORT_EVIDENCE = (): string => M07_EVIDENCE_CLASSIFICATION;
 
 export const M07_REPORT_CHOICE_HINT = M07_CHOICES.join(" / ");
 
-const reportFacts = (): Record<string, string> => ({
-    architect: M07_ARCHITECT_REAL_NAME,
+export const M07_REPORT_ARCHITECT_TERMS: readonly string[] = ["lindqvist"];
+export const M07_REPORT_EVIDENCE_FAULT_TERMS: readonly string[] = ["negligen", "疏忽", "过失"];
+export const M07_REPORT_EVIDENCE_PERSON_TERMS: readonly string[] = ["souza"];
+
+const templateFacts = (): Record<string, string> => ({
     parentEntity: M03_PARENT_ENTITY_NAME,
-    evidence: M07_REPORT_EVIDENCE(),
-    choice: M07_REPORT_CHOICE_HINT,
+    choices: M07_REPORT_CHOICE_HINT,
 });
 
 export const M07_REPORT_TEMPLATE_CONTENT = (): string =>
-    Localization.t(M07_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT, reportFacts());
-
-export const buildM07ReportBody = (): string =>
-    Localization.t(M07_I18N_KEY.MAIL_REPORT_BODY, reportFacts());
+    Localization.t(M07_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT, templateFacts());

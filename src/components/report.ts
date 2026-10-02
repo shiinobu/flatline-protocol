@@ -28,7 +28,9 @@ const isTemplateSubmission = (spec: ReportSpec, subject: string, content: string
 };
 
 const isFreehandSubmission = (spec: ReportSpec, subject: string, content: string): boolean =>
-    subject.trim().toLowerCase() === spec.subject().toLowerCase() && content.trim() === spec.body();
+    spec.body !== undefined &&
+    subject.trim().toLowerCase() === spec.subject().toLowerCase() &&
+    content.trim() === spec.body();
 
 export const isReportSubmission = (spec: ReportSpec, subject: string, content: string): boolean =>
     isTemplateSubmission(spec, subject, content) || isFreehandSubmission(spec, subject, content);

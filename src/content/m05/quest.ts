@@ -18,3 +18,4 @@ export const M05_REWARD_DESCRIPTION = "The Door — contract settled";
 
 export const M05_PAID_AT = "09:02";
 export const M05_GAP_TEXT = "6 hours 21 minutes";
+export const M05_GAP_TOTAL_MINUTES = "381";

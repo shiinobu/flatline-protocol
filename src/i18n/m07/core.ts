@@ -19,7 +19,6 @@ export const M07_I18N_KEY = {
     MAIL_PREMATURE_HINT_EXTRACT: "M07.MAIL.PREMATURE.HINT_EXTRACT",
     MAIL_REPORT_SUBJECT: "M07.MAIL.REPORT.SUBJECT",
     MAIL_REPORT_TEMPLATE_CONTENT: "M07.MAIL.REPORT.TEMPLATE_CONTENT",
-    MAIL_REPORT_BODY: "M07.MAIL.REPORT.BODY",
     MAIL_HONEYPOT_SUBJECT: "M07.MAIL.HONEYPOT.SUBJECT",
     MAIL_HONEYPOT_CONTENT: "M07.MAIL.HONEYPOT.CONTENT",
     MAIL_TRAP_SUBJECT: "M07.MAIL.TRAP.SUBJECT",
@@ -98,12 +97,8 @@ Localization.registerAll({
             "Parent entity: {{parentEntity}}",
             "",
             "Evidence: {{evidence}}",
-        ].join("\n"),
-        [M07_I18N_KEY.MAIL_REPORT_BODY]: [
-            "The Architect: {{architect}}",
-            "Parent entity: {{parentEntity}}",
             "",
-            "Evidence: {{evidence}}",
+            "Decision ({{choices}}): {{choice}}",
         ].join("\n"),
 
         [M07_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "SYSTEM ALERT — decoy host touched",
@@ -276,15 +271,7 @@ Localization.registerAll({
             "",
             "证据：{{evidence}}",
             "",
-            "决定：{{choice}}",
-        ].join("\n"),
-        [M07_I18N_KEY.MAIL_REPORT_BODY]: [
-            "设计师：{{architect}}",
-            "母体实体：{{parentEntity}}",
-            "",
-            "证据：{{evidence}}",
-            "",
-            "决定：{{choice}}",
+            "决定（{{choices}}）：{{choice}}",
         ].join("\n"),
 
         [M07_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "系统告警 — 诱饵主机被触碰",

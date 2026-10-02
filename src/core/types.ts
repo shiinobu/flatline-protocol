@@ -125,7 +125,7 @@ export interface ReportSpec {
     readonly fields: readonly string[];
     readonly subject: () => string;
     readonly templateContent: () => string;
-    readonly body: () => string;
+    readonly body?: () => string;
     readonly matchesFields: (fields: Record<string, unknown>) => boolean;
 }
 

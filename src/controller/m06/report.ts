@@ -1,9 +1,14 @@
+import { answerHasAll, answerHasAny } from "../../components/report-match.js";
 import {
-    M06_REPORT_ARCHITECT,
-    M06_REPORT_CHAIN,
-    M06_REPORT_FRONT,
-    M06_REPORT_PROOF,
-    M06_REPORT_ROLE,
+    M06_REPORT_ARCHITECT_REJECTED_TERMS,
+    M06_REPORT_ARCHITECT_TERMS,
+    M06_REPORT_CHAIN_TERMS,
+    M06_REPORT_FRONT_NOMINEE_TERMS,
+    M06_REPORT_FRONT_TERMS,
+    M06_REPORT_PROOF_CERTIFICATE_TERMS,
+    M06_REPORT_PROOF_REGISTRANT_TERMS,
+    M06_REPORT_ROLE_CHAIR_TERMS,
+    M06_REPORT_ROLE_RISK_TERMS,
     M06_REPORT_SUBJECT,
     M06_REPORT_TEMPLATE_CONTENT,
     M06_REPORT_TEMPLATE_ID,
@@ -12,18 +17,27 @@ import {
 } from "../../content/m06/report.js";
 import type { ReportSpec } from "../../core/types.js";
 
-const normalize = (value: unknown): string =>
-    typeof value === "string" ? value.trim().replace(/\s+/g, " ").toLowerCase() : "";
+const matchesArchitect = (value: unknown): boolean =>
+    answerHasAny(value, M06_REPORT_ARCHITECT_TERMS) && !answerHasAny(value, M06_REPORT_ARCHITECT_REJECTED_TERMS);
+
+const matchesRole = (value: unknown): boolean =>
+    answerHasAny(value, M06_REPORT_ROLE_CHAIR_TERMS) && answerHasAny(value, M06_REPORT_ROLE_RISK_TERMS);
+
+const matchesProof = (value: unknown): boolean =>
+    answerHasAny(value, M06_REPORT_PROOF_CERTIFICATE_TERMS) && answerHasAny(value, M06_REPORT_PROOF_REGISTRANT_TERMS);
+
+const matchesFront = (value: unknown): boolean =>
+    answerHasAny(value, M06_REPORT_FRONT_TERMS) && answerHasAny(value, M06_REPORT_FRONT_NOMINEE_TERMS);
 
 const matchesFields = (fields: Record<string, unknown>): boolean => {
     const { architect, role, chain, proof, front } = fields;
 
     return (
-        normalize(architect) === normalize(M06_REPORT_ARCHITECT) &&
-        normalize(role) === normalize(M06_REPORT_ROLE) &&
-        normalize(chain) === normalize(M06_REPORT_CHAIN) &&
-        normalize(proof) === normalize(M06_REPORT_PROOF) &&
-        normalize(front) === normalize(M06_REPORT_FRONT)
+        matchesArchitect(architect) &&
+        matchesRole(role) &&
+        answerHasAll(chain, M06_REPORT_CHAIN_TERMS) &&
+        matchesProof(proof) &&
+        matchesFront(front)
     );
 };
 
