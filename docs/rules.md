@@ -139,6 +139,18 @@ Mail.registerTemplate({
   left blank" as a valid choice, register two templates (one fields-less,
   one with the field genuinely required) instead of one optional-field
   template.
+- A template's `content` must leave every declared `field` as an unreplaced
+  `{{field}}` token. In template mode the compose body is read-only text and
+  the only inputs are those tokens, and Send stays disabled until every
+  declared field has a value (engine `index.js` @10052689 and @10055662).
+  Interpolate only context values: M3's `fundsFacts()` carries amounts and
+  names but none of its field names (`shellCompany`, `parentEntity`,
+  `vpnLead`), so all three stay tokens. Passing the field values into
+  `Localization.t(KEY, facts)` leaves nothing to type, and the report could
+  then only be sent as a freehand exact-body retype. M4-M7 shipped that way
+  until 2026-10-02 (`docs/changelog.md`). `ReportSpec.body` is optional: a
+  report whose answer cannot be encoded in a freehand body (M07's `choice`)
+  is template-only.
 
 ## 4. Dual-path report validation
 

@@ -122,8 +122,8 @@ locked content; M05 only listens for the event its `Exports` already emits. If
 
 1. `lynx g.desouza` (a leading `@` is stripped, so `lynx @g.desouza` is the
    same) or her full name from the staff page, `lynx Greta de Souza`. Three
-   lines: her role, the reused-password habit, and the theatre she keeps
-   mentioning.
+   lines: her role, the USB stick with a project code that she asked about in
+   August, and her last post (they want her to sign something).
 2. Expect `[FP][Backtrace] m5 traced greta`.
 3. `lynx g.lim` or `lynx Gareth Lim` works too and is a decoy — it must trace
    nothing.
@@ -235,14 +235,17 @@ before logging in must not advance.
    the clinical archive.
 2. Expect `[FP][M05] probe:archive-accessed`, `[FP][Backtrace] m5 traced
    archive`, and a personal-log entry.
-3. `ls` her home: `notes.txt`. Read it — two more personal-log entries, and the
-   theatre line from her `lynx` profile turns up again.
-4. `cd /ir/2026-08-14`. Four files:
+3. `ls` her home: `notes.txt`. Read it — two more personal-log entries. It is
+   her own account of the USB stick and it ends on the theatre ("Theatre 3 is
+   not a system").
+4. `cd /var/ir/2026-08-14` (the folder tree is `var/ir/...`, as
+   `09-konten-m5-m6.md` B5 says; confirm that `ls /var/ir` works on the device).
+   Four files:
    - `decision_memo.txt`
    - `finding_draft_v1.txt`
    - `finding_final.txt`
    - `acknowledgement_gdesouza.txt`
-5. `cd /ir/tickets`. Two files: `usb_ticket_PC-IT-017.txt` and
+5. `cd /var/ir/tickets`. Two files: `usb_ticket_PC-IT-017.txt` and
    `asset_register.txt`.
 
 **Checks.** `finding_draft_v1.txt` and `finding_final.txt` are readable and

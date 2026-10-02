@@ -297,9 +297,10 @@ dan `nmap` Echoline didaftarkan bersama `archiveLead`, bukan saat build, sesuai 
 Gerbang `gretaProfiled` menerima handle dan nama lengkap, karena `lynx` mengubah nama lengkap
 menjadi nama Twotter sebelum memicu event (#53); username persona Twotter disimpan tanpa `@` (#54).
 Tabel LeakIndex hanya mencetak enam karakter pertama hash sampai rekaman dibuka. Hadiah 3200,
-bukan 1200 (README #40). **Penyimpangan yang belum diputuskan:** folder insiden ada di `/ir/...`
-(`rootFiles`), bukan `/var/ir/...` seperti `09` B5 dan `13`; `13` tidak diedit, jadi memindahkan
-kode atau menerima `/ir/` masih OPEN.
+bukan 1200 (README #40). Folder insiden dikembalikan ke `/var/ir/...` seperti `09` B5 dan `13`;
+agen cloud menaruhnya di `/ir/...` pada `rootFiles`, dan itu menyimpang dari spesifikasi. Pohon
+`var/ir/...` memakai folder bersarang seperti M2; keberadaan `/var` pada perangkat belum diuji
+live (`docs/m05-playtest.md` §9).
 
 **M6.** Surel susulan Custodian saat `snapshotsCompared` menyebut `hosttrail.net` dan portal asuransi.
 Itu menggantikan sebagian penyimpangan (3) catatan fase 7: HostTrail dinamai pada tahap yang sama

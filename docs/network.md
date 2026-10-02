@@ -281,8 +281,8 @@ Router  198.244.91.37  (remote.pacificcare-health.org)  lan 192.168.1.1
    │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.5
    ├─ Device "Cold-Chart"  141.98.252.76  lan 192.168.1.4
    │     g.desouza (+ root) · 22 ssh, closed until the firewall step
-   │     rootFiles: /ir/2026-08-14/ (decision memo, draft, final finding,
-   │                acknowledgement) · /ir/tickets/ (USB ticket, asset register)
+   │     rootFiles: /var/ir/2026-08-14/ (decision memo, draft, final finding,
+   │                acknowledgement) · /var/ir/tickets/ (USB ticket, asset register)
    ├─ Device "Bedside-17"  80.94.92.118  lan 192.168.1.5
    │     it.station online (+ root) · 3389 rdp "FreeRDP 6.0.4", closed until the
    │     firewall step · vulnerabilities: RCE, FreeRDP 6.0.4  (bluekeep bonus)

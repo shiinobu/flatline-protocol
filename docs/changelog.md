@@ -59,6 +59,9 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   the edge scan, `dirhunter` only traces, the watchdog mail is sent once, and the halved trace window
   is capped by what is left (`Scheduler.remaining` is in-game ms, so `strikeRemainingRealMs` goes
   through `Time.toRealMs`, #46).
+- **[bug] The M05 incident documents sat under `/ir/`**, while `09-konten-m5-m6.md` B5 and
+  `13-story-timeline.md` put them at `/var/ir/2026-08-14/` and `/var/ir/tickets/`. The folder tree is
+  `var/ir/...` now (`M05_VAR_FOLDER`, nested `rootFiles` folders as in M2); no gate depends on the path.
 - **[bug] BACKTRACE M4-M7 report views** used classes with no CSS and no `.report-scroll` wrapper
   (static text beside the locked card, no scrolling); they now use M3's structure.
 - **[mechanic] Mission sites fill their data markers through `fillMarker`, `fillDataMarker` and
@@ -68,7 +71,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 - **[docs]** `docs/bugs.md` #52-#55 added and #45, #46, #47, #50 and #51 corrected (stale probes and
   shortcut, the nonexistent Network Map app, the 13 registry paths); the four playtests,
   `docs/network.md` and `docs/architecture.md` brought in line with the code; the personal-log beat counts
-  above corrected; world-building README #38-#41 and implementation notes in specs `08`, `10` and `11`.
+  above corrected; world-building README #38-#41 and implementation notes in specs `08`, `10` and `11`;
+  `docs/rules.md` now says that a report template must leave its `{{field}}` tokens open.
 
 - **[milestone] Phase 8 of the M4-M7 run: wrap-up.** One review pass over the whole M4-M7 diff, the
   findings fixed, and the three documents that describe the result brought in line with it.
