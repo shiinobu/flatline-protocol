@@ -64,10 +64,11 @@ way M3 taught:
 python3 net_tree.py 203.0.113.160
 ```
 
-Expect four addresses behind the router: `45.76.180.9` (the Splitter),
+Expect these addresses behind the router: `45.76.180.9` (the Splitter),
 `203.0.113.161`, `185.220.101.42`, `146.70.44.18`. The Firewall is
-`isIpHidden`, so **do not expect `194.60.38.12` here** — its address comes
-from section 4.
+`isIpHidden`, and the engine consults that flag only in `whois` and `nslookup`,
+so `194.60.38.12` may be listed too. Note whether it is: that settles whether
+`net_tree.py` hides such hosts. Its address also comes from section 4.
 
 Then version-scan the C2:
 

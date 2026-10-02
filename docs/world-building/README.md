@@ -62,6 +62,7 @@ tidak ikut repo).
 | 34 | Hadiah semua misi baru hanya uang, XP dilewati. Uang dibayar lewat `Bank.transaction` di `OnComplete`, `Rewards` quest tidak diisi, pembayaran dilewati saat dev/tester focus. Menggantikan bagian "200 xp" dari #30 dan nilai xp di `10-spec-m4.md` bagian A | DECIDED 2026-10-02 |
 | 35 | Implementasi memakai SDK `@hotbunny/hackhub-content-sdk` 0.25.0, dipin eksak di `package.json` dan `package-lock.json` (sebelumnya 0.24.0 lewat `latest`). Selisihnya: field `incognito` pada `HttpRequest`, komentar `ModManifest.apiVersion`, nilai bawaan `apiVersion` di `build.mjs`. `tsc` lolos di 0.25.0 | DECIDED 2026-10-02 |
 | 36 | Tanggal di nama dan isi berkas SSH, Meterpreter, dan evidence M1-M7 mengikuti timeline cerita di `13-story-timeline.md`, bukan jam game atau jam nyata. M1-M3 tidak diedit (anomali hanya dilaporkan). Hari-cerita M2-M7 di bagian C berstatus PROPOSAL (`06-pertanyaan.md` T-d) | DECIDED 2026-10-02 (aturan); PROPOSAL (hari-cerita) |
+| 37 | Implementasi M4-M7 dikerjakan agen cloud dalam satu run untuk fase 2-8 berurutan (permintaan pemilik 2026-10-02), bukan satu fase per run. Tiap fase adalah checkpoint: baseline, diff guard, harness, dokumen uji, changelog, commit, dan push. Live test dan review penuh dilakukan pemilik sesudah run. Untuk run ini live test per fase pada "Batasan urutan implementasi" #3 dan #4 dilewati, sehingga fase 4 dibangun di atas event yang belum diuji live dan agen mendaftarkannya sebagai UNVERIFIED. Urutan fase tidak berubah, hanya batas run | DECIDED 2026-10-02 |
 
 ## Isi folder
 
@@ -102,9 +103,9 @@ tidak ikut repo).
 2. M4 lama dimigrasi ke id `m07` **sebelum** M4 baru dibuat, supaya id `m04` kosong
    (`11-spec-m7.md`, `07-arsitektur-misi-baru.md` bagian C).
 3. Jalur M6 tanpa jaringan (`networkIps: []`) diuji paling awal lewat kerangka jalan: harness SDK tiruan,
-   lalu live (`09-konten-m5-m6.md` bagian D).
+   lalu live (`09-konten-m5-m6.md` bagian D). Pada run fase 2-8 live test dilakukan sesudah run (#37).
 4. Tiga event di sesi RDP M7 (`attrcheck` Meterpreter-aware, `Files.Transfer` pada `download`,
-   pelacakan) diuji lewat kerangka jalan M7 sebelum konten lain (`11-spec-m7.md` bagian L).
+   pelacakan) diuji lewat kerangka jalan M7 sebelum konten lain (`11-spec-m7.md` bagian L). Pada run fase 2-8 fase 4 dibangun sebelum event ini diuji live (#37).
 5. Tiap misi: lembar spesifikasi, lab untuk mekanik Tier 2 bila ada, lalu implementasi berurutan
    `content` -> `i18n` -> `controller` -> `main` -> `websites` -> perubahan global
    (`07-arsitektur-misi-baru.md` bagian F).
@@ -118,11 +119,14 @@ implementasi sedikit berbeda; lihat "Penyerahan implementasi".
 ## Penyerahan implementasi
 
 Implementasi dikerjakan agen cloud atas permintaan pemilik proyek. Prompt-nya ada di
-`12-implementation-prompt.md` (English, ditulis 2026-10-02): satu fase per run, dengan baris PHASE, BASE,
-dan catatan pemilik yang diisi sebelum dikirim. Cara pakai: pilih `clouds-modify` sebagai cabang dasar
+`12-implementation-prompt.md` (English, ditulis 2026-10-02): satu run memuat satu fase atau beberapa (baris PHASE),
+dengan baris BASE dan catatan pemilik yang diisi sebelum dikirim. Fase 1 dikerjakan sebagai run sendiri (cabang
+`phase1-m07-skeleton`, digabung ke `clouds-modify` lewat fast-forward 2026-10-02); fase 2-8 dijalankan sebagai satu
+run (#37). Cara pakai: pilih `clouds-modify` sebagai cabang dasar
 (`origin/main` tertinggal; semua perubahan dokumen dan `package*.json` harus sudah di-commit dan di-push),
-isi bagian 0 prompt, kirim seluruh isi berkas sebagai pesan pertama. Tiap fase berhenti untuk live test
-pemilik; hasilnya masuk ke baris "Owner notes" pada run berikutnya.
+isi bagian 0 prompt, kirim seluruh isi berkas sebagai pesan pertama. Run satu fase berhenti untuk live test
+pemilik; hasilnya masuk ke baris "Owner notes" pada run berikutnya. Pada run beberapa fase (#37) live test dan review
+penuh dilakukan pemilik sesudah run, dan temuannya dikerjakan sebagai perbaikan atau run lanjutan.
 
 Prompt memakai SDK 0.25.0 (#35), `docs/app-asar-reference.md` sebagai pengganti `.reverse/` (agen cloud tidak
 punya folder itu), `13-story-timeline.md` untuk tanggal di berkas (#36), dan hadiah hanya uang (#34).

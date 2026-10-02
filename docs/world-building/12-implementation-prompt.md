@@ -2,11 +2,19 @@
 
 ## 0. Scope of this run (the owner fills this in before sending)
 
-- **PHASE:** `1` (a value from the table in §5; combine phases only if the owner writes the combination here)
+- **PHASE:** `2, 3, 4, 5, 6, 7, 8` (values from the table in §5, run strictly in this order; a combination is allowed because the owner writes it here; Phase 1 is done and merged)
 - **BASE:** (optional) a commit hash. If empty, BASE is the commit your checkout starts at (`git rev-parse HEAD`). The owner names one only when legitimate changes to the locked M1–M3 files were committed since the last run.
-- **Owner notes:** — (live-test results from the previous phase and new decisions; fix live-test findings first)
+- **Owner notes:**
+  - Run mode: a phase is done only when its §2.3 baseline, its §4 diff guard and your harness pass, its playtest doc and changelog entry are written, and its commits are pushed. Start the next phase only then.
+  - If a phase is BLOCKED or fails, skip the phases that depend on it (4 and 5 need 3; 7 needs 2 and 6), do the independent ones, then report. If your context runs low, stop at the last finished phase and report the rest as PARTIAL or NOT STARTED.
+  - Phase 1 is already in your checkout. All live tests happen after this run, so Phase 4 builds on events not yet tested live (`open` and `attrcheck` at a Meterpreter prompt, `Files.Transfer` DOWNLOAD in an RDP session, a `{ realMs }` Scheduler job across a live session; `docs/bugs.md` #45, #46): list each under item 3 of its report block. Do not edit m07 files before Phase 4 unless a change forces it, and report it if so.
+  - The `m05`–`m07` keys in `guard/flags.ts` and the BACKTRACE ids `m5`–`m7` already exist; do not add them again.
+  - Story days accepted for this run (`13` §C): M4 2026-09-24, M5 2026-09-27, M6 2026-09-30, M7 2026-10-03.
+  - In the 1.3.13 engine `isIpHidden` is consulted only by `whois` and `nslookup`; do not assume `net_tree.py` hides a host (M2's hidden Firewall was found with it live).
+  - Check the SDK version by reading `node_modules/@hotbunny/hackhub-content-sdk/package.json` with `fs`: a `require` of that path fails because the package does not export it (§2.2).
+  - One final report, one items-1-to-8 block per phase (§9).
 
-EKSEKUSI: the owner grants it through this prompt, for the PHASE above only. The repo rule "writing waits for the word EKSEKUSI" applies again as soon as you stop. Do not wait for answers mid-phase: if an item is blocked, mark it BLOCKED, do the other items, then report.
+EKSEKUSI: the owner grants it through this prompt, for the PHASES above only. The repo rule "writing waits for the word EKSEKUSI" applies again as soon as you stop. Do not wait for answers mid-run: if an item is blocked, mark it BLOCKED, do the other items, then report.
 
 ## 1. Context and content boundaries
 
@@ -18,8 +26,8 @@ This repo is a content mod for HackHub (a commercial hacking-simulation game, St
 
 ## 2. Codebase, environment, sources of truth
 
-1. Base and initial check. Work on a branch derived from `clouds-modify`. `origin/main` was 18 commits behind when this prompt was written (no `src/controller/`, no `docs/world-building/`); do not use it. Stop and report if any of these is missing at HEAD: `docs/world-building/README.md`, `docs/world-building/13-story-timeline.md`, `docs/app-asar-reference.md`. If the clone is shallow, run `git fetch --unshallow` first.
-2. SDK 0.25.0. Run `npm ci`. `package.json` and `package-lock.json` pin `@hotbunny/hackhub-content-sdk` to exactly `0.25.0` (the owner moved from 0.24.0 on 2026-10-02; the only differences are the `incognito` field on `HttpRequest`, the `ModManifest.apiVersion` comment, and the default `apiVersion` in the generated manifest). Check that `node -e "console.log(require('@hotbunny/hackhub-content-sdk/package.json').version)"` prints `0.25.0`; if it does not, stop and report. npm may warn that install scripts were skipped (`install-scripts`): ignore it, only `tsc` is used. Do not modify `package.json`, `package-lock.json`, `tsconfig.json`, `esbuild.config.ts`, or `.gitignore`.
+1. Base and initial check. Work on a branch derived from `clouds-modify`. `origin/main` is far behind (no `src/controller/`, no `docs/world-building/`); do not use it. Stop and report if any of these is missing at HEAD: `docs/world-building/README.md`, `docs/world-building/13-story-timeline.md`, `docs/app-asar-reference.md`, and, because Phase 1 is done, `docs/m07-playtest.md` and `src/controller/m07/index.ts`. If the clone is shallow, run `git fetch --unshallow` first.
+2. SDK 0.25.0. Run `npm ci`. `package.json` and `package-lock.json` pin `@hotbunny/hackhub-content-sdk` to exactly `0.25.0` (the owner moved from 0.24.0 on 2026-10-02; the only differences are the `incognito` field on `HttpRequest`, the `ModManifest.apiVersion` comment, and the default `apiVersion` in the generated manifest). Check that `node -e "console.log(JSON.parse(require('fs').readFileSync('node_modules/@hotbunny/hackhub-content-sdk/package.json','utf8')).version)"` prints `0.25.0` (a `require` of that path fails: the package does not export it); if the version differs, stop and report. npm may warn that install scripts were skipped (`install-scripts`): ignore it, only `tsc` is used. Do not modify `package.json`, `package-lock.json`, `tsconfig.json`, `esbuild.config.ts`, or `.gitignore`.
 3. Baseline. All of these must give the stated result before you touch anything, and again before every commit:
 
 ```bash
@@ -44,7 +52,7 @@ git ls-files -co --exclude-standard 'src/**/*.ts' | xargs wc -l | awk '$1>800 &&
    - E-10: site iframes are sandboxed without `allow-forms`.
    - E-11: the bluekeep module needs a port with `internal` 3389, a `version` such as `FreeRDP 5.2.1`, an `active` port, no blocking firewall rule, and an online user (or `guest`); success raises `RemoteConnection.Established` with `t: "METASPLOIT"`.
    - E-12: `nmap` and `geoip` consult a registered fixture first; a LAN address is resolved only inside an SSH session.
-6. Notation and reading order. `07`–`11` and `13` are the numbered files in `docs/world-building/` (`07-arsitektur-misi-baru.md`, `08-spec-m5-m6.md`, `09-konten-m5-m6.md`, `10-spec-m4.md`, `11-spec-m7.md`, `13-story-timeline.md`); `README` is its decision log; `§X` is a lettered section. These design docs are written in Indonesian and are the source of truth for design decisions. Read in full: `README.md`, `07`, the spec files of your phase (§5), `01-canon-dan-hook.md` (§B–E), `04-web-layer.md` (§C–E), `13-story-timeline.md`, `docs/app-asar-reference.md`; then `docs/rules.md` (including its section "Step gating and engine contexts"), `docs/architecture.md` (Mission pipeline, Website access, Applications: BACKTRACE), `docs/mechanics.md`, `docs/network.md`, and `docs/bugs.md` entries #5, #6, #13, #17–#22, #25–#27, #29–#31, #35–#44. Read `03`, `05`, `06` as needed. `docs/story.md` is context only (outdated in places; do not edit it). Implementation references: M3 (`src/main/m03.ts`, `controller/m03/`, `content/m03/`, `i18n/m03/`, `websites/m03/`); M2 for the Router + Splitter + hidden Firewall + Device shape.
+6. Notation and reading order. `07`–`11` and `13` are the numbered files in `docs/world-building/` (`07-arsitektur-misi-baru.md`, `08-spec-m5-m6.md`, `09-konten-m5-m6.md`, `10-spec-m4.md`, `11-spec-m7.md`, `13-story-timeline.md`); `README` is its decision log; `§X` is a lettered section. These design docs are written in Indonesian and are the source of truth for design decisions. Read in full at the start: `README.md`, `07`, `01-canon-dan-hook.md` (§B–E), `04-web-layer.md` (§C–E), `13-story-timeline.md`, `docs/app-asar-reference.md`; then `docs/rules.md` (including its section "Step gating and engine contexts"), `docs/architecture.md` (Mission pipeline, Website access, Applications: BACKTRACE), `docs/mechanics.md`, `docs/network.md`, and `docs/bugs.md` entries #5, #6, #13, #17–#22, #25–#27, #29–#31, #35–#46. Before each phase, read in full the spec files of that phase (§5). Read `03`, `05`, `06` as needed. `docs/story.md` is context only (outdated in places; do not edit it). Implementation references: M3 (`src/main/m03.ts`, `controller/m03/`, `content/m03/`, `i18n/m03/`, `websites/m03/`); M2 for the Router + Splitter + hidden Firewall + Device shape.
 
 ## 3. Binding rules
 
@@ -108,9 +116,9 @@ Allowed, narrow and additive: `src/guard/flags.ts` (new keys), `src/applications
 | 7 | M6 full | `08` §C; `09` §C | en, then zh |
 | 8 | Wrap-up | — | owner locks |
 
-Order rationale. It honors README "Batasan urutan implementasi": the old M4 moves to `m07` first so id `m04` is free (#2), the M6 zero-network path (#3) and the M7 events (#4) are tested by skeletons before their content. Relative to the README suggestion, the M4 kit (phase 3) comes before full M7 (phase 4) because full M7 reuses the kit components (`11` §G ↔ `10` §H), and the M6 skeleton comes right after the M7 skeleton.
+Order rationale. It honors README "Batasan urutan implementasi": the old M4 moves to `m07` first so id `m04` is free (#2), the M6 zero-network path (#3) and the M7 events (#4) are tested by skeletons before their content. Relative to the README suggestion, the M4 kit (phase 3) comes before full M7 (phase 4) because full M7 reuses the kit components (`11` §G ↔ `10` §H), and the M6 skeleton comes right after the M7 skeleton. When one run lists several phases (README #37), the owner's live tests of the skeletons come after the run; each skeleton is still built before the full content that rests on it.
 
-**Phase 1 — M7 walking skeleton**
+**Phase 1 — M7 walking skeleton** (DONE and merged into `clouds-modify`; kept for reference, do not redo it)
 - Migrate (id `m04` must become free first): move and split `content/m04.ts` into `content/m07/*`; turn `main/m04.ts` into a thin `main/m07.ts` plus `controller/m07/`; move `websites/m04/architect-c2/` to `websites/m07/architect-c2/` (`git mv` where it preserves history). `main/index.ts` imports `./m07.js` instead of `./m04.js`. Update the imports in `commands/attrcheck.ts` and `content/global/mail-senders.ts`. Moved constants named `M04_*` become `M07_*`, except `M04_ARCHITECT_VPN_IP`, which stays in `content/global/characters.ts` (the locked M2/M3 import it). Constants needed by more than one mission go to `content/global/`.
 - Global: add keys `m05`/`m06`/`m07` to `guard/flags.ts` (`false`); extend `BacktraceMissionId` and the initial state to m1..m7, with `BACKTRACE_KEYS` for m5–m7 empty for now; `backtrace.html` gets locked cards for M4–M7 (working titles) without changing how M1–M3 look.
 - World: topology per `11` §E (a Splitter holding the hidden Firewall with exactly ONE valid user, the C2, Null-Crown, Ash-Vector). LAN side `192.168.1.x`; Firewall rules with `destination` equal to the C2's `lanIp` (E-7, E-8). RDP bluekeep path to the C2 (E-11): `version: "FreeRDP 5.2.1"`, one online user `svc-cms`. `manifest.txt` and `master_ledger_backup.enc` in the C2 `rootFiles`. `attrcheck` made Meterpreter-aware through `commands/meterpreter-files.ts`, raising `flatline.m07.attrcheckRevealed`. Fix the old-M4 defects `11` §B #1–#4, #6 and #11.
@@ -175,7 +183,7 @@ Quality: once a page works, do one self-critique round on hierarchy, typography,
   - the §2.3 baseline, the §4 diff guard, and reachability: every file that registers something is reachable from `src/index.ts`.
 - A change to a function that M1–M3 also run (`core/`, `components/`, `middleware/`): prove behavior equivalence against BASE (compare every side-effecting SDK call over the same scenarios), or create a new file instead.
 - Report the number of checks and the result per group. Distinguish clearly between "typecheck", "harness", and "not tested (needs live)". Never write "works" for something that only passed the typecheck.
-- One self-review of the diff at the end of the phase against the §3 checklist; the in-depth review is batched in Phase 8.
+- One self-review of the diff at the end of each phase against the §3 checklist; the in-depth review is batched in Phase 8.
 
 ## 8. Defaults and limits of authority
 
@@ -202,13 +210,13 @@ The owner may change D1–D7 before sending.
 
 ## 9. Handoff
 
-- Git: small themed commits that each pass the typecheck; conventional format (`feat(m07): ...`, `refactor: ...`, `docs: ...`); no Co-Authored-By trailer; push only to the working branch of this session (no force, not `main`/`clouds-modify`); do not open a PR. If your context is nearly exhausted: commit what passes the typecheck, record the status in `docs/scratch.md`, and report PARTIAL.
+- Git: small themed commits that each pass the typecheck; conventional format (`feat(m07): ...`, `refactor: ...`, `docs: ...`); no Co-Authored-By trailer; push only to the working branch of this session (no force, not `main`/`clouds-modify`), after every completed phase and at the end; do not open a PR. If your context is nearly exhausted: commit what passes the typecheck, push, record the status in `docs/scratch.md`, and report PARTIAL.
 - Language: code, identifiers, commit messages, `docs/changelog.md`, `docs/bugs.md` and the playtest scripts in English; the final report and the "Implementation notes" block (written in the language of the file it is appended to, Indonesian) in Indonesian.
-- Docs: `docs/changelog.md` (dated entries in English, format in the file header), `docs/bugs.md` (new engine findings or UNVERIFIED assumptions as consecutively numbered entries from #45 on, not a new document), `docs/network.md` (topology, IPs, LAN, ports, users you chose), `docs/mNN-playtest.md` (a test script for the owner in the format of `docs/m03-playtest.md`: player steps, expected results, the `[FP]` log lines to look for, "Known follow-ups"), `docs/architecture.md` (only what §5 names), and the "Implementation notes" block at the end of the mission's spec file.
-- Final report (in Indonesian, the owner's working language; at most about 60 lines):
+- Docs: `docs/changelog.md` (dated entries in English, format in the file header), `docs/bugs.md` (new engine findings or UNVERIFIED assumptions as consecutively numbered entries after the last one in the file (#46 at the time of writing), not a new document), `docs/network.md` (topology, IPs, LAN, ports, users you chose), `docs/mNN-playtest.md` (a test script for the owner in the format of `docs/m03-playtest.md`: player steps, expected results, the `[FP]` log lines to look for, "Known follow-ups"; a full phase, 4 to 7, extends the existing playtest doc of its mission into the full walkthrough), `docs/architecture.md` (only what §5 names), and the "Implementation notes" block at the end of the mission's spec file.
+- Final report (in Indonesian, the owner's working language; one block per phase, each at most about 60 lines):
 
 ```text
-PHASE <x> — DONE | PARTIAL | BLOCKED
+PHASE <x> — DONE | PARTIAL | BLOCKED | NOT STARTED
 1. Built: main files and commits.
 2. Verification: table of check → result → method (typecheck | harness | grep | not tested).
 3. UNVERIFIED items and engine assumptions you relied on.

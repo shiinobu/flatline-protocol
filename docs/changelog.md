@@ -27,6 +27,21 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[docs] Phase 1 merged into `clouds-modify`; the implementation prompt now drives one run for
+  phases 2-8.** `phase1-m07-skeleton` (4 commits, reviewed read-only: diff guard empty, §2.3
+  baseline clean on SDK 0.25.0) was fast-forwarded into `clouds-modify`.
+  `12-implementation-prompt.md` §0 lists `PHASE: 2, 3, 4, 5, 6, 7, 8` with run-mode notes (a phase
+  is a checkpoint, dependency skips, PARTIAL handling, story days M4 2026-09-24, M5 2026-09-27,
+  M6 2026-09-30 and M7 2026-10-03 accepted for the run); §2.1, §2.2, §2.6, §5, §7 and §9 follow it
+  (push after each phase, bugs numbering after the last entry, one report block per phase;
+  the initial check also stops the run if the checkout lacks Phase 1).
+  README gets decision #37 (all phases in one run, live tests after the run, "Batasan urutan
+  implementasi" #3 and #4 waived for it). The prompt's SDK version check used
+  `require('@hotbunny/hackhub-content-sdk/package.json')`, which the package does not export
+  (`ERR_PACKAGE_PATH_NOT_EXPORTED` on 0.24.0 and 0.25.0); it now reads the file with `fs`.
+  `docs/m07-playtest.md` §2 no longer asserts that `net_tree.py` hides the Firewall: in the
+  1.3.13 engine `isIpHidden` is consulted only by `whois` and `nslookup`, and M2's hidden Firewall
+  was found with `net_tree.py` live.
 - **[milestone] Phase 1 of the M4-M7 implementation run: the old M4 is migrated to mission id
   `m07` as a walking skeleton.** `content/m04.ts` and `main/m04.ts` are replaced by the pipeline
   shape M1-M3 use: `content/m07/*`, `i18n/m07/core.ts`, `controller/m07/*` and a thin
