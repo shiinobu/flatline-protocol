@@ -216,3 +216,69 @@ live test `open` Meterpreter (juga syarat kunci M1-M3).
 ## M. Masih OPEN
 Prosa en dan zh, alamat IP dan password, penyesuaian angka (tenggat 240 detik, penalti), nasib
 `*.original.ts`, pemakaian HoneyCheck di M4.
+
+## Catatan implementasi (2026-10-02, fase 1)
+
+Fase 1 dari prompt implementasi: **kerangka jalan M7**. Migrasi selesai, konten
+penuh belum. Semua di cabang kerja sesi ini, bukan `clouds-modify`.
+
+**Yang sudah masuk kode.** `content/m04.ts` dan `main/m04.ts` diganti bentuk
+pipeline M1-M3: `content/m07/*` (network, scan, topology, server-files,
+fixtures, gates, state, mail, report, quest, intro), `i18n/m07/core.ts`,
+`controller/m07/*` (spec, world, report, recon, deadbox, firewall, shell,
+extract, probes), `main/m07.ts` tipis, dan `websites/m04/architect-c2/`
+dipindah ke `websites/m07/` dengan `git mv`. Rantai 12 langkah bagian C lengkap
+sebagai tabel gerbang, topologi bagian E lengkap, laporan dan surel honeypot
+serta jebakan lengkap. Enam cacat bagian B diperbaiki: #1, #2, #3, #4, #6, #11.
+
+**Yang ditunda ke fase 4** (sesuai peta fase prompt): HoneyCheck (bagian F),
+tabel status node `/legacy-cms/` yang dirancang (bagian I), pelacakan 240 detik
+beserta banner, penalti dan pembobolan desktop (bagian G), efek ending dan
+surat Greta (bagian H), surel "What now?" dan kolom `choice`, pembayaran hadiah
+5000, kunci BACKTRACE m7 (bagian I), dan teks zh. `Rewards` quest sengaja tidak
+diisi (prompt D1).
+
+**Nilai yang dipilih agen** (bisa diveto pemilik):
+
+| Hal | Nilai | Alasan |
+|---|---|---|
+| LAN | Router `.1`, Splitter `.2`, Firewall `.3`, C2 `.4`, Null-Crown `.5`, Ash-Vector `.6`, semua `192.168.1.x` | E-7; berurutan dari `.1`, tanpa pengulangan |
+| Pengguna Firewall | `fw.admin` / `Ashgate#2022r2` | satu-satunya pengguna valid (E-9). Kata sandi dibaca dari cadangan 2022 |
+| `M07_ARCHITECT_REAL_NAME` | `Conrad Lindqvist` | keputusan #8; nilai lama "Damien Okoro" dibuang |
+| Kolom `evidence` | `employee negligence (G. de Souza)` | persis seperti tercetak di `manifest.txt`, jadi pemain terbukti membacanya |
+| Tenggat probe pelacakan | 60 detik (`realMs`) | hanya probe fase 1; angka sebenarnya 240 detik di fase 4 |
+
+**Tanggal.** Semua dari `13-story-timeline.md`: `manifest.txt` memakai 2020,
+2023, 2026-05-02, 2026-07-22, 2026-08-14 (nominal dan tanggal dari
+`finance.ts`) dan persetujuan Nordhaven 2026-08-17; `ash-gate_backup.txt`
+bertanggal 2022. **Tidak ada tanggal baru.** Baris "terakhir direkonsiliasi"
+yang diizinkan bagian E tabel M7 belum dipakai.
+
+**IP publik dan nama** tetap seperti M4 lama, sesuai bagian E. Tidak ada IP
+publik baru di fase ini.
+
+**Dua hal yang masih UNVERIFIED, masing-masing dengan probe di build ini.**
+`docs/bugs.md` #45: apakah Firewall di dalam Splitter melindungi perangkat
+sebelahnya (`GetFirewall` mencocokkan `parent === router.ip`). M2 memakai
+bentuk yang sama dan lulus live test, dan progres tidak bergantung padanya
+karena port 3389 `active: false` di produksi dan `UnlockSpec` memanggil
+`Network.openPort` juga. `docs/bugs.md` #46: apakah job `Scheduler` berdelay
+`{ realMs }` puluhan detik tetap meledak di dalam sesi Meterpreter, benar
+dibatalkan `cancelKind`, dan apa yang terjadi sesudah `mods.reset`.
+
+**Penyimpangan dari spesifikasi.** (1) Port 3389 `active` sejak build
+(`M07_RDP_OPEN_FROM_BUILD`), jalan pintas kerangka saja, dicabut fase 4.
+(2) `ash-gate_backup.txt` sekarang juga memuat **host** panel, bukan hanya
+kredensial, karena Firewall `isIpHidden` dan tabel node `/legacy-cms/` baru ada
+di fase 4; tanpa itu langkah 6 tak terjangkau. (3) Unlock langkah 7 juga
+mengganti fixture `nmap` C2 supaya 3389 terbaca `OPEN` sesudah firewall dibuka;
+bagian D hanya menyebut pencabutan aturan dan pembukaan port, tetapi tanpa
+fixture baru `nmap` tetap menjawab `FILTERED` (E-12: fixture dibaca lebih dulu).
+(4) Nama `ash-gate` tidak dipasang sebagai `name` node Firewall, mengikuti
+konvensi `docs/network.md` (hanya Device internal diberi `name`); nama itu hidup
+di teks.
+
+**Uji pemilik:** `docs/m07-playtest.md`. Yang dicari di log:
+`[FP][M07] probe:metasploit-session`, `probe:manifest-cat`,
+`probe:attrcheck-revealed`, `probe:ledger-download`, dan pasangan
+`probe:tracking-armed` / `probe:tracking-disarmed` / `probe:tracking-expired`.

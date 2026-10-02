@@ -1803,3 +1803,71 @@ set in this playthrough; (2) cleanup written in `OnAbandon` never runs on a rese
 `OnObjectivesStart` rewrites them; (4) right after a reset the world is rebuilt by a `Scheduler` job
 (`core/rebuild.ts`, 250 ms), so a tool used inside that window can report a missing target: retry before
 concluding that a mission is broken.
+
+---
+
+## 45. UNVERIFIED: whether a `Firewall` nested inside a `Splitter` protects its sibling `Device`s
+
+**Status: OPEN (static reading only; M07's phase-1 walking skeleton is the live test).**
+Raised: M07 migration, 2026-10-02, while re-addressing the old M4's firewall rules.
+
+`GetFirewall(ip)` returns `ip`'s own subnet when that subnet is a `FIREWALL`,
+and otherwise looks for a subnet whose `type` is `FIREWALL` **and whose
+`parent` is the router of `ip`'s tree**:
+
+```js
+function se(en){const Zn=J(en);if((Zn==null?void 0:Zn.type)==="FIREWALL")return Zn;const jn=ee(en);if(jn)return Ji().Network.find(xt=>xt.type==="FIREWALL"&&xt.parent===jn.ip)}
+```
+
+(`docs/app-asar-reference.md` E-8, offset 20403821.)
+
+In the shape M2 ships live, and now M07 too, the Firewall is **not** a direct
+child of the router: router → Splitter → [Firewall, devices...]. If
+`createSubnetNetwork` records each child's immediate parent, the Firewall's
+`parent` is the **Splitter's** IP, `GetFirewall(<device ip>)` finds nothing,
+and `IsRequestBlocked` returns `false` for every device in the tree — the deny
+rules would be inert. If the engine instead stamps the tree's router as
+`parent`, the rules bite. The excerpt alone does not settle which, and
+`GetSubnetRouter`'s body was not read.
+
+**Why it does not break either mission.** Neither M2 nor M07 rests its
+progression on the rule matching. The gated port is `active: false` in the
+build and the step's `UnlockSpec` both removes the rule **and** calls
+`Network.openPort`, so the `active` flag is the real gate (`removeFirewallRule`
+is called with the **Firewall's own IP**, where `GetFirewall` resolves
+trivially, so the removal itself is safe either way). M2 passed its live test
+on exactly this arrangement.
+
+**How to settle it:** M07's skeleton ships 3389 `active` from the build
+(`M07_RDP_OPEN_FROM_BUILD` in `content/m07/topology.ts`). Run the bluekeep
+exploit **before** saving anything in the ash-gate panel
+(`docs/m07-playtest.md` §5-6). Refused → the rule reaches a device two levels
+down, and this entry becomes RESOLVED. Succeeds → the rule is inert and the
+`active` flag is the only gate, which is worth writing down before M5 designs
+its own hidden Firewall.
+
+---
+
+## 46. UNVERIFIED: a `{ realMs }` Scheduler job across a live Meterpreter session, and after `mods.reset`
+
+**Status: OPEN (harness only; M07's phase-1 tracking probe is the live test).**
+Raised: M07 migration, 2026-10-02.
+
+M07's real-time tracking (`11-spec-m7.md` §G) arms a `Scheduler` job with a
+`{ realMs }` delay when the player opens a session on the C2 and cancels it on
+the extraction. `core/rebuild.ts` already uses `{ realMs: 250 }` successfully
+for the rebuild job, but nothing has yet confirmed that a job measured in
+**tens of seconds** of real time still fires while the player sits inside a
+Meterpreter session, that `cancelKind` reliably stops it, or that it survives
+(or is cleared by) `mods.reset` — which clears `SaveStorage` and `Variables`
+but is not documented to touch the scheduler (`docs/app-asar-reference.md`
+E-4).
+
+**How to settle it:** `controller/m07/probes.ts` arms a bare 60-second job on
+every METASPLOIT session to the C2 and cancels it on the download, with no
+banner, penalty or file deletion attached. Watch for
+`[FP][M07] probe:tracking-armed`, then either `probe:tracking-disarmed` (you
+downloaded in time) or `probe:tracking-expired` (you did not). Also worth
+checking: whether it still expires after `back`, and whether it survives
+`mods.reset`. The probe and this entry are removed once phase 4 builds the real
+240-second deadline on the answer.

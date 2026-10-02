@@ -27,6 +27,36 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 1 of the M4-M7 implementation run: the old M4 is migrated to mission id
+  `m07` as a walking skeleton.** `content/m04.ts` and `main/m04.ts` are replaced by the pipeline
+  shape M1-M3 use: `content/m07/*`, `i18n/m07/core.ts`, `controller/m07/*` and a thin
+  `main/m07.ts`; `websites/m04/architect-c2/` moves to `websites/m07/` with its history. `M04_*`
+  constants become `M07_*` except `M04_ARCHITECT_VPN_IP`, which the locked M2 and M3 import. Id
+  `m04` is now free for the new M4. See `docs/network.md` (M7 topology),
+  `docs/m07-playtest.md` (owner test script) and `docs/world-building/11-spec-m7.md`
+  ("Catatan implementasi").
+- **[mechanic] Six old-M4 defects fixed in the migration** (`11-spec-m7.md` §B #1-#4, #6, #11):
+  the shell gate listens to `RemoteConnection.Established` with `t === "METASPLOIT"` instead of
+  the reverse-TCP-only `Metasploit.Meterpreter.Connected` (#29); the C2 is taken over the live
+  bluekeep RDP path (`FreeRDP 5.2.1`, one online user `svc-cms`) instead of a banner no module
+  accepts; the Firewall sits inside the Splitter as a sibling of the devices, M2's live shape;
+  `attrcheck` resolves its target through the Meterpreter-aware walk and its event is now
+  `flatline.m07.attrcheckRevealed` (#30); `rootgrab` is out of the chain; and the firewall rules
+  use the C2's `lanIp` as `destination` with the whole LAN re-addressed to `192.168.1.x` (#41,
+  `docs/app-asar-reference.md` E-7, E-8).
+- **[mechanic] `open` and `attrcheck` now share `findSessionFile`** in
+  `src/commands/meterpreter-files.ts`; the expression moved verbatim out of `open.ts`, so its
+  behaviour is unchanged.
+- **[docs] Two new UNVERIFIED engine findings, each with a live probe shipped in the skeleton.**
+  `docs/bugs.md` #45: whether a `Firewall` nested in a `Splitter` protects its sibling devices
+  (`GetFirewall` matches on `parent === router.ip`; M2 ships the same shape and neither mission
+  rests its progression on it). #46: whether a `{ realMs }` Scheduler job of tens of seconds
+  survives a live Meterpreter session, `cancelKind` and `mods.reset`.
+- **[mechanic] Mission ids m05-m07 registered across the global surfaces:** `guard/flags.ts`
+  focus maps (all `false`), `BacktraceMissionId` and the initial BACKTRACE state, `BACKTRACE_KEYS`
+  (empty for m5-m7), and the BACKTRACE app's sidebar and locked cards for M4-M7 with the working
+  titles. `MISSION_TITLES` in `backtrace.html` is now the single source for a mission's name.
+
 - **[docs] Implementation prompt for the cloud agent:
   `docs/world-building/12-implementation-prompt.md` (English).** One phase per run: 1 M7 walking
   skeleton, 2 M6 walking skeleton, 3 generic rival-hacker kit + M4 skeleton, 4 M7 full, 5 M4 full,

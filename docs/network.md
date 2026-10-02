@@ -221,7 +221,72 @@ network. (2) The report no longer waits for the player to remove their rules.
 (3) Faded-Ledger gained an `ssh:22` target: the bonus is an SSH login as d.reyes,
 because `Terminal.Explorer` is unreachable for that host.
 
-## M4 — "The Architect" (implemented, not yet live-tested)
+## M7 — "The Architect" (migrated from the old M4 on 2026-10-02; walking skeleton, not yet live-tested)
+
+The old M4 is now mission id `m07` so the new missions can take M4-M6
+(world-building README, "Batasan urutan implementasi" #2). Public IPs and
+codenames are unchanged; the LAN side and the firewall rules are not.
+
+```
+Router  203.0.113.160 (= M04_ARCHITECT_VPN_IP, the endpoint M3 ends on)  lan 192.168.1.1
+└─ Splitter  45.76.180.9  lan 192.168.1.2
+   ├─ Firewall "ash-gate"  194.60.38.12  lan 192.168.1.3  isIpHidden
+   │     ONE valid user: fw.admin / Ashgate#2022r2
+   │     ports: 80 http (its own pfSense panel)
+   │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.4
+   ├─ Device C2  203.0.113.161  lan 192.168.1.4
+   │     users: svc-cms (online), root
+   │     ports: 443 https "LegacyCMS 2.1" (active)
+   │            3389 rdp "FreeRDP 5.2.1" (active from the build in phase 1 only)
+   │     vulnerabilities: RCE, FreeRDP 5.2.1
+   │     rootFiles: manifest.txt · master_ledger_backup.enc
+   ├─ Device "Null-Crown"  185.220.101.42  lan 192.168.1.5
+   │     honeypot. admin/admin, 22 ssh, banner OpenSSH 9.6, backup_old.bak
+   └─ Device "Ash-Vector"  146.70.44.18  lan 192.168.1.6
+         real dead box. admin/admin, 22 ssh, banner OpenSSH 5.3
+         files: ash-gate_backup.txt (the fw.admin credential, dated 2022)
+```
+
+**Four things changed from the old M4**, each for a verified engine reason
+(`docs/world-building/11-spec-m7.md` §B, `docs/app-asar-reference.md`):
+
+1. **The Firewall moved inside the Splitter**, as a sibling of the three
+   devices. That is the shape M2 ships and live-tested; the old M4 put the
+   Firewall at router level with the devices nested one level deeper, which was
+   never tested (defect #3). Whether the nested Firewall's rules actually reach
+   its sibling devices is still open — `docs/bugs.md` #45.
+2. **The LAN side moved from `172.16.0.x` to `192.168.1.x`.** `IsLocalIp`
+   accepts only that prefix, so the old addressing was not local to the engine
+   at all (E-7, bugs #41). `.1` is the router, then sequential, no repeats.
+3. **Firewall rule `destination` is the C2's `lanIp`, not its public IP.** The
+   engine compares `destination` against the target's `lanIp`, so the old rules
+   could never match, and the pfSense panel's Save would have rejected them as
+   "outside this network" while they sat in the list (E-8, bugs #41). There is
+   deliberately **no port-22 rule without a `destination`**: that form blocks
+   the port for every device of the network and would have cut SSH to
+   Null-Crown and Ash-Vector, which the mission needs reachable first. No deny
+   rule on port 80 either — the panel rejects those as a lockout.
+4. **The way in is the bluekeep RDP module**, not the `LegacyCMS 2.1` banner no
+   module accepts (defect #2). The 3389 port carries `external` and `internal`
+   3389 and the version string `FreeRDP 5.2.1`, and the host has one online
+   user, `svc-cms`, which is what the module requires (E-11). The shell gate
+   listens to `RemoteConnection.Established` with `t === "METASPLOIT"`, since
+   `Metasploit.Meterpreter.Connected` comes only from the reverse-TCP listener
+   (bugs #29).
+
+ash-gate has **exactly one** valid user because `PFSense.Login` carries only
+`{ ip }` and fires only on a credential match: a second valid user would open
+the same gate (E-9, world-building README #21).
+
+**Phase-1 skeleton only:** 3389 is `active` from the build
+(`M07_RDP_OPEN_FROM_BUILD`) so the RDP events can be reached without walking
+the firewall step. Phase 4 sets it `active: false` and lets
+`UnlockSpec.openPorts` open it.
+
+## M4 (old, now M7) — the 2026-09-20 design as it was implemented
+
+Kept for the record; superseded by the section above.
+
 
 ```
 Router  203.0.113.160 (= M04_ARCHITECT_VPN_IP — the traced VPN IP IS the real network root now)  lan 172.16.0.1

@@ -2277,3 +2277,116 @@ harmless `Sys log file not found for <ip>`). The owner confirmed the checklist i
   works; M3 `open site_to_site_backup.txt` and `cat` both trace `vpnPeer` with a
   three-line `tunnel` log and `rootgrab` leaves no log. Then the M4 migration with the
   same rules (shell on `RemoteConnection.Established`, `rootgrab` optional).
+
+---
+
+## 2026-10-02 — M07: the old M4 migrated as a walking skeleton (phase 1 of the M4-M7 run)
+
+### Why the migration comes first
+
+Id `m04` had to be free before the new M4 could exist (world-building README,
+"Batasan urutan implementasi" #2). The old finale moves to `m07` wholesale.
+`M04_ARCHITECT_VPN_IP` is the one constant deliberately **not** renamed: the
+locked M2 and M3 import it from `content/global/characters.ts`, and renaming it
+would be an edit to M1-M3, which the hook budget forbids (zero edits, DECIDED
+#31). `content/m04.original.ts` and `main/m04.original.ts` are untouched
+archives (D4) and nothing imports them.
+
+### Why the Firewall sits inside the Splitter
+
+`11-spec-m7.md` §E says to copy M2's live shape, and §B defect #3 says the old
+M4's arrangement (Firewall at router level, devices one level deeper inside the
+Splitter) was never tested. So: router → Splitter → [Firewall, C2, Null-Crown,
+Ash-Vector] as siblings.
+
+That raises a question the engine excerpt cannot answer: `GetFirewall(ip)`
+looks for a `FIREWALL` whose `parent` is the **router** of `ip`'s tree, and a
+Firewall nested in a Splitter plausibly has the Splitter as its `parent`. If
+so, the deny rules are inert for every device in the tree. Logged as
+`docs/bugs.md` #45 rather than guessed at. It does not block the mission: the
+gated 3389 port is `active: false` in production and the step's `UnlockSpec`
+calls `Network.openPort` as well as `removeFirewallRule`, so the `active` flag
+is the real gate — exactly what M2 relies on, and M2 passed its live test on
+this shape. `removeFirewallRule` is called with the **Firewall's own** IP,
+where `GetFirewall` resolves trivially, so the removal is safe either way.
+
+### Why the credential file names the panel host
+
+`ash-gate` is `isIpHidden`, and `net_tree.py` does not surface it, so the
+player needs another route to `194.60.38.12`. The node-status table on
+`/legacy-cms/` is phase 4's content, so for the skeleton the in-world route is
+`ash-gate_backup.txt` on Ash-Vector, which now carries the panel **host** as
+well as the `fw.admin` credential. That also satisfies the rule that every
+in-world hint is reachable before the mechanic it helps with: step 5 (read the
+backup) precedes step 6 (log into the panel).
+
+### Why 3389 is open from the build
+
+Phase 1 exists to prove four events fire in an RDP session. Making the owner
+walk the whole firewall chain first would couple that proof to the unresolved
+#45. `M07_RDP_OPEN_FROM_BUILD` in `content/m07/topology.ts` is a single named
+boolean so phase 4 flips it to `false` in one place. The chain still refuses to
+advance `shellObtained` without `firewallBreached`, so the shortcut buys access
+to the events, not progress.
+
+### Why the probes are unconditional
+
+`controller/m07/probes.ts` logs on the raw events, with no gate check, so a
+probe still fires when the owner reaches an event out of order — which is the
+situation the 3389 shortcut creates. A gated probe would have gone silent
+exactly when it was needed.
+
+### `trace` call locations (the owner removes these at FINAL LOCK)
+
+All of them are in **`src/controller/m07/probes.ts`** and nowhere else in the
+M07 source:
+
+| Line region | Call |
+|---|---|
+| `Scheduler.register` handler | `probe:tracking-expired` |
+| `armTrackingProbe` | `probe:tracking-armed` |
+| `disarmTrackingProbe` | `probe:tracking-disarmed` |
+| `RemoteConnection.Established` listener | `probe:metasploit-session` |
+| `Terminal.Cat` listener | `probe:manifest-cat` |
+| `ATTRCHECK_REVEALED_EVENT` listener | `probe:attrcheck-revealed` |
+| `Files.Transfer` listener | `probe:ledger-download` |
+
+The pre-existing `trace("OPEN", ...)` lines in
+`src/commands/meterpreter-files.ts` are untouched and belong to `docs/bugs.md`
+#30's follow-up, not to M07.
+
+Phase 4 deletes `probes.ts` and its `bindM07Probes` call in
+`controller/m07/index.ts` when the real 240-second tracking kit replaces it.
+
+### Why `open` and `attrcheck` now share one lookup
+
+Both need the Meterpreter-aware walk (`docs/bugs.md` #30 follow-up), and
+`01-canon-dan-hook.md` §E already lists `attrcheck` **and** `open` as part of
+the shared code change for the new missions. The three-line expression moved
+verbatim from `open.ts` into `findSessionFile` in `meterpreter-files.ts`, so
+`open`'s behaviour — and therefore M2's `shellCompanyFound` and M3's
+`vpnConfigRead` — is unchanged.
+
+### Why the evidence report field is the manifest's own classification string
+
+`11-spec-m7.md` §I wants an `evidence` column summarising "employee negligence
+staged, G. de Souza made the scapegoat". A free-text summary cannot be matched
+exactly, so the expected value is the classification **verbatim as
+`manifest.txt` prints it**: `employee negligence (G. de Souza)`. The player
+provably reads it, it is short enough to type, and the validator normalises
+case and whitespace on both fields rather than demanding an exact string the
+way M3's does.
+
+### Harness
+
+Kept outside the repo (scratchpad, not committed), three bundles against a
+mocked SDK, 214 checks total: 117 on the gate chain, unlocks, topology shape
+(every `lanIp`, every rule `destination`), `register`/rebuild idempotency, the
+unlock effects, the report validator and a dates audit of the rendered file
+contents; 64 driving the real listeners through in-order and out-of-order
+events, the honeypot and trap mail, the report flow and the probes; 10 on i18n
+coverage and M1-M3 en/zh parity. Plus 23 static checks (`node --check` on every
+HTML `<script>`, `{{t:KEY}}` registration, no clock-derived dates, reachability
+from `src/index.ts`). One bug found was in the **mock**, not the mod: it
+replaced a language bundle per `registerAll` call instead of merging, so the
+last mission's table wiped the earlier ones.
