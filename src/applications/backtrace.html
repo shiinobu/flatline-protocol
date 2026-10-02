@@ -536,19 +536,25 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 <div class="locked"></div>
 </section>
 <section id="m4" class="view" data-report="none">
-<div class="report">
-  <div class="report-head">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
     <div><div class="report-code">MISSION 04</div><h1 class="report-title">BURN NOTICE</h1><div class="report-sub">MISSION REPORT</div></div>
-    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+    <div class="report-accent">PROBE // BREACH // TRACE BACK</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M4</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
   </div>
   <div class="report-grid">
-    <div class="report-main">
-      <section class="rsec">
-        <div class="rsec-title">SUMMARY</div>
-        <p class="rsec-copy">A forwarding rule left open on the finance network was audited, and whoever read that audit came back down it. The operator tagged <span class="code" data-fact="m4.hunter">—</span> worked this machine directly: first a session on the firewall, then the desktop itself, taken rather than emptied. The session they came in on led back through two relays to a host that schedules the work, registered to the same name as the endpoint the ransom money already answered to.</p>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">SUMMARY</div></div>
+        <p class="body-copy">A forwarding rule left open on the finance network was audited, and whoever read that audit came back down it. The operator tagged <span class="code" data-fact="m4.hunter">—</span> worked this machine directly: first a session on the firewall, then the desktop itself, taken rather than emptied. The session they came in on led back through two relays to a host that schedules the work, registered to the same name as the endpoint the ransom money already answered to.</p>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">KEY FINDINGS</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">KEY FINDINGS</div></div>
         <div class="findings">
           <div class="finding"><div class="finding-num">01</div><div class="finding-text">The firewall log named the one source that behaved like an operator rather than a scanner: <span class="code" data-fact="m4.probe">—</span>, accepted on 443, holding uid 0 and beaconing on a fixed interval.</div></div>
           <div class="finding"><div class="finding-num">02</div><div class="finding-text">After being cut off they took the desktop instead of the balance: <span data-fact="m4.breach">—</span>.</div></div>
@@ -560,37 +566,43 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
         </div>
       </section>
     </div>
-    <div class="report-side">
-      <section class="rsec">
-        <div class="rsec-title">EVIDENCE</div>
-        <div class="evidence-list">
-          <div class="evidence-item"><span class="evidence-id">EV-M4-01</span><span class="evidence-name" data-fact="m4.probe">—</span></div>
-          <div class="evidence-item"><span class="evidence-id">EV-M4-02</span><span class="evidence-name" data-fact="m4.control">—</span></div>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">EVIDENCE</div></div>
+        <div>
+          <div class="trace-note"><span>EV-M4-01</span><strong data-fact="m4.probe">—</strong></div>
+          <div class="trace-note"><span>EV-M4-02</span><strong data-fact="m4.control">—</strong></div>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">PERSONAL LOG</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">PERSONAL LOG</div></div>
         <div data-personal-log="m4"></div>
       </section>
     </div>
   </div>
-</div>
+</div></div>
 <div class="locked"></div>
 </section>
 <section id="m5" class="view" data-report="none">
-<div class="report">
-  <div class="report-head">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
     <div><div class="report-code">MISSION 05</div><h1 class="report-title">THE DOOR</h1><div class="report-sub">MISSION REPORT</div></div>
-    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+    <div class="report-accent">ARCHIVE // CREDENTIAL // DOOR</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M5</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
   </div>
   <div class="report-grid">
-    <div class="report-main">
-      <section class="rsec">
-        <div class="rsec-title">SUMMARY</div>
-        <p class="rsec-copy">The hospital that paid out under <span class="code" data-fact="m5.caseId">—</span> closed its own incident by naming a door and a person to blame for it. The archive the hospital kept of that decision says something else: the account used was <span data-fact="m5.greta">—</span>, whose work address had been sitting in a circulating dump with the password still in service, and the media the final finding rests on was connected to a machine that was never hers. The decision to pay was taken <span class="code" data-fact="m5.gap">—</span> after the note arrived — before any of it could have been established.</p>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">SUMMARY</div></div>
+        <p class="body-copy">The hospital that paid out under <span class="code" data-fact="m5.caseId">—</span> closed its own incident by naming a door and a person to blame for it. The archive the hospital kept of that decision says something else: the account used was <span data-fact="m5.greta">—</span>, whose work address had been sitting in a circulating dump with the password still in service, and the media the final finding rests on was connected to a machine that was never hers. The decision to pay was taken <span class="code" data-fact="m5.gap">—</span> after the note arrived — before any of it could have been established.</p>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">KEY FINDINGS</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">KEY FINDINGS</div></div>
         <div class="findings">
           <div class="finding"><div class="finding-num">01</div><div class="finding-text">Two dated captures of the same public team page do not agree: <span data-fact="m5.dismissed">—</span>. Two names are gone from the later one: a contractor whose engagement ended on its own stated date, and one that did not end on anything.</div></div>
           <div class="finding"><div class="finding-num">02</div><div class="finding-text">The person removed is <span data-fact="m5.greta">—</span> — the one role on that page with standing access to the clinical archive.</div></div>
@@ -603,37 +615,43 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
         </div>
       </section>
     </div>
-    <div class="report-side">
-      <section class="rsec">
-        <div class="rsec-title">EVIDENCE</div>
-        <div class="evidence-list">
-          <div class="evidence-item"><span class="evidence-id">EV-M5-01</span><span class="evidence-name" data-fact="m5.decisionMemo">—</span></div>
-          <div class="evidence-item"><span class="evidence-id">EV-M5-02</span><span class="evidence-name" data-fact="m5.usbTicket">—</span></div>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">EVIDENCE</div></div>
+        <div>
+          <div class="trace-note"><span>EV-M5-01</span><strong data-fact="m5.decisionMemo">—</strong></div>
+          <div class="trace-note"><span>EV-M5-02</span><strong data-fact="m5.usbTicket">—</strong></div>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">PERSONAL LOG</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">PERSONAL LOG</div></div>
         <div data-personal-log="m5"></div>
       </section>
     </div>
   </div>
-</div>
+</div></div>
 <div class="locked"></div>
 </section>
 <section id="m6" class="view" data-report="none">
-<div class="report">
-  <div class="report-head">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
     <div><div class="report-code">MISSION 06</div><h1 class="report-title">OPEN REGISTER</h1><div class="report-sub">MISSION REPORT</div></div>
-    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+    <div class="report-accent">REGISTER // OWNERSHIP // IDENTITY</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M6</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
   </div>
   <div class="report-grid">
-    <div class="report-main">
-      <section class="rsec">
-        <div class="rsec-title">SUMMARY</div>
-        <p class="rsec-copy">The company the ransom money answered to is a filing cabinet with a signature in it. The public register keeps every version it was ever given, and the versions disagree: the owner named in one filing had already been wound up when the next was made, and the company that replaced it was incorporated two days later. Follow the shareholding up and it ends at an insurer. Follow the address sideways and it ends at the same registrant as the tunnel the payouts walked down. One man sits on both: <span data-fact="m6.architect">—</span>.</p>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">SUMMARY</div></div>
+        <p class="body-copy">The company the ransom money answered to is a filing cabinet with a signature in it. The public register keeps every version it was ever given, and the versions disagree: the owner named in one filing had already been wound up when the next was made, and the company that replaced it was incorporated two days later. Follow the shareholding up and it ends at an insurer. Follow the address sideways and it ends at the same registrant as the tunnel the payouts walked down. One man sits on both: <span data-fact="m6.architect">—</span>.</p>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">KEY FINDINGS</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">KEY FINDINGS</div></div>
         <div class="findings">
           <div class="finding"><div class="finding-num">01</div><div class="finding-text">The entity itself is a nominee company and nothing else: <span data-fact="m6.nominees">—</span>.</div></div>
           <div class="finding"><div class="finding-num">02</div><div class="finding-text">Everything filed for it is filed by one agent, <span data-fact="m6.registeredAgent">—</span>, who files on instruction the register does not record.</div></div>
@@ -646,45 +664,51 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
         </div>
       </section>
     </div>
-    <div class="report-side">
-      <section class="rsec">
-        <div class="rsec-title">ENTITIES</div>
-        <div class="entity-cards">
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">ENTITIES</div></div>
+        <div class="entity-grid">
           <button class="entity-card" data-entity="parent"><div class="entity-type">Parent Entity</div><div class="entity-name" data-fact="m3.parentEntity">—</div><div class="entity-source">CONFIRMED // M6</div></button>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">EVIDENCE</div>
-        <div class="evidence-list">
-          <div class="evidence-item"><span class="evidence-id">EV-M6-01</span><span class="evidence-name" data-fact="m6.ownershipChange">—</span></div>
-          <div class="evidence-item"><span class="evidence-id">EV-M6-02</span><span class="evidence-name" data-fact="m6.infra">—</span></div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">EVIDENCE</div></div>
+        <div>
+          <div class="trace-note"><span>EV-M6-01</span><strong data-fact="m6.ownershipChange">—</strong></div>
+          <div class="trace-note"><span>EV-M6-02</span><strong data-fact="m6.infra">—</strong></div>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">PERSONAL LOG</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">PERSONAL LOG</div></div>
         <div data-personal-log="m6"></div>
       </section>
     </div>
   </div>
-</div>
+</div></div>
 <div class="locked"></div>
 </section>
 <section id="m7" class="view" data-report="none">
-<div class="report">
-  <div class="report-head">
+<div class="report-scroll"><div class="report">
+  <div class="report-top">
     <div><div class="report-code">MISSION 07</div><h1 class="report-title">THE ARCHITECT</h1><div class="report-sub">MISSION REPORT</div></div>
-    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+    <div class="report-accent">EDGE // LEDGER // DECISION</div>
+  </div>
+  <div class="rule"></div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-label">Status</div><div class="meta-value red">COMPLETE</div></div>
+    <div class="meta-box"><div class="meta-label">Mission</div><div class="meta-value">M7</div></div>
+    <div class="meta-box"><div class="meta-label">Completed</div><div class="meta-value" data-completed>—</div></div>
   </div>
 
   <div class="report-grid">
-    <div class="report-main">
-      <section class="rsec">
-        <div class="rsec-title">SUMMARY</div>
-        <p class="rsec-copy">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">SUMMARY</div></div>
+        <p class="body-copy">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
       </section>
 
-      <section class="rsec">
-        <div class="rsec-title">KEY FINDINGS</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">KEY FINDINGS</div></div>
         <div class="findings">
           <div class="finding"><div class="finding-num">01</div><div class="finding-text">The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</div></div>
           <div class="finding"><div class="finding-num">02</div><div class="finding-text">The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</div></div>
@@ -698,27 +722,27 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
       </section>
     </div>
 
-    <div class="report-side">
-      <section class="rsec">
-        <div class="rsec-title">ENTITIES</div>
-        <div class="entity-cards">
+    <div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">ENTITIES</div></div>
+        <div class="entity-grid">
           <button class="entity-card" data-entity="parent"><div class="entity-type">Parent Entity</div><div class="entity-name" data-fact="m7.parentEntity">—</div><div class="entity-source">CONFIRMED // M7</div></button>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">EVIDENCE</div>
-        <div class="evidence-list">
-          <div class="evidence-item"><span class="evidence-id">EV-M7-01</span><span class="evidence-name" data-fact="m7.ledger">—</span></div>
-          <div class="evidence-item"><span class="evidence-id">EV-M7-02</span><span class="evidence-name" data-fact="m7.manifest">—</span></div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">EVIDENCE</div></div>
+        <div>
+          <div class="trace-note"><span>EV-M7-01</span><strong data-fact="m7.ledger">—</strong></div>
+          <div class="trace-note"><span>EV-M7-02</span><strong data-fact="m7.manifest">—</strong></div>
         </div>
       </section>
-      <section class="rsec">
-        <div class="rsec-title">PERSONAL LOG</div>
+      <section class="report-section">
+        <div class="section-head"><div class="section-title">PERSONAL LOG</div></div>
         <div data-personal-log="m7"></div>
       </section>
     </div>
   </div>
-</div>
+</div></div>
 <div class="locked"></div>
 </section>
 
