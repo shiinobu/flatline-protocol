@@ -1,1 +1,3 @@
 export const M01_CASE_ID = "CASE-A7X-0417";
+
+export const M01_LEDGERVAULT_PROJECT_LABEL = "Q3-2026-SEA";

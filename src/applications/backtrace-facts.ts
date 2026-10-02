@@ -30,6 +30,11 @@ import {
     M03_VAULTLINE_CODENAME,
     M03_VPN_PEER_LABEL,
 } from "../content/m03/network.js";
+import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME } from "../content/global/characters.js";
+import { M07_INSURER_NAME } from "../content/global/entities.js";
+import { M05_BEDSIDE_ASSET_TAG, M05_COLD_CHART_CODENAME } from "../content/m05/network.js";
+import { M05_ACK_DATE, M05_NEGOTIATOR, M05_USB_DATE } from "../content/m05/server-files.js";
+import { M05_GAP_TEXT, M05_PAID_AT } from "../content/m05/quest.js";
 import {
     M04_HUNTER_TAG,
     M04_INTRUDER_IP,
@@ -60,7 +65,7 @@ export const BACKTRACE_KEYS = {
     m2: ["developer", "ransom", "deployLog", "homeLead", "firewall", "workstation", "shellCompany"],
     m3: ["portal", "parentEntity", "gateway", "vpnPeer", "accomplice"],
     m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
-    m5: [],
+    m5: ["dismissed", "greta", "archive", "statement", "decisionMemo", "usbTicket"],
     m6: [],
     m7: ["nodes", "credential", "firewall", "c2", "manifest", "ledger"],
 } as const satisfies Readonly<Record<BacktraceMissionId, readonly string[]>>;
@@ -141,6 +146,20 @@ const buildM4Facts = (): BacktraceFacts => ({
     architectVpn: M04_ARCHITECT_VPN_IP,
 });
 
+const buildM5Facts = (): BacktraceFacts => ({
+    dismissed: `${GRETA_FULL_NAME} removed from the staff list`,
+    greta: `${GRETA_FULL_NAME}, Systems Administrator`,
+    archive: `${M05_COLD_CHART_CODENAME} opened with her own credential`,
+    statement: `acknowledgement signed ${M05_ACK_DATE}`,
+    decisionMemo: `paid ${M05_PAID_AT} UTC, classified employee negligence`,
+    usbTicket: `${M05_BEDSIDE_ASSET_TAG}, media connected ${M05_USB_DATE}`,
+    decider: VIVIEN_ORCHID_FULL_NAME,
+    insurer: M07_INSURER_NAME,
+    negotiator: M05_NEGOTIATOR,
+    gap: M05_GAP_TEXT,
+    caseId: M01_CASE_ID,
+});
+
 const buildM7Facts = (): BacktraceFacts => {
     const totals = totalRansom(RANSOM_BATCHES);
 
@@ -166,6 +185,7 @@ const FACT_BUILDERS: Readonly<Partial<Record<BacktraceMissionId, () => Backtrace
     m2: buildM2Facts,
     m3: buildM3Facts,
     m4: buildM4Facts,
+    m5: buildM5Facts,
     m7: buildM7Facts,
 };
 

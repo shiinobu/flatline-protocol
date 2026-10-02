@@ -577,7 +577,49 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 </div>
 <div class="locked"></div>
 </section>
-<section id="m5" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE DOOR</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m5" class="view" data-report="none">
+<div class="report">
+  <div class="report-head">
+    <div><div class="report-code">MISSION 05</div><h1 class="report-title">THE DOOR</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+  </div>
+  <div class="report-grid">
+    <div class="report-main">
+      <section class="rsec">
+        <div class="rsec-title">SUMMARY</div>
+        <p class="rsec-copy">The hospital that paid out under <span class="code" data-fact="m5.caseId">—</span> closed its own incident by naming a door and a person to blame for it. The archive the hospital kept of that decision says something else: the account used was <span data-fact="m5.greta">—</span>, whose work address had been sitting in a circulating dump with the password still in service, and the media the final finding rests on was connected to a machine that was never hers. The decision to pay was taken <span class="code" data-fact="m5.gap">—</span> after the note arrived — before any of it could have been established.</p>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">KEY FINDINGS</div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">Two dated captures of the same public team page do not agree: <span data-fact="m5.dismissed">—</span>. Two names are gone from the later one: a contractor whose engagement ended on its own stated date, and one that did not end on anything.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">The person removed is <span data-fact="m5.greta">—</span> — the one role on that page with standing access to the clinical archive.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">Her work address appears in an indexed dump of a supplier portal, stored as a weak hash, and the password was never rotated afterwards. Nothing about the entry required an intrusion to find.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">The clinical archive confirms the use: <span data-fact="m5.archive">—</span>. The record shows an account in good standing, not a forced door.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">She was asked to sign for a conclusion she disputes in writing: <span data-fact="m5.statement">—</span>. The draft that preceded it named a different cause, and that draft was not the version filed.</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">The decision was already made: <span data-fact="m5.decisionMemo">—</span>, settled through <span data-fact="m5.negotiator">—</span> and approved by <span data-fact="m5.decider">—</span>. The gap between the note and the payment is <span class="code" data-fact="m5.gap">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The cause the filed finding rests on does not sit on her: <span data-fact="m5.usbTicket">—</span>, on an asset the register assigns to the service desk, three days before the incident window opens.</div></div>
+          <div class="finding"><div class="finding-num">08</div><div class="finding-text">Classified the way it was, the loss is payable: <span data-fact="m5.insurer">—</span> settles on negligence, and a named employee is cheaper than a finding against the hospital.</div></div>
+        </div>
+      </section>
+    </div>
+    <div class="report-side">
+      <section class="rsec">
+        <div class="rsec-title">EVIDENCE</div>
+        <div class="evidence-list">
+          <div class="evidence-item"><span class="evidence-id">EV-M5-01</span><span class="evidence-name" data-fact="m5.decisionMemo">—</span></div>
+          <div class="evidence-item"><span class="evidence-id">EV-M5-02</span><span class="evidence-name" data-fact="m5.usbTicket">—</span></div>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">PERSONAL LOG</div>
+        <div data-personal-log="m5"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="locked"></div>
+</section>
 <section id="m6" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">OPEN REGISTER</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 <section id="m7" class="view" data-report="none">
 <div class="report">
@@ -760,13 +802,14 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
   const MISSION_IDS = ['m1','m2','m3','m4','m5','m6','m7'];
-  const REPORT_MISSIONS = ['m1','m2','m3','m4','m7'];
+  const REPORT_MISSIONS = ['m1','m2','m3','m4','m5','m7'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'BURN NOTICE',m5:'THE DOOR',m6:'OPEN REGISTER',m7:'THE ARCHITECT'};
   const KEY_LABELS = {
     m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
     m2:{developer:'Developer server',ransom:'Payout pattern',deployLog:'Deploy log',homeLead:'Home network lead',firewall:'Home firewall',workstation:'Home workstation',shellCompany:'Shell company'},
     m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'},
     m4:{probe:'Intruder address',breach:'Desktop breach',relay1:'Relay 1',relay2:'Relay 2',control:'Control host',origin:'Origin registrant'},
+    m5:{dismissed:'Staff list changed',greta:'Named administrator',archive:'Archive access',statement:'Signed acknowledgement',decisionMemo:'Decision memo',usbTicket:'USB ticket'},
     m7:{nodes:'Node inventory',credential:'Edge credential',firewall:'Edge opened',c2:'Index host session',manifest:'Master ledger index',ledger:'Ledger extracted'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
