@@ -2424,3 +2424,59 @@ full path list so the owner can paste it into the finding.
 D1 rule (pay in `OnComplete`, never `Quest.Rewards`, skip under focus with a
 `trace`) and `penalty` carries `min(balance, amount)` for the M4/M7 kit. M6 is
 1800, continuing 250 / 400 / 600 / 800 and staying under M7's 5000.
+
+---
+
+## 2026-10-02 — generic kit + M04 skeleton (phase 3 of the M4-M7 run)
+
+**Why `src/debug/` was not touched at all.** My first attempt `git mv`-ed
+`src/debug/css-inject.ts` into `components/`, which breaks §4 (the diff guard
+covers `src/debug`) and D5 ("the lab stays as is; the kit is adapted, not
+moved"). Reverted; `components/css-inject.ts` is a new file holding the same
+nineteen lines, and the lab keeps its own copy. Two copies of a tiny helper is
+the intended cost of leaving a live, proven lab alone.
+
+**Why the breach uses one key but the strike uses a prefix.** The prompt asks
+for the kit's `SaveStorage` prefix to be a parameter (`flatline.m04.*`) *and*
+for `sysdiag`/`sysrepair` to serve an active breach from any mission. Those pull
+in opposite directions: a mission-blind command cannot guess a prefix. So the
+breach lives at one well-known key, `flatline.desktopBreach`, with the owning
+mission inside the record, while the intrusion state keeps the per-mission
+prefix plus a pointer key `flatline.intrusion.activePrefix` that `repel` reads.
+Both requirements hold, and no command imports mission content.
+
+**Why the banner's text comes from `Variables`.** `Desktop.addWidget({ src })`
+loads the widget from a path relative to the mod root, so it is never passed
+through `localizeHtml` and `{{t:KEY}}` would be printed literally. The lab
+hardcoded English in the widget's own JS. The adapted widget reads `view.label`
+and `view.detail` out of the `Variables` payload instead, and the controller
+writes those from mod context with `Localization.t`, so zh works. The path
+itself (`components/incident-banner.html`) is an assumption drawn from the lab's
+working `debug/rival-banner.html`; `docs/bugs.md` #48 records it.
+
+**Why `Random.number` and not `Math.random`.** `10` §B drops `Math.random` from
+the strike loop, and the recovery build still has to be picked at random
+(`10` §B, "build benar dipilih acak dari tiga"). `Random.number` is the SDK's
+own generator, it is called from inside a handler so mod context holds (#19),
+and it keeps `grep -rn 'Math.random' src/components src/commands` empty.
+
+**M04 LAN addressing.** Every one of the four trees numbers its router
+`192.168.1.1` and its device `192.168.1.2`. `IsLocalIp` accepts only the
+`192.168.1.` prefix (E-7), and `lanIp` only has to be unique **inside** one
+router tree, so reuse across trees is correct here. §8's note about
+`192.168.N.x` per router describes M1, which predates E-7 being pinned down.
+
+**`trace` call locations for the kit and M04** (the owner removes these at FINAL
+LOCK): `components/incident-banner.ts` (banner shown / resolved),
+`components/desktop-lock.ts` (`[FP][LOCK]` css and lock lines),
+`components/desktop-breach.ts` (breach begun / repaired / inspect),
+`components/intrusion.ts` (strike started / expired),
+`components/reward.ts` (reward paid / skipped, penalty charged),
+`controller/m04/intrusion.ts` (`probe:strike-scheduled`,
+`probe:strike-started`, `probe:intruder-repelled`, `probe:strike-expired`).
+
+**Harness finding.** The M04 repel listener filtered on `prefix` and `strikeId`
+but not on the address, so a synthetic event with a decoy IP advanced the step.
+The real `repel` command cannot emit that, but the listener now checks the IP as
+well. 80 checks for M04, including the `mods.reset`-during-a-strike path and the
+`min(balance, amount)` penalty cap.

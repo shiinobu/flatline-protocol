@@ -1909,3 +1909,54 @@ and neither of which needs a subnet (E-1 for fixtures, E-3 for the site
 lookup). `dirhunter` is only a discovery aid: the gate is the visit to
 `/filings/archive/`, so even if `dirhunter` turned out to need a subnet the page
 is still reachable by typing its address, and the mission is still completable.
+
+---
+
+## 48. UNVERIFIED: the rival-hacker kit inside the mission pipeline, and a widget loaded from `components/`
+
+**Status: OPEN (harness only; M04's phase-3 walking skeleton is the live test).**
+Raised: M04 skeleton, 2026-10-02.
+
+The countdown banner, the desktop lock, the `~/compositor` recovery folder and
+`repel` / `sysdiag` / `sysrepair` were live-tested on 2026-10-01 **inside
+`src/debug/`'s lab** (`docs/world-building/10-spec-m4.md` §I). Phase 3 adapts the
+generic parts into `components/intrusion.ts`,
+`components/desktop-breach.ts`, `components/desktop-lock.ts`,
+`components/incident-banner.ts` and three global commands, and drives them from a
+real quest for the first time. Four things change with that move and none has run
+in the game:
+
+1. **Strikes are scripted, not rolled.** The lab's heat loop and
+   `Math.random()` identity pick are gone: a `Scheduler` job armed from the
+   mission's own step fires one strike against one fixed address, with one fixed
+   alias (`sentry`). Deterministic, so the owner's run and the harness see the
+   same thing.
+2. **The commands are global, not debug-gated**, and `sysdiag` / `sysrepair`
+   deliberately serve **any** mission's breach, because M07 reuses the kit
+   (`11` §G). The breach therefore lives under one key,
+   `flatline.desktopBreach`, carrying the owning mission inside it, while the
+   intrusion state uses the per-mission prefix the prompt asks for
+   (`flatline.m04.activeStrike`) plus a pointer key
+   (`flatline.intrusion.activePrefix`) so a mission-blind command can still find
+   it. This deviates from `10` §H's "refuse when M4 is not active".
+3. **The penalty is capped.** `Bank.withdraw` is wrapped by
+   `components/reward.ts`'s `penalty`, which charges
+   `min(Bank.getBalance(), amount)`, so a broke player cannot go negative. The
+   lab withdrew unconditionally.
+4. **The banner widget is loaded by path, not imported as a string.**
+   `Desktop.addWidget({ src })` takes a path relative to the mod root, so
+   `localizeHtml` — and therefore `{{t:KEY}}` — can never reach it; the lab's
+   copy simply hardcoded English. The adapted widget instead renders
+   `view.label` and `view.detail` out of the `Variables` payload, which the
+   controller writes **already localized** from mod context. That is what makes
+   a Chinese playthrough show Chinese here. **The path itself is the unverified
+   part:** the only live-proven precedent is the lab's
+   `debug/rival-banner.html`, so `components/incident-banner.html` is assumed to
+   be copied to the same relative place by `buildMod()`. If the widget never
+   appears, that assumption is wrong and the HTML has to move.
+
+**Also still open from the lab:** the terminal watcher keeps the lab's DOM
+queries and synthetic double-click, with its release failsafe (three attempts,
+then unlock) unchanged, and `mods.reset` during an active strike is handled only
+through `Game.SessionStarted`. `docs/m04-playtest.md` §5 is the test the owner
+asked for.

@@ -27,6 +27,31 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 3 of the M4-M7 run: the rival-hacker kit becomes generic, and M04 gets a
+  walking skeleton.** New mission-blind components: `components/intrusion.ts` (scripted strikes
+  through `Scheduler`, no `Math.random`), `components/desktop-breach.ts`, `components/desktop-lock.ts`,
+  `components/incident-banner.ts` (+ its widget HTML) and `components/css-inject.ts`. New global
+  commands `repel`, `sysdiag`, `sysrepair`, imported in `main/global.ts`; `sysdiag` and `sysrepair`
+  are `scope: "local"`. `src/debug/rival-*` is untouched (D5). See `docs/m04-playtest.md` and
+  `docs/bugs.md` #48.
+- **[mechanic] Six changes from the lab** (`10` §B): scripted strikes instead of a heat loop; one
+  fixed alias `sentry@darknull.io` instead of three random identities (the Custodian is deliberately
+  empty and GHOSTWIRE is the player); the penalty is `min(Bank.getBalance(), amount)` through
+  `components/reward.ts`; incident and firewall-log timestamps are constants inside the
+  `13-story-timeline.md` §E window for M4 (`Sep 24 02:20`-`03:05`) instead of `Time.now()`; the
+  banner's labels are passed in already localized through its `Variables` view, because a widget
+  loaded by path never sees `{{t:KEY}}`; and the breach lives under one mission-blind key so
+  `sysdiag`/`sysrepair` serve any mission's breach, which M07 needs.
+- **[mechanic] M04 skeleton:** four Routers each holding one Device (`10` §E), all `lanIp` values
+  `192.168.1.x` (E-7), a 3-step subset of the spec's 15-step chain in the spec's order, the scripted
+  first strike with its 120-second real-time deadline, and a 2-column report. Night-Shift is
+  `203.0.113.159` — next to the M3 endpoint `.160` and neither `.160` nor `.161` (README #26) — and
+  its `whois` registrant is Bulletproof VPN Ltd., the same contact M3 gives for `.160`.
+- **[bug] The M04 repel listener only checked the strike id, not the address.** A synthetic event
+  carrying a decoy IP with the right prefix and strike id would have advanced `intruderRepelled`.
+  Found by the harness; the listener now verifies the IP too. The shipped `repel` command could not
+  actually emit such an event, so this was defence in depth rather than a live defect.
+
 - **[milestone] Phase 2 of the M4-M7 run: the M06 walking skeleton, the project's first mission with
   no network at all.** `content/m06/*`, `i18n/m06/` (en + zh), `controller/m06/*`, `main/m06.ts` and
   the Port Calder Companies Registry site (`websites/m06/registry/`, three pages). `networkIps: []`
