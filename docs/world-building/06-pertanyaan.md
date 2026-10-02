@@ -76,6 +76,9 @@ Status: diperbarui 2026-10-02. Tandai `[x]` dan pindahkan ke log keputusan di
 - [ ] **T-b.** Hubungan antara tanggal cerita (2026) dan jam game (`Time`): belum diriset.
 - [ ] **T-c.** Semua teks baru butuh en dan zh (pipeline `i18n/m0N/core.ts`). Siapa yang menulis
   teks zh, dan apakah terjemahan boleh dibuat terlebih dahulu dari en.
+- [ ] **T-d.** Hari-cerita M2-M7 dan tanggal turunan di `13-story-timeline.md` bagian C (usulan turunan
+  dari tanggal tetap di kode M1-M3): setuju atau diganti? Anomali tanggal M1 di bagian F: dibiarkan
+  atau diperbaiki lewat edit M1 yang diizinkan?
 
 ## Anggaran hook
 

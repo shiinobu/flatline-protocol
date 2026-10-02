@@ -73,7 +73,10 @@ Router (tepi rumah sakit)  [domain dari Archive]   443 terbuka, 80 tertutup
 ```
 
 - `python3 net_tree.py <ip tepi>` menemukan Firewall tersembunyi dan perangkat (`docs/bugs.md` #27).
-- Alamat publik acak dan baru; LAN `192.168.x.x` (batasan `IsLocalIp`, `docs/network.md`).
+- Alamat publik acak dan baru; LAN `192.168.1.x` (batasan `IsLocalIp`: hanya awalan `192.168.1.`,
+  `docs/app-asar-reference.md` E-7).
+- Aturan Firewall tanpa `destination` (pola M1 dan M2, tiap port milik satu perangkat) atau dengan
+  `destination` sama dengan `lanIp` target; tidak pernah IP publik (`docs/app-asar-reference.md` E-8).
 - Password `<P>` dipakai ulang di Firewall dan di `Cold-Chart` (kebiasaan Greta, sejalan dengan tema).
   `MD5(<P>)` otomatis terdaftar karena penggunanya ada di dunia (#13).
 

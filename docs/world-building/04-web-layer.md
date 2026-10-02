@@ -33,9 +33,11 @@ nyata hanya referensi arsitektur informasi, bukan ketergantungan.
 
 ## C. Fakta engine (app.asar 1.3.13, `.reverse/extracted-1.3.13/index.js`)
 
-Offset adalah posisi byte kira-kira di berkas itu. SDK 0.25.0 (terbaru di npm)
-dibanding 0.24.0 (terpasang) hanya menambah field `incognito` dan komentar `apiVersion`,
-tanpa mekanik baru.
+Offset di tabel ini adalah posisi byte kira-kira di berkas itu; kutipan kode yang diverifikasi
+dengan offset karakter yang tepat ada di `docs/app-asar-reference.md`. SDK 0.25.0 (dipakai sejak
+2026-10-02, dipin eksak; sebelumnya 0.24.0 lewat `latest`) hanya menambah field `incognito` pada
+`HttpRequest`, komentar `ModManifest.apiVersion`, dan nilai bawaan `apiVersion` di generator manifest
+`build.mjs` (1 menjadi 2), tanpa mekanik baru (diff `index.d.ts`, `build.mjs`, dan README dibaca 2026-10-02).
 
 | # | Fakta | Bukti | Status |
 |---|---|---|---|

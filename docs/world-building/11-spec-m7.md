@@ -8,9 +8,10 @@ migrasi M4 lama dan harus dikerjakan **lebih dulu** dari M4 baru (id `m04` harus
 ## A. Identitas
 
 `name: "flatline.m07"`, grup `storyline`, `autoStart: true`, `questGate("m07", ["flatline.m06"])`,
-bukan `Abandonable`, satu objective. **Hadiah: 5000 uang, 200 xp**, dibayar lewat `Bank.transaction`
-di `OnComplete` (bukan `Quest.Rewards`, tidak membayar di prototipe). Nilai lama `M04_REWARDS` adalah
-800 uang dan 200 xp.
+bukan `Abandonable`, satu objective. **Hadiah: 5000 uang** (XP dilewati, keputusan #34), dibayar lewat
+`Bank.transaction` di `OnComplete` (bukan `Quest.Rewards`, tidak membayar di prototipe; `Rewards` quest
+tidak diisi dan pembayaran dilewati saat dev/tester focus). Nilai lama `M04_REWARDS` adalah 800 uang dan
+200 xp.
 
 ## B. Cacat M4 lama dan perbaikannya
 
@@ -26,6 +27,7 @@ di `OnComplete` (bukan `Quest.Rewards`, tidak membayar di prototipe). Nilai lama
 | 8 | `Dialog` panggilan telepon, `switchBranch` tidak terhubung ke apa pun, dan SDK tidak punya event untuk cabang yang dipilih | Dibuang. Surel Custodian "What now?" dan kolom `choice` di laporan. Telepon dari Custodian juga melanggar aturan yang sudah terkunci ("the only channel", "no side conversations", `i18n/m01/core.ts:90-94`) |
 | 9 | Dua langkah awal (menelusuri IP VPN) mengulang M3 dan M4 | Dibuang |
 | 10 | Pilihan A/B/C hanya mengubah teks laporan | Efek nyata (bagian H) |
+| 11 | Aturan Firewall memakai IP publik C2 sebagai `destination` (`content/m04.ts`). Engine membandingkan `destination` dengan `lanIp` target, jadi aturan itu tidak pernah cocok, dan Save di panel pfSense menolaknya ("outside this network") selama aturan itu ada. LAN `172.16.0.x` juga bukan alamat lokal menurut engine (`IsLocalIp` hanya menerima `192.168.1.x`) | `destination` = `lanIp` C2 (`192.168.1.x`); LAN seluruh node diganti ke `192.168.1.x`; tidak ada aturan port 22 tanpa `destination` (memblokir SSH ke Null-Crown dan Ash-Vector). Lihat `docs/app-asar-reference.md` E-7 dan E-8, `docs/bugs.md` #41 |
 
 ## C. Rantai gerbang (12 langkah, transitif)
 
@@ -61,7 +63,7 @@ pada C2, membuka `.enc` dengan `open` sebelum `attrcheck`.
 Router 203.0.113.160 (titik akhir M3)
 └─ Splitter 45.76.180.9
    ├─ Firewall "ash-gate" 194.60.38.12 (isIpHidden)  satu pengguna valid fw.admin/<P>
-   │     aturan blok 22 dan 3389 menuju C2
+   │     aturan blok 22 dan 3389 dengan destination = lanIp C2 (192.168.1.x)
    ├─ Device C2 203.0.113.161  443 https "LegacyCMS 2.1" (aktif), 3389 rdp "FreeRDP 5.2.1" (blok)
    │     pengguna: svc-cms (online), root. rootFiles: master_ledger_backup.enc, manifest.txt
    ├─ Device "Null-Crown" 185.220.101.42  honeypot, ssh 22 admin/admin, banner OpenSSH 9.6
@@ -69,12 +71,20 @@ Router 203.0.113.160 (titik akhir M3)
          berkas: ash-gate_backup.txt (kredensial fw.admin)
 ```
 
-- Alamat dan nama diambil dari M4 lama (`content/m04.ts`). Alamat M4 baru bertetangga dengan
-  `203.0.113.160` (Night-Shift, `10-spec-m4.md`).
-- `PFSense.Login` hanya membawa `{ip}` dan hanya terpancar saat sukses (engine `index.js` ~9313749),
-  jadi Firewall punya **satu** pengguna valid.
+- Alamat publik dan nama diambil dari M4 lama (`content/m04.ts`); sisi LAN diganti ke `192.168.1.x`
+  (`.1` untuk Router, berurutan sesudahnya) karena `IsLocalIp` hanya menerima awalan itu
+  (`docs/app-asar-reference.md` E-7). Alamat M4 baru bertetangga dengan `203.0.113.160`
+  (Night-Shift, `10-spec-m4.md`).
+- Aturan Firewall: `destination`, bila diisi, sama dengan `lanIp` target dan bukan IP publik
+  (`docs/app-asar-reference.md` E-8). Tidak ada aturan port 22 tanpa `destination`: Ash-Vector dan
+  Null-Crown harus tetap terjangkau lewat SSH sebelum Firewall dibuka. `removeFirewallRule(ip, port)`
+  menghapus semua aturan pada port itu.
+- `PFSense.Login` hanya membawa `{ip}` dan hanya terpancar saat sukses (engine `index.js` ~9313749,
+  `docs/app-asar-reference.md` E-9), jadi Firewall punya **satu** pengguna valid.
 - RDP: modul `exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = alamat publik C2 (#27), `Version 5.2.1`
-  dari banner `nmap -sV`, butuh pengguna online (`svc-cms`).
+  dari banner `nmap -sV`, butuh pengguna online (`svc-cms`). Port C2: `external` dan `internal` 3389,
+  `version` `FreeRDP 5.2.1`, aktif sesudah langkah 7; syarat lengkap modul di
+  `docs/app-asar-reference.md` E-11.
 - Firewall ditemukan lewat tabel node di `/legacy-cms/` atau `python3 net_tree.py`.
 
 ## F. HoneyCheck (`honeycheck.net`)

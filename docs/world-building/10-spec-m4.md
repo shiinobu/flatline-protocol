@@ -11,7 +11,8 @@ EKSEKUSI. Mengikuti templat `07-arsitektur-misi-baru.md` bagian D. Judul masih j
 bukan `Abandonable`, satu objective. **Prasyarat penomoran:** M4 lama dimigrasi dan diganti id
 menjadi `m07` lebih dulu (`07-arsitektur-misi-baru.md` bagian C). Hadiah dibayar lewat
 `Bank.transaction` di `OnComplete`, bukan `Quest.Rewards` (tidak membayar di prototipe). Nilai awal
-sama dengan M4 lama (`M04_REWARDS`: 800 uang, 200 xp), dapat disesuaikan.
+uang sama dengan M4 lama (`M04_REWARDS`: 800 uang), dapat disesuaikan. XP dilewati (keputusan #34);
+`Rewards` quest tidak diisi dan pembayaran dilewati saat dev/tester focus.
 
 ## B. Kit rival-hacker: dipakai dan diubah
 
@@ -73,8 +74,9 @@ R3                       -> Device "Paper-Moth"  honeypot ssh 22, admin/admin
 R4                       -> Device "Night-Shift" host kontrol, 443 https
 ```
 
-- Alamat publik acak dan baru, LAN `192.168.x.x`. `networkIps` berisi keempat Router, teardown
-  berurutan lewat `core/rebuild` (#35).
+- Alamat publik acak dan baru. LAN `192.168.1.x` (`IsLocalIp` hanya menerima awalan itu,
+  `docs/app-asar-reference.md` E-7); Router lain di misi yang sama boleh memakai awalan `192.168.N.x`
+  sendiri seperti M1. `networkIps` berisi keempat Router, teardown berurutan lewat `core/rebuild` (#35).
 - `hydra` pada R1 mengungkap kredensial yang dipakai ulang untuk SSH Static-Hop (meniru M3).
 - Night-Shift: `whois` menunjukkan registrant **Bulletproof VPN Ltd.**, contact yang sama dengan
   fixture `whois` titik akhir di M3 (`content/m03/fixtures.ts:93-97`). `geoip` Unknown (sama dengan

@@ -27,6 +27,44 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[docs] Implementation prompt for the cloud agent:
+  `docs/world-building/12-implementation-prompt.md` (English).** One phase per run: 1 M7 walking
+  skeleton, 2 M6 walking skeleton, 3 generic rival-hacker kit + M4 skeleton, 4 M7 full, 5 M4 full,
+  6 M5 full, 7 M6 full, 8 wrap-up, each ending in an owner live test. The kit (3) precedes full M7
+  (4) because M7 reuses it; the M6 zero-network skeleton (2) follows the M7 skeleton. The prompt
+  restates the project context of the uncommitted `CLAUDE.md`, names `clouds-modify` as the base
+  (`origin/main` was 18 commits behind), fixes the editing boundaries with a diff guard over the
+  locked M1-M3 files, requires the `frontend-design` skill for every new website and visual
+  surface within the engine limits (self-contained HTML, no `<form>`, `{{t:KEY}}` text, zero
+  comments), uses SDK 0.25.0, points the agent to `docs/app-asar-reference.md` (engine facts) and
+  `13-story-timeline.md` (dates), and pays rewards in money only. See
+  `docs/world-building/README.md` ("Penyerahan implementasi").
+- **[mechanic] SDK pinned to 0.25.0.** `package.json` and `package-lock.json` pin
+  `@hotbunny/hackhub-content-sdk` to exactly 0.25.0 (it was 0.24.0 through `"latest"`; five lines
+  changed, the rest of both files is byte-identical). 0.25.0 only adds `incognito` to
+  `HttpRequest`, the `ModManifest.apiVersion` comment and the default `apiVersion` in `build.mjs`;
+  `tsc` is clean on the unchanged sources. Run `npm ci` locally to pick it up. README #35.
+- **[docs] `docs/app-asar-reference.md` added.** Twelve engine facts read from the 1.3.13
+  `index.js` with verbatim excerpts and exact offsets (`registerDomain`, `subfinder`, `dirhunter`,
+  `mods.reset`, quest `Rewards`, files without timestamps, `IsLocalIp`, firewall rules,
+  `PFSense.Login`, iframe sandboxes, the bluekeep module, `geoip` and `nmap`), so a cloud agent
+  without `.reverse/` can check them. `docs/bugs.md` #39-#44 record the findings.
+- **[bug] The old M4 firewall rules could never match (found by reading the engine, `bugs.md`
+  #41).** The engine compares a rule's `destination` with the target's `lanIp`, and the pfSense
+  panel's Save rejects any destination that is not `192.168.1.x` (`IsLocalIp`). The old M4 used the
+  C2's public IP and `172.16.0.x` LANs; M7 must use the C2's `lanIp` and `192.168.1.x`. The M4,
+  M5 and M6 specs wrote "192.168.x.x"; corrected in `08`, `10` and `11` (new defect #11 in `11`
+  §B) and in `docs/network.md`. Not changed in code yet.
+- **[docs] Story timeline for file dates: `docs/world-building/13-story-timeline.md`.** Fixed dates
+  read from the locked M1-M3 code and the specs, a proposed story day for M2-M7 (`06-pertanyaan.md`
+  T-d), file date formats, the dated files of M4-M7, and four anomalies in locked content (the M1
+  kernel `audit` epoch is in 2025, the kernel uptime counters, a preview sample date, the
+  `story.md` premise). Files have no timestamps (`bugs.md` #43), so dates live in names and
+  contents. README #36.
+- **[docs] Mission rewards are money only (README #34).** The "200 xp" reward is removed from `02`,
+  `10` §A and `11` §A; money is paid with `Bank.transaction`, `Rewards` stays unset, nothing is paid
+  under dev or tester focus. The SDK `Bank` has no XP and `Quest.Rewards` did not pay in the
+  rival-hacker lab (`bugs.md` #42).
 - **[docs] World-building design for M1-M7 written in `docs/world-building/` (specs only,
   nothing in code).** Twelve files: README (decision log), `01-canon-dan-hook.md`,
   `02-peta-misi.md`, `03-karakter.md`, `04-web-layer.md`, `05-ending.md`,

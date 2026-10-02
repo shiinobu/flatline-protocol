@@ -111,7 +111,7 @@ implementasi.
 - **Epilog.** Surat searah dari Greta de Souza lewat `Mail.send` (ending C: tanpa surat).
 - **Perbaikan M4 lama.** Sepuluh cacat diperbaiki (`11-spec-m7.md` bagian B), termasuk #29,
   banner yang tidak diterima modul, bentuk Firewall yang belum teruji, dan dialog telepon yang dibuang.
-- **Hadiah.** 5000 uang dan 200 xp, dibayar lewat `Bank.transaction`.
+- **Hadiah.** 5000 uang, dibayar lewat `Bank.transaction` (XP dilewati, keputusan #34).
 - **Prasyarat.** Dimigrasi ke id `m07` lebih dulu dari M4 baru. Gerbang: `questGate("m07", ["flatline.m06"])`.
 - **OPEN.** Prosa en dan zh, alamat dan password, penyesuaian angka (`11-spec-m7.md` bagian M).
 

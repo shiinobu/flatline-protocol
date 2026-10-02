@@ -238,6 +238,14 @@ Splitter alongside the two honeypots), per explicit user instruction on
 2026-09-20 to keep this shape and treat the alternative below as a backup
 only.
 
+**2026-10-02 note (M7 migration).** This section describes the old M4, which
+becomes M7. When it is migrated the LAN side moves from `172.16.0.x` to
+`192.168.1.x`, and the Firewall rules use the C2's `lanIp` as `destination`
+instead of its public IP: the engine matches `destination` against the target's
+`lanIp` and accepts only `192.168.1.x` as a local address
+(`docs/app-asar-reference.md` E-7 and E-8, `docs/bugs.md` #41). Public IPs and
+names stay.
+
 **Known risk, not yet resolved by live-test:** `docs/bugs.md` entry 15
 only confirms a `Firewall`'s `rules` reaching a *direct* sibling `Device`
 (M1's shape) — reaching a `Device` nested two levels down inside a

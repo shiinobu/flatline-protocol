@@ -18,7 +18,9 @@ disinkronkan ke `story.md` sampai M1-M3 dikunci; sesudah itu isinya disinkronkan
 | INFERENSI | Kesimpulan dari bukti, bukan fakta tertulis |
 
 Setiap klaim tentang kode atau engine memuat rujukan `file:baris` atau
-`app.asar` (build 1.3.13, identik dengan `.reverse/extracted-1.3.13`).
+`app.asar` (build 1.3.13, identik dengan `.reverse/extracted-1.3.13`). Kutipan engine yang
+diverifikasi, lengkap dengan offset karakter, ada di `docs/app-asar-reference.md` (folder `.reverse/`
+tidak ikut repo).
 
 ## Log keputusan
 
@@ -53,10 +55,13 @@ Setiap klaim tentang kode atau engine memuat rujukan `file:baris` atau
 | 27 | Spesifikasi dan konten M7 "The Architect": `11-spec-m7.md` (12 langkah, rute RDP, HoneyCheck yang bisa salah, pelacakan waktu nyata, sepuluh cacat M4 lama diperbaiki) | DECIDED 2026-10-02 |
 | 28 | Dialog telepon dibuang: pertanyaan akhir lewat surel Custodian dan jawaban lewat kolom `choice`. Efek ending nyata: `expose`/`handoff` melepas bukti dan Greta mengirim surat, `destroy` menghancurkan C2 tanpa surat | DECIDED 2026-10-02 |
 | 29 | Conrad Lindqvist 59 tahun (lahir 1967), aktuaris yang memberi harga pada risiko yang ia ciptakan. Berkas diganti nama `master_ledger_backup.enc` dengan `manifest.txt` yang bisa dibaca | DECIDED 2026-10-02 |
-| 30 | Hadiah finale 5000 uang dan 200 xp, dibayar lewat `Bank.transaction` | DECIDED 2026-10-02 |
+| 30 | Hadiah finale 5000 uang, dibayar lewat `Bank.transaction` (bagian "200 xp" dibatalkan oleh #34) | DECIDED 2026-10-02 |
 | 31 | Anggaran hook: **nol edit** di M1-M3. Audit M4 sampai M7 terhadap teks M1-M3 menunjukkan semua ketergantungan sudah ada (`01-canon-dan-hook.md` bagian E) | DECIDED 2026-10-02 |
 | 32 | Registrant `whois` disamakan dengan M3: **Bulletproof VPN Ltd.** (contact `whois` titik akhir `203.0.113.160` di M3) dipakai untuk host kontrol M4 dan domain asuransi M6. "SKN-CENTRAL" tetap label peer M3 dan domain `skn-central.net`. Nama "SKN-CENTRAL Services Ltd" dibuang | DECIDED 2026-10-02 |
 | 33 | Prosa en dan zh, alamat IP, password, penyesuaian angka, nasib lab debug dan `*.original.ts`, dan hal lain di `06-pertanyaan.md` | OPEN |
+| 34 | Hadiah semua misi baru hanya uang, XP dilewati. Uang dibayar lewat `Bank.transaction` di `OnComplete`, `Rewards` quest tidak diisi, pembayaran dilewati saat dev/tester focus. Menggantikan bagian "200 xp" dari #30 dan nilai xp di `10-spec-m4.md` bagian A | DECIDED 2026-10-02 |
+| 35 | Implementasi memakai SDK `@hotbunny/hackhub-content-sdk` 0.25.0, dipin eksak di `package.json` dan `package-lock.json` (sebelumnya 0.24.0 lewat `latest`). Selisihnya: field `incognito` pada `HttpRequest`, komentar `ModManifest.apiVersion`, nilai bawaan `apiVersion` di `build.mjs`. `tsc` lolos di 0.25.0 | DECIDED 2026-10-02 |
+| 36 | Tanggal di nama dan isi berkas SSH, Meterpreter, dan evidence M1-M7 mengikuti timeline cerita di `13-story-timeline.md`, bukan jam game atau jam nyata. M1-M3 tidak diedit (anomali hanya dilaporkan). Hari-cerita M2-M7 di bagian C berstatus PROPOSAL (`06-pertanyaan.md` T-d) | DECIDED 2026-10-02 (aturan); PROPOSAL (hari-cerita) |
 
 ## Isi folder
 
@@ -73,6 +78,8 @@ Setiap klaim tentang kode atau engine memuat rujukan `file:baris` atau
 | `09-konten-m5-m6.md` | Konten final M5 dan M6: nama, rantai pemilikan, tanggal, beat dokumen, laporan, kunci BACKTRACE, rencana uji |
 | `10-spec-m4.md` | Spesifikasi dan konten final M4: kit berskrip, 15 langkah, empat Router, konten, risiko |
 | `11-spec-m7.md` | Spesifikasi dan konten final M7: perbaikan M4 lama, 12 langkah, HoneyCheck, pelacakan, efek ending |
+| `12-implementation-prompt.md` | Prompt implementasi untuk agen cloud (English): peta fase, urutan baca, batas penyuntingan, skill `frontend-design` untuk situs, hadiah hanya uang |
+| `13-story-timeline.md` | Timeline cerita M1-M7: tanggal tetap dari kode dan spesifikasi, hari-cerita per misi (usulan), format tanggal berkas, anomali tanggal M1-M3 |
 
 ## Aturan main yang berlaku di semua dokumen ini
 
@@ -105,11 +112,27 @@ Setiap klaim tentang kode atau engine memuat rujukan `file:baris` atau
 ## Saran urutan (PROPOSAL, belum diputuskan)
 
 Migrasi M7 (kerangka jalan lalu penuh), kerangka jalan M6, M4, M5, M6 penuh. `weblab` hanya diperlukan untuk
-situs alat permanen dan fitur Tier 2, bukan prasyarat M4-M7 (keputusan #16).
+situs alat permanen dan fitur Tier 2, bukan prasyarat M4-M7 (keputusan #16). Urutan yang dipakai prompt
+implementasi sedikit berbeda; lihat "Penyerahan implementasi".
 
 ## Penyerahan implementasi
 
-Implementasi akan dikerjakan agen cloud atas permintaan pemilik proyek. Prompt implementasi belum ditulis
-dan akan disusun bersama pemilik proyek. Saran urutan baca untuk agen (PROPOSAL): `README.md`,
-`07-arsitektur-misi-baru.md`, spesifikasi misi (`08`, `09`, `10`, `11`), `01-canon-dan-hook.md`,
-`04-web-layer.md` (tier dan fakta engine), lalu `03`, `05`, `06`.
+Implementasi dikerjakan agen cloud atas permintaan pemilik proyek. Prompt-nya ada di
+`12-implementation-prompt.md` (English, ditulis 2026-10-02): satu fase per run, dengan baris PHASE, BASE,
+dan catatan pemilik yang diisi sebelum dikirim. Cara pakai: pilih `clouds-modify` sebagai cabang dasar
+(`origin/main` tertinggal; semua perubahan dokumen dan `package*.json` harus sudah di-commit dan di-push),
+isi bagian 0 prompt, kirim seluruh isi berkas sebagai pesan pertama. Tiap fase berhenti untuk live test
+pemilik; hasilnya masuk ke baris "Owner notes" pada run berikutnya.
+
+Prompt memakai SDK 0.25.0 (#35), `docs/app-asar-reference.md` sebagai pengganti `.reverse/` (agen cloud tidak
+punya folder itu), `13-story-timeline.md` untuk tanggal di berkas (#36), dan hadiah hanya uang (#34).
+
+Urutan fase di prompt (diterima lewat EKSEKUSI 2026-10-02): 1 kerangka M7, 2 kerangka M6, 3 kit rival-hacker
+dan kerangka M4, 4 M7 penuh, 5 M4 penuh, 6 M5 penuh, 7 M6 penuh, 8 penutup. Dibanding saran urutan di atas,
+kit M4 (fase 3) didahulukan sebelum M7 penuh (fase 4) karena M7 penuh memakai komponen kit M4, dan kerangka
+M6 (fase 2) langsung menyusul kerangka M7. Situs dan permukaan visual baru dirancang dengan skill
+`frontend-design`, sesuai `04-web-layer.md` bagian E.
+
+Hadiah (#34): hadiah "200 xp" sudah dihapus dari `10-spec-m4.md` bagian A, `11-spec-m7.md` bagian A (yang
+tersisa hanya nilai lama `M04_REWARDS`), dan `02-peta-misi.md`. Uang dibayar lewat `Bank.transaction` di
+`OnComplete`, `Rewards` quest tidak diisi (prompt, bagian 8 D1).
