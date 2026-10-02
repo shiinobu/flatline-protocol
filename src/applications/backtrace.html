@@ -303,8 +303,32 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
         </div>
         <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
       </button>
-      <button class="nav-item" data-view="m4" data-label="04 — THE ARCHITECT">
+      <button class="nav-item" data-view="m4" data-label="04 — BURN NOTICE">
         <span class="nav-num">#4</span>
+        <div class="nav-main">
+          <span class="nav-name">BURN NOTICE</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m5" data-label="05 — THE DOOR">
+        <span class="nav-num">#5</span>
+        <div class="nav-main">
+          <span class="nav-name">THE DOOR</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m6" data-label="06 — OPEN REGISTER">
+        <span class="nav-num">#6</span>
+        <div class="nav-main">
+          <span class="nav-name">OPEN REGISTER</span>
+          <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
+        </div>
+        <span class="nav-icon nav-icon-lock" aria-hidden="true"></span>
+      </button>
+      <button class="nav-item" data-view="m7" data-label="07 — THE ARCHITECT">
+        <span class="nav-num">#7</span>
         <div class="nav-main">
           <span class="nav-name">THE ARCHITECT</span>
           <div class="nav-status is-locked"><span class="status-locked">LOCKED</span></div>
@@ -511,7 +535,10 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 <div class="report-link"><div class="report-link-copy">4 ENTITIES // 3 CONNECTIONS<br>CASEBOARD EXPANDED WITH THE M3 DISCOVERY.</div><button class="text-btn" data-view="board">VIEW CASEBOARD →</button></div>
 <div class="locked"></div>
 </section>
-<section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE ARCHITECT</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">BURN NOTICE</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m5" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE DOOR</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m6" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">OPEN REGISTER</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m7" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE ARCHITECT</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 
 <section id="board" class="view active">
 <div class="caseboard">
@@ -640,9 +667,9 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const STORAGE_KEY = 'backtrace';
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
-  const MISSION_IDS = ['m1','m2','m3','m4'];
+  const MISSION_IDS = ['m1','m2','m3','m4','m5','m6','m7'];
   const REPORT_MISSIONS = ['m1','m2','m3'];
-  const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'THE ARCHITECT'};
+  const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'BURN NOTICE',m5:'THE DOOR',m6:'OPEN REGISTER',m7:'THE ARCHITECT'};
   const KEY_LABELS = {
     m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
     m2:{developer:'Developer server',ransom:'Payout pattern',deployLog:'Deploy log',homeLead:'Home network lead',firewall:'Home firewall',workstation:'Home workstation',shellCompany:'Shell company'},
@@ -859,7 +886,12 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 
   function renderNav(){
     navItems.filter(item => MISSION_IDS.includes(item.dataset.view)).forEach(item => {
-      const view = NAV_STATUS[state[item.dataset.view].status];
+      const id = item.dataset.view;
+      const title = MISSION_TITLES[id];
+      const index = String(MISSION_IDS.indexOf(id) + 1).padStart(2,'0');
+      item.querySelector('.nav-name').textContent = title;
+      item.dataset.label = index + ' — ' + title;
+      const view = NAV_STATUS[state[id].status];
       const status = item.querySelector('.nav-status');
       status.className = 'nav-status ' + view.cls;
       status.innerHTML = `<span class="${view.dot}">${view.label}</span>`;

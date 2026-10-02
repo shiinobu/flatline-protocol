@@ -5,7 +5,7 @@ import { buildBacktraceFacts, isBacktraceKey, type BacktraceKey } from "./backtr
 
 export const BACKTRACE_STORAGE_KEY = "backtrace";
 
-export type BacktraceMissionId = "m1" | "m2" | "m3" | "m4";
+export type BacktraceMissionId = "m1" | "m2" | "m3" | "m4" | "m5" | "m6" | "m7";
 export type BacktraceMissionStatus = "locked" | "progress" | "complete";
 export type BacktraceFacts = Readonly<Record<string, string>>;
 
@@ -23,6 +23,9 @@ const INITIAL_STATE: BacktraceState = {
     m2: { status: "locked" },
     m3: { status: "locked" },
     m4: { status: "locked" },
+    m5: { status: "locked" },
+    m6: { status: "locked" },
+    m7: { status: "locked" },
 };
 
 const describeError = (error: unknown): string => (error instanceof Error ? error.message : String(error));

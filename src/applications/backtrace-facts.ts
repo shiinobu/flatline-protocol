@@ -39,6 +39,9 @@ export const BACKTRACE_KEYS = {
     m2: ["developer", "ransom", "deployLog", "homeLead", "firewall", "workstation", "shellCompany"],
     m3: ["portal", "parentEntity", "gateway", "vpnPeer", "accomplice"],
     m4: [],
+    m5: [],
+    m6: [],
+    m7: [],
 } as const satisfies Readonly<Record<BacktraceMissionId, readonly string[]>>;
 
 export type BacktraceKey<M extends BacktraceMissionId> = (typeof BACKTRACE_KEYS)[M][number];

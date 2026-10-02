@@ -9,6 +9,9 @@ export const DEV_FOCUS_QUEST = {
     m02: false,
     m03: false,
     m04: false,
+    m05: false,
+    m06: false,
+    m07: false,
 } as const;
 
 export const TESTER_FOCUS_QUEST = {
@@ -16,6 +19,9 @@ export const TESTER_FOCUS_QUEST = {
     m02: false,
     m03: true,
     m04: false,
+    m05: false,
+    m06: false,
+    m07: false,
 } as const;
 
 const focusedCount = Object.values(DEV_FOCUS_QUEST).filter(Boolean).length;
