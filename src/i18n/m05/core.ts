@@ -7,6 +7,10 @@ export const M05_I18N_KEY = {
 
     MAIL_TIP_SUBJECT: "M05.MAIL.TIP.SUBJECT",
     MAIL_TIP_CONTENT: "M05.MAIL.TIP.CONTENT",
+    MAIL_ARCHIVE_SUBJECT: "M05.MAIL.ARCHIVE.SUBJECT",
+    MAIL_ARCHIVE_CONTENT: "M05.MAIL.ARCHIVE.CONTENT",
+    MAIL_LOOKUP_SUBJECT: "M05.MAIL.LOOKUP.SUBJECT",
+    MAIL_LOOKUP_CONTENT: "M05.MAIL.LOOKUP.CONTENT",
     MAIL_PREMATURE_SUBJECT: "M05.MAIL.PREMATURE.SUBJECT",
     MAIL_PREMATURE_INTRO: "M05.MAIL.PREMATURE.INTRO",
     MAIL_PREMATURE_OUTRO: "M05.MAIL.PREMATURE.OUTRO",
@@ -64,6 +68,19 @@ Localization.registerAll({
             "",
             "That letter is a person. They still have a name, a job title, and a reason they are no longer listed anywhere.",
             "Find out who they are, and find out who decided they were the cause.",
+        ].join("\n"),
+
+        [M05_I18N_KEY.MAIL_ARCHIVE_SUBJECT]: "what they used to say",
+        [M05_I18N_KEY.MAIL_ARCHIVE_CONTENT]: [
+            "A hospital rewrites its public pages when something goes wrong, and the old versions do not always disappear.",
+            "{{archive}} keeps dated copies of pages as they were served. Pull the IT team page for {{hospital}}: one copy from before, one from after.",
+            "Read what changed.",
+        ].join("\n"),
+        [M05_I18N_KEY.MAIL_LOOKUP_SUBJECT]: "same habits",
+        [M05_I18N_KEY.MAIL_LOOKUP_CONTENT]: [
+            "The door is already in front of you. The person you are looking for is the one who used it.",
+            "People carry the same habits from one place to the next. {{lookup}} lists which breaches an address has turned up in.",
+            "Use the address format from that team page.",
         ].join("\n"),
 
         [M05_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "not yet",
@@ -227,6 +244,19 @@ Localization.registerAll({
             "",
             "那个字母是一个人。她仍然有名字、有职位，也有一个再也不出现在任何名单上的原因。",
             "查出她是谁，再查出是谁认定她就是原因。",
+        ].join("\n"),
+
+        [M05_I18N_KEY.MAIL_ARCHIVE_SUBJECT]: "它们以前写的是什么",
+        [M05_I18N_KEY.MAIL_ARCHIVE_CONTENT]: [
+            "医院一出事，就会改写自己的公开页面，而旧版本并不一定会消失。",
+            "{{archive}} 会按日期保存页面当时的样子。把 {{hospital}} 的 IT 团队页面调出来：一份是出事之前的，一份是出事之后的。",
+            "看看有什么变了。",
+        ].join("\n"),
+        [M05_I18N_KEY.MAIL_LOOKUP_SUBJECT]: "还是老习惯",
+        [M05_I18N_KEY.MAIL_LOOKUP_CONTENT]: [
+            "门已经摆在你面前了。你要找的那个人，正是从这里进出的人。",
+            "人总会把同样的习惯带到每一个地方。{{lookup}} 会列出一个邮箱地址出现在哪些泄露事件里。",
+            "用那张团队页面上的邮箱格式去查。",
         ].join("\n"),
 
         [M05_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "还不到时候",

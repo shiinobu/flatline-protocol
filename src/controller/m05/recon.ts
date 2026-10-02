@@ -1,7 +1,14 @@
+import { Mail } from "@hotbunny/hackhub-content-sdk";
+
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M01_PROJECT_OPENED_EVENT, M01_VAULT_PROJECT_FOLDER } from "../../content/global/vault-hook.js";
 import { M05_GATES } from "../../content/m05/gates.js";
-import { M05_DEAD_DROP_EMAIL, M05_TIP_SUBJECT } from "../../content/m05/mail.js";
+import {
+    M05_ARCHIVE_LEAD_MAIL,
+    M05_DEAD_DROP_EMAIL,
+    M05_LOOKUP_LEAD_MAIL,
+    M05_TIP_SUBJECT,
+} from "../../content/m05/mail.js";
 import {
     M05_ECHOLINE_DOMAIN,
     M05_ECHOLINE_M05_2025_PATH,
@@ -10,7 +17,7 @@ import {
     M05_EDGE_IP,
 } from "../../content/m05/network.js";
 import { M05_LOG_DISMISSED } from "../../content/m05/quest-logs.js";
-import { M05_GRETA_HANDLE } from "../../content/m05/twotter.js";
+import { M05_GRETA_LYNX_INPUTS } from "../../content/m05/twotter.js";
 import { setM05ArchiveOpen, setM05LookupOpen } from "../../context/m05/progress.js";
 import { unlock } from "../../core/index.js";
 import { trace } from "../../helpers/logger.js";
@@ -36,6 +43,7 @@ const bindVault = (quest: M05Quest): void => {
         advanceStep(quest, M05_GATES, "vaultRevisited", () => {
             unlock(M05_WORLD, "archiveLead");
             setM05ArchiveOpen(true);
+            Mail.send(M05_ARCHIVE_LEAD_MAIL());
         });
     });
 };
@@ -70,14 +78,16 @@ const markGreta = (quest: M05Quest): void => {
     advanceStep(quest, M05_GATES, "gretaProfiled", () => traceBacktraceFinding("m5", "greta"));
 };
 
+const isGretaLookup = (subject: string): boolean => M05_GRETA_LYNX_INPUTS.includes(subject);
+
 const bindGreta = (quest: M05Quest): void => {
     quest.Events.on("Terminal.Lynx.Lookup", (data) => {
-        if (data.input !== M05_GRETA_HANDLE) return;
+        if (!isGretaLookup(data.input)) return;
         markGreta(quest);
     });
 
     quest.Events.on("Terminal.Lynx.Search", (data) => {
-        if (data !== M05_GRETA_HANDLE) return;
+        if (!isGretaLookup(data)) return;
         markGreta(quest);
     });
 };
@@ -90,6 +100,7 @@ const bindEdge = (quest: M05Quest): void => {
         advanceStep(quest, M05_GATES, "edgeMapped", () => {
             unlock(M05_WORLD, "breachLookup");
             setM05LookupOpen(true);
+            Mail.send(M05_LOOKUP_LEAD_MAIL());
         });
     });
 };

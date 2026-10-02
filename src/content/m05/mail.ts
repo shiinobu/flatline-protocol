@@ -3,11 +3,27 @@ import { Localization, type MailDefinition } from "@hotbunny/hackhub-content-sdk
 import { M05_I18N_KEY } from "../../i18n/m05/core.js";
 import { DEAD_DROP_CONTACT } from "../global/characters.js";
 import type { M05Step } from "./gates.js";
+import { M05_ECHOLINE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN, M05_LEAKINDEX_DOMAIN } from "./network.js";
 
 export const M05_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 
 export const M05_TIP_SUBJECT = (): string => Localization.t(M05_I18N_KEY.MAIL_TIP_SUBJECT);
 export const M05_TIP_CONTENT = (): string => Localization.t(M05_I18N_KEY.MAIL_TIP_CONTENT);
+
+export const M05_ARCHIVE_LEAD_MAIL = (): MailDefinition => ({
+    from: M05_DEAD_DROP_EMAIL,
+    subject: Localization.t(M05_I18N_KEY.MAIL_ARCHIVE_SUBJECT),
+    content: Localization.t(M05_I18N_KEY.MAIL_ARCHIVE_CONTENT, {
+        archive: M05_ECHOLINE_DOMAIN,
+        hospital: M05_HOSPITAL_MAIL_DOMAIN,
+    }),
+});
+
+export const M05_LOOKUP_LEAD_MAIL = (): MailDefinition => ({
+    from: M05_DEAD_DROP_EMAIL,
+    subject: Localization.t(M05_I18N_KEY.MAIL_LOOKUP_SUBJECT),
+    content: Localization.t(M05_I18N_KEY.MAIL_LOOKUP_CONTENT, { lookup: M05_LEAKINDEX_DOMAIN }),
+});
 
 export const M05_PREMATURE_MAIL_SLOT = "m05.prematureReply";
 export const M05_PREMATURE_SUBJECT = (): string => Localization.t(M05_I18N_KEY.MAIL_PREMATURE_SUBJECT);

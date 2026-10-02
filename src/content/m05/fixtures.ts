@@ -12,33 +12,41 @@ import {
 } from "./network.js";
 import { M05_SITE_NMAP_RESULT } from "./scan.js";
 import {
+    M05_GARETH_FULL_NAME,
     M05_GARETH_HANDLE,
+    M05_GRETA_FULL_NAME,
     M05_GRETA_HANDLE,
 } from "./twotter.js";
 
-const lynx = (handle: string, lines: readonly string[]): FixtureEntry => ({
+const lynx = (input: string, handle: string, lines: readonly string[]): FixtureEntry => ({
     command: "lynx",
-    input: handle,
+    input,
     data: { socialMedia: [handle], additional: [...lines] },
 });
 
-export const buildM05Fixtures = (): FixtureEntry[] => [
-    { command: "nslookup", input: M05_ECHOLINE_DOMAIN, data: M05_ECHOLINE_IP },
-    { command: "nmap", input: M05_ECHOLINE_DOMAIN, data: M05_SITE_NMAP_RESULT },
-    { command: "nmap", input: M05_ECHOLINE_IP, data: M05_SITE_NMAP_RESULT },
-];
+export const buildM05Fixtures = (): FixtureEntry[] => [];
 
-export const buildM05ArchiveLeadFixtures = (): FixtureEntry[] => [
-    lynx(M05_GRETA_HANDLE, [
+export const buildM05ArchiveLeadFixtures = (): FixtureEntry[] => {
+    const gretaLines = [
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_1),
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_2),
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_3),
-    ]),
-    lynx(M05_GARETH_HANDLE, [
+    ];
+    const garethLines = [
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GARETH_1),
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GARETH_2),
-    ]),
-];
+    ];
+
+    return [
+        { command: "nslookup", input: M05_ECHOLINE_DOMAIN, data: M05_ECHOLINE_IP },
+        { command: "nmap", input: M05_ECHOLINE_DOMAIN, data: M05_SITE_NMAP_RESULT },
+        { command: "nmap", input: M05_ECHOLINE_IP, data: M05_SITE_NMAP_RESULT },
+        lynx(M05_GRETA_HANDLE, M05_GRETA_HANDLE, gretaLines),
+        lynx(M05_GRETA_FULL_NAME, M05_GRETA_HANDLE, gretaLines),
+        lynx(M05_GARETH_HANDLE, M05_GARETH_HANDLE, garethLines),
+        lynx(M05_GARETH_FULL_NAME, M05_GARETH_HANDLE, garethLines),
+    ];
+};
 
 export const buildM05EdgeLeadFixtures = (): FixtureEntry[] => [
     { command: "nslookup", input: M05_EDGE_DOMAIN, data: M05_EDGE_IP },

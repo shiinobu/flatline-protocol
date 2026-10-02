@@ -22,7 +22,7 @@ export const M05_SITE_KEY = {
     EL_ROLE_SERVICEDESK: "M05.SITE.EL.ROLE_SERVICEDESK",
     EL_ROLE_NETWORK: "M05.SITE.EL.ROLE_NETWORK",
     EL_MAIL_FORMAT: "M05.SITE.EL.MAIL_FORMAT",
-    EL_NO_LONGER: "M05.SITE.EL.NO_LONGER",
+    EL_REMOTE_NOTE: "M05.SITE.EL.REMOTE_NOTE",
 
     LI_BRAND: "M05.SITE.LI.BRAND",
     LI_TAGLINE: "M05.SITE.LI.TAGLINE",
@@ -71,7 +71,7 @@ Localization.registerAll({
         [M05_SITE_KEY.EL_ROLE_NETWORK]: "Network Operations",
         [M05_SITE_KEY.EL_MAIL_FORMAT]:
             "Staff addresses take the form initial.surname@pacificcare-health.org",
-        [M05_SITE_KEY.EL_NO_LONGER]: "This capture lists fewer people than the earlier one.",
+        [M05_SITE_KEY.EL_REMOTE_NOTE]: "Working off-site? Staff remote access: {{host}}",
 
         [M05_SITE_KEY.LI_BRAND]: "LeakIndex",
         [M05_SITE_KEY.LI_TAGLINE]: "Which breaches is an address in?",
@@ -118,7 +118,7 @@ Localization.registerAll({
         [M05_SITE_KEY.EL_ROLE_SERVICEDESK]: "服务台主管",
         [M05_SITE_KEY.EL_ROLE_NETWORK]: "网络运维",
         [M05_SITE_KEY.EL_MAIL_FORMAT]: "员工邮箱格式为 首字母.姓@pacificcare-health.org",
-        [M05_SITE_KEY.EL_NO_LONGER]: "本次快照列出的人比上一次少。",
+        [M05_SITE_KEY.EL_REMOTE_NOTE]: "在外办公？员工远程访问入口：{{host}}",
 
         [M05_SITE_KEY.LI_BRAND]: "LeakIndex",
         [M05_SITE_KEY.LI_TAGLINE]: "这个地址出现在哪些泄露里？",

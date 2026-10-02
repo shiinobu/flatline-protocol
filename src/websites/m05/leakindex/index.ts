@@ -17,8 +17,8 @@ import { M05_LEAKINDEX_DOMAIN } from "../../../content/m05/network.js";
 import { isM05LookupOpen } from "../../../context/m05/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M05_SITE_KEY } from "../../../i18n/m05/site.js";
-import { localizeHtml } from "../../global/localize.js";
-import { notFoundMetadata, requireHttps } from "../../global/page-guards.js";
+import { fillDataMarker, localizeHtml } from "../../global/localize.js";
+import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -42,9 +42,11 @@ const widgetText = (): Record<string, string> => ({
 });
 
 const renderHome = (): string =>
-    localizeHtml(homePage)
-        .replace("/*__LEAKINDEX_DATA__*/[]", JSON.stringify(M05_LEAK_RECORDS.map(toPayload)))
-        .replace("/*__LEAKINDEX_TEXT__*/{}", JSON.stringify(widgetText()));
+    fillDataMarker(
+        fillDataMarker(localizeHtml(homePage), "LEAKINDEX_DATA", JSON.stringify(M05_LEAK_RECORDS.map(toPayload))),
+        "LEAKINDEX_TEXT",
+        JSON.stringify(widgetText()),
+    );
 
 @RegisterWebsite
 export class LeakIndexWebsite extends Website {
@@ -58,7 +60,7 @@ export class LeakIndexWebsite extends Website {
         },
     };
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
         {
             path: "/",
             metadata: (context: PageContext): PageMetadata => {
@@ -73,5 +75,5 @@ export class LeakIndexWebsite extends Website {
                 );
             },
         },
-    ];
+    ]);
 }

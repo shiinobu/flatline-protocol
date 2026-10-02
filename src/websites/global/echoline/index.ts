@@ -7,7 +7,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { M05_SNAPSHOTS, type StaffRow } from "../../../content/m05/echoline.js";
-import { M05_ECHOLINE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
+import { M05_ECHOLINE_DOMAIN, M05_EDGE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
 import {
     M06_ARCHIVE_AGENT_NAME,
     M06_ARCHIVE_CONTACT,
@@ -17,13 +17,14 @@ import {
 } from "../../../content/m06/archive.js";
 import { M06_AGENT_NUMBER } from "../../../content/m06/records.js";
 import { M06_REGISTRY_JURISDICTION } from "../../../content/m06/network.js";
+import { areMissionSitesOpen } from "../../../context/global/site-access.js";
 import { isM05ArchiveOpen } from "../../../context/m05/progress.js";
 import { M06_STAGE, isM06ShellStruckOff, isM06StageOpen } from "../../../context/m06/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M05_SITE_KEY } from "../../../i18n/m05/site.js";
 import { M06_SITE_KEY } from "../../../i18n/m06/site.js";
-import { localizeHtml } from "../localize.js";
-import { notFoundMetadata, requireHttps } from "../page-guards.js";
+import { fillMarkers, localizeHtml } from "../localize.js";
+import { gateMissionPages, notFoundMetadata, requireHttps } from "../page-guards.js";
 
 import indexPage from "./index-page.html";
 import snapshotPage from "./snapshot.html";
@@ -44,6 +45,10 @@ interface CaptureGroup {
 const escape = (value: string): string =>
     value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+const m05CapturesOpen = (): boolean => areMissionSitesOpen("m05") && isM05ArchiveOpen();
+
+const m06CapturesOpen = (): boolean => areMissionSitesOpen("m06") && isM06StageOpen(M06_STAGE.archive);
+
 const renderStaffRows = (staff: readonly StaffRow[]): string =>
     staff
         .map(
@@ -55,14 +60,14 @@ const renderStaffRows = (staff: readonly StaffRow[]): string =>
 const groups = (): readonly CaptureGroup[] => {
     const open: CaptureGroup[] = [];
 
-    if (isM05ArchiveOpen()) {
+    if (m05CapturesOpen()) {
         open.push({
             subject: `${M05_HOSPITAL_MAIL_DOMAIN}/it/team`,
             captures: M05_SNAPSHOTS.map((snapshot) => ({ path: snapshot.path, date: snapshot.date })),
         });
     }
 
-    if (isM06StageOpen(M06_STAGE.archive)) {
+    if (m06CapturesOpen()) {
         open.push({
             subject: `pcr-registry.org/entity/${M06_AGENT_NUMBER.toLowerCase()}`,
             captures: [{ path: M06_ARCHIVE_PATH, date: M06_ARCHIVE_DATE }],
@@ -97,12 +102,14 @@ const renderGroups = (): string => {
         .join("");
 };
 
-const renderIndex = (): string => localizeHtml(indexPage).replace("/*__EL_GROUPS__*/", renderGroups());
+const renderIndex = (): string => fillMarkers(localizeHtml(indexPage), { EL_GROUPS: renderGroups() });
 
 const renderStaffSnapshot = (date: string, staff: readonly StaffRow[]): string =>
-    localizeHtml(snapshotPage)
-        .replace("/*__EL_BANNER__*/", escape(siteT(M05_SITE_KEY.EL_BANNER).replace("{{date}}", date)))
-        .replace("/*__EL_ROWS__*/", renderStaffRows(staff));
+    fillMarkers(localizeHtml(snapshotPage), {
+        EL_BANNER: escape(siteT(M05_SITE_KEY.EL_BANNER, { date })),
+        EL_ROWS: renderStaffRows(staff),
+        EL_REMOTE: escape(siteT(M05_SITE_KEY.EL_REMOTE_NOTE, { host: M05_EDGE_DOMAIN })),
+    });
 
 const archiveContact = (): string => {
     const base = M06_ARCHIVE_CONTACT;
@@ -125,13 +132,11 @@ const renderRecordSnapshot = (): string => {
             `<tr><td>${escape(row.entity)}</td><td>${escape(row.number)}</td><td>${escape(siteT(row.statusKey))}</td></tr>`,
     ).join("");
 
-    return localizeHtml(snapshotRecordPage)
-        .replace(
-            "/*__AR_BANNER__*/",
-            escape(siteT(M06_SITE_KEY.AR_BANNER).replace("{{date}}", M06_ARCHIVE_DATE)),
-        )
-        .replace("/*__AR_FIELDS__*/", fields)
-        .replace("/*__AR_ROWS__*/", rows);
+    return fillMarkers(localizeHtml(snapshotRecordPage), {
+        AR_BANNER: escape(siteT(M06_SITE_KEY.AR_BANNER, { date: M06_ARCHIVE_DATE })),
+        AR_FIELDS: fields,
+        AR_ROWS: rows,
+    });
 };
 
 const gated = (
@@ -148,7 +153,7 @@ const gated = (
     },
 });
 
-const anyCaptureOpen = (): boolean => isM05ArchiveOpen() || isM06StageOpen(M06_STAGE.archive);
+const anyCaptureOpen = (): boolean => m05CapturesOpen() || m06CapturesOpen();
 
 @RegisterWebsite
 export class EcholineArchiveWebsite extends Website {
@@ -158,16 +163,21 @@ export class EcholineArchiveWebsite extends Website {
 
     Pages: DynamicWebsitePageDefinition[] = [
         gated("/", "Echoline Archive", anyCaptureOpen, renderIndex),
-        ...M05_SNAPSHOTS.map((snapshot) =>
-            gated(snapshot.path, "Archived capture", isM05ArchiveOpen, () =>
-                renderStaffSnapshot(snapshot.date, snapshot.staff),
+        ...gateMissionPages(
+            "m05",
+            M05_SNAPSHOTS.map((snapshot) =>
+                gated(snapshot.path, "Archived capture", isM05ArchiveOpen, () =>
+                    renderStaffSnapshot(snapshot.date, snapshot.staff),
+                ),
             ),
         ),
-        gated(
-            M06_ARCHIVE_PATH,
-            "Archived capture",
-            () => isM06StageOpen(M06_STAGE.archive),
-            renderRecordSnapshot,
-        ),
+        ...gateMissionPages("m06", [
+            gated(
+                M06_ARCHIVE_PATH,
+                "Archived capture",
+                () => isM06StageOpen(M06_STAGE.archive),
+                renderRecordSnapshot,
+            ),
+        ]),
     ];
 }

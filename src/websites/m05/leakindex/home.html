@@ -131,7 +131,7 @@ thead{display:none}tbody td{display:block;border:0;padding:3px 0}tbody tr{displa
     var tr = document.createElement("tr");
     tr.appendChild(cell(record.email, "acct"));
     tr.appendChild(cell(record.source + " " + record.year, "src"));
-    tr.appendChild(cell(record.hash, "hash"));
+    tr.appendChild(cell(String(record.hash).slice(0, 6) + "…", "hash"));
     var act = document.createElement("td");
     act.className = "act";
     var button = document.createElement("button");
