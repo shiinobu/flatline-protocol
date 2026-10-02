@@ -283,3 +283,33 @@ gagal pada impor antar-misi apa pun. (3) HostTrail dibuka pada tahap 4, bukan se
 kunjungan halaman: rekaman Mutual sendiri yang memuat jabatan Vivien Orchid, jadi tidak perlu dua
 kunjungan. (5) Plugin `frontend-design` **tidak tersedia**, jadi Registry, HostTrail dan snapshot
 dirancang manual mengikuti brief prompt §6.
+
+## Catatan implementasi (2026-10-02, perbaikan audit)
+
+Perbaikan setelah audit pemilik atas run fase 2-8 (cabang `fix/phases2-8-m04-m07-audit`).
+Keputusannya ada di README #38 sampai #41; yang di bawah ini hanya selisih terhadap spesifikasi
+dan terhadap dua catatan di atas.
+
+**M5.** Situs tidak bisa ditemukan lewat Goagle (`docs/bugs.md` #52), jadi dua surel susulan
+Custodian menyebut `echoline.net` (saat `vaultRevisited`) dan `leakindex.net` (saat `edgeMapped`),
+dan kedua snapshot staf memuat baris akses jarak jauh yang menyebut host edge. Fixture `nslookup`
+dan `nmap` Echoline didaftarkan bersama `archiveLead`, bukan saat build, sesuai urutan langkah.
+Gerbang `gretaProfiled` menerima handle dan nama lengkap, karena `lynx` mengubah nama lengkap
+menjadi nama Twotter sebelum memicu event (#53); username persona Twotter disimpan tanpa `@` (#54).
+Tabel LeakIndex hanya mencetak enam karakter pertama hash sampai rekaman dibuka. Hadiah 3200,
+bukan 1200 (README #40). **Penyimpangan yang belum diputuskan:** folder insiden ada di `/ir/...`
+(`rootFiles`), bukan `/var/ir/...` seperti `09` B5 dan `13`; `13` tidak diedit, jadi memindahkan
+kode atau menerima `/ir/` masih OPEN.
+
+**M6.** Surel susulan Custodian saat `snapshotsCompared` menyebut `hosttrail.net` dan portal asuransi.
+Itu menggantikan sebagian penyimpangan (3) catatan fase 7: HostTrail dinamai pada tahap yang sama
+dengan saat ia dibuka, jadi nama asuransi terbuka satu langkah lebih awal dari rancangan. Rekaman
+Mutual memuat kolom Customer portal dan tautan ke rekaman arsitek, dan Registry menyembunyikan
+tautan ke rekaman yang tahap pembukanya belum tercapai. Tahap diturunkan dari `tipReviewed`,
+disinkronkan juga saat `Mail.Read`, dan direset saat misi mulai, karena `metadata()` berjalan sebelum
+`Browser.Meta` (#55). Hadiah 4000, bukan 1800. Registrant `whois` asuransi di zh disamakan dengan
+M3 dan M4 (README #32), dan `LOG_CERTIFICATE_1` ditulis ulang supaya tidak mengandaikan sesuatu
+yang baru terlihat di HostTrail.
+
+**Laporan M5 dan M6.** Validator mencocokkan kata kunci dan angka (README #39); nilai yang benar
+tidak berubah.

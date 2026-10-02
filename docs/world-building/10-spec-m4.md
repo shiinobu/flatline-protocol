@@ -171,3 +171,21 @@ sesudah itu rantai penuh dan BACKTRACE.
 ## K. Masih OPEN
 Prosa en dan zh, alamat IP dan password, penyesuaian angka (hukuman, tenggat, hadiah), nasib lab debug,
 dan Sentinel (ditahan).
+
+## Catatan implementasi (2026-10-02, perbaikan audit)
+
+Perbaikan setelah audit pemilik atas run fase 2-8 (cabang `fix/phases2-8-m04-m07-audit`).
+Keputusannya ada di README #39 dan #40; yang di bawah ini hanya selisih terhadap spesifikasi.
+
+**Hadiah.** 2400, bukan 800 di bagian A (README #40).
+
+**Langkah 5 sampai 9.** `incident.txt` memuat alamat publik Static-Hop sebagai sumber sesi
+(bagian F) dan, di baris yang sama, gateway NAT di depannya, yaitu alamat Router R1. Dengan begitu
+langkah 7 bisa dicapai dari teks yang dilihat pemain. Pengguna panel R1 adalah `svc`, akun yang sama
+dengan SSH Static-Hop (bagian E: "hydra pada R1 mengungkap kredensial yang dipakai ulang"). Fixture
+`hydra` menjawab `guest` (bawaan engine, `docs/bugs.md` #25), `admin`, dan `svc`, dan hasilnya selalu
+menyebut `svc`.
+
+**Laporan.** Kolom `hunter`, `relays`, `control`, `origin`, dan `contained` berupa token kosong di
+jendela tulis. Pencocokan longgar (kata kunci, urutan bebas untuk `relays`), menolak Paper-Moth, dan
+`control` harus alamat yang tepat (README #39).

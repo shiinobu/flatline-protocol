@@ -1846,6 +1846,11 @@ down, and this entry becomes RESOLVED. Succeeds → the rule is inert and the
 `active` flag is the only gate, which is worth writing down before M5 designs
 its own hidden Firewall.
 
+**Update 2026-10-02 (audit fix pass).** The skeleton shortcut is gone:
+`M07_RDP_OPEN_FROM_BUILD` is `false`, so 3389 is `active: false` from the build
+and the firewall step opens it. The test above is unchanged and now lives at
+`docs/m07-playtest.md` §5 ("Before the Save, the RDP exploit must fail").
+
 ---
 
 ## 46. UNVERIFIED: a `{ realMs }` Scheduler job across a live Meterpreter session, and after `mods.reset`
@@ -1872,6 +1877,19 @@ checking: whether it still expires after `back`, and whether it survives
 `mods.reset`. The probe and this entry are removed once phase 4 builds the real
 240-second deadline on the answer.
 
+**Update 2026-10-02 (audit fix pass).** Phase 4 built the real deadline and
+removed `controller/m07/probes.ts` with its three probe lines, so
+`probe:tracking-armed`, `probe:tracking-disarmed` and `probe:tracking-expired`
+no longer exist. The same question is answered now by `[FP][M07] banner shown
+ip=203.0.113.161 totalMs=240000` (armed), the banner flipping to EXTRACTION
+COMPLETE (disarmed) and `[FP][M07] trace expired penalty=<n>` (expired);
+`docs/m07-playtest.md` §7-8. The entry stays OPEN: it is still unverified live.
+
+`Scheduler.remaining(id)` returns **in-game** milliseconds (SDK `index.d.ts`:
+"In-game ms until `id` fires"), so a real-time comparison has to go through
+`Time.toRealMs`. `strikeRemainingRealMs` returned the raw value until the fix
+pass; M07's trace halving now converts it.
+
 ---
 
 ## 47. UNVERIFIED: a mission with no network at all (`networkIps: []`)
@@ -1894,11 +1912,11 @@ of it has run in the game**:
 - `unregister` still schedules its teardown job; `destroyNetworksInOrder([])`
   iterates nothing.
 - No `createSubnetNetwork`, no `registerDomain`, no `destroyNetwork` is ever
-  called, so the Network Map app should stay empty for the whole mission.
+  called, so there is nothing to scan behind any M06 domain for the whole mission.
 
 **What the live test has to confirm** (`docs/m06-playtest.md`): that such a
-mission starts, runs its gates and completes; that the Network Map gains
-nothing; and above all that `dirhunter <host>` lists a mod site's registered
+mission starts, runs its gates and completes; that no network is built (no
+`Network.createSubnetNetwork` in the log); and above all that `dirhunter <host>` lists a mod site's registered
 paths with **no subnet anywhere in the mission** (E-3 says the lookup is by host
 name only, `docs/bugs.md` #40 — but every live confirmation so far came from M1,
 which does have networks).
@@ -2034,6 +2052,12 @@ shapes (`.Lookup` with `{input}` and `.Search` with a string), so whichever the
 engine raises, the step advances; the untested half is simply dead rather than
 broken.
 
+**Update 2026-10-02 (audit fix pass).** The engine source settles that half
+(entry #53): `lynx` raises **both** events on every run, `Terminal_Lynx_Search`
+first with the resolved subject as a bare string and `Terminal_Lynx_Lookup` last
+with `{ input, data }`. M05 reads both. What stays open is only the **number**
+passed to the `Exports` function.
+
 ---
 
 ## 51. UNVERIFIED: a numeric progress stage in `SharedVariables` read from a website render, and eleven dynamic pages on one site
@@ -2055,9 +2079,11 @@ Two things could go wrong and neither shows up in a harness that stubs the SDK:
    falls back to `0`, which fails closed: every record 404s and the mission looks
    like it never started. If that happens, log `readM06Stage()` first; the fix is
    to store the stage as a string and parse it, or to store five booleans as M05
-   does.
-2. **`dirhunter` output length.** M06 registers 14 paths on `pcr-registry.org`,
-   the most the project has put on one site. #40 says `dirhunter` prints every
+   does. A correct stage that is rendered one visit late is a different failure:
+   see #55.
+2. **`dirhunter` output length.** M06 registers 13 paths on `pcr-registry.org`
+   (the home page, the filing archive and eleven records), the most the project
+   has put on one site. #40 says `dirhunter` prints every
    registered path; it does not say what happens past some number of them. If the
    list is truncated, the hidden `/filings/archive/` may not be printed at all,
    and step 5 becomes unreachable by the route the spec intends. The paths are
@@ -2067,3 +2093,143 @@ Two things could go wrong and neither shows up in a harness that stubs the SDK:
 `docs/m06-playtest.md` §1 and §6 are the steps to watch. The probe lines are
 `[FP][M06] probe:stage=<n>` and
 `[FP][M06] probe:dirhunter-no-subnet host=pcr-registry.org`.
+
+---
+
+## 52. Mod pages default to `seo: false`, so the Goagle search lists no mod site
+
+**Status: DOCUMENTED (read from the 1.3.13 engine; the in-game search was not run).**
+Found: M05/M06 audit, 2026-10-02.
+
+The engine builds every page of a mod `Website` with `seo: t.seo ?? false`
+(static pages, offset 20529939; dynamic pages, offset 20530274) and the site
+itself with `Popular: n.Popular ?? false`:
+
+```js
+function C2c(t,e,n,i,s){return{path:t.path,seo:t.seo??!1,search:t.search,metadata:...
+```
+
+Goagle's results page (`_Xs`, offset 10000372) only considers sites that have at
+least one page with `seo !== false`:
+
+```js
+y=o7e().filter(se=>se.Pages.find(he=>he.seo!==!1))
+```
+
+No page in `src/` sets `seo` or `search`, and no site sets `Popular`, so **none
+of the mod's sites can be returned by a Goagle search**, whatever the player
+types. The world-building plan never asked for that (`04-web-layer.md` §C rows 5
+and 6 and §D keep `Popular` and `search` in Tier 2, unproven), but the cloud
+build of M05 and M06 relied on the player finding `echoline.net`,
+`leakindex.net` and `hosttrail.net` by name, and nothing named them.
+
+**Rule.** Every mission site, tool site and host the player needs must be named
+in-world, as text, **before** the step that needs it: a mail, a page, a file. The
+player types the host into the browser or the terminal. Do not count on search.
+Setting `seo`, `search` or `Popular` stays Tier 2 until `weblab` proves it
+(world-building README #9 and #16).
+
+**What was done.** World-building README #38. M05: two Custodian follow-up mails
+(`drop@drop.null`), the archive lead when `vaultRevisited` unlocks
+`echoline.net` and the lookup lead when `edgeMapped` unlocks `leakindex.net`,
+and a remote-access line on the two Echoline staff captures that names the
+hospital edge host. M06: a follow-up mail at `snapshotsCompared` that names
+`hosttrail.net` and the insurer's portal, and a Customer portal field on the
+Mutual record. M07: the tip mail names `honeycheck.net` and the manifest names
+`attrcheck`.
+
+---
+
+## 53. `lynx` resolves what the player typed before it raises its events, so a gate must accept every spelling it can resolve to
+
+**Status: DOCUMENTED (read from the 1.3.13 engine; not yet seen live).**
+Found: M05 audit, 2026-10-02.
+
+`lynx <args>` (class `DTl`, offset 10674973 and following) joins its arguments,
+strips a leading `#` or `@` (`replace(/^[#@]+/,"")`) and resolves the text with
+`LTl` before anything else happens:
+
+```js
+function LTl(t){var i;const e=Orn(t);if(!e)return t;const n=(i=t.trim().match(/^([a-z0-9][a-z0-9-]*)\.[a-z.]{2,}$/i))==null?void 0:i[1];return bZt(e)??(n?bZt(Orn(n)):void 0)??t}
+```
+
+`Orn` normalises (NFD, accents removed, lower case, every character that is not
+a letter or digit becomes a space, then all whitespace is removed). `bZt` takes
+the first hit among: (1) the `input` of a registered `lynx` fixture, returned in
+the **fixture's own spelling**; (2) a Twotter user whose `username` or
+`name + surname` matches, returned as `"Name Surname"`; (3) a network user's
+`firstName + lastName`. A bare `label.tld` falls back to its first label;
+otherwise the typed text is used as it is.
+
+The resolved subject `u` then drives everything:
+
+- `Terminal_Lynx_Search` is triggered at the start with `u` as a **bare string**.
+- The fixture is looked up with `u`, then with the typed text.
+- `Terminal_Lynx_Lookup` is triggered at the end with `{ input: u, data }`.
+
+So when a Twotter persona exists for the person, typing the **full name**
+resolves to `"Name Surname"`, not to the handle the fixture was registered
+under, and a gate that compares with the handle never fires. M05's
+`gretaProfiled` compared with `"@g.desouza"` only, so `lynx Greta de Souza`, the
+name the staff page prints, played the whole step with no result.
+
+**Rule.** A `lynx` gate accepts every spelling the player can reach: the
+fixture's handle input **and** the full name, and the fixture is registered
+under each of them. This also settles the `Terminal.Lynx.*` half of #50.
+
+---
+
+## 54. Twotter renders the `@` itself: a persona `username` must not start with one
+
+**Status: DOCUMENTED (engine read; M01 and M03 are the live precedent).**
+Found: M05 audit, 2026-10-02.
+
+Every Twotter surface prepends the `@` when it prints a handle: the post header
+(offset 10366588), the profile header (10392442), the people list (10396808),
+"who to follow" (10373175) and the account menu (10371832) all render
+`["@", user.username]`, and `lynx` prints `Twotter account was found with the
+registered username @${username}`. A stored username that already starts with
+`@` therefore shows as `@@name`.
+
+M01 and M03 store bare usernames: M03's persona is `d.reyes`
+(`M03_TWOTTER_HANDLE`) while its `lynx` fixture input is `@d.reyes`. M05's two
+personas were registered under `M05_GRETA_HANDLE` and `M05_GARETH_HANDLE`, which
+carry the `@` (`@g.desouza`, `@g.lim`), so the UI showed `@@g.desouza`.
+
+**Rule.** `PersonaSpec.username` is bare. The `@` belongs in text, in a `lynx`
+fixture `input` and in `socialMedia` lines. A bare username still matches a
+`@handle` fixture, because `lynx` strips a leading `@` from the typed text and
+`Orn` ignores punctuation on both sides (#53).
+
+---
+
+## 55. A page's `metadata()` runs before the `Browser.Meta` event, so state raised by that event reaches the next render, not the visit that raised it
+
+**Status: DOCUMENTED (engine read; the first-visit symptom was found by reading, not yet seen live).**
+Found: M06 audit, 2026-10-02.
+
+When the player opens a mod page the browser asks for the page first and only
+then announces the visit (offset 20263196):
+
+```js
+const D=P0.GetMetadata(t.url);if(typeof D!="string")vt.Trigger("Browser_Website_Opened",D.website),vt.Trigger("Browser.Meta",D.meta),W0c(t.url,D),u(M(D.component,{...}))
+```
+
+`GetMetadata` runs the page's `metadata()` function, which is where a mod bakes
+its HTML. `Browser.Meta`, and so every quest listener on it, comes after. A
+mission that raises a progress mirror in a `Browser.Meta` listener and bakes
+content from that mirror in `metadata()` therefore renders the **old** value on
+the visit that raised it. M06's registry did exactly that: the stage went up in
+the `Browser.Meta` handler while the home page baked its search payload from the
+stage inside `metadata()`, so the first search after the tip answered "No
+published entry matches that." until the player reloaded. It is the render-order
+half of #36 (a render has no mod context) and of #51.
+
+**Rule.** Content that depends on progress must be derived from state that
+exists **before** the visit: raise the mirror from the event that precedes the
+page (here the `Mail.Read` of the tip) or compute the value from quest data when
+the mission starts. M06 now returns the register stage from `stageForM06` once
+`tipReviewed`, runs `syncStage` on `Mail.Read` as well, and resets the mirror
+unconditionally in `onObjectivesStartM06`: the monotonic `setM06Stage` let a
+stale high stage survive `mods.reset`, which does not touch `SharedVariables`
+(#44).

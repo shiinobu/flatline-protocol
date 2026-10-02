@@ -12,23 +12,19 @@ mission now ships the real 240-second tracking, HoneyCheck, the designed
 Greta's epilogue letters, the 5000 payout, the six BACKTRACE keys with a report
 card, and the full Chinese text.
 
-**What phase 1 is for.** M07 is the old M4 migrated to mission id `m07`
-(world-building README, "Batasan urutan implementasi" #2). The point of this
-build is to prove, in the running game, that **four events actually fire in an
-RDP/Meterpreter session on the C2** before any of the real M07 content is
-written (`11-spec-m7.md` §L, README #4). Everything else here exists only so
-you can reach those events.
+**What phase 1 was for.** M07 is the old M4 migrated to mission id `m07`
+(world-building README, "Batasan urutan implementasi" #2). Phase 1 set out to
+prove, in the running game, that **four events actually fire in an
+RDP/Meterpreter session on the C2** (`11-spec-m7.md` §L, README #4). That live
+test is still owed, and sections 4-9 below are it.
 
-**Not built yet (phase 4).** HoneyCheck, the designed `/legacy-cms/` node
-table, the 240-second tracking banner with its penalty and desktop breach, the
-ending effects and Greta's letters, the "What now?" mail and the `choice`
-report field, the money reward, the m7 BACKTRACE keys, and the Chinese text.
-The BACKTRACE app shows M07 as an ordinary locked/in-progress card with no
-keys — that is expected, not a bug.
+**Built in phase 4.** HoneyCheck, the designed `/legacy-cms/` node table, the
+240-second tracking banner with its penalty and desktop breach, the ending
+effects and Greta's letters, the "What now?" mail and the `choice` report
+field, the money reward, the m7 BACKTRACE keys, and the Chinese text.
 
-**Language.** English only in this build. `Localization.t` falls back to
-English for every M07 key, so a Chinese game shows English M07 text. Phase 4
-adds `zh`.
+**Language.** English and Simplified Chinese are both complete. Switch the game
+language and re-walk §12.
 
 ---
 
@@ -55,7 +51,9 @@ before committing.**
 1. Open GoMail. One mail from `drop@drop.null`, subject
    *"you have the name. now the proof."*
 2. Read it. It names the endpoint `203.0.113.160` — the address M3 already
-   ends on.
+   ends on — and says that HoneyCheck (`honeycheck.net`) will give an opinion on
+   whether a forgotten box is really forgotten, and that an opinion is not
+   proof. That is the only in-world pointer to HoneyCheck (`docs/bugs.md` #52).
 
 Expected: nothing visible; internally `tipReviewed`. Every later step refuses
 until this one is done, so read the mail first.
@@ -105,11 +103,15 @@ dirhunter 203.0.113.161
 ```
 
 Requires the **`dirhunter` package installed** in-game. Expect `/` and
-`/legacy-cms/` in the output. Opening `https://203.0.113.161/legacy-cms/` in
-the browser counts too.
+`/legacy-cms/` in the output and `[FP][M07] probe:dirhunter-c2 listed=true`.
+`dirhunter` itself advances nothing: what counts is **opening
+`https://203.0.113.161/legacy-cms/` in the browser** (`Browser.Meta`).
 
-Expected: internally `dashboardFound`. The page is a plain placeholder in this
-build (LegacyCMS 2.1, build 2011.04); the node-status table is phase 4.
+Expected: internally `dashboardFound`, key `nodes`. Before the `-sV` scan of
+section 2 the path is a **404**, although `dirhunter` already lists it. The page
+is the designed LegacyCMS 2.1 node-status table (build 2011.04); its footnote
+says the retired nodes' maintenance accounts still carry the factory default
+login.
 
 ---
 
@@ -123,7 +125,8 @@ Two boxes are written off. One is a honeypot, one is genuinely forgotten.
 ssh 146.70.44.18
 ```
 
-user `admin`, password `admin`.
+user `admin`, password `admin` (the pair is not printed anywhere; the node
+table's footnote only says the retired nodes carry the factory default login).
 
 ```
 cat ash-gate_backup.txt
@@ -143,8 +146,8 @@ ssh 185.220.101.42
 
 same `admin` / `admin`. Expect **one** mail from `watchdog@architect-c2.dark`,
 subject *"SYSTEM ALERT — decoy host touched"*. SSH in again: **no second
-mail**. Touching it never advances the chain and, in this build, costs nothing
-(the money penalty is phase 4).
+mail**. Touching it never advances the chain; it charges `min(balance, 500)`
+once, with the mail (`[FP][M07] probe:honeypot-touched penalty=<n>`).
 
 ---
 
@@ -203,7 +206,7 @@ Then, at `meterpreter >`:
 | Do this | Expect |
 |---|---|
 | `ls` | `manifest.txt` and `master_ledger_backup.enc` |
-| `cat manifest.txt` | the MASTER LEDGER INDEX; internally `manifestRead`, key `manifest`, two personal-log lines |
+| `cat manifest.txt` | the MASTER LEDGER INDEX, with an `[integrity]` section that says the ledger file is a protected backup and to inspect its attributes (`attrcheck <file>`) before any read; internally `manifestRead`, key `manifest`, two personal-log lines |
 | `attrcheck master_ledger_backup.enc` | the SELF_DESTRUCT_ON_READ warning; internally `trapRevealed` |
 | `download master_ledger_backup.enc` | internally `fileExtracted`, key `ledger`, banner flips to **EXTRACTION COMPLETE**, and the Custodian's *"what now?"* mail arrives |
 
@@ -259,29 +262,41 @@ Meterpreter target (`docs/bugs.md` #30). `docs/bugs.md` #49 records it.
 
 - one mail from `watchdog@architect-c2.dark`
 - a toast: *"That read was logged. You have less time now."*
-- the countdown **re-arms at 02:00**, not 04:00
+- the countdown **re-arms at 02:00 at most**, not 04:00: it never becomes longer
+  than the time that was left when you opened the file
 - the file is **not** deleted
 
-Doing it twice must not halve it again.
+Doing it twice must not halve it again and must not send a second mail. The
+handler acts only after the shell was obtained, and never once the file is
+extracted or the window was already halved.
 
 ---
 
 ## 10. The report, the choice and the three endings
 
-Compose to `drop@drop.null` with the **Mission 7 Findings** template:
+Compose to `drop@drop.null` with the **Mission 7 Findings** template. There is
+no free-text version of this report: the choice is read only from the template.
+`architect`, `evidence` and `choice` are **empty tokens** in the compose window
+(the parent entity and the list of choices are already filled in): type each
+answer, and Send enables after the last one is filled.
 
-- `architect` → `Conrad Lindqvist`
-- `evidence` → `employee negligence (G. de Souza)`
+- `architect` → `Conrad Lindqvist` (needs "lindqvist")
+- `evidence` → `employee negligence (G. de Souza)` (needs a fault word,
+  "negligen" or 疏忽 / 过失, and "souza")
 - `choice` → one of `expose`, `handoff`, `destroy`
 
-Case and spacing are forgiven; a fourth word is rejected, and so is an empty
-choice.
+Case and edge spacing are ignored; a fourth word is rejected, and so is an empty
+choice. A rejected report gets no reply.
 
 | `choice` | Expect |
 |---|---|
 | `expose` | Greta's letter arrives from `greta.desouza@postbox.my`; two personal-log lines; the C2 network stays up |
 | `handoff` | Greta's other letter (a lawyer called, it will take years); two personal-log lines; network stays up |
-| `destroy` | **no letter at all** — the inbox stays silent; two personal-log lines; the ledger file is removed and `[FP][M07] C2 network torn down (destroy ending)` appears, and the four C2 nodes leave the Network Map |
+| `destroy` | **no letter at all** — the inbox stays silent; two personal-log lines; the ledger file is removed and `[FP][M07] C2 network torn down (destroy ending)` appears, once, and the C2 hosts stop answering (`nmap 203.0.113.161`) |
+
+The two log lines and the letter are written when the report is accepted, before
+the mission completes, so the finished BACKTRACE report already shows them. Only
+`destroy` unregisters the C2 network; `expose` and `handoff` leave it standing.
 
 Then: `[FP][Backtrace] m7 -> complete` and `[FP][M07] reward skipped under
 focus: 5000`. The 5000 only pays in a **production** run (D1), which needs
@@ -305,6 +320,11 @@ runs, one per action:
 | `c2` | the Meterpreter session |
 | `manifest` | `manifest.txt` read |
 | `ledger` | the download |
+
+After the report, the Personal Log of the finished card shows the two lines of
+the ending you chose. Layout: while M07 is locked or in progress the view shows
+only its card, with no report text beside it; once M07 is complete the report
+scrolls inside the view, like M3's.
 
 ---
 

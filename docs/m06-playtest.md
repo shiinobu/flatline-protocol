@@ -15,8 +15,8 @@ Orchid's position, HostTrail (`hosttrail.net`) and the shared certificate, the
 insurer `whois` gate that lands on the same registrant as M3's tunnel endpoint,
 Conrad Lindqvist's officer record behind a two-branch gate, the M1-M3
 consequences mirrored out of the `backtrace` state, the five-column report, the
-six m6 BACKTRACE keys with a report card, seven personal-log entries, and the
-full Chinese text.
+six m6 BACKTRACE keys with a report card, eight personal-log entries (six
+groups), and the full Chinese text.
 
 **What M06 still is.** The project's only **zero-network mission**:
 `networkIps: []` and `networks: () => []`. All of Very Hard comes from the page
@@ -42,7 +42,7 @@ focus:
    not complete in a focused save) and `struckOff=true` in a full playthrough.
 
 **Put the flag back to `false` before committing.** The reward is skipped under
-focus: expect `reward skipped under focus: 1800`.
+focus: expect `reward skipped under focus: 4000`.
 
 ---
 
@@ -85,7 +85,11 @@ advances nothing.
    443 OPEN. There is no device behind either — that is the point.
 2. Browse **`https://pcr-registry.org/`**. The index is a **search box**, not a
    list: type `nominees`, or `PC-114772`, or `skn`.
-3. Expect `[FP][M06] probe:registry-page path=/` and `probe:stage=1`.
+3. Expect `[FP][M06] probe:registry-page path=/` and `probe:stage=1`. The very
+   first search must already find the record, with no reload: reading the tip
+   already raised the stage (`probe:stage=1` appears at the mail read), because
+   the page bakes its search payload before the `Browser.Meta` event runs
+   (`docs/bugs.md` #55).
 4. Open **SKN Capital Nominees Ltd** (`/entity/r7k4/`). Expect
    `[FP][Backtrace] m6 traced nominees` and one personal-log entry.
 5. The record gives: company number, incorporated **2017-03-09**, jurisdiction,
@@ -163,7 +167,11 @@ a page gate — the first of two.
    shareholding was declared against this entity by **Nordhaven Holdings (PC)
    Ltd · PC-141009**. The entity did not name its owner; the owner named itself.
 4. After both: `[FP][Backtrace] m6 traced ownershipChange`, two personal-log
-   entries and `probe:stage=4`.
+   entries and `probe:stage=4`. A second mail arrives from `drop@drop.null`,
+   subject **"who runs the machines"**: it names `hosttrail.net` and the
+   insurer's customer portal, `portal.nordhaven-mutual.com`. That mail is the
+   only in-world pointer to HostTrail: Goagle lists no mod site (`docs/bugs.md`
+   #52).
 5. Follow **Halvard Trust** (`/entity/h3p8/`): dissolved **2021-11-30**. A
    dissolved entity cannot hold an interest and cannot file, so the 2019 owner
    could not still have been the owner in 2024.
@@ -184,7 +192,8 @@ Both need step 6 and nothing else, and they can be done in either order.
 1. From Nordhaven Holdings, open its shareholder **Nordhaven Mutual Assurance
    Ltd** (`/entity/n5v4/`).
 2. Its officers: **Vivien Orchid**, Head of Cyber Risk **2019-2024**, and
-   **Conrad Lindqvist**, Chairman of the Risk Committee **2018-2024**.
+   **Conrad Lindqvist**, Chairman of the Risk Committee **2018-2024**. The
+   record also lists **Customer portal: `portal.nordhaven-mutual.com`**.
 3. Expect `[FP][Backtrace] m6 traced insurer` and one personal-log entry.
    Vivien Orchid is the officer who authorised the hospital payout in M5.
 
@@ -195,10 +204,11 @@ Both need step 6 and nothing else, and they can be done in either order.
    host.
 2. Expect `probe:insurer-whois`, `traced infra` and one personal-log entry.
 3. Open **`https://hosttrail.net/`** (open from step 6) and look up
-   **`vpn.skn-central.net`**: one certificate, fingerprint listed, also
-   presented for **`portal.nordhaven-mutual.com`**, answering from
-   `203.0.113.160`. Look the portal up and you get the same certificate from the
-   other side.
+   **`portal.nordhaven-mutual.com`**, the host the mail and the Mutual record
+   name: one certificate, fingerprint listed, also presented for
+   **`vpn.skn-central.net`**, answering from `193.42.33.60`. Look the tunnel host
+   up (it answers from `203.0.113.160`) and you get the same certificate from
+   the other side.
 4. `marlowepryce.biz` is also sampled and has a certificate of its own — the
    agent is not part of the operator's infrastructure.
 
@@ -211,7 +221,9 @@ not an empty card.
 ## 9. The name (step 9)
 
 1. Only once **both** step 7 and step 8 are done does
-   **`/officer/c9m2/`** stop being a 404. The Mutual record links to it.
+   **`/officer/c9m2/`** stop being a 404. From then on the Mutual record links
+   to it (the registry hides a link to a record that is still closed, so the
+   link is not there before).
 2. **Conrad Lindqvist** — three appointments: Chief Actuary **2009-2018**,
    Chairman of the Risk Committee **2018-2024**, and director of Nordhaven
    Holdings **2021-12-02 — 2024-03-01**.
@@ -249,22 +261,26 @@ staff page and this one. The M5 captures are 404 once M5 completes; this one is
 
 ## 11. The report
 
-Reply to `drop@drop.null` with the **Mission 6 Findings** template. Five fields:
+Reply to `drop@drop.null` with the **Mission 6 Findings** template. The five
+fields are **empty tokens** in the compose window, not pre-filled text: type each
+answer, and Send enables after the last one is filled.
 
-| field | answer |
-|---|---|
-| `architect` | `Conrad Lindqvist` |
-| `role` | `Chairman Risk Committee, Nordhaven Mutual Assurance Ltd` |
-| `chain` | `Nordhaven Mutual Assurance Ltd, Nordhaven Holdings (PC) Ltd, SKN Capital Nominees` |
-| `proof` | `shared certificate and registrant Bulletproof VPN Ltd.` |
-| `front` | `Alexander Voss is a nominee, not the owner` |
+| field | an accepted answer | what the match needs |
+|---|---|---|
+| `architect` | `Conrad Lindqvist` | "lindqvist", and no "voss" |
+| `role` | `Chairman Risk Committee, Nordhaven Mutual Assurance Ltd` | "chair" (or 主席) and "risk" (or 风险) |
+| `chain` | `Nordhaven Mutual Assurance Ltd, Nordhaven Holdings (PC) Ltd, SKN Capital Nominees` | all of "mutual", "holdings" and "nominee" |
+| `proof` | `shared certificate and registrant Bulletproof VPN Ltd.` | "certificate" (or 证书) and "bulletproof" (or 防弹) |
+| `front` | `Alexander Voss is a nominee, not the owner` | "voss" and one of "nominee", "front", "not the owner" (or 名义 / 代持 / 不是所有人) |
+
+Case, punctuation and spacing are ignored. A rejected report gets no reply.
 
 1. Send it early: one reply, subject **"not yet"**, naming the first unmet step.
    Sending again replaces that reply rather than stacking a second.
 2. Send it complete: the objective completes, `[FP][Backtrace] m6 -> complete`,
-   the facts dump, and (outside focus) `[FP][M06] reward paid: 1800`.
+   the facts dump, and (outside focus) `[FP][M06] reward paid: 4000`.
 3. `Alexander Voss` as `architect` is rejected. `the registered agent filed it`
-   as `proof` is rejected. Case and spacing are forgiven.
+   as `proof` is rejected.
 
 ---
 
@@ -275,9 +291,12 @@ Reply to `drop@drop.null` with the **Mission 6 Findings** template. Five fields:
    Ownership change, Insurer linked, Shared certificate, Named officer.
 3. After completion the card becomes the **MISSION 06** report: summary, eight
    findings, the Parent Entity card, two evidence rows (`EV-M6-01` the ownership
-   change, `EV-M6-02` the shared certificate) and the seven personal-log entries.
+   change, `EV-M6-02` the shared certificate) and the eight personal-log entries.
 4. No `—` may be left in the report. A dash means a key in the m6 fact builder
    does not match what the card asks for.
+5. Layout: while M06 is locked or in progress the view shows only its card, with
+   no report text beside it; once M06 is complete the report scrolls inside the
+   view, like M3's.
 
 ---
 
@@ -299,7 +318,10 @@ names, numbers, paths, domains, fingerprints and dates stay as they are.
 - **`dirhunter` with no subnet** — #40 was observed on a site that *had* one.
 - **A stage held in `SharedVariables` and read from a website render** — the M5
   booleans proved the pattern; M06 stores a **number** and compares it. If a
-  record 404s when it should serve, log `readM06Stage()` first.
+  record 404s when it should serve, log `readM06Stage()` first. The mirror is
+  reset, not only raised, at mission start, so a stage left by an earlier run
+  cannot survive `mods.reset`; `docs/bugs.md` #55 explains why the stage must be
+  raised before the visit that needs it.
 - **Eleven dynamic pages on one site** — the largest page count the project has
   registered. If `dirhunter` truncates its output, that is new information.
 - **The M3 mirror** reads the `backtrace` state at `OnObjectivesStart` only. A

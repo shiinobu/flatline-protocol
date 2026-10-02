@@ -109,8 +109,12 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   is the truth and is written only from mod context, a `SharedVariables`
   mirror is what every context reads) and `progress.ts` (the LedgerVault seal
   mirror). Website renders run with no mod context, so they only read the
-  mirrors and never roll or write anything (bugs #36). Read by the
-  controller, the websites and `applications/backtrace-facts.ts`; `content/`
+  mirrors and never roll or write anything (bugs #36). M05's `progress.ts` holds
+  two booleans (archive open, lookup open), M06's one monotonic stage that is
+  reset, not only raised, at mission start, and M07's the dashboard flag that the
+  edge scan sets. A page's `metadata()` runs before the `Browser.Meta` event, so
+  a mirror must be raised by an event that precedes the visit (bugs #55). Read by
+  the controller, the websites and `applications/backtrace-facts.ts`; `content/`
   never imports it.
 - **Shared modules** go in a `global/` subfolder of the layer when two or more
   missions use them (`content/global/`: `characters`, `blackledger`, `finance`,
@@ -147,7 +151,10 @@ are therefore gated in the page layer: `gateMissionPages(mission, pages)` in
 unless `areMissionSitesOpen(mission)`, which is true only between that mission's
 `OnObjectivesStart` and its `OnComplete` / `OnAbandon`. Gated: every M1 site
 except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow, PacificCare),
-TR4C3404 (M2), Skynet Import-Export (M3) and the C2 dashboard (M4). Not gated,
+TR4C3404 (M2), Skynet Import-Export (M3), LeakIndex (M5), the Registry and
+HostTrail (M6), HoneyCheck and the C2 dashboard (M7), and the Echoline captures
+(each one by the mission it belongs to; the Echoline index lists only the
+groups that are open). Not gated,
 on purpose: LedgerVault (its domain is permanent and it has its own seal,
 `isM01VaultSealed`) and BLACKLEDGER (a static story page with no network). The
 mirror is session-only and only written by controllers, so a game that starts
@@ -401,11 +408,13 @@ four groups (`ledger`, `tunnel`, `reyes`, `aftermath`; the `root` group went wit
 renders `logs` two ways: a live preview on the still-open mission's card
 (`stateCardMarkup`, "PERSONAL LOG") and the "Personal Log" section of every
 finished report that has one (`[data-personal-log="m2"]` through `"m7"`). M4
-logs three groups (`probe`, `breach`, `origin`), M5 four (`dismissed`,
+logs three groups (`probe`, `breach`, `origin`), M5 five (`dismissed`,
 `archive`, `statement` and, outside the chain, the administrator's own notes and
-the Bedside-17 note), M6 six (the nominee record, the ownership change, the
-insurer, the certificate, the officer record and the archived capture) and M7
-one group per ending.
+the Bedside-17 note: seven lines in all), M6 six (the nominee record, the
+ownership change, the insurer, the certificate, the officer record and the
+archived capture: eight lines) and M7 three (the node table, the manifest and
+the chosen ending, which is written when the report is accepted, before the
+mission completes).
 
 To add a key: add it to `BACKTRACE_KEYS` and to the mission's builder in
 `backtrace-facts.ts`, give it a title in the script's `KEY_LABELS`, and call

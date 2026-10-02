@@ -45,7 +45,7 @@ With focus on, the single objective shows immediately and no other story mission
 auto-starts. **Put the flag back to `false` before committing.**
 
 The reward is skipped under focus by design — expect
-`[FP][M05] reward skipped under focus: 1200` instead of `reward paid`.
+`[FP][M05] reward skipped under focus: 3200` instead of `reward paid`.
 
 ---
 
@@ -55,8 +55,9 @@ The reward is skipped under focus by design — expect
    vault"**. Read it.
 2. Expect: no trace line (this step is silent), and the quest's one objective
    still showing as incomplete.
-3. The mail points back at the LedgerVault project from M01 and at a hospital
-   that "paid and then wrote a name down".
+3. The mail sends you back to the hospital project in LedgerVault from M01: the
+   scan of a hand-written sticky note signed with one letter. That letter is a
+   person, and the mail asks who they are and who decided they were the cause.
 
 **Checks.** The mail must be the only new one in the inbox. Reading any other
 mail from the same sender must not advance anything.
@@ -68,7 +69,12 @@ mail from the same sender must not advance anything.
 1. Browse `https://ledgervault.*` as in M01 and open the **Q3** project folder.
 2. Expect: `[FP][M05] probe:vault-revisited`.
 3. Expect `echoline.net` to start resolving from this point:
-   `nslookup echoline.net` -> `185.31.164.22`.
+   `nslookup echoline.net` -> `185.31.164.22`. Before this step it must not
+   resolve (the fixtures register with the step, not at build).
+4. Expect a second mail from `drop@drop.null`, subject **"what they used to
+   say"**. It names `echoline.net`, the archive that keeps dated copies of
+   pages, and the hospital's IT team page. That mail is the only in-world
+   pointer to the site: Goagle lists no mod site (`docs/bugs.md` #52).
 
 **This is the one live question for this step.** M01's LedgerVault page is
 locked content; M05 only listens for the event its `Exports` already emits. If
@@ -93,6 +99,9 @@ locked content; M05 only listens for the event its `Exports` already emits. If
 4. The comparison is the point: **two** names are gone from the later capture.
    Gareth Lim is gone because his contract ended 2026-07-31 (the capture says
    so). Greta de Souza is gone with nothing attached to it.
+5. Both captures carry, under the staff table, the line **"Working off-site?
+   Staff remote access: remote.pacificcare-health.org"**. That is where the
+   hospital edge host of §5 comes from; no other page or mail names it.
 
 **Checks.**
 
@@ -111,13 +120,24 @@ locked content; M05 only listens for the event its `Exports` already emits. If
 
 ## 4. Profiling the administrator (step 5, parallel)
 
-1. `lynx @g.desouza`. Three lines: her role, the reused-password habit, and the
-   theatre she keeps mentioning.
+1. `lynx g.desouza` (a leading `@` is stripped, so `lynx @g.desouza` is the
+   same) or her full name from the staff page, `lynx Greta de Souza`. Three
+   lines: her role, the reused-password habit, and the theatre she keeps
+   mentioning.
 2. Expect `[FP][Backtrace] m5 traced greta`.
-3. `lynx @g.lim` works too and is a decoy — it must trace nothing.
+3. `lynx g.lim` or `lynx Gareth Lim` works too and is a decoy — it must trace
+   nothing.
 
-**Checks.** Both `Terminal.Lynx.Lookup` and `Terminal.Lynx.Search` must count
-(the engine raises one or the other depending on how the player typed it).
+**Checks.**
+
+- The handle and the full name must both trace. `lynx` resolves a typed full
+  name to the Twotter user's name before it raises its events
+  (`docs/bugs.md` #53), so the gate accepts both spellings.
+- The engine raises both `Terminal.Lynx.Search` (first, with the resolved
+  subject as a bare string) and `Terminal.Lynx.Lookup` (after the output, with
+  `{ input, data }`) on every run; either one counts.
+- In Twotter her profile and posts read `@g.desouza`, not `@@g.desouza`: the
+  persona username is stored without the `@` (#54).
 
 ---
 
@@ -125,11 +145,15 @@ locked content; M05 only listens for the event its `Exports` already emits. If
 
 Steps 3-4 and 5 are two branches that join here.
 
-1. `nslookup remote.pacificcare-health.org` -> `198.244.91.37`.
+1. `nslookup remote.pacificcare-health.org` -> `198.244.91.37` (the host name is
+   the remote-access line on the two captures, §3).
 2. `whois remote.pacificcare-health.org` -> the hospital's own contact.
 3. `nmap 198.244.91.37` (or `nmap remote.pacificcare-health.org`). Expect
    `[FP][M05] probe:edge-mapped`.
 4. Expect `leakindex.net` to start resolving from this point.
+5. Expect a second mail from `drop@drop.null`, subject **"same habits"**. It
+   names `leakindex.net` and tells you to use the address format from the team
+   page. Again that mail is the only in-world pointer to the site (#52).
 
 **Live question.** There is **no nmap fixture on the edge address** — the edge
 router is a real network node, so this prints the live port state (80 CLOSE,
@@ -146,8 +170,9 @@ line must not appear.
 
 1. `nslookup leakindex.net` -> `91.229.23.105`, `nmap` it, then browse
    **`https://leakindex.net/`**.
-2. Search `pacificcare-health.org`. Nine records come back, hashed, with the
-   breach they came from and its year.
+2. Search `pacificcare-health.org`. Nine records come back with the breach they
+   came from and its year. The table prints only the first six characters of
+   each hash (`a3106b…`); the full hash appears in the record you open.
 3. Search `g.desouza` or her full work address. **Record 1** is the one that
    matters: `g.desouza@pacificcare-health.org`, MedVendor Portal 2025.
 4. Press **Open** on record 1. Expect
@@ -164,6 +189,8 @@ the nine decoys so the table itself does not point at record 1.
 - The page must 404 before step 6.
 - `http://leakindex.net/` must serve the 400 page.
 - No plaintext password may appear anywhere in the page source (view source).
+- No full hash may be copyable from the results table, so `john` cannot be fed a
+  hash before **Open** (the prefix is all the table shows).
 
 ---
 
@@ -183,8 +210,8 @@ worth a listener check) must also print nothing.
 
 1. `nmap 192.168.1.3` finds nothing useful — the firewall hides its public
    address (`isIpHidden: true`), and in 1.3.13 that only affects `whois` and
-   `nslookup`, so the box is still reachable once you have the address from the
-   network map.
+   `nslookup`, so the box is still reachable once you have the address from
+   `python3 net_tree.py 198.244.91.37`.
 2. Open pfSense on **`193.29.57.184`**, log in as `g.desouza` / `Marigold2019`.
    Expect `[FP][M05] probe:firewall-login`.
 3. The firewall has **exactly one** account, because `PFSense.Login` carries
@@ -265,24 +292,29 @@ Not a step, and not required for the report.
 
 ## 12. The report
 
-Reply to `drop@drop.null` with the **Mission 5 Findings** template. Five fields:
+Reply to `drop@drop.null` with the **Mission 5 Findings** template. The five
+fields are **empty tokens** in the compose window, not pre-filled text: type each
+answer, and Send enables after the last one is filled.
 
-| field | answer |
-|---|---|
-| `door` | `Greta de Souza` |
-| `cause` | `unauthorised USB media, employee negligence` |
-| `decider` | `Vivien Orchid` |
-| `gap` | `6 hours 21 minutes` |
-| `motive` | `insurance claim classification` |
+| field | an accepted answer | what the match needs |
+|---|---|---|
+| `door` | `Greta de Souza` | "greta" or "souza", and no "gareth" |
+| `cause` | `unauthorised USB media, employee negligence` | a USB term and a fault term (`negligen`, `careless`, `unauthori`, `policy`, `过失`, ...), and no vendor / remote-support / third-party term |
+| `decider` | `Vivien Orchid` | "orchid" or "vivien" |
+| `gap` | `6 hours 21 minutes` | the numbers 6 and 21, or the single number 381 (minutes) |
+| `motive` | `insurance claim classification` | "insur", "claim" or "cover" (or 保险 / 理赔 / 承保) |
+
+Case, punctuation and spacing are ignored. A rejected report gets no reply.
 
 1. Send it **before** the three documents are read: expect one reply with
    subject **"not yet"** naming the first unmet step. Send again: the old reply
    is withdrawn and replaced, never stacked.
 2. Send it complete: the objective completes, the mission completes, and expect
    `[FP][Backtrace] m5 -> complete`, the facts dump, and (outside focus)
-   `[FP][M05] reward paid: 1200`.
+   `[FP][M05] reward paid: 3200`.
 3. Answering `Gareth Lim` for `door`, or `third-party remote support tool` for
-   `cause`, must be rejected. Case and extra spacing are forgiven.
+   `cause`, must be rejected. `6h21m` and `381 minutes` must both be accepted for
+   `gap`.
 
 ---
 
@@ -298,6 +330,9 @@ Reply to `drop@drop.null` with the **Mission 5 Findings** template. Five fields:
 4. Every `—` in the report must be filled in. A dash left in place means a fact
    builder key in `backtrace-facts.ts` does not match what the report card asks
    for.
+5. Layout: while M05 is locked or in progress the view shows only its card, with
+   no report text beside it; once M05 is complete the report scrolls inside the
+   view, like M3's.
 
 ---
 
@@ -319,10 +354,11 @@ through. Addresses, usernames, hashes, asset tags and dates stay as they are.
   string. Untested live.
 - **`John.DecryptHash` payload shape** (`{hash, password}`) is taken from M01's
   working listener; M05 is the first to check both fields.
-- **`Terminal.Lynx.Search`** carries a bare string rather than an object. Both
-  shapes are bound; which one the engine raises is untested here.
+- **`Terminal.Lynx.Search`** carries the resolved subject as a bare string and
+  `Terminal.Lynx.Lookup` carries `{ input, data }`; the engine raises both on
+  every `lynx` run (`docs/bugs.md` #53, read from the engine, not yet seen live).
 - **`isIpHidden` on the firewall** is cosmetic in 1.3.13 (`whois`/`nslookup`
-  only), so the firewall is still visible on the network map. Expected, not a
-  bug (`docs/bugs.md` #47).
+  only), so `python3 net_tree.py` still lists the firewall. Expected, not a bug
+  (`docs/changelog.md` 2026-10-02, the entry that prepared the run).
 - **No nmap fixture on the hospital edge** — the step depends on the real subnet
   existing. If the live scan prints nothing, that is the subnet, not the gate.

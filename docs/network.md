@@ -253,6 +253,13 @@ Router  91.222.174.46  lan 192.168.1.1
       the same registrant as 203.0.113.160, the endpoint M3 ends on
 ```
 
+Relay 1's panel and Static-Hop share one credential: the panel's single user is
+`svc` / `relay-swap-07`, the account SSH on Static-Hop takes, so `hydra` on the
+panel prints the pair the next step needs (the fixtures answer `guest`, `admin`
+and `svc`). Both relay-1 addresses reach the player through `incident.txt`, whose
+first line names Static-Hop (`141.77.202.84`) and the NAT gateway in front of it
+(`193.164.228.17`).
+
 The intruder (`62.197.136.44`) is **not a network node**: it only ever appears
 in the player's own firewall log and in the strike state, so there is nothing to
 connect to and nothing to scan. The two strikes, the desktop breach and the
@@ -290,7 +297,12 @@ the firewall has exactly one user because `PFSense.Login` carries only `{ip}`
 (E-9). Every decoy password is the genuine MD5 of a hash published in the
 LeakIndex table, so `john` can crack any row and three of them lead somewhere
 harmless (`docs/bugs.md` #13). `echoline.net` and `leakindex.net` are sites with
-**no subnet**, resolved by `nslookup` fixtures only.
+**no subnet**, resolved by `nslookup` fixtures only. Neither is searchable (mod
+pages default to `seo: false`, `docs/bugs.md` #52): the Custodian's two
+follow-up mails name them when their steps open, the Echoline captures name the
+edge host, and the fixtures (`nslookup`, `nmap`, and the `lynx` entries for the
+handle and the full name of Greta and Gareth) register with their step, not at
+build.
 
 ## M6 — "Open Register" (written 2026-10-02; full mission, not yet live-tested)
 
@@ -316,7 +328,10 @@ Page access is gated by a single monotonic stage number in `SharedVariables`
 (`context/m06/progress.ts`), because a website render has no mod context and
 cannot read `SaveStorage` (`docs/bugs.md` #36). Every record path is an opaque
 code, because `dirhunter` prints every registered path and a mod cannot hide a
-page (#40).
+page (#40). `hosttrail.net` is named by the Custodian's mail at
+`snapshotsCompared`, together with the insurer's portal, and the Mutual record
+carries a Customer portal field (#52). The stage is reset at mission start and
+derived from the tip, so the first visit renders correctly (#55).
 
 ## M7 — "The Architect" (migrated from the old M4 on 2026-10-02; full mission, not yet live-tested)
 
@@ -379,6 +394,12 @@ the same gate (E-9, world-building README #21).
 is opened by `UnlockSpec.openPorts` when the firewall step completes. The
 phase-1 skeleton shipped it open so the RDP events could be reached without
 walking the firewall; that shortcut is gone.
+
+The network is torn down by the `destroy` ending only: the report handler awaits
+the removal of the ledger file and then calls `unregister` once. `expose` and
+`handoff` leave the C2 standing, and completing the mission does not unregister
+it. The `/legacy-cms/` page on the C2 stays a 404 until the edge scan has set its
+`SharedVariables` mirror (`context/m07/progress.ts`).
 
 ## M4 (old, now M7) — the 2026-09-20 design as it was implemented
 

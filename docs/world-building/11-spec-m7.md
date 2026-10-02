@@ -332,3 +332,27 @@ prompt.
 
 **Uji pemilik:** `docs/m07-playtest.md` (sudah ditulis ulang untuk misi penuh,
 13 bagian termasuk jalur gagal, ketiga ending, dan lintasan zh).
+
+## Catatan implementasi (2026-10-02, perbaikan audit)
+
+Perbaikan setelah audit pemilik atas run fase 2-8 (cabang `fix/phases2-8-m04-m07-audit`).
+Keputusannya ada di README #38, #39, dan #41; yang di bawah ini hanya selisih terhadap spesifikasi
+dan catatan fase 4.
+
+**Ending (bagian H).** Log BACKTRACE dan surat Greta ditulis saat laporan diterima, sebelum
+`completeObjective`, yang menjalankan `OnComplete` secara sinkron: log yang ditulis sesudahnya hilang.
+Hanya `destroy` menghancurkan jaringan C2, dengan satu `unregister` sesudah berkas ledger dihapus.
+`expose` dan `handoff` membiarkan C2 hidup, dan `onCompleteM07` tidak lagi memanggil `unregister`.
+Laporan hanya lewat templat, tanpa badan freehand, dan baris `Decision` di templat en kini memuat
+`{{choice}}` seperti zh.
+
+**Dasbor dan pelacakan.** `/legacy-cms/` baru terbuka sesudah `edgeScanned`, lewat cermin
+`SharedVariables` (`context/m07/progress.ts`); `dirhunter` hanya mencatat probe dan tidak lagi
+memajukan `dashboardFound`, yang hanya dipicu `Browser.Meta` (bagian C). Membuka `.enc` hanya bekerja
+sesudah shell didapat dan memangkas jendela jadi paling lama 120 detik, tidak pernah lebih panjang dari
+sisa waktu: `Scheduler.remaining` mengembalikan milidetik dalam game, jadi dikonversi lewat
+`Time.toRealMs` (`docs/bugs.md` #46). Surel watchdog dikirim sekali.
+
+**Penunjuk dalam dunia.** Tip menyebut HoneyCheck dan menegaskan bahwa itu pendapat, bukan bukti;
+manifest memuat bagian `[integrity]` yang menyebut `attrcheck`; catatan kaki tabel node menyebut login
+bawaan pabrik pada node yang sudah dihapus (README #38).

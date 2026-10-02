@@ -21,12 +21,12 @@ from a real quest, so the live test can answer:
 **The lab is untouched.** `src/debug/rival-*` still works exactly as before
 (D5); the kit is a parallel adaptation, not a move.
 
-**Not built yet (phase 5).** The 15-step chain, strike 2 and the desktop
-breach as a *story* beat, the relay hops (Static-Hop → Quiet-Mirror), the
-control host, `hydra` on R1, `auth.log`, `watchdog.conf`, `old_targets.txt`,
-the BACKTRACE keys, the closing mail, and the polished banner and recovery
-screen (the `frontend-design` pass). The skeleton stops after the first strike
-is repelled.
+**Added in phase 5.** The 15-step chain, strike 2 and the desktop breach as a
+*story* beat, the relay hops (Static-Hop → Quiet-Mirror), the control host,
+`hydra` on R1, `auth.log`, `watchdog.conf`, `old_targets.txt`, the BACKTRACE
+keys and the closing mail are built: §7-§10 walk them. Only the polished banner
+and recovery screen (the `frontend-design` pass) are still owed (§12). Sections
+1-6 keep the phase-3 skeleton questions.
 
 ---
 
@@ -38,8 +38,9 @@ reachable in production once M03 is complete. For a focused test:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m04 = true` and every other
    entry to `false`.
 2. Build, install, restart.
-3. Expect `[FP][Backtrace] m4 -> progress` and the Network Map to gain **four**
-   routers, each with one device.
+3. Expect `[FP][Backtrace] m4 -> progress`. The four one-device subnets listed
+   in `docs/network.md` (M4) now exist: `nmap` on a router address such as
+   `193.164.228.17` prints its live ports.
 
 **Remember to put the focus flag back to `false` before committing.**
 
@@ -184,16 +185,21 @@ Steps 5 and 6 are **deliberately parallel** and join at 7, so repairing the
 desktop without reading the log must not stall anything (`10` §C).
 
 1. **Read the incident log** (step 5): `cat ~/compositor/logs/incident.txt`.
-   Stamped `03:14:07`, it names the session source: Static-Hop's public address
-   `141.77.202.84`. This unlocks the relay-1 `whois` / `geoip` / `nmap` fixtures.
+   Stamped `03:14:07`, its first line names the session source, Static-Hop's
+   public address `141.77.202.84`, and the NAT gateway in front of it,
+   `193.164.228.17` (`... accepted (nat gateway 193.164.228.17)`). Those two
+   addresses are all step 7 needs. This unlocks the relay-1 `whois` / `geoip` /
+   `nmap` fixtures.
 2. **Profile relay 1** (step 7): `whois 141.77.202.84`, `geoip 141.77.202.84` or
    `nmap 193.164.228.17` — any one counts. This unlocks the `hydra` fixture for
    R1's panel.
 3. **Crack R1** (step 8): `hydra -l admin -P <HackDB wordlist> 193.164.228.17 80`
-   (the `-l` is optional; the fixture also answers the engine's default `guest`,
-   `docs/bugs.md` #25). Expect `[FP][M04] probe:hydra-run`. This opens 22 on
-   Static-Hop.
-4. **SSH to Static-Hop** (step 9) with `svc` / `relay-swap-07`. Key `relay1`.
+   (the `-l` is optional; fixtures answer the engine's default `guest`
+   (`docs/bugs.md` #25), `admin` and `svc`, and whichever you type the result
+   names the panel account, `svc` / `relay-swap-07`). Expect
+   `[FP][M04] probe:hydra-run`. This opens 22 on Static-Hop.
+4. **SSH to Static-Hop** (step 9) with the pair hydra printed, `svc` /
+   `relay-swap-07`. Key `relay1`.
 5. **Read `auth.log`** (step 10). Fourteen lines, `Sep 24`. Five outbound
    sessions, and only **one** is `ESTABLISHED` at **03:14:06** — Quiet-Mirror
    `45.155.204.31`, matching the breach minute in the incident log. The others
@@ -233,8 +239,10 @@ Touching it never advances the chain and never blocks it.
 
 ## 9. Report
 
-Compose to `drop@drop.null` with the **Mission 4 Findings** template, five
-columns:
+Compose to `drop@drop.null` with the **Mission 4 Findings** template. The five
+fields (`hunter`, `relays`, `control`, `origin`, `contained`) are **empty tokens**
+in the compose window, not pre-filled text: type each answer, and Send enables
+after the last one is filled.
 
 - `hunter` → `SENTRY`
 - `relays` → `Static-Hop, Quiet-Mirror`
@@ -242,11 +250,14 @@ columns:
 - `origin` → `Bulletproof VPN Ltd.`
 - `contained` → `yes`
 
-Case and spacing are forgiven. `Static-Hop, Paper-Moth` is rejected, and so is
-Paper-Moth's address as the control host.
+Matching is lenient: case, punctuation and spacing are ignored. `relays` needs
+both Static-Hop and Quiet-Mirror in any order and must not name Paper-Moth
+(`Static-Hop, Paper-Moth` is rejected); `control` must be the exact address, so
+Paper-Moth's address is rejected; `origin` needs "Bulletproof" (or 防弹);
+`contained` takes `yes`, `true` or `contained`. A rejected report gets no reply.
 
 Expect the objective to complete, `[FP][Backtrace] m4 -> complete`, and
-`[FP][M04] reward skipped under focus: 800`. Sending early gets one *"not yet"*
+`[FP][M04] reward skipped under focus: 2400`. Sending early gets one *"not yet"*
 reply naming the step you are actually missing.
 
 ---
@@ -268,6 +279,10 @@ Three personal-log beats: after `probe` ("they already had my name"), after
 `breach` ("they took the desktop, not the balance"), after `origin` ("the same
 hand, one more time").
 
+Layout check: while M04 is locked or in progress the BACKTRACE view shows only
+its card, with no report text beside it; once M04 is complete the report scrolls
+inside the view, like M3's.
+
 ---
 
 ## 11. Chinese pass
@@ -284,8 +299,8 @@ the recovery messages. The log **files** stay in English syslog form on purpose
    #48). Sections 2-6 are that test.
 2. **`mods.reset` during an active strike** — section 5, the risk the owner named.
 3. **The banner widget path** `components/incident-banner.html` (#48).
-4. **Four routers is the most any mission builds**; watch the Network Map and the
-   rebuild after a reset (#35).
+4. **Four routers is the most any mission builds**; watch the build and the
+   rebuild after a reset (#35): `nmap` on each router address should answer.
 5. **The reward is unverified** (#42) and only pays outside focus.
 6. **No `frontend-design` pass.** That plugin is not available in this build
    environment, so the banner and recovery screen keep the lab's visuals and the

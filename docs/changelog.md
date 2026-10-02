@@ -27,6 +27,49 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Audit fix pass for the M4-M7 run** (branch `fix/phases2-8-m04-m07-audit`, from
+  `origin/phases2-8-m04-m07` at `6d9cf29`). The owner's audit of the cloud run found defects that
+  `tsc`, the baseline and the harness cannot see: a mission that a player could not finish, sites no
+  player could find, and dropped ending logs. Each is fixed below or recorded in `docs/bugs.md`
+  #52-#55. M1-M3, `src/debug/` and the locked files are unchanged (the §4 diff guard is empty). The
+  live test is still owed (`docs/m04-playtest.md` to `docs/m07-playtest.md`).
+- **[bug] The M4-M7 reports could not be sent.** The templates pre-filled every field, so the compose
+  window had no `{{token}}` left to type into and Send stayed disabled (M07 also lacked `{{choice}}`
+  in English). The templates now leave the tokens open as M3 does, the validators match keywords and
+  numbers in en and zh and still reject the decoys, and M07 accepts the template only
+  (`ReportSpec.body` is optional; `components/report-match.ts` is new).
+- **[bug] M04 step 7 was unreachable.** `incident.txt` named the intruder instead of Static-Hop, the R1
+  address appeared in no player-visible text, and hydra could only return `admin` where SSH needs
+  `svc`. The breach carries the Static-Hop address, the incident log line names the NAT gateway, and
+  the R1 panel user is `svc`. Reward 800 -> 2400.
+- **[bug] M05 and M06 sites were never named in-world, and no mod site is searchable** (mod pages
+  default to `seo: false`, `docs/bugs.md` #52). Added: three Custodian follow-up mails (M05 at
+  `vaultRevisited` and `edgeMapped`, M06 at `snapshotsCompared`), a remote-access line on the Echoline
+  captures, a Customer portal field on the Mutual record, HoneyCheck named in the M07 tip and
+  `attrcheck` in the manifest. M05 also: `lynx` accepts the full name (#53), the Twotter personas are
+  stored without `@` (#54), LeakIndex prints a hash prefix until a record is opened, Echoline and
+  LeakIndex go through `gateMissionPages`, and the Echoline fixtures register with their step.
+  Rewards: M05 1200 -> 3200, M06 1800 -> 4000.
+- **[bug] M06 rendered the registry one visit late and kept a stale stage** (#55). The stage now comes
+  from the tip, is synced on `Mail.Read` and is reset at mission start; registry links stay hidden
+  until their target opens, and the Mutual record links to the architect.
+- **[bug] M07 dropped the ending logs and always tore the C2 down.** `completeObjective` runs
+  `OnComplete` synchronously, so the logs and Greta's letter came after completion and were lost; they
+  are written before it, and only `destroy` unregisters the network. The `/legacy-cms/` dashboard needs
+  the edge scan, `dirhunter` only traces, the watchdog mail is sent once, and the halved trace window
+  is capped by what is left (`Scheduler.remaining` is in-game ms, so `strikeRemainingRealMs` goes
+  through `Time.toRealMs`, #46).
+- **[bug] BACKTRACE M4-M7 report views** used classes with no CSS and no `.report-scroll` wrapper
+  (static text beside the locked card, no scrolling); they now use M3's structure.
+- **[mechanic] Mission sites fill their data markers through `fillMarker`, `fillDataMarker` and
+  `fillMarkers`** (`websites/global/localize.ts`), so no `/*` literal is left in `.ts` (§2.3 baseline)
+  and a `$` in a value is safe. The exports, the one state flag and the one site key that nothing
+  used were removed.
+- **[docs]** `docs/bugs.md` #52-#55 added and #45, #46, #47, #50 and #51 corrected (stale probes and
+  shortcut, the nonexistent Network Map app, the 13 registry paths); the four playtests,
+  `docs/network.md` and `docs/architecture.md` brought in line with the code; the personal-log beat counts
+  above corrected; world-building README #38-#41 and implementation notes in specs `08`, `10` and `11`.
+
 - **[milestone] Phase 8 of the M4-M7 run: wrap-up.** One review pass over the whole M4-M7 diff, the
   findings fixed, and the three documents that describe the result brought in line with it.
 - **[bug] M07's honeypot cost nothing.** `M07_HONEYPOT_PENALTY` was declared and never charged, so
@@ -57,7 +100,7 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   Nordhaven Holdings and Nordhaven Mutual records with Vivien Orchid's position, HostTrail
   (`websites/m06/hosttrail/`) and the shared certificate, the insurer `whois` landing on M3's own
   registrant, Conrad Lindqvist's record behind a two-branch gate, the five-column report, the six m6
-  BACKTRACE keys with a report card and seven personal-log beats, and the full Chinese text.
+  BACKTRACE keys with a report card and six personal-log beats (eight lines), and the full Chinese text.
   See `docs/m06-playtest.md`.
 - **[mechanic] M1-M3 consequences are mirrored out of the `backtrace` state** at
   `OnObjectivesStart` (`docs/bugs.md` #36 — a website render has no mod context, so it cannot read
@@ -87,7 +130,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   step with one account and two LAN-addressed deny rules, Cold-Chart's incident folder (decision memo,
   draft and filed finding, acknowledgement, USB ticket, asset register), the optional Bedside-17 beat
   that puts the M01 vault note back where it came from, the five-column report, the six m5 BACKTRACE
-  keys with a report card and four personal-log beats, the 1200 payout, and the full Chinese text.
+  keys with a report card and five personal-log beats (seven lines), the 1200 payout (3200 since the
+  audit fix pass), and the full Chinese text.
   See `docs/m05-playtest.md`.
 - **[mechanic] A website `Exports` function used as a mission gate for the second time in the project.**
   `leakindex.net` calls `flatlineOpenLeakRecord(id)`; the mission counts record 1 and traces every
