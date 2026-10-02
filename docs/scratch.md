@@ -2536,3 +2536,42 @@ render checks that actually render the three new pages and assert no `{{t:}}` or
 data marker survives, no page carries a date past the M7 story day, http gets the
 400 page and an m07 page 404s while another mission runs. The phase-1 suites were
 updated rather than left contradicting phase 4.
+
+---
+
+## 2026-10-02 — M04 full (phase 5 of the M4-M7 run)
+
+**The parallel pair.** `relayProfiled` lists both `incidentLogRead` and
+`desktopRestored` in its `requires`, which is how `middleware/gate.ts` expresses
+a join. A player who fixes the desktop by trying all three builds without ever
+reading the log still gets to step 7 once they read it, and vice versa; neither
+order stalls. Four harness checks cover exactly that.
+
+**Why `auth.log` has five outbound sessions.** The discriminator is the clock,
+not the hostname: only Quiet-Mirror appears as `ESTABLISHED` at 03:14:06, the
+minute the incident log stamps. Paper-Moth appears twice as a probe that
+forwarded 0 bytes, once at 03:14:41 — close enough to look tempting, late enough
+to be wrong. Three keepalives sit before 03:00. Times come from `13` §E.
+
+**`repel` has two jobs now.** Step 3 repels a live strike; step 14 repels the
+control host, where no strike exists. `registerRepelTarget` keeps the command
+mission-blind: a mission registers an address, and `repel` emits the same event
+with that target's id. The M04 listeners check prefix, strike id **and** address.
+
+**A dynamic import was a real mistake.** My first `breach.ts` fetched
+`M04_HUNTER_EMAIL` with `await import(...)` inside the Scheduler job. That is an
+async boundary in the middle of a handler, which is precisely how mod context is
+lost (`docs/bugs.md` #19), and it would have broken the `Mail.send` right after
+it. Replaced with a static import; `grep -rn 'await import' src` is now empty.
+
+**`trace` call locations added for M04** (removed at FINAL LOCK):
+`controller/m04/breach.ts` (`probe:breach-scheduled`, `probe:breach-began`,
+`probe:desktop-restored`, the refusal line), `controller/m04/relay.ts`
+(`probe:hydra-run`), `controller/m04/control.ts` (`probe:honeypot-touched`,
+`probe:hunt-ended`), plus `probe:strike-rearmed` in `controller/m04/intrusion.ts`.
+
+**Harness finding that was mine, not the code's.** A check asserted `openPort`
+runs on `register`'s *keep* path. It does not, and should not: the keep path
+leaves an existing network alone, and a port opened earlier is still open because
+the network survives (#35). Only the build and rebuild paths apply
+`UnlockSpec.openPorts`. The suite now asserts both halves of that.

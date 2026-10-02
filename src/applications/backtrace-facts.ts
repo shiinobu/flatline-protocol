@@ -31,6 +31,14 @@ import {
     M03_VPN_PEER_LABEL,
 } from "../content/m03/network.js";
 import {
+    M04_HUNTER_TAG,
+    M04_INTRUDER_IP,
+    M04_NIGHT_SHIFT_CODENAME,
+    M04_NIGHT_SHIFT_IP,
+    M04_QUIET_MIRROR_CODENAME,
+    M04_STATIC_HOP_CODENAME,
+} from "../content/m04/network.js";
+import {
     M07_ASHVECTOR_CODENAME,
     M07_C2_IP,
     M07_FIREWALL_IP,
@@ -45,12 +53,13 @@ import { M07_EVIDENCE_CLASSIFICATION, M07_LEDGER_FILE_NAME } from "../content/m0
 import type { BacktraceFacts, BacktraceMissionId } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
+const M04_WHOIS_REGISTRANT = "Bulletproof VPN Ltd.";
 
 export const BACKTRACE_KEYS = {
     m1: ["broker", "buyer", "vault", "caseId"],
     m2: ["developer", "ransom", "deployLog", "homeLead", "firewall", "workstation", "shellCompany"],
     m3: ["portal", "parentEntity", "gateway", "vpnPeer", "accomplice"],
-    m4: [],
+    m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
     m5: [],
     m6: [],
     m7: ["nodes", "credential", "firewall", "c2", "manifest", "ledger"],
@@ -120,6 +129,18 @@ const buildM3Facts = (): BacktraceFacts => {
     };
 };
 
+const buildM4Facts = (): BacktraceFacts => ({
+    probe: M04_INTRUDER_IP,
+    breach: `desktop session traced to ${M04_STATIC_HOP_CODENAME}`,
+    relay1: M04_STATIC_HOP_CODENAME,
+    relay2: M04_QUIET_MIRROR_CODENAME,
+    control: `${M04_NIGHT_SHIFT_CODENAME} (${M04_NIGHT_SHIFT_IP})`,
+    origin: M04_WHOIS_REGISTRANT,
+    hunter: M04_HUNTER_TAG,
+    caseId: M01_CASE_ID,
+    architectVpn: M04_ARCHITECT_VPN_IP,
+});
+
 const buildM7Facts = (): BacktraceFacts => {
     const totals = totalRansom(RANSOM_BATCHES);
 
@@ -144,6 +165,7 @@ const FACT_BUILDERS: Readonly<Partial<Record<BacktraceMissionId, () => Backtrace
     m1: buildM1Facts,
     m2: buildM2Facts,
     m3: buildM3Facts,
+    m4: buildM4Facts,
     m7: buildM7Facts,
 };
 

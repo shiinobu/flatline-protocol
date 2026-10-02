@@ -1,6 +1,23 @@
 import type { DeviceSpec, RouterSpec } from "../../core/types.js";
 
 import {
+    M04_AUTH_LOG_CONTENT,
+    M04_AUTH_LOG_FILE_EXTENSION,
+    M04_AUTH_LOG_FILE_NAME,
+    M04_MOTH_README_CONTENT,
+    M04_MOTH_README_FILE_EXTENSION,
+    M04_MOTH_README_FILE_NAME,
+    M04_OLD_TARGETS_CONTENT,
+    M04_OLD_TARGETS_FILE_EXTENSION,
+    M04_OLD_TARGETS_FILE_NAME,
+    M04_OPERATOR_NOTES_CONTENT,
+    M04_OPERATOR_NOTES_FILE_EXTENSION,
+    M04_OPERATOR_NOTES_FILE_NAME,
+    M04_WATCHDOG_CONF_CONTENT,
+    M04_WATCHDOG_CONF_FILE_EXTENSION,
+    M04_WATCHDOG_CONF_FILE_NAME,
+} from "./server-files.js";
+import {
     M04_HTTP_PORT,
     M04_HTTPS_PORT,
     M04_NIGHT_SHIFT_CODENAME,
@@ -50,7 +67,22 @@ const buildRelayRouter = (): RouterSpec => ({
             lanIp: M04_STATIC_HOP_LAN_IP,
             name: M04_STATIC_HOP_CODENAME,
             users: [
-                { username: M04_STATIC_HOP_USERNAME, password: M04_STATIC_HOP_PASSWORD },
+                {
+                    username: M04_STATIC_HOP_USERNAME,
+                    password: M04_STATIC_HOP_PASSWORD,
+                    files: [
+                        {
+                            name: M04_AUTH_LOG_FILE_NAME,
+                            extension: M04_AUTH_LOG_FILE_EXTENSION,
+                            data: M04_AUTH_LOG_CONTENT(),
+                        },
+                        {
+                            name: M04_OPERATOR_NOTES_FILE_NAME,
+                            extension: M04_OPERATOR_NOTES_FILE_EXTENSION,
+                            data: M04_OPERATOR_NOTES_CONTENT(),
+                        },
+                    ],
+                },
                 { username: "root" },
             ],
             ports: sshPort(false),
@@ -70,7 +102,24 @@ const buildMirrorRouter = (): RouterSpec => ({
             ip: M04_QUIET_MIRROR_IP,
             lanIp: M04_QUIET_MIRROR_LAN_IP,
             name: M04_QUIET_MIRROR_CODENAME,
-            users: [{ username: M04_QUIET_MIRROR_USERNAME, password: M04_QUIET_MIRROR_PASSWORD }],
+            users: [
+                {
+                    username: M04_QUIET_MIRROR_USERNAME,
+                    password: M04_QUIET_MIRROR_PASSWORD,
+                    files: [
+                        {
+                            name: M04_WATCHDOG_CONF_FILE_NAME,
+                            extension: M04_WATCHDOG_CONF_FILE_EXTENSION,
+                            data: M04_WATCHDOG_CONF_CONTENT(),
+                        },
+                        {
+                            name: M04_OLD_TARGETS_FILE_NAME,
+                            extension: M04_OLD_TARGETS_FILE_EXTENSION,
+                            data: M04_OLD_TARGETS_CONTENT(),
+                        },
+                    ],
+                },
+            ],
             ports: sshPort(false),
         },
     ],
@@ -88,7 +137,19 @@ const buildHoneypotRouter = (): RouterSpec => ({
             ip: M04_PAPER_MOTH_IP,
             lanIp: M04_PAPER_MOTH_LAN_IP,
             name: M04_PAPER_MOTH_CODENAME,
-            users: [{ username: M04_PAPER_MOTH_USERNAME, password: M04_PAPER_MOTH_PASSWORD }],
+            users: [
+                {
+                    username: M04_PAPER_MOTH_USERNAME,
+                    password: M04_PAPER_MOTH_PASSWORD,
+                    files: [
+                        {
+                            name: M04_MOTH_README_FILE_NAME,
+                            extension: M04_MOTH_README_FILE_EXTENSION,
+                            data: M04_MOTH_README_CONTENT(),
+                        },
+                    ],
+                },
+            ],
             ports: sshPort(true),
         },
     ],

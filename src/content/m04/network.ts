@@ -46,3 +46,7 @@ export const M04_BEACON_INTERVAL_SECONDS = 60;
 export const M04_ROUTER_IPS: readonly string[] = [M04_R1_IP, M04_R2_IP, M04_R3_IP, M04_R4_IP];
 
 export const M04_DOMAIN_RECORDS: readonly DomainSpec[] = [];
+
+export const M04_R1_HYDRA_TARGET = `${M04_R1_IP}:${M04_HTTP_PORT}`;
+export const M04_HYDRA_DEFAULT_USER = "guest";
+export const M04_R1_HYDRA_USERS: readonly string[] = [M04_HYDRA_DEFAULT_USER, M04_R1_PANEL_USERNAME];

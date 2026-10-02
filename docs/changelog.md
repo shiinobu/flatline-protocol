@@ -27,6 +27,23 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-02
 
+- **[milestone] Phase 5 of the M4-M7 run: M04 is complete.** The 15-step chain of `10-spec-m4.md` §C,
+  with steps 5 and 6 deliberately parallel and joining at 7 so repairing the desktop without reading
+  the incident log cannot stall the mission. Added: the scripted second strike and the desktop breach
+  as a story beat, the relay hunt (R1 panel cracked with `hydra`, Static-Hop, `auth.log` whose single
+  `ESTABLISHED` session at 03:14:06 is the only hop matching the breach minute, Quiet-Mirror,
+  `watchdog.conf`, `old_targets.txt`), the Night-Shift control host and its Bulletproof VPN Ltd.
+  registrant, the Paper-Moth honeypot penalty outside the chain, the five-column report, the six m4
+  BACKTRACE keys with a report card and three personal-log beats, and the full Chinese text.
+- **[mechanic] A failed first strike re-arms instead of stalling:** the penalty is charged, the firewall
+  log is rewritten and a new strike is scheduled, so there is no dead end (`10` §C).
+- **[mechanic] `repel` gained a second, mission-registered target.** `registerRepelTarget` lets M04 use
+  the same command to end the hunt at step 14 against the control host, with no active strike involved.
+- **[bug] A dynamic `await import()` slipped into `controller/m04/breach.ts`** and was replaced with a
+  static import: an async boundary there is exactly the mod-context loss `docs/bugs.md` #19 records.
+- **[docs] `docs/m04-playtest.md` extended into the full 12-section walkthrough**, including the
+  timestamp puzzle, the honeypot cost and the Chinese pass.
+
 - **[milestone] Phase 4 of the M4-M7 run: M07 is complete.** The phase-1 shortcut (3389 open from the
   build) and the five bare probes are gone. Added: the 240-second real-time tracking on the phase-3
   kit (re-armed on every new session to the C2 until `fileExtracted`, halved by opening the `.enc`),

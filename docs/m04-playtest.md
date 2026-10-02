@@ -1,4 +1,4 @@
-# M04 "Burn Notice" — Playtest Script (phase 3: generic kit + walking skeleton)
+# M04 "Burn Notice" — Playtest Script (phase 5: full mission)
 
 Status: **use once, disposable** — script for the generic rival-hacker kit and
 the M04 walking skeleton built in phase 3. Phase 5 extends this file into the
@@ -178,87 +178,120 @@ reuses the same kit (`11` §G), which is a deliberate deviation from `10` §H's
 
 ---
 
-## 7. Report
+## 7. The hunt back through the relays
 
-Compose to `drop@drop.null` with the **Mission 4 Findings** template:
+Steps 5 and 6 are **deliberately parallel** and join at 7, so repairing the
+desktop without reading the log must not stall anything (`10` §C).
+
+1. **Read the incident log** (step 5): `cat ~/compositor/logs/incident.txt`.
+   Stamped `03:14:07`, it names the session source: Static-Hop's public address
+   `141.77.202.84`. This unlocks the relay-1 `whois` / `geoip` / `nmap` fixtures.
+2. **Profile relay 1** (step 7): `whois 141.77.202.84`, `geoip 141.77.202.84` or
+   `nmap 193.164.228.17` — any one counts. This unlocks the `hydra` fixture for
+   R1's panel.
+3. **Crack R1** (step 8): `hydra -l admin -P <HackDB wordlist> 193.164.228.17 80`
+   (the `-l` is optional; the fixture also answers the engine's default `guest`,
+   `docs/bugs.md` #25). Expect `[FP][M04] probe:hydra-run`. This opens 22 on
+   Static-Hop.
+4. **SSH to Static-Hop** (step 9) with `svc` / `relay-swap-07`. Key `relay1`.
+5. **Read `auth.log`** (step 10). Fourteen lines, `Sep 24`. Five outbound
+   sessions, and only **one** is `ESTABLISHED` at **03:14:06** — Quiet-Mirror
+   `45.155.204.31`, matching the breach minute in the incident log. The others
+   are decoys: a Paper-Moth probe at **03:14:41** that forwarded 0 bytes, and
+   three keepalives before 03:00. `notes.txt` in the same home has the careless
+   operator's `ops` / `mirror.night.9`. This opens 22 on Quiet-Mirror.
+6. **SSH to Quiet-Mirror** (step 11) with `ops` / `mirror.night.9`. Key `relay2`.
+7. **Read `watchdog.conf`** (step 12): `control_host = 203.0.113.159`,
+   `operator_tag = SENTRY`, `beacon_interval = 60`. Key `control`. This unlocks
+   the Night-Shift fixtures. `old_targets.txt` next to it is the seed for M5:
+   one line watching `d.reyes`, one hospital job marked only `closed`, and
+   `next: prepping`.
+8. **Link the origin** (step 13): `whois 203.0.113.159` or `geoip`. The
+   registrant is **Bulletproof VPN Ltd.** — the same contact M3's `whois` gives
+   for `203.0.113.160`. Key `origin`, plus a personal-log line.
+9. **End the hunt** (step 14): `repel 203.0.113.159`. Expect
+   `[FP][M04] probe:hunt-ended` and a closing mail from
+   `watchdog@architect-c2.dark`: *"You found the door. Someone will close it."*
+
+**The timestamp is the whole puzzle.** A player who picks Paper-Moth from
+`auth.log` instead of Quiet-Mirror gets section 8's penalty, not progress.
+
+---
+
+## 8. Paper-Moth (outside the chain, costs money)
+
+```
+ssh 194.26.192.118
+```
+
+user `admin`, password `admin`. Expect **one** alert mail and
+`[FP][M04] probe:honeypot-touched penalty=500` — `min(balance, 500)`. SSH in
+again and it charges nothing more. `README.txt` says the box is decommissioned.
+Touching it never advances the chain and never blocks it.
+
+---
+
+## 9. Report
+
+Compose to `drop@drop.null` with the **Mission 4 Findings** template, five
+columns:
 
 - `hunter` → `SENTRY`
+- `relays` → `Static-Hop, Quiet-Mirror`
+- `control` → `203.0.113.159`
+- `origin` → `Bulletproof VPN Ltd.`
 - `contained` → `yes`
 
+Case and spacing are forgiven. `Static-Hop, Paper-Moth` is rejected, and so is
+Paper-Moth's address as the control host.
+
 Expect the objective to complete, `[FP][Backtrace] m4 -> complete`, and
-`[FP][M04] reward skipped under focus: 800`. (`Paper-Moth` is rejected as the
-hunter.)
-
-Sending the report before the strike is repelled gets **one** *"not yet"* reply
-naming the missing step.
+`[FP][M04] reward skipped under focus: 800`. Sending early gets one *"not yet"*
+reply naming the step you are actually missing.
 
 ---
 
-## 8. Probes
+## 10. BACKTRACE
 
-| Probe | Log line |
+M04 now has a full report card. Six keys, one per action:
+
+| Key | Earned by |
 |---|---|
-| strike scheduled | `[FP][M04] probe:strike-scheduled delayMs=20000` |
-| strike started | `[FP][M04] probe:strike-started ip=...` |
-| intruder repelled | `[FP][M04] probe:intruder-repelled ip=...` |
-| deadline expired | `[FP][M04] probe:strike-expired penalty=<n>` |
-| banner | `[FP][M04] banner shown ...` / `banner resolved outcome=...` |
-| desktop lock | `[FP][LOCK] desktop lock engaged` / `released`, `breach css injected` |
-| reward | `[FP][M04] reward skipped under focus: 800` |
+| `probe` | repelling the right address |
+| `breach` | the desktop being taken |
+| `relay1` | the SSH session on Static-Hop |
+| `relay2` | the SSH session on Quiet-Mirror |
+| `control` | reading `watchdog.conf` |
+| `origin` | the `whois` on Night-Shift |
+
+Three personal-log beats: after `probe` ("they already had my name"), after
+`breach` ("they took the desktop, not the balance"), after `origin` ("the same
+hand, one more time").
 
 ---
 
-## 9. Known follow-ups (not fixed / not yet live-tested)
+## 11. Chinese pass
 
-1. **The whole kit has never run inside the pipeline** — that is this phase.
-   `docs/bugs.md` #48.
-2. **The banner widget is loaded by path** (`components/incident-banner.html`),
-   not imported as a string, so `{{t:KEY}}` cannot reach it. Its labels and
-   detail line are now passed in **already localized** through the `Variables`
-   view the widget reads, which is how zh works at all here. Worth confirming
-   the widget resolves at that path: the only live-proven precedent is the lab's
-   `debug/rival-banner.html`. `docs/bugs.md` #48.
-3. **The terminal watcher still uses DOM queries and a synthetic double-click**
-   to keep a terminal available while the desktop is locked, with the lab's
-   release failsafe intact (three attempts, then unlock).
-4. **Four routers is the most any mission builds.** Watch the Network Map and
-   the rebuild path after `mods.reset` (`docs/bugs.md` #35).
-5. **The chain is a 3-step subset** of the spec's 15, in the spec's order.
-6. **No BACKTRACE keys for m4 yet** — `BACKTRACE_KEYS.m4` stays empty until
-   phase 5.
-7. **The banner and recovery screen are the lab's visuals**, unpolished; the
-   `frontend-design` pass is phase 5 (prompt §6).
+Replay in Simplified Chinese. Everything has zh text, including the banner and
+the recovery messages. The log **files** stay in English syslog form on purpose
+(`13` §A.5 fixes that format); their surrounding prose does not.
 
 ---
 
-## Appendix — what M04 builds
+## 12. Known follow-ups (not fixed / not yet live-tested)
 
-```
-Four routers, one device each (10 §E). Every lanIp is 192.168.1.x (E-7);
-each tree numbers its own router .1 and its device .2, which is allowed
-because lanIp must only be unique inside one tree.
-
-R1  193.164.228.17   lan 192.168.1.1   TP-Link panel on 80, user admin
-  └─ Static-Hop    141.77.202.84  lan 192.168.1.2   ssh 22 CLOSED, svc + root
-R2  87.121.52.196    lan 192.168.1.1
-  └─ Quiet-Mirror  45.155.204.31  lan 192.168.1.2   ssh 22 CLOSED, ops
-R3  176.97.210.63    lan 192.168.1.1
-  └─ Paper-Moth    194.26.192.118 lan 192.168.1.2   ssh 22 OPEN, admin/admin
-                                                     HONEYPOT, outside the chain
-R4  91.222.174.46    lan 192.168.1.1
-  └─ Night-Shift   203.0.113.159  lan 192.168.1.2   443 https
-                                                     next to the M3 endpoint
-                                                     .160, and neither .160 nor
-                                                     .161 (which is the M7 C2)
-
-Strike 1 intruder: 62.197.136.44 — a throwaway address, deliberately NOT a
-host in the world (10 §F). Decoys in the log: 45.138.157.22, 109.205.213.78.
-
-Fixtures at build: nmap R1 (80 OPEN, 443 CLOSE), nmap Static-Hop (22 CLOSE),
-nmap Paper-Moth (22 OPEN OpenSSH 8.2), ssh fixture for Paper-Moth.
-Unlocked with controlHost: nmap / geoip / whois for Night-Shift, whose
-registrant is Bulletproof VPN Ltd. — the same contact M3's whois gives for
-203.0.113.160, which is what ties M3, M4, M6 and M7 together (10 §E).
-```
+1. **The kit has still never run in the pipeline in the game** (`docs/bugs.md`
+   #48). Sections 2-6 are that test.
+2. **`mods.reset` during an active strike** — section 5, the risk the owner named.
+3. **The banner widget path** `components/incident-banner.html` (#48).
+4. **Four routers is the most any mission builds**; watch the Network Map and the
+   rebuild after a reset (#35).
+5. **The reward is unverified** (#42) and only pays outside focus.
+6. **No `frontend-design` pass.** That plugin is not available in this build
+   environment, so the banner and recovery screen keep the lab's visuals and the
+   polish `10` §G asks for is still owed.
+7. **Strike 1 repeats on failure but strike 2 does not**: once the desktop is
+   taken, recovery is the only route forward, which is what `sysdiag` /
+   `sysrepair` exist for.
 
 ---

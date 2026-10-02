@@ -24,3 +24,7 @@ export const M04_STRIKE_DELAY_REAL_MS = 20_000;
 export const M04_STRIKE_DEADLINE_REAL_MS = 120_000;
 export const M04_STRIKE_PENALTY = 300;
 export const M04_HONEYPOT_PENALTY = 500;
+
+export const M04_STRIKE_BREACH_ID = "breach";
+export const M04_BREACH_DELAY_REAL_MS = 15_000;
+export const M04_INCIDENT_CLOCK = "03:14:07";

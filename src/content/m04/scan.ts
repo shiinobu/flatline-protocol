@@ -12,6 +12,16 @@ export const M04_STATIC_HOP_NMAP_CLOSED: Shell.NmapPort[] = [
     { port: M04_HTTPS_PORT, status: "CLOSE", service: "https" },
 ];
 
+export const M04_STATIC_HOP_NMAP_OPEN: Shell.NmapPort[] = [
+    { port: M04_SSH_PORT, status: "OPEN", service: "ssh", version: "OpenSSH 9.2" },
+    { port: M04_HTTPS_PORT, status: "CLOSE", service: "https" },
+];
+
+export const M04_QUIET_MIRROR_NMAP_OPEN: Shell.NmapPort[] = [
+    { port: M04_SSH_PORT, status: "OPEN", service: "ssh", version: "OpenSSH 9.2" },
+    { port: M04_HTTPS_PORT, status: "CLOSE", service: "https" },
+];
+
 export const M04_PAPER_MOTH_NMAP_RESULT: Shell.NmapPort[] = [
     { port: M04_SSH_PORT, status: "OPEN", service: "ssh", version: "OpenSSH 8.2" },
     { port: M04_HTTPS_PORT, status: "CLOSE", service: "https" },

@@ -535,7 +535,48 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 <div class="report-link"><div class="report-link-copy">4 ENTITIES // 3 CONNECTIONS<br>CASEBOARD EXPANDED WITH THE M3 DISCOVERY.</div><button class="text-btn" data-view="board">VIEW CASEBOARD →</button></div>
 <div class="locked"></div>
 </section>
-<section id="m4" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">BURN NOTICE</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
+<section id="m4" class="view" data-report="none">
+<div class="report">
+  <div class="report-head">
+    <div><div class="report-code">MISSION 04</div><h1 class="report-title">BURN NOTICE</h1><div class="report-sub">MISSION REPORT</div></div>
+    <div class="report-meta">CLOSED <span data-completed>—</span></div>
+  </div>
+  <div class="report-grid">
+    <div class="report-main">
+      <section class="rsec">
+        <div class="rsec-title">SUMMARY</div>
+        <p class="rsec-copy">A forwarding rule left open on the finance network was audited, and whoever read that audit came back down it. The operator tagged <span class="code" data-fact="m4.hunter">—</span> worked this machine directly: first a session on the firewall, then the desktop itself, taken rather than emptied. The session they came in on led back through two relays to a host that schedules the work, registered to the same name as the endpoint the ransom money already answered to.</p>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">KEY FINDINGS</div>
+        <div class="findings">
+          <div class="finding"><div class="finding-num">01</div><div class="finding-text">The firewall log named the one source that behaved like an operator rather than a scanner: <span class="code" data-fact="m4.probe">—</span>, accepted on 443, holding uid 0 and beaconing on a fixed interval.</div></div>
+          <div class="finding"><div class="finding-num">02</div><div class="finding-text">After being cut off they took the desktop instead of the balance: <span data-fact="m4.breach">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">03</div><div class="finding-text">The incident log traced the session to relay 1, <span class="code" data-fact="m4.relay1">—</span>, reached through its own router panel.</div></div>
+          <div class="finding"><div class="finding-num">04</div><div class="finding-text">Relay 1's outbound log showed five sessions, of which exactly one matched the minute of the breach: relay 2, <span class="code" data-fact="m4.relay2">—</span>. The others, including a decommissioned box, did not.</div></div>
+          <div class="finding"><div class="finding-num">05</div><div class="finding-text">Relay 2 held the operator profile naming the scheduling host <span class="code" data-fact="m4.control">—</span> and the tag <span class="code" data-fact="m4.hunter">—</span>.</div></div>
+          <div class="finding"><div class="finding-num">06</div><div class="finding-text">That host is registered to <span data-fact="m4.origin">—</span> — the same registrant as <span class="code" data-fact="m4.architectVpn">—</span>, the endpoint the payouts already pointed at.</div></div>
+          <div class="finding"><div class="finding-num">07</div><div class="finding-text">The same profile carried a short target list: one finance analyst still being watched, one hospital job marked closed, and one line reading only "next: prepping".</div></div>
+        </div>
+      </section>
+    </div>
+    <div class="report-side">
+      <section class="rsec">
+        <div class="rsec-title">EVIDENCE</div>
+        <div class="evidence-list">
+          <div class="evidence-item"><span class="evidence-id">EV-M4-01</span><span class="evidence-name" data-fact="m4.probe">—</span></div>
+          <div class="evidence-item"><span class="evidence-id">EV-M4-02</span><span class="evidence-name" data-fact="m4.control">—</span></div>
+        </div>
+      </section>
+      <section class="rsec">
+        <div class="rsec-title">PERSONAL LOG</div>
+        <div data-personal-log="m4"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="locked"></div>
+</section>
 <section id="m5" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">THE DOOR</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 <section id="m6" class="view"><div class="locked"><div class="locked-card"><div class="locked-glyph">○</div><div class="locked-title">OPEN REGISTER</div><div class="locked-status">ACCESS RESTRICTED</div><div class="locked-copy">This casefile entry is currently locked. Further investigative records are unavailable.</div></div></div></section>
 <section id="m7" class="view" data-report="none">
@@ -719,12 +760,13 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   const REFRESH_MS = 2000;
   const STATUSES = ['locked','progress','complete'];
   const MISSION_IDS = ['m1','m2','m3','m4','m5','m6','m7'];
-  const REPORT_MISSIONS = ['m1','m2','m3','m7'];
+  const REPORT_MISSIONS = ['m1','m2','m3','m4','m7'];
   const MISSION_TITLES = {m1:'FIRST TRACE',m2:'THE MAKER',m3:'MONEY TRAIL',m4:'BURN NOTICE',m5:'THE DOOR',m6:'OPEN REGISTER',m7:'THE ARCHITECT'};
   const KEY_LABELS = {
     m1:{broker:'Broker identified',buyer:'Buyer linked',vault:'Vault reached',caseId:'Case file opened'},
     m2:{developer:'Developer server',ransom:'Payout pattern',deployLog:'Deploy log',homeLead:'Home network lead',firewall:'Home firewall',workstation:'Home workstation',shellCompany:'Shell company'},
     m3:{portal:'Remote portal',parentEntity:'Wire-transfer ledger',gateway:'Tunnel gateway',vpnPeer:'Site-to-site config',accomplice:'Accomplice'},
+    m4:{probe:'Intruder address',breach:'Desktop breach',relay1:'Relay 1',relay2:'Relay 2',control:'Control host',origin:'Origin registrant'},
     m7:{nodes:'Node inventory',credential:'Edge credential',firewall:'Edge opened',c2:'Index host session',manifest:'Master ledger index',ledger:'Ledger extracted'}
   };
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];

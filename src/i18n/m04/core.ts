@@ -29,8 +29,30 @@ export const M04_I18N_KEY = {
     TOAST_STRIKE: "M04.TOAST.STRIKE",
 
     DEVICE_FIREWALL_LOG: "M04.DEVICE.FIREWALL_LOG",
+    DEVICE_AUTH_LOG: "M04.DEVICE.AUTH_LOG",
+    DEVICE_WATCHDOG_CONF: "M04.DEVICE.WATCHDOG_CONF",
+    DEVICE_OLD_TARGETS: "M04.DEVICE.OLD_TARGETS",
+    DEVICE_OPERATOR_NOTES: "M04.DEVICE.OPERATOR_NOTES",
+    DEVICE_MOTH_README: "M04.DEVICE.MOTH_README",
+
+    MAIL_STRIKE2_SUBJECT: "M04.MAIL.STRIKE2.SUBJECT",
+    MAIL_STRIKE2_CONTENT: "M04.MAIL.STRIKE2.CONTENT",
+    MAIL_HONEYPOT_SUBJECT: "M04.MAIL.HONEYPOT.SUBJECT",
+    MAIL_HONEYPOT_CONTENT: "M04.MAIL.HONEYPOT.CONTENT",
+    MAIL_CLOSING_SUBJECT: "M04.MAIL.CLOSING.SUBJECT",
+    MAIL_CLOSING_CONTENT: "M04.MAIL.CLOSING.CONTENT",
+    MAIL_PREMATURE_HINT_INCIDENT: "M04.MAIL.PREMATURE.HINT_INCIDENT",
+    MAIL_PREMATURE_HINT_RELAY: "M04.MAIL.PREMATURE.HINT_RELAY",
+    MAIL_PREMATURE_HINT_HOP: "M04.MAIL.PREMATURE.HINT_HOP",
+    MAIL_PREMATURE_HINT_CONTROL: "M04.MAIL.PREMATURE.HINT_CONTROL",
+    MAIL_PREMATURE_HINT_HUNT: "M04.MAIL.PREMATURE.HINT_HUNT",
+
+    LOG_PROBE_1: "M04.LOG.PROBE.1",
+    LOG_BREACH_1: "M04.LOG.BREACH.1",
+    LOG_ORIGIN_1: "M04.LOG.ORIGIN.1",
 
     OSINT_WHOIS_CONTROL_CONTACT: "M04.OSINT.WHOIS.CONTROL_CONTACT",
+    OSINT_WHOIS_RELAY_CONTACT: "M04.OSINT.WHOIS.RELAY_CONTACT",
 } as const;
 
 Localization.registerAll({
@@ -65,8 +87,22 @@ Localization.registerAll({
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL]: "Something is still inside. Your own logs name it.",
 
         [M04_I18N_KEY.MAIL_REPORT_SUBJECT]: "Burn Notice — who was looking",
-        [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: ["Hunter: {{hunter}}", "Contained: {{contained}}"].join("\n"),
-        [M04_I18N_KEY.MAIL_REPORT_BODY]: ["Hunter: {{hunter}}", "Contained: {{contained}}"].join("\n"),
+        [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
+            "Hunter: {{hunter}}",
+            "Relays: {{relays}}",
+            "Control host: {{control}}",
+            "Origin: {{origin}}",
+            "",
+            "Contained: {{contained}}",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_REPORT_BODY]: [
+            "Hunter: {{hunter}}",
+            "Relays: {{relays}}",
+            "Control host: {{control}}",
+            "Origin: {{origin}}",
+            "",
+            "Contained: {{contained}}",
+        ].join("\n"),
 
         [M04_I18N_KEY.BANNER_LABEL]: "INCOMING CONNECTION",
         [M04_I18N_KEY.BANNER_CRITICAL]: "TRACE CRITICAL",
@@ -94,6 +130,74 @@ Localization.registerAll({
             "Sep 24 03:04:52 ghostwire kernel: [fw] ACCEPT out 443 mirror.update.pool",
         ].join("\n"),
 
+
+        [M04_I18N_KEY.DEVICE_AUTH_LOG]: [
+            "Sep 24 02:41:55 static-hop sshd[2204]: Accepted publickey for svc from 10.8.0.14",
+            "Sep 24 02:42:03 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 (keepalive)",
+            "Sep 24 02:42:04 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 02:47:18 static-hop relayd[2310]: outbound session -> {{paperMoth}}:22 (probe)",
+            "Sep 24 02:47:19 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 02:53:40 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 (keepalive)",
+            "Sep 24 02:53:41 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 03:11:02 static-hop cron[1180]: rotating /var/log/relayd",
+            "Sep 24 03:14:06 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 ESTABLISHED",
+            "Sep 24 03:14:06 static-hop relayd[2310]: forwarding operator session, tag {{tag}}",
+            "Sep 24 03:14:41 static-hop relayd[2310]: outbound session -> {{paperMoth}}:22 (probe)",
+            "Sep 24 03:14:42 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 03:19:58 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 closed, 184320 bytes forwarded",
+            "Sep 24 03:20:11 static-hop sshd[2204]: pam_unix(sshd:session): session closed for user svc",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_WATCHDOG_CONF]: [
+            "# watchdog — operator relay profile",
+            "",
+            "control_host    = {{controlHost}}",
+            "operator_tag    = {{tag}}",
+            "beacon_interval = {{interval}}",
+            "",
+            "# the control host answers for scheduling only. do not stage from it.",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_OLD_TARGETS]: [
+            "skynet/finance: {{accomplice}}: monitor",
+            "pacificcare/it: closed",
+            "next: prepping",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_OPERATOR_NOTES]: [
+            "mirror box login is {{user}} / {{password}}",
+            "stop writing these down. stop writing these down. stop",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_MOTH_README]:
+            "decommissioned. nothing on this box is current.",
+
+        [M04_I18N_KEY.MAIL_STRIKE2_SUBJECT]: "nice desktop",
+        [M04_I18N_KEY.MAIL_STRIKE2_CONTENT]: [
+            "compositor unloaded, display config rewritten.",
+            "i could have taken the balance instead. i wanted you to sit and look at it.",
+            "the logs are still there if you want your desktop back.",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "SYSTEM ALERT — relay probe answered",
+        [M04_I18N_KEY.MAIL_HONEYPOT_CONTENT]: [
+            "A decommissioned relay answered a login and logged it.",
+            "Whoever is walking the hops is not reading the timestamps.",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_CLOSING_SUBJECT]: "you found the door",
+        [M04_I18N_KEY.MAIL_CLOSING_CONTENT]: [
+            "You found the door. Someone will close it.",
+            "",
+            "The scheduling host is cold and the operator is off your wire. That is all you did.",
+            "It is not nothing.",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_INCIDENT]: "What they left behind is in your own house.",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_RELAY]: "The source address does not stop where it says it does.",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_HOP]: "Check the clock. Only one of those hops lines up.",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_CONTROL]: "One more hop. Something is scheduling all of this.",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_HUNT]: "You know where it answers from. Put it out.",
+
+        [M04_I18N_KEY.LOG_PROBE_1]: "They came to my address first. That means they already had my name.",
+        [M04_I18N_KEY.LOG_BREACH_1]:
+            "They took the desktop, not the balance. They wanted me to sit there and look at it.",
+        [M04_I18N_KEY.LOG_ORIGIN_1]: "The same registrant as the endpoint. The same hand, one more time.",
+
+        [M04_I18N_KEY.OSINT_WHOIS_RELAY_CONTACT]: "Harbour Transit Networks",
         [M04_I18N_KEY.OSINT_WHOIS_CONTROL_CONTACT]: "Bulletproof VPN Ltd.",
     },
     zh: {
@@ -125,8 +229,22 @@ Localization.registerAll({
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL]: "有东西还在里面。你自己的日志会点出它。",
 
         [M04_I18N_KEY.MAIL_REPORT_SUBJECT]: "烧毁通知 — 是谁在找",
-        [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: ["追踪者：{{hunter}}", "已控制：{{contained}}"].join("\n"),
-        [M04_I18N_KEY.MAIL_REPORT_BODY]: ["追踪者：{{hunter}}", "已控制：{{contained}}"].join("\n"),
+        [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
+            "追踪者：{{hunter}}",
+            "中继：{{relays}}",
+            "控制主机：{{control}}",
+            "来源：{{origin}}",
+            "",
+            "已控制：{{contained}}",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_REPORT_BODY]: [
+            "追踪者：{{hunter}}",
+            "中继：{{relays}}",
+            "控制主机：{{control}}",
+            "来源：{{origin}}",
+            "",
+            "已控制：{{contained}}",
+        ].join("\n"),
 
         [M04_I18N_KEY.BANNER_LABEL]: "有连接进入",
         [M04_I18N_KEY.BANNER_CRITICAL]: "追踪即将完成",
@@ -154,6 +272,72 @@ Localization.registerAll({
             "Sep 24 03:04:52 ghostwire kernel: [fw] ACCEPT out 443 mirror.update.pool",
         ].join("\n"),
 
+
+        [M04_I18N_KEY.DEVICE_AUTH_LOG]: [
+            "Sep 24 02:41:55 static-hop sshd[2204]: Accepted publickey for svc from 10.8.0.14",
+            "Sep 24 02:42:03 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 (keepalive)",
+            "Sep 24 02:42:04 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 02:47:18 static-hop relayd[2310]: outbound session -> {{paperMoth}}:22 (probe)",
+            "Sep 24 02:47:19 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 02:53:40 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 (keepalive)",
+            "Sep 24 02:53:41 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 03:11:02 static-hop cron[1180]: rotating /var/log/relayd",
+            "Sep 24 03:14:06 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 ESTABLISHED",
+            "Sep 24 03:14:06 static-hop relayd[2310]: forwarding operator session, tag {{tag}}",
+            "Sep 24 03:14:41 static-hop relayd[2310]: outbound session -> {{paperMoth}}:22 (probe)",
+            "Sep 24 03:14:42 static-hop relayd[2310]: outbound session closed, 0 bytes forwarded",
+            "Sep 24 03:19:58 static-hop relayd[2310]: outbound session -> {{quietMirror}}:22 closed, 184320 bytes forwarded",
+            "Sep 24 03:20:11 static-hop sshd[2204]: pam_unix(sshd:session): session closed for user svc",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_WATCHDOG_CONF]: [
+            "# watchdog — 操作员中继配置",
+            "",
+            "control_host    = {{controlHost}}",
+            "operator_tag    = {{tag}}",
+            "beacon_interval = {{interval}}",
+            "",
+            "# 这台控制主机只负责排程。不要从它上面发起行动。",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_OLD_TARGETS]: [
+            "skynet/finance: {{accomplice}}: 继续盯着",
+            "pacificcare/it: 已结束",
+            "next: 正在准备",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_OPERATOR_NOTES]: [
+            "镜像机登录是 {{user}} / {{password}}",
+            "别再把这些写下来了。别再写下来了。别",
+        ].join("\n"),
+        [M04_I18N_KEY.DEVICE_MOTH_README]: "已注销。这台机器上的东西都不是现行的。",
+
+        [M04_I18N_KEY.MAIL_STRIKE2_SUBJECT]: "桌面不错",
+        [M04_I18N_KEY.MAIL_STRIKE2_CONTENT]: [
+            "合成器已卸载，显示配置已被改写。",
+            "我本来可以直接把余额拿走。我更想让你坐在那儿看着它。",
+            "想把桌面弄回来的话，日志还在。",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "系统告警 — 中继探测被应答",
+        [M04_I18N_KEY.MAIL_HONEYPOT_CONTENT]: [
+            "一台已注销的中继应答了一次登录，并且记了下来。",
+            "在跳板之间走的那个人没有在读时间戳。",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_CLOSING_SUBJECT]: "你找到了那扇门",
+        [M04_I18N_KEY.MAIL_CLOSING_CONTENT]: [
+            "你找到了那扇门。会有人把它关上。",
+            "",
+            "排程主机已经冷了，操作员也离开了你的线路。你做到的就是这些。",
+            "这并不算什么都没做。",
+        ].join("\n"),
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_INCIDENT]: "他们留下的东西就在你自己家里。",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_RELAY]: "那个来源地址并不止步于它自己说的地方。",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_HOP]: "看钟。那些跳板里只有一个对得上。",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_CONTROL]: "还差一跳。有东西在给这一切排程。",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_HUNT]: "你知道它从哪里答话。把它掐掉。",
+
+        [M04_I18N_KEY.LOG_PROBE_1]: "他们先找上了我的地址。那说明他们早就有了我的名字。",
+        [M04_I18N_KEY.LOG_BREACH_1]: "他们拿走的是桌面，不是余额。他们要的是我坐在那儿看着。",
+        [M04_I18N_KEY.LOG_ORIGIN_1]: "和那个端点同一个注册人。又是同一只手。",
+
+        [M04_I18N_KEY.OSINT_WHOIS_RELAY_CONTACT]: "Harbour Transit Networks",
         [M04_I18N_KEY.OSINT_WHOIS_CONTROL_CONTACT]: "防弹 VPN 有限公司",
     },
 });

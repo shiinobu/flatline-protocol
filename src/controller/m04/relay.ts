@@ -1,0 +1,130 @@
+import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { M04_GATES } from "../../content/m04/gates.js";
+import {
+    M04_NIGHT_SHIFT_IP,
+    M04_QUIET_MIRROR_IP,
+    M04_R1_IP,
+    M04_R1_PANEL_USERNAME,
+    M04_STATIC_HOP_IP,
+} from "../../content/m04/network.js";
+import { M04_LOG_ORIGIN } from "../../content/m04/quest-logs.js";
+import { M04_SCOPE } from "../../content/m04/quest.js";
+import {
+    M04_AUTH_LOG_FILE_EXTENSION,
+    M04_AUTH_LOG_FILE_NAME,
+    M04_WATCHDOG_CONF_FILE_EXTENSION,
+    M04_WATCHDOG_CONF_FILE_NAME,
+} from "../../content/m04/server-files.js";
+import { unlock } from "../../core/index.js";
+import { trace } from "../../helpers/logger.js";
+import { advanceStep } from "../../middleware/gate.js";
+import type { M04Quest } from "./types.js";
+import { M04_WORLD } from "./world.js";
+
+interface ReadFile {
+    readonly name: string;
+    readonly extension?: string;
+}
+
+const isAuthLog = (file: ReadFile): boolean =>
+    file.name === M04_AUTH_LOG_FILE_NAME && file.extension === M04_AUTH_LOG_FILE_EXTENSION;
+
+const isWatchdogConf = (file: ReadFile): boolean =>
+    file.name === M04_WATCHDOG_CONF_FILE_NAME && file.extension === M04_WATCHDOG_CONF_FILE_EXTENSION;
+
+const markRelayLog = (quest: M04Quest): void => {
+    advanceStep(quest, M04_GATES, "relayLogRead", () => unlock(M04_WORLD, "quietMirrorSsh"));
+};
+
+const markControl = (quest: M04Quest): void => {
+    advanceStep(quest, M04_GATES, "controlFound", () => {
+        traceBacktraceFinding("m4", "control");
+        unlock(M04_WORLD, "controlHost");
+    });
+};
+
+const bindProfile = (quest: M04Quest): void => {
+    const profiled = (): void => {
+        advanceStep(quest, M04_GATES, "relayProfiled", () => unlock(M04_WORLD, "routerCrack"));
+    };
+
+    quest.Events.on("Terminal.Whois", (data) => {
+        if (data.domain !== M04_STATIC_HOP_IP) return;
+        profiled();
+    });
+
+    quest.Events.on("Terminal.Geoip", (data) => {
+        if (data !== M04_STATIC_HOP_IP) return;
+        profiled();
+    });
+
+    quest.Events.on("Terminal.NmapScan", (data) => {
+        if (data.ip !== M04_STATIC_HOP_IP && data.ip !== M04_R1_IP) return;
+        profiled();
+    });
+};
+
+const bindHydra = (quest: M04Quest): void => {
+    quest.Events.on("Terminal.Hydra", (data) => {
+        if (data.ip !== M04_R1_IP) return;
+        if (data.credentials.username !== M04_R1_PANEL_USERNAME) return;
+
+        trace(M04_SCOPE, `probe:hydra-run ip=${data.ip} port=${data.port}`);
+        advanceStep(quest, M04_GATES, "hydraRun", () => unlock(M04_WORLD, "staticHopSsh"));
+    });
+};
+
+const bindSessions = (quest: M04Quest): void => {
+    quest.Events.on("RemoteConnection.Established", (data) => {
+        if (data.t !== "SSH") return;
+
+        if (data.targetIp === M04_STATIC_HOP_IP) {
+            advanceStep(quest, M04_GATES, "relay1Accessed", () => traceBacktraceFinding("m4", "relay1"));
+            return;
+        }
+
+        if (data.targetIp === M04_QUIET_MIRROR_IP) {
+            advanceStep(quest, M04_GATES, "relay2Accessed", () => traceBacktraceFinding("m4", "relay2"));
+        }
+    });
+};
+
+const bindFiles = (quest: M04Quest): void => {
+    quest.Events.on("Terminal.Cat", (data) => {
+        if (isAuthLog(data)) markRelayLog(quest);
+        if (isWatchdogConf(data)) markControl(quest);
+    });
+
+    quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
+        if (isAuthLog(data)) markRelayLog(quest);
+        if (isWatchdogConf(data)) markControl(quest);
+    });
+};
+
+const bindOrigin = (quest: M04Quest): void => {
+    const linked = (): void => {
+        advanceStep(quest, M04_GATES, "originLinked", () => {
+            traceBacktraceFinding("m4", "origin");
+            appendBacktraceLogs("m4", M04_LOG_ORIGIN());
+        });
+    };
+
+    quest.Events.on("Terminal.Whois", (data) => {
+        if (data.domain !== M04_NIGHT_SHIFT_IP) return;
+        linked();
+    });
+
+    quest.Events.on("Terminal.Geoip", (data) => {
+        if (data !== M04_NIGHT_SHIFT_IP) return;
+        linked();
+    });
+};
+
+export const bindM04Relay = (quest: M04Quest): void => {
+    bindProfile(quest);
+    bindHydra(quest);
+    bindSessions(quest);
+    bindFiles(quest);
+    bindOrigin(quest);
+};

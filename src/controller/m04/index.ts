@@ -26,7 +26,10 @@ import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
 import { sendReplacingMail } from "../../components/mail.js";
 import { isReportSubmission } from "../../components/report.js";
 import { advanceStep, firstUnmetStep, reachedUnlocks } from "../../middleware/gate.js";
+import { bindM04Breach } from "./breach.js";
+import { bindM04Control } from "./control.js";
 import { bindM04Intrusion, scheduleM04Strike } from "./intrusion.js";
+import { bindM04Relay } from "./relay.js";
 import { M04_REPORT_SPEC } from "./report.js";
 import type { M04Quest } from "./types.js";
 import { M04_WORLD } from "./world.js";
@@ -78,6 +81,9 @@ export const onObjectivesStartM04 = (quest: M04Quest): void => {
 
     bindWarning(quest);
     bindM04Intrusion(quest);
+    bindM04Breach(quest);
+    bindM04Relay(quest);
+    bindM04Control(quest);
     bindReport(quest);
 
     if (networkBuilt) quest.SetData("networkBuilt", true);

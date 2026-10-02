@@ -1,9 +1,11 @@
 import { Files, Localization, Scheduler } from "@hotbunny/hackhub-content-sdk";
 
 import { INTRUSION_REPELLED_EVENT, type IntrusionRepelledPayload } from "../../commands/repel.js";
+import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { beginStrike, registerIntrusionHandlers } from "../../components/intrusion.js";
 import { penalty } from "../../components/reward.js";
 import { M04_GATES } from "../../content/m04/gates.js";
+import { M04_LOG_PROBE } from "../../content/m04/quest-logs.js";
 import { M04_STRIKE1_MAIL } from "../../content/m04/mail.js";
 import { M04_INTRUDER_IP } from "../../content/m04/network.js";
 import {
@@ -23,6 +25,7 @@ import {
 import { trace } from "../../helpers/logger.js";
 import { M04_I18N_KEY } from "../../i18n/m04/core.js";
 import { advanceStep } from "../../middleware/gate.js";
+import { scheduleM04Breach } from "./breach.js";
 import type { M04Quest } from "./types.js";
 
 const STRIKE_JOB = "flatline.m04.strike";
@@ -98,9 +101,15 @@ export const bindM04Intrusion = (quest: M04Quest): void => {
     pendingQuest = quest;
 
     registerIntrusionHandlers(M04_SAVE_PREFIX, {
-        onExpired: () => {
+        onExpired: async () => {
+            if (quest.Data.intruderRepelled) return;
+
             const charged = penalty(M04_SCOPE, M04_STRIKE_PENALTY, "Unauthorized transfer — hunter");
             trace(M04_SCOPE, `probe:strike-expired penalty=${charged}`);
+            await seedFirewallLog();
+            quest.SetData("strikeScheduled", false);
+            scheduleM04Strike(quest);
+            trace(M04_SCOPE, "probe:strike-rearmed");
         },
     });
 
@@ -109,7 +118,11 @@ export const bindM04Intrusion = (quest: M04Quest): void => {
         if (data.strikeId !== M04_STRIKE_PROBE_ID || data.ip !== M04_INTRUDER_IP) return;
 
         trace(M04_SCOPE, `probe:intruder-repelled ip=${data.ip}`);
-        advanceStep(quest, M04_GATES, "intruderRepelled");
+        advanceStep(quest, M04_GATES, "intruderRepelled", () => {
+            traceBacktraceFinding("m4", "probe");
+            appendBacktraceLogs("m4", M04_LOG_PROBE());
+            scheduleM04Breach(quest);
+        });
     });
 
     if (quest.Data.warningRead && !quest.Data.probeStarted) scheduleM04Strike(quest);
