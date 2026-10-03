@@ -263,7 +263,7 @@ first line names Static-Hop (`141.77.202.84`) and the NAT gateway in front of it
 The intruder (`62.197.136.44`) is **not a network node**: it only ever appears
 in the player's own firewall log and in the strike state, so there is nothing to
 connect to and nothing to scan. The two strikes, the desktop breach and the
-`repel` / `sysdiag` / `sysrepair` loop are the shared kit in `src/components/`,
+`flatline` / `sysdiag` / `sysrepair` loop are the shared kit in `src/components/`,
 not topology.
 
 ## M5 — "The Door" (written 2026-10-02; full mission, not yet live-tested)

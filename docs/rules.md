@@ -401,6 +401,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    sequential awaited Scheduler job (bugs #35).
 7. **FINAL LOCK** (§9-10): `trace()` removed from the mission's source, zero
    comments, `tsc` clean. M1 reached it on 2026-10-01; M2 and M3 migrated to
-   this pipeline the same day and both passed their live test; M4 is next, one
+   this pipeline the same day and both passed their live test; M4 reached it on
+   2026-10-03 after a live run of the whole hunt; M5 is next, one
    mission at a time, each with a live test before the next. Only M1 is `Abandonable`, so
    M2-M4 have no `OnAbandon`; restarting them is `mods.reset`.

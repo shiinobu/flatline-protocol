@@ -218,7 +218,7 @@ approved by Nordhaven on 2026-08-17, the watch line `d.reyes: monitor`, and the
 closing *every account, settled.* Any `{{placeholder}}` or raw `M07.` key is a
 finding.
 
-**`repel 203.0.113.161` must do nothing useful.** The trace is deliberately not
+**`flatline 203.0.113.161` (called `repel` before 2026-10-03) must do nothing useful.** The trace is deliberately not
 repellable — expect *"No active intrusion detected."* If it cancels the
 countdown, that is a finding.
 

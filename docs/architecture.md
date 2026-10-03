@@ -30,7 +30,7 @@ The generic additions M2 and M3 needed (splitter and printer nodes, device and
 domain vulnerabilities, databases, restore data, boolean-only gates, the global
 site-string cache) landed on 2026-10-01 as "Phase 0"; the ones M4-M7 needed
 (`components/reward.ts`, `components/intrusion.ts`, the desktop-breach and
-incident-banner kit, `commands/repel.ts`, `sysdiag`, `sysrepair`) landed with
+incident-banner kit, `commands/flatline.ts` (named `repel.ts` until 2026-10-03), `sysdiag`, `sysrepair`) landed with
 their own phases, and the plans are in `docs/scratch.md`.
 
 ## Mission pipeline (all seven missions)
@@ -357,7 +357,7 @@ guessed.
 | M3 | `vpnPeer` | `cat site_to_site_backup.txt` at the gateway session (`Terminal.Cat`; `open` of it at the same prompt, or of a downloaded local copy, also counts, `OPEN_FILE_READ_EVENT`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
 | M3 | `accomplice` | `RemoteConnection.Established` with `t === "SSH"` to Faded-Ledger (optional bonus thread; `Terminal.Explorer` there also counts but only Meterpreter/`evil-rm` raise it, `bugs.md` #33) |
 
-| M4 | `probe` | the first strike repelled with `repel <ip>` (`INTRUSION_REPELLED_EVENT` from `components/intrusion.ts`, the `intruderRepelled` flag) |
+| M4 | `probe` | reading `~/logs/firewall.log` after the rebuild (a BACKTRACE key, not a gate; README #44, #45) |
 | M4 | `breach` | the scripted second strike reaching the desktop (`breachBegan`, raised by the mission's own Scheduler job, not a player action) |
 | M4 | `relay1` | `RemoteConnection.Established` with `t === "SSH"` on Static-Hop, after its router panel is cracked with `hydra` |
 | M4 | `relay2` | `RemoteConnection.Established` with `t === "SSH"` on Quiet-Mirror — reachable only once `auth.log` on relay 1 is read |

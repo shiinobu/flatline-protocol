@@ -35,7 +35,7 @@ Sumber: `src/debug/rival-hacker-lab.ts`, `rival-breach.ts`, `rival-banner.ts` da
 | # | Langkah | Requires | Pemicu | Tier | Efek |
 |---|---|---|---|---|---|
 | 1 | `warningRead` | - | `Mail.Read` surel pertama Custodian yang tidak diminta | 1 | serangan 1 dijadwalkan |
-| 2 | `probeStarted` | 1 | event mod dari job `Scheduler` | 1 | banner, `~/logs/firewall.log` dibuat |
+| 2 | `probeStarted` | 1 | event mod dari job `Scheduler` | 1 | banner (`~/logs/firewall.log` baru dibuat sesudah restore, README #45) |
 | 3 | `intruderRepelled` | 2 | `repel <ip>` benar, event mod | 1 (lab live) | kunci `probe` |
 | 4 | `breachBegan` | 3 | serangan 2 berskrip, event mod | 1 (lab live) | desktop dikunci, `~/compositor` dibuat |
 | 5 | `incidentLogRead` | 4 | `Terminal.Cat` `incident.txt` | 1 | kunci `breach`, buka fixture relay-1 |
@@ -189,3 +189,56 @@ menyebut `svc`.
 **Laporan.** Kolom `hunter`, `relays`, `control`, `origin`, dan `contained` berupa token kosong di
 jendela tulis. Pencocokan longgar (kata kunci, urutan bebas untuk `relays`), menolak Paper-Moth, dan
 `control` harus alamat yang tepat (README #39).
+
+## Catatan implementasi (2026-10-03, desain ulang breach)
+
+Keputusannya ada di README #42; yang di bawah ini hanya selisih terhadap spesifikasi.
+
+**Bagian B dan H.** Folder `~/compositor` dan `incident.txt` diganti tata letak kernel (`/lib/modules/6.8.0-flatline/extra/flcomp.ko`,
+`/etc/flcomp/display.conf`, `/boot/recovery`, `/boot/initramfs-flatline.img`, `/var/log/flcomp-incident.log`). Pemantau terminal
+lewat DOM dan klik sintetis dibuang; layar pemulihan adalah widget layar penuh. `sysdiag` dan `sysrepair` menjadi cadangan.
+
+**Bagian C.** Langkah 5 (`incidentLogRead`) dipicu event widget `flatline.recovery.logRead` atau `Terminal.Cat`/`open` pada
+`flcomp-incident.log`. Langkah 6 (`desktopRestored`) dipicu event `flatline.recovery.finished` dari widget setelah `sysrepair --rebuild`
+lolos verifikasi (modul, `display.conf` ABI 7, initramfs dibangun ulang). Serangan 2 didahului banner "severed" yang bertahan 15 detik.
+
+**Bagian F.** `flcomp-incident.log` memuat srcversion modul yang diharapkan (bukan nama build), sumber sesi, gateway NAT, dan urutan
+pencopotan modul. Stempel waktu tetap 03:14:07 sampai 03:14:12.
+**Kegagalan serangan 1 (bagian C).** Habis waktu tidak lagi memotong uang atau mengulang serangan: banner "TRACE COMPLETE" tampil 3 detik,
+lalu breach dimulai. `breachBegan` hanya butuh `probeStarted`; `intruderRepelled` opsional (README #43). Hukuman honeypot tidak berubah.
+
+**Berkas breach.** Dibuat saat breach dimulai, dihapus saat rebuild selesai kecuali `flcomp-incident.log` (README #43).
+
+## Catatan implementasi (2026-10-03, desain ulang minor serangan 1)
+
+Keputusannya ada di README #44; yang di bawah ini hanya selisih terhadap spesifikasi.
+
+**Bagian B.** `repel <ip>` kini punya satu sasaran: host kontrol (langkah 14). Penyusup serangan 1 tidak bisa di-`repel`; selama hitung mundur `repel` dijawab penolakan khusus M4 (`noticeKey`).
+
+**Bagian C.** Langkah 3 (`intruderRepelled`) dihapus dari rantai dan dari data misi. Serangan 1: tenggat 60 detik dengan banner `broadcast`, tanpa penalti dan tanpa pengulangan. Saat tenggat habis breach langsung dimulai tanpa jeda normal (opsi `handoff`: banner tetap di 00:00 dan glitch tetap level 3 sampai layar dipotong; breach dijadwalkan 100 ms sesudah tenggat). `breachBegan` hanya butuh `probeStarted`.
+
+**Bagian F.** Surel serangan 1 naratif dan mengancam, menyebut 03:14:07 dan tetap tidak menyebut IP. Surel serangan 2 ("nice desktop") dihapus. Surel baru dari Custodian ("you're still there") dikirim 4 detik setelah `desktopRestored`, sesudah toast restore. Kunci BACKTRACE `probe` didapat dari membaca `~/logs/firewall.log` (bukan gerbang); temuan 02 di `backtrace.html` kini berbunyi "They could not be cut off, ...". Petunjuk "belum waktunya" untuk `breachBegan`: "They are already inside. You cannot stop this one; wait it out." Objective tidak lagi menyebut menahan penyerang.
+
+**Bagian G.** Banner varian `broadcast` (pesan `wall` dari `sentry@darknull.io`, jam jarak jauh menuju 03:14:07, stempel `INCIDENT_START_STAMP`), hanya untuk M4. Banner default tetap dipakai M7 dan lab.
+
+**Toast.** Awal serangan hanya satu toast peringatan. Toast restore tetap; log pribadi BACKTRACE untuk breach dicatat tanpa toast.
+
+## Catatan implementasi (2026-10-03, log klue dan lompat breach)
+
+Keputusannya ada di README #45; yang di bawah ini hanya selisih terhadap spesifikasi.
+
+**Bagian C.** Langkah 2 (`probeStarted`) tidak lagi membuat `~/logs/firewall.log`; berkas itu dibuat 1,5 detik sesudah `desktopRestored`. Langkah 5, 10 dan 12 juga lolos lewat Log Viewer atau Code++ (`Files.Open`) selain `cat` dan `open`. Langkah 5 kini memanggil `unlock(M04_WORLD, "relayLead")`.
+
+**Bagian F.** `firewall.log`, `flcomp-incident.log` dan `auth.log` adalah larik entri Log Viewer, bukan teks; isi baris dan stempel waktu tidak berubah. Surel serangan 1 menyebut log firewall sebagai sesuatu yang ditemukan sesudahnya.
+
+**Dev.** Lompat breach untuk uji dev (`M04_DEV_SKIP_BREACH`) dihapus saat FINAL LOCK M4 (README #47).
+
+## Catatan implementasi (2026-10-03, perintah `flatline`)
+
+Keputusannya ada di README #46; yang di bawah ini hanya selisih terhadap spesifikasi.
+
+**Bagian B.** Perintah `repel <ip>` bernama `flatline <ip>` di seluruh spesifikasi ini. Langkah 14 memutar animasi denyut beacon sekitar 3,8 detik sebelum `huntEnded`. Pemain mengetahui perintahnya dari baris komentar terakhir `watchdog.conf` (bagian F), bukan dari surel.
+
+**Bagian C.** Langkah 14 menolak `flatline` ke host kontrol sebelum `originLinked` (langkah 13), tanpa animasi.
+
+**Bagian F.** `watchdog.conf` mendapat satu baris: "# teardown: flatline <control_host>. the beacon stops and the schedule goes with it."

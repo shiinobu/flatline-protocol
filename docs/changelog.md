@@ -25,6 +25,41 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-03
+
+- **[milestone] M4 "Burn Notice" reached FINAL LOCK.** Declared by the owner after the live run of the
+  whole hunt. Removed with it: the 20 `trace()` calls in `controller/m04`, the dev skip of the breach
+  (`M04_DEV_SKIP_BREACH` and its job, plus the unused `seedIncidentLog`), the finished recovery spike
+  in `src/debug/`, and the dev focus (every `DEV_FOCUS_QUEST` entry is `false` again). The generic
+  dev-focus plumbing in `spec.ts` and `index.ts` stays, as in M1-M3, and the shared kit keeps its
+  traces for M07. `tsc` clean, zero comments. See `docs/world-building/README.md` #47 and
+  `docs/rules.md` §11.7.
+- **[mechanic] The cut-off command is now `flatline` and plays an animation.** Renamed from `repel`
+  (`commands/flatline.ts`, internal ids kept). A successful cut prints a locking line, five `beacon`
+  pulse lines that shrink and go red then flat, and the "severed" line, about 3.8 s, with `println` and
+  `tools.sleep` only so the terminal history survives (`components/flatline-sequence.ts`; instant under
+  `reduceFlashing`). The event fires after the animation. `watchdog.conf` now ends with a teardown line
+  naming the command, and the command refuses to cut Night-Shift before `originLinked`. Never run in
+  the game. See `docs/world-building/README.md` #46 and `docs/m04-playtest.md` §7, §12.
+- **[mechanic] M4 clue logs are Log Viewer entries and every way of reading one counts.** The incident
+  log, `~/logs/firewall.log` and Static-Hop's `auth.log` are stored as `{id, date, type, description}`
+  entries (new `components/log-file.ts`, still `.log`), so the Files app opens them in the Log Viewer;
+  `cat`, `open` and the viewer (`Files.Open`) all advance the step through one `onFileRead` listener
+  (`components/file-reads.ts`). `open` falls back to `cat` for array logs, the recovery console reads a
+  text copy kept in the breach save. `firewall.log` is now written after the rebuild and sweeps the old
+  `firewall (n).log` copies; the `relayLead` unlock now runs at runtime. Dates are the story day
+  2026-09-24 in local time. Verified live by the owner the same day (the whole hunt ran end to end).
+  See `docs/world-building/README.md` #45 and `docs/m04-playtest.md` §6, §12.
+- **[mechanic] M4 attack 1 can no longer be repelled.** A 60 s `broadcast` countdown now runs straight
+  into the breach: no calm moment at 00:00, no money penalty, `intruderRepelled` and the "nice desktop"
+  mail removed. The Custodian mails 4 s after a successful rebuild (after the restore toast), the
+  BACKTRACE key `probe` comes from reading `~/logs/firewall.log`, and `repel` is refused with its own
+  message during the countdown. M7 and the lab banner are unchanged. See
+  `docs/world-building/README.md` #44 and the 2026-10-03 note in `docs/world-building/10-spec-m4.md`.
+- **[docs] `docs/m04-playtest.md` rewritten** for the new attack, the recovery console puzzle and the
+  kernel files; the parts that described `~/compositor`, `incident.txt`, the expiry penalty and
+  `rivallab breach` are gone. README #42 wording fixed (Tab shows a fixed hint slot).
+
 ## 2026-10-02
 
 - **[milestone] Audit fix pass for the M4-M7 run** (branch `fix/phases2-8-m04-m07-audit`, from
