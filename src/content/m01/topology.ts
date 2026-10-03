@@ -1,7 +1,13 @@
 import type { NetworkFileMap } from "@hotbunny/hackhub-content-sdk";
 import type { RouterSpec } from "../../core/types.js";
 
-import { M01_IRC_NOTES_FILE_CONTENT, M01_IRC_NOTES_FILE_EXTENSION, M01_IRC_NOTES_FILE_NAME } from "./irc.js";
+import {
+    M01_IRC_NOTES_ENCRYPTED,
+    M01_IRC_NOTES_FILE_CONTENT,
+    M01_IRC_NOTES_FILE_EXTENSION,
+    M01_IRC_NOTES_FILE_NAME,
+} from "./irc.js";
+import { M01_STORY_DAY } from "./quest.js";
 import {
     M01_BLACKWIRE_GATEWAY_IP,
     M01_BLACKWIRE_GATEWAY_LAN_IP,
@@ -198,6 +204,9 @@ const buildBrokerNetwork = (listingCode: string): RouterSpec => ({
                 { external: 443, internal: 443, active: true, service: "https" },
             ],
             rootFiles: buildBrokerRootFiles(listingCode),
+            rootLogDay: M01_STORY_DAY,
+            neutralLogs: [M01_LEDGER_FILE_NAME],
+            typedLogs: [{ name: M01_IRC_NOTES_FILE_NAME, type: M01_IRC_NOTES_ENCRYPTED }],
         },
     ],
 });

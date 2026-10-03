@@ -67,6 +67,7 @@ import {
     M05_USB_TICKET_FILE_NAME,
     M05_VAR_FOLDER,
 } from "./server-files.js";
+import { M05_STORY_DAY } from "./quest.js";
 
 const folder = (name: string, children: NetworkFileMap[]): NetworkFileMap => ({
     name,
@@ -137,6 +138,7 @@ const buildHospitalDevices = (): DeviceSpec[] => [
                 version: M05_BEDSIDE_RDP_VERSION,
             },
         ],
+        rootLogDay: M05_STORY_DAY,
         rootFiles: [
             txt(M05_FOUND_NOTE_FILE_NAME, M05_FOUND_NOTE_CONTENT()),
             { name: M05_USB_HISTORY_FILE_NAME, extension: M05_LOG, data: M05_USB_HISTORY_CONTENT() },

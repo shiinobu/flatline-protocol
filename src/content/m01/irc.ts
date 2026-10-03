@@ -38,7 +38,4 @@ export const M01_IRC_NOTES_CONTENT = [
 ].join("\n");
 export const M01_IRC_NOTES_ENCRYPTED =
     "VGVhbSBzdGFuZHVwIG1vdmVkIHRvIElSQyBpZiBzZXJ2ZXJzIGFjdCB1cDogcmVsYXkuYmxrbGVkZ2VyLmRhcmsKQXNrIGFyb3VuZCBmb3IgdGhlIGNoYW5uZWwga2V5IGlmIHlvdSdyZSBuZXcgLS0gbm90IHBvc3RpbmcgaXQgaGVyZSBhZ2Fpbi4Ka2V5OiBuMGxlZGdlcg==";
-export const M01_IRC_NOTES_FILE_CONTENT = [
-    "[ENCRYPTED]",
-    M01_IRC_NOTES_ENCRYPTED,
-].join("\n");
+export const M01_IRC_NOTES_FILE_CONTENT = "2026-09-16 15:01:00 UTC  [ENCRYPTED]";

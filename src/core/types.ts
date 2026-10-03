@@ -22,6 +22,9 @@ export interface DeviceSpec {
     isIpHidden?: boolean;
     users: Partial<NetworkUser>[];
     userLogDay?: LogDay;
+    rootLogDay?: LogDay;
+    neutralLogs?: string[];
+    typedLogs?: { name: string; type: string }[];
     ports?: NetworkPort[];
     rules?: FirewallRule[];
     rootFiles?: NetworkFileMap[];

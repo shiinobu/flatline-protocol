@@ -76,6 +76,7 @@ import {
     M02_WORKSTATION_UNSENT_FILE_EXTENSION,
     M02_WORKSTATION_UNSENT_FILE_NAME,
 } from "./server-files.js";
+import { M02_STORY_DAY } from "./quest.js";
 
 const folder = (name: string, files: NetworkFileMap[]): NetworkFileMap => ({
     name,
@@ -127,6 +128,8 @@ const buildDevRouter = (): RouterSpec => ({
                     },
                 ]),
             ],
+            rootLogDay: M02_STORY_DAY,
+            neutralLogs: [M02_DEPLOY_LOG_FILE_NAME],
             vulnerabilities: [...M02_SQL_INJECTION],
         },
     ],
