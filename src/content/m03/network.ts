@@ -43,6 +43,8 @@ export const M03_DECOY_HOST_PASSWORD = "guest";
 export const M03_VAULTLINE_IP = "79.124.62.90";
 export const M03_VAULTLINE_LAN_IP = "192.168.1.6";
 export const M03_VAULTLINE_CODENAME = "Vault-Line";
+export const M03_INTERNAL_HOST_COUNT = 4;
+export const M03_INTERNAL_NETWORK_FACT = `${M03_INTERNAL_HOST_COUNT} hosts behind the gateway`;
 export const M03_VAULTLINE_RDP_VERSION = "FreeRDP 7.1.9";
 export const M03_VPN_PEER_LABEL = "SKN-CENTRAL";
 

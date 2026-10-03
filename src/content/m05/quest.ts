@@ -13,6 +13,8 @@ export const buildM05Objectives = (): QuestObjectiveDefinition[] => [
     },
 ];
 
+export const M05_STORY_DAY = { year: 2026, month: 9, day: 27 } as const;
+
 export const M05_REWARD_MONEY = 3200;
 export const M05_REWARD_DESCRIPTION = "The Door — contract settled";
 

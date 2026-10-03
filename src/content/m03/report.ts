@@ -12,11 +12,19 @@ import {
     splitRansom,
 } from "../global/finance.js";
 import { M03_ALL_TOTALS, M03_LEDGER_BROKER_PARTY, M03_LEDGER_PANEL_PARTY } from "./ledger.js";
-import { M03_VAULTLINE_CODENAME, M03_VPN_PEER_LABEL } from "./network.js";
+import {
+    M03_INTERNAL_HOST_COUNT,
+    M03_REMOTE_PORTAL_DOMAIN,
+    M03_VAULTLINE_CODENAME,
+    M03_VPN_PEER_LABEL,
+} from "./network.js";
 
 export const M03_REPORT_SUBJECT = (): string => Localization.t(M03_I18N_KEY.MAIL_REPORT_SUBJECT);
 export const M03_REPORT_TEMPLATE_ID = "flatline.m03.report";
 export const M03_REPORT_TEMPLATE_LABEL = "Mission 3 Findings";
+
+export const M03_REPORT_ENTRY_TERMS: readonly string[] = [M03_REMOTE_PORTAL_DOMAIN, M03_VAULTLINE_CODENAME];
+export const M03_REPORT_ENTRY = `${M03_REMOTE_PORTAL_DOMAIN}, ${M03_VAULTLINE_CODENAME}, ${M03_INTERNAL_HOST_COUNT} hosts`;
 
 const fundsFacts = (): Record<string, string | number> => {
     const split = splitRansom(RANSOM_BATCH_HOSPITAL.gross);
@@ -34,7 +42,6 @@ const fundsFacts = (): Record<string, string | number> => {
         batchCount: RANSOM_BATCHES.length,
         allGross: formatUsd(M03_ALL_TOTALS.gross),
         allParent: formatUsd(M03_ALL_TOTALS.parent),
-        gatewayName: M03_VAULTLINE_CODENAME,
         peerLabel: M03_VPN_PEER_LABEL,
     };
 };
@@ -48,4 +55,5 @@ export const buildM03ReportBody = (): string =>
         shell: M02_SHELL_COMPANY_NAME,
         parent: M03_PARENT_ENTITY_NAME,
         vpn: M04_ARCHITECT_VPN_IP,
+        entry: M03_REPORT_ENTRY,
     });

@@ -13,3 +13,15 @@ export const M05_LOG_NOTES = (): readonly string[] => [
     Localization.t(M05_I18N_KEY.LOG_NOTES_2),
 ];
 export const M05_LOG_BEDSIDE = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_BEDSIDE_1)];
+export const M05_LOG_GRETA = (): readonly string[] => [
+    Localization.t(M05_I18N_KEY.LOG_GRETA_1),
+    Localization.t(M05_I18N_KEY.LOG_GRETA_2),
+];
+export const M05_LOG_MEMO = (): readonly string[] => [
+    Localization.t(M05_I18N_KEY.LOG_MEMO_1),
+    Localization.t(M05_I18N_KEY.LOG_MEMO_2),
+];
+export const M05_LOG_TICKET = (): readonly string[] => [
+    Localization.t(M05_I18N_KEY.LOG_TICKET_1),
+    Localization.t(M05_I18N_KEY.LOG_TICKET_2),
+];

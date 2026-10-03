@@ -14,3 +14,7 @@ export const M06_LOG_IDENTITY = (): readonly string[] => [
 ];
 export const M06_LOG_CAPTURE = (): readonly string[] => [Localization.t(M06_I18N_KEY.LOG_CAPTURE_1)];
 export const M06_LOG_CERTIFICATE = (): readonly string[] => [Localization.t(M06_I18N_KEY.LOG_CERTIFICATE_1)];
+export const M06_LOG_AGENT = (): readonly string[] => [
+    Localization.t(M06_I18N_KEY.LOG_AGENT_1),
+    Localization.t(M06_I18N_KEY.LOG_AGENT_2),
+];

@@ -33,6 +33,8 @@ export const M06_I18N_KEY = {
     LOG_IDENTITY_2: "M06.LOG.IDENTITY.2",
     LOG_CAPTURE_1: "M06.LOG.CAPTURE.1",
     LOG_CERTIFICATE_1: "M06.LOG.CERTIFICATE.1",
+    LOG_AGENT_1: "M06.LOG.AGENT.1",
+    LOG_AGENT_2: "M06.LOG.AGENT.2",
 
     OSINT_WHOIS_AGENT_CONTACT: "M06.OSINT.WHOIS.AGENT_CONTACT",
     OSINT_WHOIS_INSURER_CONTACT: "M06.OSINT.WHOIS.INSURER_CONTACT",
@@ -85,6 +87,7 @@ Localization.registerAll({
         [M06_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
             "Name: {{architect}}",
             "Position: {{role}}",
+            "Registered agent: {{agent}}",
             "Ownership chain: {{chain}}",
             "Proof of control: {{proof}}",
             "The front: {{front}}",
@@ -92,6 +95,7 @@ Localization.registerAll({
         [M06_I18N_KEY.MAIL_REPORT_BODY]: [
             "Name: {{architect}}",
             "Position: {{role}}",
+            "Registered agent: {{agent}}",
             "Ownership chain: {{chain}}",
             "Proof of control: {{proof}}",
             "The front: {{front}}",
@@ -113,6 +117,9 @@ Localization.registerAll({
             "The archived capture still lists the analyst as the filing contact. The live page does not. Somebody tidied up after us.",
         [M06_I18N_KEY.LOG_CERTIFICATE_1]:
             "The insurer's domain is registered to the same name as the tunnel endpoint the wire transfers walked to. A registrar lists a name on a form. What the machines present is harder to tidy up.",
+        [M06_I18N_KEY.LOG_AGENT_1]:
+            "Marlowe & Pryce Corporate Services. They hold the company's mail so nobody has to hold its name.",
+        [M06_I18N_KEY.LOG_AGENT_2]: "A registered agent exists so that nobody has to be found.",
 
         [M06_I18N_KEY.OSINT_WHOIS_AGENT_CONTACT]: "Marlowe & Pryce Corporate Services",
         [M06_I18N_KEY.OSINT_WHOIS_INSURER_CONTACT]: "Bulletproof VPN Ltd.",
@@ -158,6 +165,7 @@ Localization.registerAll({
         [M06_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
             "姓名：{{architect}}",
             "职务：{{role}}",
+            "注册代理：{{agent}}",
             "持股链条：{{chain}}",
             "控制证据：{{proof}}",
             "挡在前面的人：{{front}}",
@@ -165,6 +173,7 @@ Localization.registerAll({
         [M06_I18N_KEY.MAIL_REPORT_BODY]: [
             "姓名：{{architect}}",
             "职务：{{role}}",
+            "注册代理：{{agent}}",
             "持股链条：{{chain}}",
             "控制证据：{{proof}}",
             "挡在前面的人：{{front}}",
@@ -186,6 +195,8 @@ Localization.registerAll({
             "存档快照里，那位分析师还挂着备案联系人。实时页面上已经没有了。有人在我们后面收拾过。",
         [M06_I18N_KEY.LOG_CERTIFICATE_1]:
             "保险人的域名登记在与汇款隧道端点相同的名字之下。注册商记录的只是表格上的名字，机器自己出示的东西就没那么容易收拾干净。",
+        [M06_I18N_KEY.LOG_AGENT_1]: "Marlowe & Pryce Corporate Services。他们替公司收信，这样就没有人需要署上自己的名字。",
+        [M06_I18N_KEY.LOG_AGENT_2]: "注册代理存在的意义，就是让没有人需要被找到。",
 
         [M06_I18N_KEY.OSINT_WHOIS_AGENT_CONTACT]: "Marlowe & Pryce Corporate Services",
         [M06_I18N_KEY.OSINT_WHOIS_INSURER_CONTACT]: "防弹 VPN 有限公司",

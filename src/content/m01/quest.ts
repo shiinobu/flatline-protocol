@@ -1,8 +1,12 @@
 import { Localization, type QuestObjectiveDefinition } from "@hotbunny/hackhub-content-sdk";
 
 import { M01_I18N_KEY } from "../../i18n/m01/core.js";
+import { M01_CASE_ID } from "../global/case.js";
+import { M01_BUYER_ALIAS } from "./server-files.js";
 
 export const M01_PROJECT_OPENED_EVENT = "flatline.m01.projectOpened";
+
+export const M01_STORY_DAY = { year: 2026, month: 9, day: 18 } as const;
 
 export const M01_LOG_DEFAULT = (): readonly string[] => [
     Localization.t(M01_I18N_KEY.LOG_DEFAULT_1),
@@ -12,6 +16,14 @@ export const M01_LOG_AFTERMATH = (): readonly string[] => [
     Localization.t(M01_I18N_KEY.LOG_AFTERMATH_1),
     Localization.t(M01_I18N_KEY.LOG_AFTERMATH_2),
     Localization.t(M01_I18N_KEY.LOG_AFTERMATH_3),
+];
+export const M01_LOG_BUYER = (): readonly string[] => [
+    Localization.t(M01_I18N_KEY.LOG_BUYER_1, { buyer: M01_BUYER_ALIAS }),
+    Localization.t(M01_I18N_KEY.LOG_BUYER_2),
+];
+export const M01_LOG_CASE = (): readonly string[] => [
+    Localization.t(M01_I18N_KEY.LOG_CASE_1, { caseId: M01_CASE_ID }),
+    Localization.t(M01_I18N_KEY.LOG_CASE_2),
 ];
 
 export const M01_HACKHUB_AUTHOR_NAME = "GHOSTWIRE";

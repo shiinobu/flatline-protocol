@@ -51,6 +51,12 @@ export const M05_I18N_KEY = {
     LOG_NOTES_1: "M05.LOG.NOTES.1",
     LOG_NOTES_2: "M05.LOG.NOTES.2",
     LOG_BEDSIDE_1: "M05.LOG.BEDSIDE.1",
+    LOG_GRETA_1: "M05.LOG.GRETA.1",
+    LOG_GRETA_2: "M05.LOG.GRETA.2",
+    LOG_MEMO_1: "M05.LOG.MEMO.1",
+    LOG_MEMO_2: "M05.LOG.MEMO.2",
+    LOG_TICKET_1: "M05.LOG.TICKET.1",
+    LOG_TICKET_2: "M05.LOG.TICKET.2",
 } as const;
 
 Localization.registerAll({
@@ -103,6 +109,7 @@ Localization.registerAll({
             "",
             "Locked to paid: {{gap}}",
             "Reason: {{motive}}",
+            "Records pulled from: {{archive}}",
         ].join("\n"),
         [M05_I18N_KEY.MAIL_REPORT_BODY]: [
             "Named as the way in: {{door}}",
@@ -111,6 +118,7 @@ Localization.registerAll({
             "",
             "Locked to paid: {{gap}}",
             "Reason: {{motive}}",
+            "Records pulled from: {{archive}}",
         ].join("\n"),
 
         [M05_I18N_KEY.DOC_DECISION_MEMO]: [
@@ -230,6 +238,15 @@ Localization.registerAll({
         [M05_I18N_KEY.LOG_NOTES_2]: "She keeps coming back to the theatre. So does the memo, in a line they removed.",
         [M05_I18N_KEY.LOG_BEDSIDE_1]:
             "The note from the vault was real. It was sitting on the machine the whole time.",
+        [M05_I18N_KEY.LOG_GRETA_1]:
+            "Greta de Souza, systems administrator. Her last post is August 17th: they want her to sign something.",
+        [M05_I18N_KEY.LOG_GRETA_2]: "After that the account goes quiet. People rarely stop posting by choice.",
+        [M05_I18N_KEY.LOG_MEMO_1]:
+            "05:12, Operating Theatre 3: escalated to Legal, excluded from the external statement.",
+        [M05_I18N_KEY.LOG_MEMO_2]:
+            "Paid at 09:02, filed under negligence. The money moved faster than the explanation.",
+        [M05_I18N_KEY.LOG_TICKET_1]: "Q3-2026-SEA. The same label as the folder in the broker's vault.",
+        [M05_I18N_KEY.LOG_TICKET_2]: "Plugged in at 00:12 on August 11th, three days before they locked the hospital.",
     },
     zh: {
         [M05_I18N_KEY.QUEST_TITLE]: "那扇门",
@@ -278,6 +295,7 @@ Localization.registerAll({
             "",
             "从锁定到付款：{{gap}}",
             "动机：{{motive}}",
+            "记录来源：{{archive}}",
         ].join("\n"),
         [M05_I18N_KEY.MAIL_REPORT_BODY]: [
             "被定为入口：{{door}}",
@@ -286,6 +304,7 @@ Localization.registerAll({
             "",
             "从锁定到付款：{{gap}}",
             "动机：{{motive}}",
+            "记录来源：{{archive}}",
         ].join("\n"),
 
         [M05_I18N_KEY.DOC_DECISION_MEMO]: [
@@ -397,5 +416,11 @@ Localization.registerAll({
         [M05_I18N_KEY.LOG_NOTES_1]: "她插上它，是因为那个标签看起来像项目代号。就这么简单。",
         [M05_I18N_KEY.LOG_NOTES_2]: "她一直绕回那间手术室。那份备忘录也一样——在他们删掉的那一行里。",
         [M05_I18N_KEY.LOG_BEDSIDE_1]: "保险库里那张便条是真的。它一直就躺在那台机器上。",
+        [M05_I18N_KEY.LOG_GRETA_1]: "Greta de Souza，系统管理员。她最后一条动态是 8 月 17 日：他们要她签点东西。",
+        [M05_I18N_KEY.LOG_GRETA_2]: "那之后账号就安静了。人很少会自己选择不再发帖。",
+        [M05_I18N_KEY.LOG_MEMO_1]: "05:12，三号手术室：已上报法务，不纳入对外声明。",
+        [M05_I18N_KEY.LOG_MEMO_2]: "09:02 付款，归入疏忽。钱走得比解释还快。",
+        [M05_I18N_KEY.LOG_TICKET_1]: "Q3-2026-SEA。和经纪人保险库里那个文件夹是同一个标签。",
+        [M05_I18N_KEY.LOG_TICKET_2]: "8 月 11 日 00:12 插入，三天之后他们锁住了医院。",
     },
 });

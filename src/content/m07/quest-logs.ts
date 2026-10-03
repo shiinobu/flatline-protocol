@@ -18,3 +18,19 @@ const ENDING_LOG_KEYS: Readonly<Record<string, readonly string[]>> = {
 
 export const M07_LOG_ENDING = (choice: string): readonly string[] =>
     (ENDING_LOG_KEYS[choice] ?? []).map((key) => Localization.t(key));
+export const M07_LOG_CREDENTIAL = (): readonly string[] => [
+    Localization.t(M07_I18N_KEY.LOG_CREDENTIAL_1),
+    Localization.t(M07_I18N_KEY.LOG_CREDENTIAL_2),
+];
+export const M07_LOG_EDGE = (): readonly string[] => [
+    Localization.t(M07_I18N_KEY.LOG_EDGE_1),
+    Localization.t(M07_I18N_KEY.LOG_EDGE_2),
+];
+export const M07_LOG_C2 = (): readonly string[] => [
+    Localization.t(M07_I18N_KEY.LOG_C2_1),
+    Localization.t(M07_I18N_KEY.LOG_C2_2),
+];
+export const M07_LOG_LEDGER = (): readonly string[] => [
+    Localization.t(M07_I18N_KEY.LOG_LEDGER_1),
+    Localization.t(M07_I18N_KEY.LOG_LEDGER_2),
+];

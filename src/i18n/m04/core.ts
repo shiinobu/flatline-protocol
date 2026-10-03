@@ -49,6 +49,12 @@ export const M04_I18N_KEY = {
     LOG_PROBE_1: "M04.LOG.PROBE.1",
     LOG_BREACH_1: "M04.LOG.BREACH.1",
     LOG_ORIGIN_1: "M04.LOG.ORIGIN.1",
+    LOG_RELAY1_1: "M04.LOG.RELAY1.1",
+    LOG_RELAY1_2: "M04.LOG.RELAY1.2",
+    LOG_RELAY2_1: "M04.LOG.RELAY2.1",
+    LOG_RELAY2_2: "M04.LOG.RELAY2.2",
+    LOG_CONTROL_1: "M04.LOG.CONTROL.1",
+    LOG_CONTROL_2: "M04.LOG.CONTROL.2",
 
     OSINT_WHOIS_CONTROL_CONTACT: "M04.OSINT.WHOIS.CONTROL_CONTACT",
     OSINT_WHOIS_RELAY_CONTACT: "M04.OSINT.WHOIS.RELAY_CONTACT",
@@ -206,6 +212,17 @@ Localization.registerAll({
         [M04_I18N_KEY.LOG_BREACH_1]:
             "They took the desktop, not the balance. They wanted me to sit there and look at it.",
         [M04_I18N_KEY.LOG_ORIGIN_1]: "The same registrant as the endpoint. The same hand, one more time.",
+        [M04_I18N_KEY.LOG_RELAY1_1]:
+            "Static-Hop opened to a reused password. The incident log named it as where my session came from.",
+        [M04_I18N_KEY.LOG_RELAY1_2]:
+            "A relay is somebody else's machine used as a doorway. Whoever did this is further back.",
+        [M04_I18N_KEY.LOG_RELAY2_1]:
+            "Five outbound sessions in auth.log. Only one was established at 03:14:06, the minute the incident log stamps.",
+        [M04_I18N_KEY.LOG_RELAY2_2]:
+            "Paper-Moth looked tempting thirty-five seconds later. Close is not the same minute.",
+        [M04_I18N_KEY.LOG_CONTROL_1]:
+            "watchdog.conf names the control host and a tag: SENTRY. It checks in every sixty seconds.",
+        [M04_I18N_KEY.LOG_CONTROL_2]: "Anything that regular has a pulse, and a pulse can be stopped.",
 
         [M04_I18N_KEY.OSINT_WHOIS_RELAY_CONTACT]: "Harbour Transit Networks",
         [M04_I18N_KEY.OSINT_WHOIS_CONTROL_CONTACT]: "Bulletproof VPN Ltd.",
@@ -355,6 +372,12 @@ Localization.registerAll({
         [M04_I18N_KEY.LOG_PROBE_1]: "他们先找上了我的地址。那说明他们早就有了我的名字。",
         [M04_I18N_KEY.LOG_BREACH_1]: "他们拿走的是桌面，不是余额。他们要的是我坐在那儿看着。",
         [M04_I18N_KEY.LOG_ORIGIN_1]: "和那个端点同一个注册人。又是同一只手。",
+        [M04_I18N_KEY.LOG_RELAY1_1]: "Static-Hop 用一个被重复使用的密码打开了。事故日志说我的会话就是从这里来的。",
+        [M04_I18N_KEY.LOG_RELAY1_2]: "中继就是被拿来当门洞用的别人的机器。动手的人还在更后面。",
+        [M04_I18N_KEY.LOG_RELAY2_1]: "auth.log 里有五条外连会话。只有一条在 03:14:06 处于已建立状态，正是事故日志标注的那一分钟。",
+        [M04_I18N_KEY.LOG_RELAY2_2]: "三十五秒之后的 Paper-Moth 看上去很诱人。接近，不等于同一分钟。",
+        [M04_I18N_KEY.LOG_CONTROL_1]: "watchdog.conf 里写着控制主机和一个标记：SENTRY。它每六十秒报到一次。",
+        [M04_I18N_KEY.LOG_CONTROL_2]: "这么规律的东西有脉搏，而脉搏是可以停掉的。",
 
         [M04_I18N_KEY.OSINT_WHOIS_RELAY_CONTACT]: "Harbour Transit Networks",
         [M04_I18N_KEY.OSINT_WHOIS_CONTROL_CONTACT]: "防弹 VPN 有限公司",

@@ -58,6 +58,14 @@ export const M07_I18N_KEY = {
     LOG_HANDOFF_2: "M07.LOG.HANDOFF.2",
     LOG_DESTROY_1: "M07.LOG.DESTROY.1",
     LOG_DESTROY_2: "M07.LOG.DESTROY.2",
+    LOG_CREDENTIAL_1: "M07.LOG.CREDENTIAL.1",
+    LOG_CREDENTIAL_2: "M07.LOG.CREDENTIAL.2",
+    LOG_EDGE_1: "M07.LOG.EDGE.1",
+    LOG_EDGE_2: "M07.LOG.EDGE.2",
+    LOG_C2_1: "M07.LOG.C2.1",
+    LOG_C2_2: "M07.LOG.C2.2",
+    LOG_LEDGER_1: "M07.LOG.LEDGER.1",
+    LOG_LEDGER_2: "M07.LOG.LEDGER.2",
 } as const;
 
 Localization.registerAll({
@@ -97,6 +105,7 @@ Localization.registerAll({
         [M07_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
             "The Architect: {{architect}}",
             "Parent entity: {{parentEntity}}",
+            "Access path: {{path}}",
             "",
             "Evidence: {{evidence}}",
             "",
@@ -240,6 +249,16 @@ Localization.registerAll({
             "The infrastructure is gone. No trial, no headline, no file with anybody's name in it.",
         [M07_I18N_KEY.LOG_DESTROY_2]:
             "The hospital's report still says what it always said. I closed my book and left theirs open.",
+        [M07_I18N_KEY.LOG_CREDENTIAL_1]:
+            "The dead box kept a 2022 backup of the edge firewall, user and password included.",
+        [M07_I18N_KEY.LOG_CREDENTIAL_2]: "Nobody decommissions what they forgot they had.",
+        [M07_I18N_KEY.LOG_EDGE_1]: "The two deny rules are gone and 3389 is open.",
+        [M07_I18N_KEY.LOG_EDGE_2]: "The only thing between me and the index host is the exploit.",
+        [M07_I18N_KEY.LOG_C2_1]: "I'm on the index host. A clock started counting the moment I landed.",
+        [M07_I18N_KEY.LOG_C2_2]: "Whatever I take from here, I take on a timer.",
+        [M07_I18N_KEY.LOG_LEDGER_1]: "Out. The clock stopped when the last byte landed.",
+        [M07_I18N_KEY.LOG_LEDGER_2]:
+            "Five accounts and everyone who signed them are on my disk. What I do with that is the only choice left.",
     },
     zh: {
         [M07_I18N_KEY.QUEST_TITLE]: "那位设计师",
@@ -275,6 +294,7 @@ Localization.registerAll({
         [M07_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
             "设计师：{{architect}}",
             "母体实体：{{parentEntity}}",
+            "入侵路径：{{path}}",
             "",
             "证据：{{evidence}}",
             "",
@@ -405,5 +425,13 @@ Localization.registerAll({
         [M07_I18N_KEY.LOG_HANDOFF_2]: "Reyes 从一个条目变成了一名证人。这是我能为他做到的最多的事。",
         [M07_I18N_KEY.LOG_DESTROY_1]: "基础设施没了。没有审判，没有头条，也没有哪份卷宗写着谁的名字。",
         [M07_I18N_KEY.LOG_DESTROY_2]: "医院的报告还是和从前一样写着。我合上了自己的账本，留着他们的那本摊开。",
+        [M07_I18N_KEY.LOG_CREDENTIAL_1]: "那台死机留着一份 2022 年的边缘防火墙备份，用户名和密码都在里面。",
+        [M07_I18N_KEY.LOG_CREDENTIAL_2]: "没有人会下线自己早已忘记拥有的东西。",
+        [M07_I18N_KEY.LOG_EDGE_1]: "两条拒绝规则没了，3389 打开了。",
+        [M07_I18N_KEY.LOG_EDGE_2]: "我和索引主机之间只剩下那个漏洞利用了。",
+        [M07_I18N_KEY.LOG_C2_1]: "我在索引主机上了。落地的那一刻，有个计时器开始走了。",
+        [M07_I18N_KEY.LOG_C2_2]: "不管从这里拿走什么，我都是在计时中拿的。",
+        [M07_I18N_KEY.LOG_LEDGER_1]: "出来了。最后一个字节落地时，计时停了。",
+        [M07_I18N_KEY.LOG_LEDGER_2]: "五个账户，以及所有签过字的人，都在我的磁盘上。怎么处置它，是我手里仅剩的选择。",
     },
 });
