@@ -27,12 +27,18 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-04
 
+- **[milestone] BACKTRACE passed the owner's live test and is FINAL LOCK.** Declared by the owner on 2026-10-04 after testing the
+  post-lock batch in game (`docs/world-building/README.md` #56, now LOCKED): the Personal Log filled at COMPLETE, the source
+  captions, the pinned header and hidden scrollbar of the log sheet, and `backtrace-log`. It also answers the live test that #55
+  was waiting for, so the whole app (#49, #52-#56) is final. The closing-letter Mandarin is still the owner's, six slots empty, so the
+  letter shows English until they are filled. The owner declared BACKTRACE only: the Log Viewer items still owed for the M1, M2
+  and M5 files (#50, #51) are not covered by it.
 - **[mechanic] The Personal Log sheet names the source of every log.** Each run of lines gets a caption: `TRACE n · label`
   (n is the key's position in the mission's trace list, so the optional M3 Accomplice is `TRACE 6`) or `NOTE` for a side note;
   a moment log of its own is captioned `MOMENT` (M4's breach keeps its flag), a line with no known source `OTHER`.
   `backtrace-logs.ts` names the source of each group and COMPLETE stores the text-to-source map in the new `sources` field of
   the mission state, so the app can caption without knowing the language; a save with no `sources` yet shows no captions.
-  The caption is English interface text. Not yet run in game. See
+  The caption is English interface text. Passed the owner's live test (lock entry above). See
   `docs/architecture.md` (Applications: BACKTRACE) and `docs/rules.md` §13.
 
 - **[mechanic] A mission completes with its whole Personal Log, and the Moment flag no longer depends on how the log was written.**
@@ -41,8 +47,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   play-order position, keeping the recorded order), leaves the optional ones Skipped, and adds the logs of a moment group
   to `moments`, which repairs a save whose M3 aftermath was stored without the flag. Completing a mission that is already
   complete repairs it the same way (`backtrace m1 complete` ... `backtrace m6 complete`) and is idempotent. Checked with a
-  stubbed-SDK harness: 11 checks (partial and empty saves, all seven missions from nothing, idempotence). Not yet run in
-  game. See `docs/architecture.md` (Applications: BACKTRACE) and `docs/rules.md` §13.
+  stubbed-SDK harness: 11 checks (partial and empty saves, all seven missions from nothing, idempotence). Passed the owner's
+  live test (lock entry above). See `docs/architecture.md` (Applications: BACKTRACE) and `docs/rules.md` §13.
 
 - **[mechanic] New dev command `backtrace-log`.** `backtrace-log <mission>` lists the optional personal logs with their
   status, `backtrace-log <mission> <number>` records one, `backtrace-log <mission> <number> skip` skips it (Skipped flag once
@@ -54,6 +60,7 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   `.nav-list` and `.report-main` already use, and `.sheet-top` is `position: sticky; top: 0; z-index: 2`. The sheet still
   scrolls (measured in headless Chrome: gutter 15 px before, 0 px after, `scrollTop` still moves; header top 33 px after a
   250 px scroll, it was -207 px).
+
 - **[milestone] BACKTRACE app reached FINAL LOCK and final.** Declared by the owner on 2026-10-04 (`docs/world-building/README.md` #55),
   together with the trace, log and report rule (#52, #53), the localization scope (#54) and the clean-up below. Never run in
   game; the M5 playtest is the first live test of it. The closing-letter Mandarin is the owner's and its six slots are
