@@ -9,10 +9,12 @@ import {
 
 import { isDev } from "../guard/flags.js";
 import { BACKTRACE_KEYS, buildBacktraceFacts, isBacktraceKey } from "./backtrace-facts.js";
+import { optionalBacktraceLogGroups } from "./backtrace-logs.js";
 import {
     BACKTRACE_STORAGE_KEY,
     setBacktraceApplied,
     setBacktraceMission,
+    setBacktraceOptionalLog,
     traceBacktraceKeyById,
     type BacktraceMissionId,
     type BacktraceMissionState,
@@ -47,6 +49,12 @@ const nextBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionId |
     BACKTRACE_MISSION_IDS[BACKTRACE_MISSION_IDS.indexOf(mission) + 1];
 
 const keysOf = (mission: BacktraceMissionId): readonly string[] => BACKTRACE_KEYS[mission];
+
+const optionalLogStatus = (state: BacktraceMissionState, texts: readonly string[]): string => {
+    if (texts.every((text) => state.logs?.includes(text) === true)) return "recorded";
+    if (texts.every((text) => state.skipped?.logs.includes(text) === true)) return "skipped";
+    return "pending";
+};
 
 @registerDevCommand({ default: true, scope: "both" })
 export class BacktraceCommand extends Command {
@@ -124,5 +132,61 @@ export class BacktraceCommand extends Command {
 
         setBacktraceMission(next, "progress");
         tools.printInfo(`${next} -> progress (auto-start after ${first})`);
+    }
+}
+
+@registerDevCommand({ default: true, scope: "both" })
+export class BacktraceLogCommand extends Command {
+    CommandName = "backtrace-log";
+    Description = "dev: list, record or skip the optional BACKTRACE personal logs of a mission";
+    Autocomplete: CommandAutoComplete[] = [
+        { label: "backtrace-log", type: "STRING" },
+        { label: `<${MISSION_CHOICES}> <number> [skip]`, type: "STRING" },
+    ];
+
+    private listLogs(tools: CommandTools, mission: BacktraceMissionId, groups: readonly (readonly string[])[]): void {
+        const state = readBacktraceMission(mission);
+        groups.forEach((texts, index) => {
+            tools.println(`${index + 1}. [${optionalLogStatus(state, texts)}] ${texts[0] ?? ""}`);
+        });
+    }
+
+    async Run(tools: CommandTools) {
+        const [mission, number, status] = tools.getArgs();
+
+        if (!isBacktraceMission(mission)) {
+            tools.printError(`Usage: backtrace-log <${MISSION_CHOICES}> [<number> [skip]]`);
+            return;
+        }
+
+        const groups = optionalBacktraceLogGroups(mission);
+        if (groups.length === 0) {
+            tools.printError(`${mission} has no optional logs.`);
+            return;
+        }
+
+        if (number === undefined) {
+            this.listLogs(tools, mission, groups);
+            return;
+        }
+
+        const group = Number(number);
+        if (!Number.isInteger(group) || group < 1 || group > groups.length) {
+            tools.printError(`"${number}" is not an optional log of ${mission}. Try: backtrace-log ${mission}`);
+            return;
+        }
+
+        if (status !== undefined && status !== "skip") {
+            tools.printError(`"${status}" is not a log status. Use "skip", or leave it out to record the log.`);
+            return;
+        }
+
+        const skip = status === "skip";
+        if (!setBacktraceOptionalLog(mission, group, skip)) {
+            tools.printError("The BACKTRACE state could not be updated.");
+            return;
+        }
+
+        tools.printSuccess(`${mission} optional log ${group} -> ${skip ? "skipped" : "recorded"}`);
     }
 }

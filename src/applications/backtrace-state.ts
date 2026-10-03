@@ -1,6 +1,13 @@
 import { SaveStorage, UI } from "@hotbunny/hackhub-content-sdk";
 
 import { buildBacktraceFacts, buildBacktraceSkipped, isBacktraceKey, type BacktraceKey } from "./backtrace-facts.js";
+import {
+    fillBacktraceLogs,
+    mergeBacktraceLogs,
+    optionalBacktraceLogGroups,
+    optionalBacktraceLogs,
+    sourcesOfBacktraceLogs,
+} from "./backtrace-logs.js";
 
 export const BACKTRACE_STORAGE_KEY = "backtrace";
 
@@ -19,6 +26,7 @@ export interface BacktraceMissionState {
     readonly logs?: readonly string[];
     readonly moments?: readonly string[];
     readonly skipped?: BacktraceSkipped;
+    readonly sources?: Readonly<Record<string, string>>;
 }
 
 export interface BacktraceStoryState {
@@ -65,15 +73,19 @@ const buildMissionState = (
 ): BacktraceMissionState => {
     if (status !== "complete") return { status };
 
+    const filled = fillBacktraceLogs(mission, current.logs ?? [], current.moments);
+    const skipped =
+        current.status === "complete"
+            ? current.skipped
+            : buildBacktraceSkipped(mission, current.facts ?? {}, current.logs ?? []);
+
     return {
         status,
         facts: collectFacts(mission),
-        logs: current.logs,
-        moments: current.moments,
-        skipped:
-            current.status === "complete"
-                ? current.skipped
-                : buildBacktraceSkipped(mission, current.facts ?? {}, current.logs ?? []),
+        logs: filled.logs,
+        moments: filled.moments,
+        skipped,
+        sources: sourcesOfBacktraceLogs(mission, [...filled.logs, ...(skipped?.logs ?? [])]),
     };
 };
 
@@ -192,4 +204,42 @@ export const traceBacktraceFinding = <M extends BacktraceMissionId>(
     }
 
     return traced;
+};
+
+const rewriteSkippedLogs = (
+    mission: BacktraceMissionId,
+    current: BacktraceMissionState,
+    texts: readonly string[],
+    skip: boolean,
+): BacktraceSkipped | undefined => {
+    if (current.status !== "complete") return current.skipped;
+
+    const marked = (current.skipped?.logs ?? []).filter((text) => !texts.includes(text));
+    const wanted = skip ? [...marked, ...texts] : marked;
+
+    return {
+        keys: current.skipped?.keys ?? [],
+        logs: optionalBacktraceLogs(mission).filter((text) => wanted.includes(text)),
+    };
+};
+
+const applyOptionalLog = (mission: BacktraceMissionId, group: number, skip: boolean): boolean => {
+    const texts = optionalBacktraceLogGroups(mission)[group - 1];
+    if (texts === undefined) return false;
+
+    const current = readBacktraceState()[mission];
+    const kept = (current.logs ?? []).filter((text) => !texts.includes(text));
+    const logs = skip ? kept : mergeBacktraceLogs(mission, kept, texts);
+    const skipped = rewriteSkippedLogs(mission, current, texts, skip);
+    const sources = sourcesOfBacktraceLogs(mission, [...logs, ...(skipped?.logs ?? [])]);
+    writeBacktraceMission(mission, { ...current, logs, skipped, sources });
+    return true;
+};
+
+export const setBacktraceOptionalLog = (mission: BacktraceMissionId, group: number, skip: boolean): boolean => {
+    try {
+        return applyOptionalLog(mission, group, skip);
+    } catch {
+        return false;
+    }
 };

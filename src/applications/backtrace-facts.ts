@@ -74,10 +74,7 @@ import {
 } from "../content/m07/network.js";
 import { M07_ARCHITECT_REAL_NAME } from "../content/m07/report.js";
 import { M07_EVIDENCE_CLASSIFICATION, M07_LEDGER_FILE_NAME } from "../content/m07/server-files.js";
-import { M03_LOG_ACCOMPLICE, M03_LOG_REYES } from "../content/m03/quest.js";
-import { M04_LOG_PROBE } from "../content/m04/quest-logs.js";
-import { M05_LOG_BEDSIDE, M05_LOG_NOTES } from "../content/m05/quest-logs.js";
-import { M06_LOG_CAPTURE } from "../content/m06/quest-logs.js";
+import { optionalBacktraceLogs } from "./backtrace-logs.js";
 import type { BacktraceFacts, BacktraceMissionId, BacktraceSkipped } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
@@ -108,20 +105,13 @@ export const BACKTRACE_OPTIONAL_KEYS: Readonly<Record<BacktraceMissionId, readon
     m7: [],
 };
 
-const OPTIONAL_LOGS: Readonly<Partial<Record<BacktraceMissionId, () => readonly string[]>>> = {
-    m3: () => [...M03_LOG_ACCOMPLICE(), ...M03_LOG_REYES()],
-    m4: M04_LOG_PROBE,
-    m5: () => [...M05_LOG_NOTES(), ...M05_LOG_BEDSIDE()],
-    m6: M06_LOG_CAPTURE,
-};
-
 export const buildBacktraceSkipped = (
     mission: BacktraceMissionId,
     traced: BacktraceFacts,
     logged: readonly string[],
 ): BacktraceSkipped => ({
     keys: BACKTRACE_OPTIONAL_KEYS[mission].filter((key) => traced[key] === undefined),
-    logs: (OPTIONAL_LOGS[mission]?.() ?? []).filter((text) => !logged.includes(text)),
+    logs: optionalBacktraceLogs(mission).filter((text) => !logged.includes(text)),
 });
 
 const resolveWinningListingCode = (): string => {
