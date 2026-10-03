@@ -87,9 +87,8 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   `css-inject`, `reward`, `mail`, plus the 2026-10-03 additions `log-file`
   (syslog text to Log Viewer entries), `file-reads` (`cat`, `open` and
   `Files.Open` in one listener, bugs #56) and `flatline-sequence` (the
-  println-only cut-off animation). `src/debug/` keeps its own copy of
-  `css-inject`: two copies of a nineteen-line helper is the cost of leaving a
-  proven lab untouched. Randomness in the kit goes through `Random.number`, not
+  println-only cut-off animation). Randomness in the kit goes through
+  `Random.number`, not
   `Math.random`, called inside a handler so mod context holds (bugs #19).
   A device spec marks its users' `.log` files for conversion with
   `DeviceSpec.userLogDay` (a story day); `components/topology` turns their
@@ -232,9 +231,11 @@ src/
   helpers/     — `logger.ts` (`trace`) and `network.ts` (mission network
                  reset/exist checks, used by `components/topology.ts` and
                  the not-yet-migrated missions).
-  debug/       — prototypes and live-test tooling (msf-lab, rival-hacker
-                 lab, quiet-start); every registration is gated on
-                 `isDebug` through `debug/debug-gate.ts`.
+  debug/       — live-test tooling (`msf-lab`, the `msflab` sandbox
+                 command); every registration and trace is gated on
+                 `isDebug` through `debug/debug-gate.ts`. The M4 lab
+                 prototypes (rival-hacker lab, quiet-start) were removed on
+                 2026-10-03 and live on in git history.
   index.ts     — production bootstrap: which missions are actually active
                  (import list is the single source of truth, same
                  convention as entity-resolution-mods).
@@ -280,49 +281,79 @@ key, so the flat structure holds.
 ## Applications: BACKTRACE
 
 `src/applications/` holds the mod's one desktop App, BACKTRACE (GHOSTWIRE's
-case file), as five flat files:
+case file), as six flat files:
 
 - `backtrace.ts` — the `@RegisterApp` class (`AppName = "backtrace"`,
-  `Unlocked = true`, an AppStore `Store` listing) that imports the HTML.
-- `backtrace.html` — the whole UI in one file. It reads mission state
-  through `HackhubSDK.SaveStorage`, polls it every 2 s, and drives the
-  sidebar statuses, the M1/M2/M3 report views (Summary, Key Findings,
-  Entities, Evidence, Personal Log) and the CASEBOARD, whose nodes and
-  connections appear as their keys are traced. While a mission is open its
-  card shows only the "TRACED SO FAR // x OF N" panel: one row (title +
-  value) per key, no descriptions. No story fact is hardcoded in it:
-  everything is bound to a mission's `facts`. Outside the game (`file:`
-  protocol, no SDK) it falls back to an M1+M2+M3-complete preview with
-  sample facts.
+  `Unlocked = true`, an AppStore `Store` listing, `Icon` from
+  `public/assets/global/backtrace-icon.png`) that imports the HTML and
+  injects the font CSS at its `<style data-slot="fonts">` slot.
+- `backtrace.html` — the whole UI in one file (the v3 "forensic
+  oscilloscope" look, redesigned 2026-10-03). It reads mission state
+  through `HackhubSDK.SaveStorage`, polls it every 2 s, and drives:
+  - a header with a heartbeat scope (one beat per completed mission, the
+    mission in progress as a blinking amber beat, a flat line to the right
+    edge once all seven are complete), the TRACED / EVIDENCE / ENTITIES
+    counters and the operator;
+  - a sidebar of spine nodes (The story, M1-M7, and the Caseboard dock). The
+    amber animated node starts at The story until the HackHub Post claim,
+    then follows the mission in progress;
+  - the report views of M1-M7. The head stays fixed, Key findings scroll in a
+    hidden-scrollbar column with fades, and Evidence, Entities and the
+    Personal log are compact cards that open a detail sheet. The "Completed"
+    date is a fixed story day (`STORY_DATES`), not the in-game clock;
+  - the CASEBOARD, whose nodes and connections appear as keys are traced.
+    While a mission is open its card shows only the "TRACED SO FAR // x OF
+    N" panel: one row (title + value) per key, no descriptions;
+  - a closing page, "Signing off", that appears in the sidebar only once M7
+    is complete and carries the author's thank-you letter, a "SIGNED OFF"
+    stamp and the font credit. The finish node of the spine sits on it.
+
+  No story fact is hardcoded in it: everything is bound to a mission's
+  `facts`. With no SDK (opened as a plain file) every mission reads as
+  locked; there is no sample-data fallback.
+- `backtrace-fonts.ts` — `BACKTRACE_FONT_CSS`, the Big Shoulders Display
+  faces (Latin, 700, 800, 900) as base64 `@font-face` rules. Licence and
+  source: `docs/font-licenses.md`.
 - `backtrace-state.ts` — `setBacktraceMission(mission, status)`,
   `traceBacktraceFinding(mission, key)` (typed: a key that is not in
   `BACKTRACE_KEYS[mission]` does not compile) and its untyped sibling
-  `traceBacktraceKeyById` (debug command only), and
-  `appendBacktraceLogs(mission, texts)`, the only writers of the state, plus
-  its types. All are fail-safe: an error is logged with `trace()` and never
-  reaches the quest that called them.
+  `traceBacktraceKeyById` (dev command only),
+  `appendBacktraceLogs(mission, texts)` and `setBacktraceApplied(applied)`,
+  the only writers of the state, plus its types. All are fail-safe: an
+  error is logged with `trace()` and never reaches the quest that called
+  them.
 - `backtrace-facts.ts` — `BACKTRACE_KEYS` (the ordered key list per mission),
   `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
   BACKTRACE reads mission canon (`content/m01/`, `content/m02/`,
   `content/m03/`, `content/global/finance.ts` and the per-save winning M1 listing
   from `content/m01/listing-pool.ts`). This is the one deliberate
   `applications/` → `content/` import; nothing in `content/` imports back.
-- `backtrace-debug.ts` — the `scratchbt` debug command (moved out of
+- `backtrace-debug.ts` — the `scratchbt` dev command (moved out of
   `src/debug/scratch.ts` on 2026-09-29 since it is ongoing BACKTRACE tooling,
   not a throwaway scratch experiment): inspects/sets a mission's status and
   traces one key at a time against the same `backtrace-state.ts` writers a
   quest uses, so a save's BACKTRACE state can be driven by hand without
-  replaying a mission.
+  replaying a mission. `scratchbt applied [on|off]` sets the HackHub Post
+  claim flag. It covers m1-m7 and registers only while `isDev`,
+  through its own private `registerDevCommand`: `applications/` never imports
+  from `debug/`.
 
 State is one `SaveStorage` key, `backtrace`:
 
 ```text
-{ m1..m7: { status: "locked" | "progress" | "complete", completedAt?: <in-game ms>, facts?: { <key>: <string> }, logs?: <string>[] } }
+{ m1..m7: { status: "locked" | "progress" | "complete", facts?: { <key>: <string> }, logs?: <string>[] },
+  story?: { applied: boolean } }
 ```
 
-Each `main/mNN.ts` writes the status from `OnStart` (`progress`),
-`OnComplete` (`complete`, stamped with `Time.now()`) and `OnAbandon`
-(`locked`). `facts` grow in two ways, and only one of them is per action. A
+Each mission's controller writes the status from `OnStart` (`progress`),
+`OnComplete` (`complete`) and `OnAbandon` (`locked`). M1 is the exception at
+the start: its `OnStart` is the HackHub Post claim, which is the start of the
+story and not yet M1, so it writes `story.applied = true` through
+`setBacktraceApplied(true)` and leaves M1 `locked`. M1 turns `progress` on
+its first traced finding or log, and its `OnAbandon` clears the flag again.
+The app treats the story as applied when `story.applied` is true or any
+mission is not `locked`, so saves written before the flag existed still
+read correctly. `facts` grow in two ways, and only one of them is per action. A
 checkpoint inside a quest calls `traceBacktraceFinding(mission, key)` the
 moment the player provably sees or uses the value (idempotent; a `locked`
 mission becomes `progress`) — **one call per action, one key per call**.
@@ -332,7 +363,7 @@ as the M1 listing resolution, so a finished report always has every value.
 Every mission carries keys and a report card as of 2026-10-02; nothing shows
 "REPORT PENDING" any more. An App iframe can read
 `SaveStorage` — unlike a `Website`'s `metadata()` (`docs/bugs.md` #20) —
-confirmed in-game with the `scratchbt` debug command (`src/applications/backtrace-debug.ts`):
+confirmed in-game with the `scratchbt` dev command (`src/applications/backtrace-debug.ts`):
 `scratchbt <mission> <status>` sets the state (facts included on `complete`)
 and cascades the next mission like the real `AutoStart` chain, `scratchbt
 <mission> keys` lists the keys and `scratchbt <mission> <key>` traces one.
@@ -470,7 +501,7 @@ move into per-mission subfolders; the `src/` restructure is in progress
 src/index.ts
   imports (side-effect registration, decorator-driven):
     main/index.js     (-> global.js, m01.js .. m04.js)
-    debug/index.js    (-> msf-lab, quiet-start, rival-hacker-lab)
+    debug/index.js    (-> msf-lab)
   ↓
   @RegisterModPackage class extends Bootstrap
     OnModPackageLoaded()   -> logs that the package loaded

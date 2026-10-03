@@ -27,6 +27,51 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-03
 
+- **[milestone] BACKTRACE v3 redesign installed.** `src/applications/backtrace.html` was rebuilt as a "forensic
+  oscilloscope" in a void-black and red signal palette: a header with a heartbeat scope and TRACED / EVIDENCE /
+  ENTITIES counters, a sidebar spine whose amber node follows the mission in progress, report views with a fixed
+  head, a scrolling Key findings column and compact Evidence / Entities / Personal log cards that open a detail
+  sheet, glitching titles, and a Folder-trail app icon (`public/assets/global/backtrace-icon.*`). Big Shoulders
+  Display ships as base64 faces in the new `src/applications/backtrace-fonts.ts`. Dates in the reports are fixed story
+  days (`STORY_DATES`), never the in-game clock, so `completedAt` and its `Time.now()` stamp left
+  `backtrace-state.ts`. The pre-redesign copy was `src/applications/backtrace.original.html` (equal to `HEAD`) and was
+  deleted. See `docs/architecture.md` (Applications: BACKTRACE). Never run in the game yet.
+- **[mechanic] BACKTRACE gets a closing page, "Signing off".** After M7 is complete a last sidebar item appears with the
+  author's thank-you letter (it names Flatline Protocol), a "SIGNED OFF" stamp and the font credit; the spine's finish
+  node moves onto it. Hidden until M7 is complete, no new state. See `docs/architecture.md`.
+- **[mechanic] The HackHub Post claim is no longer M1.** The claim is the start of the story, so `onStartM01` now writes
+  `story.applied` (`setBacktraceApplied`) instead of setting M1 to `progress`; M1 turns `progress` on its first traced
+  finding or log, and abandoning M1 clears the flag. Until the claim the amber node sits on "The story"; after it the
+  trail reaches M1 and waits. Saves from before the flag still read as applied when any mission is not `locked`.
+  `scratchbt applied [on|off]` drives it by hand. `tsc` clean. See `docs/architecture.md`.
+- **[docs] `docs/font-licenses.md` added** with the source, cut and full SIL OFL 1.1 text for Big Shoulders Display.
+  `docs/world-building/13-story-timeline.md` §F.3 (the stale `completedAt` sample date) is marked done.
+- **[docs] The mod cover follows the asset layout.** `cover.png` had moved to `public/cover.png` while `manifest.json`
+  still said `"cover": "cover.png"`. It now lives in `public/assets/global/cover.png` and the manifest reads
+  `"cover": "assets/global/cover.png"`; the SDK build copies `public/` into `dist/`, so the path resolves from the mod
+  root. Not built and not seen in the mod list yet: the engine code that loads the cover was not found in the
+  extracted client, so check the mod list after the next build.
+- **[bug] The travelling blip under the amber sidebar node was covered by the next item's dashed line.** The blip is
+  drawn in its own item's spine SVG and overflows into the item below, whose spine paints later in the DOM and
+  overdrew it. Spines that carry a blip now get `.has-blip` (`z-index: 1`) through the new `setSpine` helper in
+  `backtrace.html`. Seen in the owner's screenshot on The story to M1; checked on frozen frames for The story to M1 and
+  M3 to M4.
+- **[bug] The three Twotter banners pointed at `assets/global/` while the files live in `public/assets/m01/`.**
+  `src/content/m01/assets.ts` now references `./assets/m01/twotter-*-banner.png`, next to the avatars.
+- **[bug] `msflab` printed a load trace outside debug mode.** `src/debug/msf-lab.ts` traced `loaded ...` at
+  module level, so every mod load wrote `[FP][MSFLAB] loaded ... debug=false` to the game console (one line per
+  load in `hackhub-2026-10-03.log`, and none of the gated listener lines). The trace now sits inside
+  `if (isDebug)`. See `docs/architecture.md` (debug/).
+- **[refactor] `src/debug/` cut down to its core.** Removed `rival-hacker-lab`, `rival-breach`, `rival-banner`
+  (+ `.html`), `quiet-start` and `css-inject` at the owner's request: the generic parts of the rival lab already
+  live in `components/` and `controller/m04`, `components/` has its own `css-inject`, and `quiet-start` was a dev
+  convenience. Nothing outside `debug/` imported them. Kept: `index.ts`, `debug-gate.ts`, `msf-lab.ts`. They stay
+  in git history (last present at `3a7474c`); `registerDebugQuest` in `debug-gate.ts` has no caller now. `tsc`
+  clean.
+- **[mechanic] `scratchbt` covers m1-m7 and is a dev command.** `src/applications/backtrace-debug.ts` accepted
+  only m1-m4 although the state, the facts and the report views go to m7. It now takes every mission and
+  registers only while `isDev`, through its own private `registerDevCommand` (not `isDebug`, which is off in normal
+  dev runs, and with no import from `debug/`). See `docs/architecture.md` (Applications: BACKTRACE). `tsc` clean.
 - **[refactor] Two layering slips of the M4 work fixed.** `content/m04/server-files.ts` no longer imports
   `components/log-file`: a device spec now carries `userLogDay` and `components/topology` converts its users'
   `.log` files when it builds the network, while the controller converts `firewall.log`. `playFlatline` takes

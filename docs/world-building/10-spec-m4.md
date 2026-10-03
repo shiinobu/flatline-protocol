@@ -16,7 +16,7 @@ uang sama dengan M4 lama (`M04_REWARDS`: 800 uang), dapat disesuaikan. XP dilewa
 
 ## B. Kit rival-hacker: dipakai dan diubah
 
-Sumber: `src/debug/rival-hacker-lab.ts`, `rival-breach.ts`, `rival-banner.ts` dan `.html`.
+Sumber: `src/debug/rival-hacker-lab.ts`, `rival-breach.ts`, `rival-banner.ts` dan `.html` (dihapus 2026-10-03, ada di git history).
 
 | Bagian kit | Nasib di M4 |
 |---|---|
