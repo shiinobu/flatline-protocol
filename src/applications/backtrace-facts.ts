@@ -167,6 +167,7 @@ const buildM4Facts = (): BacktraceFacts => ({
 const buildM5Facts = (): BacktraceFacts => ({
     dismissed: `${GRETA_FULL_NAME} removed from the staff list`,
     greta: `${GRETA_FULL_NAME}, Systems Administrator`,
+    gretaName: GRETA_FULL_NAME,
     archive: `${M05_COLD_CHART_CODENAME} opened with her own credential`,
     statement: `acknowledgement signed ${M05_ACK_DATE}`,
     decisionMemo: `paid ${M05_PAID_AT} UTC, classified employee negligence`,
@@ -185,6 +186,7 @@ const buildM6Facts = (): BacktraceFacts => ({
     insurer: `${M07_INSURER_NAME}. ${VIVIEN_ORCHID_FULL_NAME}, Head of Cyber Risk ${M06_ORCHID_PERIOD}`,
     infra: `${M06_SKN_VPN_HOST} shares a certificate with ${M06_INSURER_PORTAL_HOST}`,
     architect: `${M07_ARCHITECT_REAL_NAME}, Chairman Risk Committee, ${M07_INSURER_NAME} (${M06_ARCHITECT_CHAIR_PERIOD})`,
+    architectName: M07_ARCHITECT_REAL_NAME,
     front: `${M06_VOSS_NAME}, ${M06_VOSS_APPOINTMENTS} appointments on record`,
     registrant: M04_WHOIS_REGISTRANT,
     peerGateway: M04_ARCHITECT_VPN_IP,

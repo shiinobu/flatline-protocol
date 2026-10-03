@@ -4,11 +4,14 @@ import {
     SaveStorage,
     type CommandAutoComplete,
     type CommandTools,
+    type RegisterCommandOptions,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { isDev } from "../guard/flags.js";
 import { BACKTRACE_KEYS, buildBacktraceFacts, isBacktraceKey } from "./backtrace-facts.js";
 import {
     BACKTRACE_STORAGE_KEY,
+    setBacktraceApplied,
     setBacktraceMission,
     traceBacktraceKeyById,
     type BacktraceMissionId,
@@ -17,8 +20,16 @@ import {
     type BacktraceState,
 } from "./backtrace-state.js";
 
-const BACKTRACE_MISSION_IDS: readonly BacktraceMissionId[] = ["m1", "m2", "m3", "m4"];
+type CommandRegistrar = ReturnType<typeof RegisterCommand>;
+
+const BACKTRACE_MISSION_IDS: readonly BacktraceMissionId[] = ["m1", "m2", "m3", "m4", "m5", "m6", "m7"];
 const BACKTRACE_STATUSES: readonly BacktraceMissionStatus[] = ["locked", "progress", "complete"];
+const MISSION_CHOICES = BACKTRACE_MISSION_IDS.join("|");
+
+const registerDevCommand =
+    (options: RegisterCommandOptions): CommandRegistrar =>
+    (target) =>
+        isDev ? RegisterCommand(options)(target) : target;
 
 const isBacktraceMission = (value: string | undefined): value is BacktraceMissionId =>
     BACKTRACE_MISSION_IDS.some((id) => id === value);
@@ -37,13 +48,13 @@ const nextBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionId |
 
 const keysOf = (mission: BacktraceMissionId): readonly string[] => BACKTRACE_KEYS[mission];
 
-@RegisterCommand({ default: true, scope: "both" })
+@registerDevCommand({ default: true, scope: "both" })
 export class ScratchBacktraceCommand extends Command {
     CommandName = "scratchbt";
     Description = "scratch: set, inspect or reset the BACKTRACE mission state, or trace a single clue";
     Autocomplete: CommandAutoComplete[] = [
         { label: "scratchbt", type: "STRING" },
-        { label: "<m1|m2|m3|m4|reset> <locked|progress|complete|keys|key>", type: "STRING" },
+        { label: `<${MISSION_CHOICES}|applied|reset> <locked|progress|complete|keys|key|on|off>`, type: "STRING" },
     ];
 
     private listKeys(tools: CommandTools, mission: BacktraceMissionId): void {
@@ -83,6 +94,13 @@ export class ScratchBacktraceCommand extends Command {
             return;
         }
 
+        if (first === "applied") {
+            const applied = second !== "off";
+            setBacktraceApplied(applied);
+            tools.printSuccess(`story applied -> ${applied}`);
+            return;
+        }
+
         if (isBacktraceMission(first) && second === "keys") {
             this.listKeys(tools, first);
             return;
@@ -94,7 +112,7 @@ export class ScratchBacktraceCommand extends Command {
         }
 
         if (!isBacktraceMission(first) || !isBacktraceStatus(second)) {
-            tools.printError("Usage: scratchbt [<m1|m2|m3|m4> <locked|progress|complete|keys|key> | reset]");
+            tools.printError(`Usage: scratchbt [<${MISSION_CHOICES}> <locked|progress|complete|keys|key> | applied [on|off] | reset]`);
             return;
         }
 

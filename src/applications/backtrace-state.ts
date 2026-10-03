@@ -1,4 +1,4 @@
-import { SaveStorage, Time, UI } from "@hotbunny/hackhub-content-sdk";
+import { SaveStorage, UI } from "@hotbunny/hackhub-content-sdk";
 
 import { trace } from "../helpers/logger.js";
 import { buildBacktraceFacts, isBacktraceKey, type BacktraceKey } from "./backtrace-facts.js";
@@ -11,12 +11,17 @@ export type BacktraceFacts = Readonly<Record<string, string>>;
 
 export interface BacktraceMissionState {
     readonly status: BacktraceMissionStatus;
-    readonly completedAt?: number;
     readonly facts?: BacktraceFacts;
     readonly logs?: readonly string[];
 }
 
-export type BacktraceState = Readonly<Record<BacktraceMissionId, BacktraceMissionState>>;
+export interface BacktraceStoryState {
+    readonly applied: boolean;
+}
+
+export type BacktraceState = Readonly<Record<BacktraceMissionId, BacktraceMissionState>> & {
+    readonly story?: BacktraceStoryState;
+};
 
 const INITIAL_STATE: BacktraceState = {
     m1: { status: "locked" },
@@ -38,6 +43,9 @@ const readBacktraceState = (): BacktraceState => ({
 const writeBacktraceMission = (mission: BacktraceMissionId, missionState: BacktraceMissionState): void =>
     SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), [mission]: missionState });
 
+const writeBacktraceStory = (story: BacktraceStoryState): void =>
+    SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), story });
+
 const collectFacts = (mission: BacktraceMissionId): BacktraceFacts | undefined => {
     try {
         return buildBacktraceFacts(mission);
@@ -52,9 +60,7 @@ const buildMissionState = (
     status: BacktraceMissionStatus,
     current: BacktraceMissionState,
 ): BacktraceMissionState =>
-    status === "complete"
-        ? { status, completedAt: Time.now(), facts: collectFacts(mission), logs: current.logs }
-        : { status };
+    status === "complete" ? { status, facts: collectFacts(mission), logs: current.logs } : { status };
 
 const applyMission = (mission: BacktraceMissionId, status: BacktraceMissionStatus): void => {
     const current = readBacktraceState()[mission];
@@ -97,6 +103,15 @@ export const setBacktraceMission = (mission: BacktraceMissionId, status: Backtra
         applyMission(mission, status);
     } catch (error: unknown) {
         trace("Backtrace", `${mission} -> ${status} failed`, describeError(error));
+    }
+};
+
+export const setBacktraceApplied = (applied: boolean): void => {
+    try {
+        writeBacktraceStory({ applied });
+        trace("Backtrace", `story applied -> ${applied}`);
+    } catch (error: unknown) {
+        trace("Backtrace", `story applied -> ${applied} failed`, describeError(error));
     }
 };
 
