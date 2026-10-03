@@ -22,7 +22,10 @@ export interface IntrusionRepelledPayload {
 
 const cutHost = async (tools: CommandTools, payload: IntrusionRepelledPayload): Promise<void> => {
     try {
-        await playFlatline(tools, payload.ip);
+        await playFlatline(tools, {
+            locking: Localization.t(KIT_I18N_KEY.FLATLINE_LOCKING, { ip: payload.ip }),
+            beacon: Localization.t(KIT_I18N_KEY.FLATLINE_BEACON),
+        });
         tools.printSuccess(Localization.t(KIT_I18N_KEY.REPEL_SEVERED, { ip: payload.ip }));
     } finally {
         Events.emit(INTRUSION_REPELLED_EVENT, payload);

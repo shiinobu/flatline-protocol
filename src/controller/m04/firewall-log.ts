@@ -2,6 +2,8 @@ import { Files } from "@hotbunny/hackhub-content-sdk";
 
 import { removeKernelFile } from "../../components/kernel-files.js";
 import type { KernelFile } from "../../components/kernel-layout.js";
+import { asLogData, parseLog } from "../../components/log-file.js";
+import { M04_STORY_DAY } from "../../content/m04/quest.js";
 import {
     M04_FIREWALL_LOG_CONTENT,
     M04_FIREWALL_LOG_FILE_EXTENSION,
@@ -26,7 +28,7 @@ export const seedFirewallLog = async (): Promise<void> => {
         {
             name: M04_FIREWALL_LOG_FILE_NAME,
             extension: M04_FIREWALL_LOG_FILE_EXTENSION,
-            data: M04_FIREWALL_LOG_CONTENT(),
+            data: asLogData(parseLog(M04_FIREWALL_LOG_CONTENT(), M04_STORY_DAY)),
         },
     ];
 

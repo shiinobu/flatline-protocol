@@ -1,7 +1,11 @@
-import { Localization, type CommandTools, type PrintColor } from "@hotbunny/hackhub-content-sdk";
+import type { CommandTools, PrintColor } from "@hotbunny/hackhub-content-sdk";
 
-import { KIT_I18N_KEY } from "../i18n/global/kit.js";
 import { readCalm } from "./desktop-glitch.js";
+
+export interface FlatlineLabels {
+    readonly locking: string;
+    readonly beacon: string;
+}
 
 interface PulseFrame {
     readonly scale: number;
@@ -24,16 +28,18 @@ const PULSE_FRAMES: readonly PulseFrame[] = [
 const pulseOf = (scale: number): string =>
     PULSE_SHAPE.map((height) => PULSE_GLYPHS.charAt(Math.round(height * scale))).join("");
 
-export const playFlatline = async (tools: CommandTools, ip: string): Promise<void> => {
+export const playFlatline = async (tools: CommandTools, labels: FlatlineLabels): Promise<void> => {
     const calm = readCalm();
     const pause = (ms: number): Promise<void> => (calm ? Promise.resolve() : tools.sleep(ms));
-    const label = Localization.t(KIT_I18N_KEY.FLATLINE_BEACON);
 
-    tools.println({ text: Localization.t(KIT_I18N_KEY.FLATLINE_LOCKING, { ip }), dim: true });
+    tools.println({ text: labels.locking, dim: true });
     await pause(LEAD_MS);
 
     for (const frame of PULSE_FRAMES) {
-        tools.println([{ text: `  ${label}  `, dim: true }, { text: pulseOf(frame.scale), color: frame.color, bold: true }]);
+        tools.println([
+            { text: `  ${labels.beacon}  `, dim: true },
+            { text: pulseOf(frame.scale), color: frame.color, bold: true },
+        ]);
         await pause(frame.holdMs);
     }
 };

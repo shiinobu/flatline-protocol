@@ -49,6 +49,7 @@ import {
     M04_STATIC_HOP_PASSWORD,
     M04_STATIC_HOP_USERNAME,
 } from "./network.js";
+import { M04_STORY_DAY } from "./quest.js";
 
 const sshPort = (active: boolean): NonNullable<DeviceSpec["ports"]> => [
     { external: M04_SSH_PORT, internal: M04_SSH_PORT, active, service: "ssh" },
@@ -66,6 +67,7 @@ const buildRelayRouter = (): RouterSpec => ({
             ip: M04_STATIC_HOP_IP,
             lanIp: M04_STATIC_HOP_LAN_IP,
             name: M04_STATIC_HOP_CODENAME,
+            userLogDay: M04_STORY_DAY,
             users: [
                 {
                     username: M04_STATIC_HOP_USERNAME,

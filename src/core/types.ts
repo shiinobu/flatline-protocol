@@ -10,6 +10,8 @@ import type {
     TwotterTweetInteraction,
 } from "@hotbunny/hackhub-content-sdk";
 
+import type { LogDay } from "../components/log-file.js";
+
 export type DeviceKind = "router" | "device" | "firewall" | "splitter" | "printer";
 
 export interface DeviceSpec {
@@ -19,6 +21,7 @@ export interface DeviceSpec {
     name?: string;
     isIpHidden?: boolean;
     users: Partial<NetworkUser>[];
+    userLogDay?: LogDay;
     ports?: NetworkPort[];
     rules?: FirewallRule[];
     rootFiles?: NetworkFileMap[];

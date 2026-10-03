@@ -1,6 +1,5 @@
 import { Localization } from "@hotbunny/hackhub-content-sdk";
 
-import { asLogData, parseLog } from "../../components/log-file.js";
 import { M04_I18N_KEY } from "../../i18n/m04/core.js";
 import { FINANCE_ANALYST_HANDLE } from "../global/characters.js";
 import {
@@ -13,7 +12,6 @@ import {
     M04_QUIET_MIRROR_PASSWORD,
     M04_QUIET_MIRROR_USERNAME,
 } from "./network.js";
-import { M04_STORY_DAY } from "./quest.js";
 
 export const M04_FIREWALL_LOG_FOLDER = "logs";
 export const M04_FIREWALL_LOG_FILE_NAME = "firewall";
@@ -23,17 +21,12 @@ export const M04_SCANNER_A_IP = "45.138.157.22";
 export const M04_SCANNER_B_IP = "109.205.213.78";
 
 export const M04_FIREWALL_LOG_CONTENT = (): string =>
-    asLogData(
-        parseLog(
-            Localization.t(M04_I18N_KEY.DEVICE_FIREWALL_LOG, {
-                scannerA: M04_SCANNER_A_IP,
-                scannerB: M04_SCANNER_B_IP,
-                intruder: M04_INTRUDER_IP,
-                interval: M04_BEACON_INTERVAL_SECONDS,
-            }),
-            M04_STORY_DAY,
-        ),
-    );
+    Localization.t(M04_I18N_KEY.DEVICE_FIREWALL_LOG, {
+        scannerA: M04_SCANNER_A_IP,
+        scannerB: M04_SCANNER_B_IP,
+        intruder: M04_INTRUDER_IP,
+        interval: M04_BEACON_INTERVAL_SECONDS,
+    });
 
 export const M04_AUTH_LOG_FILE_NAME = "auth";
 export const M04_AUTH_LOG_FILE_EXTENSION = "log";
@@ -51,16 +44,11 @@ export const M04_MOTH_README_FILE_NAME = "README";
 export const M04_MOTH_README_FILE_EXTENSION = "txt";
 
 export const M04_AUTH_LOG_CONTENT = (): string =>
-    asLogData(
-        parseLog(
-            Localization.t(M04_I18N_KEY.DEVICE_AUTH_LOG, {
-                quietMirror: M04_QUIET_MIRROR_IP,
-                paperMoth: M04_PAPER_MOTH_IP,
-                tag: M04_HUNTER_TAG,
-            }),
-            M04_STORY_DAY,
-        ),
-    );
+    Localization.t(M04_I18N_KEY.DEVICE_AUTH_LOG, {
+        quietMirror: M04_QUIET_MIRROR_IP,
+        paperMoth: M04_PAPER_MOTH_IP,
+        tag: M04_HUNTER_TAG,
+    });
 
 export const M04_WATCHDOG_CONF_CONTENT = (): string =>
     Localization.t(M04_I18N_KEY.DEVICE_WATCHDOG_CONF, {
