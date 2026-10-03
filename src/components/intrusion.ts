@@ -6,7 +6,9 @@ import {
     resolveIncidentBanner,
     showIncidentBanner,
     type IncidentOutcome,
+    type IncidentVariant,
 } from "./incident-banner.js";
+import { sendReplacingMail } from "./mail.js";
 
 export type IntrusionMail = MailDefinition;
 
@@ -14,10 +16,10 @@ export interface IntrusionBannerText {
     readonly label: string;
     readonly criticalLabel: string;
     readonly detail: string;
-    readonly severedLabel: string;
-    readonly severedDetail: string;
-    readonly breachedLabel: string;
-    readonly breachedDetail: string;
+    readonly severedLabel?: string;
+    readonly severedDetail?: string;
+    readonly breachedLabel?: string;
+    readonly breachedDetail?: string;
 }
 
 export interface StrikeSpec {
@@ -28,9 +30,16 @@ export interface StrikeSpec {
     readonly alias: string;
     readonly deadlineRealMs: number;
     readonly repellable?: boolean;
+    readonly handoff?: boolean;
+    readonly noticeKey?: string;
+    readonly bannerVariant?: IncidentVariant;
+    readonly bannerClockEnd?: string;
     readonly banner: IntrusionBannerText;
     readonly mail?: IntrusionMail;
+    readonly mailSlot?: string;
     readonly toast?: string;
+    readonly breachedHoldRealMs?: number;
+    readonly severedHoldRealMs?: number;
 }
 
 interface ActiveStrike {
@@ -40,6 +49,8 @@ interface ActiveStrike {
     readonly ip: string;
     readonly alias: string;
     readonly repellable: boolean;
+    readonly handoff?: boolean;
+    readonly noticeKey?: string;
 }
 
 export interface IntrusionHandlers {
@@ -55,10 +66,13 @@ export interface RepelTarget {
     readonly scope: string;
     readonly strikeId: string;
     readonly ip: string;
+    readonly refusalKey?: () => string | null;
 }
 
 const handlers = new Map<string, IntrusionHandlers>();
 const bannerTexts = new Map<string, IntrusionBannerText>();
+const breachedHolds = new Map<string, number | undefined>();
+const severedHolds = new Map<string, number | undefined>();
 const repelTargets = new Map<string, RepelTarget>();
 
 export const registerIntrusionHandlers = (prefix: string, next: IntrusionHandlers): void => {
@@ -99,10 +113,14 @@ export const beginStrike = (spec: StrikeSpec): void => {
         ip: spec.ip,
         alias: spec.alias,
         repellable: spec.repellable ?? true,
+        handoff: spec.handoff ?? false,
+        noticeKey: spec.noticeKey,
     };
     SaveStorage.set(activeKey(spec.prefix), strike);
     SaveStorage.set(ACTIVE_PREFIX_KEY, spec.prefix);
     bannerTexts.set(spec.prefix, spec.banner);
+    breachedHolds.set(spec.prefix, spec.breachedHoldRealMs);
+    severedHolds.set(spec.prefix, spec.severedHoldRealMs);
 
     Scheduler.cancelKind(DEADLINE_JOB);
     Scheduler.schedule(DEADLINE_JOB, { prefix: spec.prefix, ip: spec.ip }, { realMs: spec.deadlineRealMs });
@@ -114,12 +132,26 @@ export const beginStrike = (spec: StrikeSpec): void => {
         label: spec.banner.label,
         criticalLabel: spec.banner.criticalLabel,
         detail: spec.banner.detail,
+        variant: spec.bannerVariant,
+        clockEnd: spec.bannerClockEnd,
     });
 
-    if (spec.mail !== undefined) Mail.send(spec.mail);
+    if (spec.mail !== undefined) {
+        if (spec.mailSlot !== undefined) sendReplacingMail(spec.mailSlot, spec.mail);
+        else Mail.send(spec.mail);
+    }
     if (spec.toast !== undefined) UI.toast(spec.toast, "warning");
 
     trace(spec.scope, `strike ${spec.strikeId} started ip=${spec.ip} deadlineMs=${spec.deadlineRealMs}`);
+};
+
+const resolutionOf = (
+    text: IntrusionBannerText,
+    outcome: IncidentOutcome,
+): { readonly label: string; readonly detail: string } | null => {
+    const label = outcome === "severed" ? text.severedLabel : text.breachedLabel;
+    const detail = outcome === "severed" ? text.severedDetail : text.breachedDetail;
+    return label === undefined || detail === undefined ? null : { label, detail };
 };
 
 const finishStrike = (prefix: string, outcome: IncidentOutcome): ActiveStrike | null => {
@@ -130,7 +162,10 @@ const finishStrike = (prefix: string, outcome: IncidentOutcome): ActiveStrike | 
     Scheduler.cancelKind(DEADLINE_JOB);
     clearActiveStrike(prefix);
 
-    if (text === undefined) {
+    if (outcome === "breached" && strike.handoff === true) return strike;
+
+    const resolution = text === undefined ? null : resolutionOf(text, outcome);
+    if (resolution === null) {
         dismissIncidentBanner();
         return strike;
     }
@@ -138,8 +173,9 @@ const finishStrike = (prefix: string, outcome: IncidentOutcome): ActiveStrike | 
     resolveIncidentBanner({
         scope: strike.scope,
         outcome,
-        label: outcome === "severed" ? text.severedLabel : text.breachedLabel,
-        detail: outcome === "severed" ? text.severedDetail : text.breachedDetail,
+        label: resolution.label,
+        detail: resolution.detail,
+        holdRealMs: outcome === "breached" ? breachedHolds.get(prefix) : severedHolds.get(prefix),
     });
     return strike;
 };

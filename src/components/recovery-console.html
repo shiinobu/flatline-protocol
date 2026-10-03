@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FLATLINE_RECOVERY_CONSOLE</title>
+<style>
+:root {
+    --void: #000;
+    --ink: #b9b9b9;
+    --dim: #6b6f76;
+    --bright: #f4f4f4;
+    --ok: #35d07f;
+    --fail: #ff3b4e;
+    --warn: #ff9f1c;
+    --module: #e8505b;
+    --link: #59d0ff;
+    --hot: #ff5c6c;
+    --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--mono);
+    overflow: hidden;
+}
+#boot {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    padding: 18px 22px;
+    background: #000;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+}
+#boot[hidden], #recovery[hidden] { display: none; }
+#boot .grub { margin: 0; font: inherit; white-space: pre; color: #c8c8c8; }
+#boot .sel { background: #b9b9b9; color: #000; }
+#boot .tag { color: var(--bright); }
+#boot .ok { color: var(--ok); }
+#boot .fail { color: var(--fail); }
+#boot .dep { color: var(--warn); }
+#boot .ts { color: var(--dim); }
+#rIn { caret-color: var(--hot); }
+
+#recovery {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(ellipse 90% 55% at 50% 0%, rgba(255, 40, 60, 0.17), transparent 72%), #000;
+}
+#recovery::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
+}
+#rTop {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 24px;
+    flex: 0 0 auto;
+    padding: 14px 18px 10px;
+}
+#rBrand { width: fit-content; max-width: 100%; }
+#rInfo, #rBanner { min-width: 0; font-size: 12.5px; line-height: 1.35; white-space: pre; }
+#rBanner { flex: 1 1 auto; align-self: center; display: flex; justify-content: center; }
+#rBanner .tips { width: fit-content; }
+#rTerm {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin: 0 22px 14px;
+    border: 1px solid #3a0f16;
+    background: rgba(10, 3, 5, 0.86);
+    box-shadow: inset 0 0 24px rgba(255, 40, 60, 0.05);
+}
+#rTermBar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--ink);
+    background: #12060a;
+    border-bottom: 1px solid #2a0b10;
+}
+#rTermBar svg { display: block; width: 14px; height: 14px; }
+#rScroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px 14px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+#rScroll::-webkit-scrollbar { display: none; }
+#rOut { white-space: pre-wrap; word-break: break-word; }
+#rOut .box { line-height: 1.3; }
+#rLine { font-size: 14px; }
+#rLine[hidden] { display: none; }
+#rHead { display: flex; align-items: baseline; gap: 2ch; min-width: 0; }
+#rPrompt { display: block; flex: 0 0 auto; white-space: pre; }
+#rHint { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: pre; }
+#rHintRow { flex: 0 1 auto; max-width: 50%; overflow: hidden; white-space: pre; }
+#rRow { display: flex; align-items: center; gap: 8px; }
+#rIn {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--bright);
+    font: inherit;
+}
+#rBar {
+    display: flex;
+    align-items: stretch;
+    height: 28px;
+    font-size: 12px;
+    background: #0e0e10;
+    border-top: 1px solid #222226;
+}
+.seg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    color: #8d9096;
+    border-right: 1px solid #1d1d21;
+    white-space: nowrap;
+}
+.seg.mode { background: var(--fail); color: #000; font-weight: 700; border-right: 0; }
+.seg.mode::before { content: ""; width: 7px; height: 7px; background: #000; animation: blink 1.2s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0.15; } }
+body.calm .seg.mode::before { animation: none; }
+.seg.grow { flex: 1; border-right: 0; }
+.seg.end { color: var(--dim); }
+.seg .good { color: var(--ok); }
+.seg .bad { color: var(--fail); }
+.seg .mid { color: var(--warn); }
+.c-dim { color: var(--dim); }
+.c-ok { color: var(--ok); }
+.c-fail { color: var(--fail); }
+.c-warn { color: var(--warn); }
+.c-bright { color: var(--bright); }
+.c-link { color: var(--link); }
+.c-mod { color: var(--module); }
+.c-red { color: var(--hot); }
+.c-deep { color: #a30c22; }
+.hex { margin-bottom: 6px; font-size: 12px; line-height: 1.35; color: #5c1a24; white-space: pre; overflow: hidden; }
+.logo { margin: 0 0 2px; font: inherit; line-height: 1.02; white-space: pre; text-shadow: 3px 3px 0 #4a0010, 0 0 16px rgba(255, 59, 78, 0.5); font-size: min(12.5px, 1.75vw); }
+.ecgwrap { width: 0; min-width: 100%; margin: 4px 0 2px; overflow: hidden; }
+.ecg { font-size: 18px; line-height: 1; white-space: pre; }
+
+@media (max-height: 640px) {
+    .hex { display: none; }
+}
+@media (max-width: 640px) {
+    #rOut, #rLine, #boot { padding-left: 12px; padding-right: 12px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<div id="boot" hidden></div>
+<div id="recovery" hidden>
+    <div id="rTop">
+        <div id="rBrand"></div>
+        <div id="rInfo"></div>
+        <div id="rBanner"></div>
+    </div>
+    <div id="rTerm">
+        <div id="rTermBar"><span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" fill="none" stroke="#ff5c6c" stroke-width="1.2"></rect><path d="M4 6l2.5 2L4 10" fill="none" stroke="#ff5c6c" stroke-width="1.2"></path><path d="M8 10.5h4" fill="none" stroke="#ff5c6c" stroke-width="1.2"></path></svg></span><span>Terminal</span><span></span></div>
+        <div id="rScroll">
+            <div id="rOut"></div>
+            <div id="rLine">
+                <div id="rHead"><span id="rPrompt"></span><span id="rHint"></span></div>
+                <div id="rRow"><span id="rSigil" class="c-bright"></span><input id="rIn" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="recovery shell input"><span id="rHintRow"></span></div>
+            </div>
+        </div>
+    </div>
+    <div id="rBar">
+        <div class="seg mode">RECOVERY</div>
+        <div class="seg">ghostwire</div>
+        <div class="seg" id="sModule"></div>
+        <div class="seg" id="sConfig"></div>
+        <div class="seg" id="sInit"></div>
+        <div class="seg grow" id="sHint"></div>
+        <div class="seg end">help</div>
+    </div>
+</div>
+<script>
+(function () {
+    var $ = function (selector) { return document.querySelector(selector); };
+    var sleep = function (ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); };
+    var rand = function (low, high) { return low + Math.random() * (high - low); };
+    var sdk = window.HackhubSDK;
+    var Files = sdk ? sdk.Files : null;
+    var Events = sdk ? sdk.Events : null;
+    var Save = sdk ? sdk.SaveStorage : null;
+    var Settings = sdk ? sdk.ModSettings : null;
+
+    var BREACH_KEY = "flatline.desktopBreach";
+    var STAGE_KEY = "flatline.recovery.stage";
+    var STATE_VERSION = 2;
+    var READY_EVENT = "flatline.recovery.ready";
+    var LOG_READ_EVENT = "flatline.recovery.logRead";
+    var FINISHED_EVENT = "flatline.recovery.finished";
+    var HOST = "ghostwire";
+    var USER = "admin";
+    var BUILD_COUNT = 3;
+    var PANEL_WIDTH = 64;
+    var GLYPHS = {
+        R: ["XX ", "X X", "XX ", "X X", "X X"],
+        E: ["XXX", "X  ", "XX ", "X  ", "XXX"],
+        C: ["XXX", "X  ", "X  ", "X  ", "XXX"],
+        O: ["XXX", "X X", "X X", "X X", "XXX"],
+        V: ["X X", "X X", "X X", "X X", " X "],
+        Y: ["X X", "X X", " X ", " X ", " X "]
+    };
+    var ROW_COLORS = ["#ff7a88", "#ff5266", "#ee2d45", "#cc1630", "#a30c22"];
+    var NOISE = "▓▒░█▌▐#%&@01";
+    var ECG = "▁▁▂▃▅█▃▁▁▁▂▄▇▃▁▁▁▁▂▃▂▁▁▁▁";
+    var FSCK_UNIT = "systemd-fsck@dev-mapper-ghostwire\\x2dhome.service - File System Check on /dev/mapper/ghostwire-home";
+    var SYMBOLS = { flfb: "flfb_register", drm_kms_helper: "drm_atomic_helper_commit" };
+
+    var bootEl = $("#boot");
+    var recovery = $("#recovery");
+    var rOut = $("#rOut");
+    var rBrand = $("#rBrand");
+    var rInfo = $("#rInfo");
+    var rBanner = $("#rBanner");
+    var rScroll = $("#rScroll");
+    var rLine = $("#rLine");
+    var rIn = $("#rIn");
+    var rPrompt = $("#rPrompt");
+    var rHint = $("#rHint");
+    var rHintRow = $("#rHintRow");
+    var rSigil = $("#rSigil");
+
+    var breach = null;
+    var L = null;
+    var reduced = false;
+    var fsRoot = null;
+    var homeSegs = [];
+    var cwd = [];
+    var current = null;
+    var history = [];
+    var historyIndex = 0;
+    var busy = false;
+    var diagRun = false;
+
+    function esc(text) {
+        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function emit(name, data) {
+        try { Events.emit(name, data); } catch (error) { return; }
+    }
+
+    function readSave(key) {
+        try { return Save.get(key); } catch (error) { return null; }
+    }
+
+    function writeSave(key, value) {
+        try { Save.set(key, value); } catch (error) { return; }
+    }
+
+    function readCalm() {
+        var media = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var setting = false;
+        try { setting = Settings.get("reduceFlashing") === true; } catch (error) { setting = false; }
+        return media || setting;
+    }
+
+    function display(info) {
+        return info.extension ? info.name + "." + info.extension : info.name;
+    }
+
+    function pathSegs(path) {
+        return path.split("/").filter(function (part) { return part !== ""; });
+    }
+
+    async function getRoot() {
+        if (!fsRoot) fsRoot = await Files.getRoot();
+        return fsRoot;
+    }
+
+    async function lookup(segs) {
+        var node = await getRoot();
+        if (!node) return null;
+        for (var n = 0; n < segs.length; n += 1) {
+            if (node.isFolder !== true && node !== fsRoot) return null;
+            var kids = await Files.getChildren(node.id);
+            var next = null;
+            for (var k = 0; k < kids.length; k += 1) {
+                if (display(kids[k]) === segs[n]) { next = kids[k]; break; }
+            }
+            if (!next) return null;
+            node = next;
+        }
+        return node;
+    }
+
+    async function readPath(path) {
+        var info = await lookup(pathSegs(path));
+        if (!info || info.isFolder === true) return null;
+        return Files.read(info.id) || "";
+    }
+
+    function textOf(info) {
+        var text = Files.read(info.id);
+        if (typeof text === "string") return text;
+        var recorded = typeof breach.incidentLog === "string" && display(info) === pathSegs(L.incidentPath).pop();
+        return recorded ? breach.incidentLog : "";
+    }
+
+    var COPY_SUFFIX = /^(.+?)\s+\(\d+\)$/;
+    var SETTLE_POLLS = 60;
+    var REMOVE_ROUNDS = 6;
+
+    function splitName(name) {
+        var dot = name.lastIndexOf(".");
+        return dot > 0 ? { name: name.slice(0, dot), extension: name.slice(dot + 1) } : { name: name, extension: "" };
+    }
+
+    function stemOf(info) {
+        var trimmed = info.name.trim();
+        var match = COPY_SUFFIX.exec(trimmed);
+        return (match ? match[1].trim() : trimmed).toLowerCase();
+    }
+
+    async function copiesAt(segs) {
+        var folder = await lookup(segs.slice(0, -1));
+        if (!folder) return [];
+        var want = splitName(segs[segs.length - 1]);
+        var kids = await Files.getChildren(folder.id);
+        return kids.filter(function (kid) {
+            return kid.isFolder !== true && (kid.extension || "") === want.extension && stemOf(kid) === want.name.toLowerCase();
+        });
+    }
+
+    async function clearCopies(segs) {
+        var found = await copiesAt(segs);
+        var remaining = found;
+        for (var round = 0; round < REMOVE_ROUNDS && remaining.length > 0; round += 1) {
+            remaining.forEach(function (copy) { Files.remove(copy.id); });
+            for (var poll = 0; poll < SETTLE_POLLS; poll += 1) {
+                if ((await copiesAt(segs)).length === 0) break;
+            }
+            remaining = await copiesAt(segs);
+        }
+        return found.length;
+    }
+
+    async function writeAt(path, text) {
+        var segs = pathSegs(path);
+        await clearCopies(segs);
+        var name = splitName(segs[segs.length - 1]);
+        var definition = name.extension ? { name: name.name, extension: name.extension, data: text } : { name: name.name, data: text };
+        await Files.createTree("/" + segs.slice(0, -1).join("/"), [definition]);
+    }
+
+    async function removeAt(path) {
+        return (await clearCopies(pathSegs(path))) > 0;
+    }
+
+    function parseFields(text) {
+        var fields = {};
+        text.split("\n").forEach(function (line) {
+            var at = line.indexOf("=");
+            if (at > 0) fields[line.slice(0, at).trim()] = line.slice(at + 1).trim();
+        });
+        return fields;
+    }
+
+    function isImage(text) {
+        return text !== null && text.split("\n")[0].indexOf("FLCOMP-KO") === 0;
+    }
+
+    async function inspect() {
+        var moduleText = await readPath(L.modulePath);
+        var loaded = moduleText === null ? null : parseFields(moduleText);
+        var moduleState = "missing";
+        if (loaded) moduleState = loaded.srcversion === breach.expectedSrcversion && loaded.vermagic === L.vermagic ? "ok" : "wrong";
+        var configText = await readPath(L.configPath);
+        var configState = "missing";
+        if (configText !== null) {
+            var config = parseFields(configText);
+            if (config.profile === "flatline" && config.abi === L.abi) configState = "ok";
+            else configState = config.profile === undefined ? "corrupt" : "stale";
+        }
+        var initText = await readPath(L.initramfsPath);
+        var initState = "missing";
+        if (initText !== null) {
+            var recorded = parseFields(initText).flcomp;
+            initState = loaded && recorded === loaded.srcversion ? "ok" : "stale";
+        }
+        return { moduleState: moduleState, configState: configState, initState: initState, loaded: loaded };
+    }
+
+    function resolve(path) {
+        var segs;
+        if (path === "~" || path.indexOf("~/") === 0) segs = homeSegs.concat(path.slice(2).split("/"));
+        else if (path.charAt(0) === "/") segs = path.split("/");
+        else segs = cwd.concat(path.split("/"));
+        var out = [];
+        segs.forEach(function (part) {
+            if (part === "" || part === ".") return;
+            if (part === "..") out.pop();
+            else out.push(part);
+        });
+        return out;
+    }
+
+    function show(segs) {
+        return "/" + segs.join("/");
+    }
+
+    function out(html, target, cls) {
+        var line = document.createElement("div");
+        if (cls) line.className = cls;
+        line.innerHTML = html === "" ? "&nbsp;" : html;
+        (target || rOut).appendChild(line);
+        rScroll.scrollTop = rScroll.scrollHeight;
+    }
+
+    function msg(kind, text) {
+        var tags = { fail: ["c-fail", "[-]"], info: ["c-link", "[*]"], ok: ["c-ok", "[+]"], warn: ["c-warn", "[!]"] };
+        return '<span class="' + tags[kind][0] + '">' + tags[kind][1] + "</span> " + esc(text);
+    }
+
+    function dim(text) { return '<span class="c-dim">' + esc(text) + "</span>"; }
+
+    function kindOf(info) {
+        if (info.isFolder === true) return "dir";
+        return info.extension === "ko" ? "mod" : "file";
+    }
+
+    function nameCell(name, kind) {
+        var cls = kind === "dir" ? "c-link" : kind === "mod" ? "c-mod" : "";
+        return { text: name, html: cls === "" ? esc(name) : '<span class="' + cls + '">' + esc(name) + "</span>" };
+    }
+
+    function byName(a, b) {
+        var left = display(a).toLowerCase();
+        var right = display(b).toLowerCase();
+        return left < right ? -1 : left > right ? 1 : 0;
+    }
+
+    function termCols() {
+        var probe = document.createElement("span");
+        probe.style.cssText = "position:absolute;visibility:hidden;white-space:pre";
+        probe.textContent = "0".repeat(40);
+        rOut.appendChild(probe);
+        var charWidth = probe.getBoundingClientRect().width / 40;
+        rOut.removeChild(probe);
+        var style = window.getComputedStyle(rOut);
+        var inner = rOut.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        return charWidth > 0 && inner > 0 ? Math.max(20, Math.floor(inner / charWidth)) : 80;
+    }
+
+    function fitColumns(cells, limit, gap) {
+        var best = null;
+        for (var wanted = cells.length; wanted >= 1; wanted -= 1) {
+            var rows = Math.ceil(cells.length / wanted);
+            var count = Math.ceil(cells.length / rows);
+            var widths = [];
+            var sum = gap * (count - 1);
+            for (var c = 0; c < count; c += 1) {
+                var width = 0;
+                for (var r = 0; r < rows && c * rows + r < cells.length; r += 1) width = Math.max(width, cells[c * rows + r].text.length);
+                widths.push(width);
+                sum += width;
+            }
+            best = { rows: rows, widths: widths };
+            if (sum <= limit) break;
+        }
+        return best;
+    }
+
+    function columns(cells) {
+        if (cells.length === 0) return;
+        var gap = 2;
+        var fit = fitColumns(cells, termCols(), gap);
+        for (var r = 0; r < fit.rows; r += 1) {
+            var line = "";
+            for (var c = 0; c < fit.widths.length; c += 1) {
+                var cell = cells[c * fit.rows + r];
+                if (!cell) continue;
+                var more = (c + 1) * fit.rows + r < cells.length;
+                line += cell.html + (more ? " ".repeat(fit.widths[c] - cell.text.length + gap) : "");
+            }
+            out(line);
+        }
+    }
+
+    function longList(entries) {
+        var rows = entries.map(function (kid) {
+            var folder = kid.isFolder === true;
+            var size = folder ? 4096 : textOf(kid).length;
+            var perms = folder ? "drwxr-xr-x" : kid.readonly === true ? "-r--r--r--" : "-rw-r--r--";
+            return { perms: perms, size: String(size), cell: nameCell(display(kid), kindOf(kid)) };
+        });
+        var width = Math.max.apply(null, rows.map(function (row) { return row.size.length; }));
+        rows.forEach(function (row) {
+            out(dim(row.perms) + "  " + esc(USER) + " " + esc(USER) + "  " + row.size.padStart(width) + "  " + row.cell.html);
+        });
+    }
+
+    function grubScreen(selected, left) {
+        var entries = ["FlatlineOS", "Advanced options for FlatlineOS", "FlatlineOS (recovery mode)", "UEFI Firmware Settings"];
+        var width = 57;
+        var lines = [];
+        lines.push("                         GNU GRUB  version 2.12");
+        lines.push("");
+        lines.push(" ┌" + "─".repeat(width) + "┐");
+        entries.forEach(function (name, n) {
+            var cell = ((n === selected ? "*" : " ") + name).padEnd(width);
+            lines.push(" │" + (n === selected ? '<span class="sel">' + esc(cell) + "</span>" : esc(cell)) + "│");
+        });
+        lines.push(" └" + "─".repeat(width) + "┘");
+        lines.push("");
+        lines.push("      Use the ^ and v keys to select which entry is highlighted.");
+        lines.push("      Press enter to boot the selected OS, `e' to edit the commands");
+        lines.push("      before booting or `c' for a command-line.");
+        if (left > 0) lines.push("      The highlighted entry will be executed automatically in " + left + "s.");
+        return lines.join("\n");
+    }
+
+    function kernelBlock(recoveryTarget) {
+        var cmdline = "BOOT_IMAGE=/vmlinuz-" + L.kernel + " root=/dev/mapper/ghostwire-root ro quiet loglevel=3" +
+            (recoveryTarget ? " systemd.unit=recovery.target" : "");
+        return [
+            { k: "Linux version " + L.kernel + " (build@ghostwire) (gcc 13.2.0, GNU ld 2.42) #1 SMP PREEMPT_DYNAMIC" },
+            { k: "Command line: " + cmdline },
+            { k: "BIOS-provided physical RAM map:" },
+            { k: "BIOS-e820: [mem 0x0000000000000000-0x000000000009ffff] usable" },
+            { k: "BIOS-e820: [mem 0x0000000000100000-0x00000000bfffffff] usable" },
+            { k: "NX (Execute Disable) protection: active" },
+            { k: "SMBIOS 3.3.0 present." },
+            { k: "DMI: Flatline GW-7 Workstation/GW-7, BIOS 2.14 11/19/2024" },
+            { k: "tsc: Detected 2995.200 MHz processor" },
+            { k: "Memory: 16124892K/16777216K available (16384K kernel code, 4096K rwdata, 12288K rodata, 3072K init)" },
+            { k: "smpboot: Allowing 8 CPUs, 0 hotplug CPUs" },
+            { k: "rcu: Hierarchical RCU implementation." },
+            { k: "clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x2b2c8a1d9f4, max_idle_ns: 440795219351 ns" },
+            { k: "pci 0000:00:02.0: [8086:9a49] type 00 class 0x030000" },
+            { k: "pci 0000:01:00.0: [144d:a808] type 00 class 0x010802" },
+            { k: "nvme nvme0: pci function 0000:01:00.0" },
+            { k: "nvme0n1: p1 p2 p3" },
+            { k: "e1000e 0000:00:1f.6 eth0: (PCI Express:2.5GT/s:Width x1) 3c:52:82:1a:77:0e" },
+            { k: "EXT4-fs (dm-0): mounted filesystem with ordered data mode. Quota mode: none." },
+            { k: "systemd[1]: systemd 255 running in system mode" },
+            { k: "systemd[1]: Detected architecture x86-64." },
+            { welcome: recoveryTarget ? "FlatlineOS 1.0 (recovery)" : "FlatlineOS 1.0" },
+            { k: "systemd[1]: Hostname set to <ghostwire>." },
+            { k: "systemd[1]: Queued start job for default target " + (recoveryTarget ? "recovery.target." : "graphical.target.") }
+        ];
+    }
+
+    function downSequence() {
+        return [
+            { k: "flcomp: unload requested by pid 2207 (uid 0)" },
+            { k: "flcomp: module removed, display pipeline released" },
+            { k: "[drm] flcomp: crtc 0 disabled, scanout released" },
+            { k: "flfb: no clients, display output stopped" },
+            { k: "compositord[812]: " + L.configPath + " rewritten by remote session" },
+            { k: "compositord[812]: display.conf: profile table unreadable" },
+            { k: "compositord[812]: no display pipeline, desktop session terminated" },
+            { k: "systemd[1]: compositord.service: Main process exited, code=exited, status=70/SOFTWARE" },
+            { k: "systemd[1]: compositord.service: Failed with result 'exit-code'." },
+            { k: "systemd[1]: compositord.service: Scheduled restart job, restart counter is at 1." },
+            { k: "compositord[2207]: flcomp not loaded, exiting" },
+            { k: "systemd[1]: compositord.service: Start request repeated too quickly." },
+            { k: "systemd[1]: compositord.service: Failed with result 'start-limit-hit'." },
+            { fail: "Failed to start compositord.service - Desktop compositor." },
+            { plain: "See 'systemctl status compositord.service' for details." },
+            { dep: "Dependency failed for graphical.target - Graphical Interface." },
+            { k: "systemd[1]: graphical.target: Job graphical.target/start failed with result 'dependency'." },
+            { plain: "         Starting flatline-recovery.service - Schedule recovery boot..." },
+            { ok: "Finished flatline-recovery.service - Schedule recovery boot." },
+            { wait: 700 },
+            { ok: "Stopped target Graphical Interface." },
+            { ok: "Stopped target Multi-User System." },
+            { ok: "Stopped session-1.scope - Session 1 of User admin." },
+            { ok: "Stopped NetworkManager.service - Network Manager." },
+            { ok: "Stopped target Network." },
+            { ok: "Stopped target Basic System." },
+            { ok: "Stopped systemd-logind.service - User Login Management." },
+            { ok: "Unmounted home.mount - /home." },
+            { ok: "Reached target Unmount All Filesystems." },
+            { ok: "Reached target Final Step." },
+            { ok: "Finished systemd-reboot.service - System Reboot." },
+            { ok: "Reached target System Reboot." },
+            { k: "systemd-shutdown[1]: Syncing filesystems and block devices." },
+            { k: "systemd-shutdown[1]: Sending SIGTERM to remaining processes..." },
+            { k: "systemd-shutdown[1]: Sending SIGKILL to remaining processes..." },
+            { k: "systemd-shutdown[1]: Unmounting file systems." },
+            { k: "reboot: Restarting system" },
+            { wait: 1100 },
+            { clear: true }
+        ];
+    }
+
+    function recoverySequence() {
+        return [{ grub: 2 }].concat(kernelBlock(true), [
+            { ok: "Created slice system-modprobe.slice - Slice /system/modprobe." },
+            { ok: "Mounted dev-hugepages.mount - Huge Pages File System." },
+            { ok: "Mounted sys-kernel-debug.mount - Kernel Debug File System." },
+            { ok: "Started systemd-journald.service - Journal Service." },
+            { ok: "Finished systemd-modules-load.service - Load Kernel Modules." },
+            { ok: "Finished systemd-sysctl.service - Apply Kernel Variables." },
+            { ok: "Finished systemd-udev-trigger.service - Coldplug All udev Devices." },
+            { spin: "systemd-udev-settle.service - Wait for udev To Complete Device Initialization", n: 5 },
+            { ok: "Finished " + FSCK_UNIT + "." },
+            { ok: "Mounted home.mount - /home." },
+            { ok: "Reached target Local File Systems." },
+            { ok: "Started systemd-logind.service - User Login Management." },
+            { ok: "Reached target Basic System." },
+            { plain: "         Starting flatline-integrity.service - Verify display pipeline..." },
+            { k: "flatline-integrity[611]: modprobe: FATAL: Module flcomp not found in directory /lib/modules/" + L.kernel },
+            { k: "flatline-integrity[611]: " + L.configPath + ": profile table unreadable" },
+            { fail: "Failed to start flatline-integrity.service - Verify display pipeline." },
+            { plain: "See 'systemctl status flatline-integrity.service' for details." },
+            { dep: "Dependency failed for compositord.service - Desktop compositor." },
+            { dep: "Dependency failed for graphical.target - Graphical Interface." },
+            { ok: "Reached target Recovery Mode." },
+            { plain: "         Starting recovery.service - FlatlineOS recovery shell..." },
+            { ok: "Started recovery.service - FlatlineOS recovery shell." }
+        ]);
+    }
+
+    function upSequence() {
+        return [
+            { k: "flatline-integrity[611]: flcomp srcversion " + breach.expectedSrcversion + " matches session record" },
+            { ok: "Finished flatline-integrity.service - Verify display pipeline." },
+            { ok: "Stopped recovery.service - FlatlineOS recovery shell." },
+            { ok: "Stopped target Recovery Mode." },
+            { ok: "Stopped systemd-logind.service - User Login Management." },
+            { ok: "Unmounted home.mount - /home." },
+            { ok: "Reached target Unmount All Filesystems." },
+            { ok: "Finished systemd-reboot.service - System Reboot." },
+            { ok: "Reached target System Reboot." },
+            { k: "systemd-shutdown[1]: Syncing filesystems and block devices." },
+            { k: "systemd-shutdown[1]: Sending SIGTERM to remaining processes..." },
+            { k: "systemd-shutdown[1]: Unmounting file systems." },
+            { k: "reboot: Restarting system" },
+            { wait: 1100 },
+            { clear: true },
+            { grub: 0 }
+        ].concat(kernelBlock(false), [
+            { ok: "Created slice system-modprobe.slice - Slice /system/modprobe." },
+            { ok: "Started systemd-journald.service - Journal Service." },
+            { ok: "Finished systemd-modules-load.service - Load Kernel Modules." },
+            { k: "flfb: framebuffer registered, 1920x1080" },
+            { k: "flcomp: loaded, srcversion " + breach.expectedSrcversion + ", abi " + L.abi + ", depends " + L.depends.join(",") },
+            { k: "[drm] Initialized flcomp " + L.version + ".0 for 0000:00:02.0 on minor 0" },
+            { ok: "Finished systemd-udev-trigger.service - Coldplug All udev Devices." },
+            { spin: "systemd-udev-settle.service - Wait for udev To Complete Device Initialization", n: 4 },
+            { ok: "Finished " + FSCK_UNIT + "." },
+            { ok: "Mounted home.mount - /home." },
+            { ok: "Reached target Local File Systems." },
+            { ok: "Started systemd-logind.service - User Login Management." },
+            { ok: "Started dbus.service - D-Bus System Message Bus." },
+            { ok: "Started nftables.service - Netfilter Tables." },
+            { ok: "Started NetworkManager.service - Network Manager." },
+            { spin: "NetworkManager-wait-online.service - Network Manager Wait Online", n: 6 },
+            { ok: "Reached target Network is Online." },
+            { plain: "         Starting flatline-integrity.service - Verify display pipeline..." },
+            { k: "flatline-integrity[611]: flcomp srcversion " + breach.expectedSrcversion + " ok" },
+            { k: "flatline-integrity[611]: " + L.configPath + ": profile flatline, abi " + L.abi + " ok" },
+            { ok: "Finished flatline-integrity.service - Verify display pipeline." },
+            { plain: "         Starting compositord.service - Desktop compositor..." },
+            { k: "compositord[812]: loading " + L.configPath },
+            { ok: "Started compositord.service - Desktop compositor." },
+            { ok: "Started session-1.scope - Session 1 of User admin." },
+            { ok: "Reached target Graphical Interface." },
+            { k: "compositord[812]: desktop session started" }
+        ]);
+    }
+
+    function okRow(text) {
+        return '<span class="tag">[  </span><span class="ok">OK</span><span class="tag">  ]</span> ' + esc(text);
+    }
+
+    async function playBoot(lines) {
+        bootEl.hidden = false;
+        bootEl.innerHTML = "";
+        var clock = rand(36, 41);
+        var frames = ["*     ", "**    ", " **   ", "  **  ", "   ** ", "    **", "     *"];
+        for (var n = 0; n < lines.length; n += 1) {
+            var line = lines[n];
+            if (line.wait) { await sleep(line.wait); continue; }
+            if (line.clear) { bootEl.innerHTML = ""; clock = rand(0, 0.3); continue; }
+            if (line.grub !== undefined) {
+                bootEl.innerHTML = "";
+                var pre = document.createElement("pre");
+                pre.className = "grub";
+                bootEl.appendChild(pre);
+                for (var left = 3; left >= 1; left -= 1) {
+                    pre.innerHTML = grubScreen(line.grub, left);
+                    await sleep(1000);
+                }
+                bootEl.innerHTML = "";
+                var loading = document.createElement("div");
+                loading.textContent = "Loading Linux " + L.kernel + " ...";
+                bootEl.appendChild(loading);
+                await sleep(500);
+                var ramdisk = document.createElement("div");
+                ramdisk.textContent = "Loading initial ramdisk ...";
+                bootEl.appendChild(ramdisk);
+                await sleep(700);
+                bootEl.innerHTML = "";
+                clock = rand(0, 0.3);
+                continue;
+            }
+            var row = document.createElement("div");
+            bootEl.appendChild(row);
+            if (line.spin) {
+                for (var step = 0; step < line.n; step += 1) {
+                    row.innerHTML = '<span class="tag">[</span><span class="dep">' + frames[step % frames.length] + '</span><span class="tag">]</span> A start job is running for ' + esc(line.spin) + " (" + step + "s / 1min 30s)";
+                    await sleep(430);
+                }
+                row.innerHTML = okRow("Finished " + line.spin + ".");
+            } else if (line.welcome) {
+                row.innerHTML = 'Welcome to <span class="tag">' + esc(line.welcome) + "</span>!";
+                await sleep(260);
+            } else if (line.k) {
+                clock += rand(0.002, 0.34);
+                row.innerHTML = '<span class="ts">[' + clock.toFixed(6).padStart(12, " ") + "]</span> " + esc(line.k);
+                await sleep(rand(28, 105));
+            } else if (line.ok) {
+                row.innerHTML = okRow(line.ok);
+                await sleep(rand(60, 210));
+            } else if (line.fail) {
+                row.innerHTML = '<span class="tag">[</span><span class="fail">FAILED</span><span class="tag">]</span> ' + esc(line.fail);
+                await sleep(650);
+            } else if (line.dep) {
+                row.innerHTML = '<span class="tag">[</span><span class="dep">DEPEND</span><span class="tag">]</span> ' + esc(line.dep);
+                await sleep(240);
+            } else {
+                row.textContent = line.plain;
+                await sleep(130);
+            }
+            bootEl.scrollTop = bootEl.scrollHeight;
+        }
+        await sleep(650);
+    }
+
+    function logoRows() {
+        var rows = ["", "", "", "", ""];
+        "RECOVERY".split("").forEach(function (ch) {
+            GLYPHS[ch].forEach(function (row, n) {
+                rows[n] += row.replace(/X/g, "██").replace(/ /g, "  ") + " ";
+            });
+        });
+        return rows;
+    }
+
+    function paintLogo(rows, settled) {
+        return rows.map(function (row, n) {
+            var text = "";
+            for (var i = 0; i < row.length; i += 1) {
+                var ch = row.charAt(i);
+                text += ch === " " || i < settled ? ch : NOISE.charAt(Math.floor(Math.random() * NOISE.length));
+            }
+            return '<span style="color:' + ROW_COLORS[n] + '">' + esc(text) + "</span>";
+        }).join("\n");
+    }
+
+    async function revealLogo(node, rows) {
+        var width = rows[0].length;
+        var frames = reduced ? 0 : 24;
+        for (var frame = 0; frame < frames; frame += 1) {
+            node.innerHTML = paintLogo(rows, Math.floor((frame / frames) * width * 1.1));
+            await sleep(48);
+        }
+        node.innerHTML = paintLogo(rows, width);
+    }
+
+    function hexRow(index) {
+        var bytes = [];
+        for (var i = 0; i < 16; i += 1) bytes.push(Math.floor(rand(0, 256)).toString(16).padStart(2, "0"));
+        return "0x" + (0xa000 + index * 16).toString(16).padStart(8, "0") + "  " + bytes.join(" ");
+    }
+
+    async function drawEcg(node) {
+        var line = ECG + "▁".repeat(60);
+        for (var i = 1; i <= line.length; i += 1) {
+            node.innerHTML = '<span class="c-red">' + esc(line.slice(0, i)) + "</span>";
+            if (!reduced) await sleep(14);
+        }
+        node.innerHTML = '<span class="c-red">' + esc(line.slice(0, ECG.length)) + '</span><span class="c-deep">' + esc(line.slice(ECG.length)) + "</span>";
+    }
+
+    function panelRow(label, tag, tagClass, text) {
+        var plain = "  " + label.padEnd(12) + tag.padEnd(12) + text;
+        var pad = " ".repeat(Math.max(0, PANEL_WIDTH - plain.length));
+        return '<span class="c-red">║</span>  <span class="c-dim">' + esc(label.padEnd(12)) + '</span><span class="' + tagClass + '">' + esc(tag.padEnd(12)) + "</span>" + esc(text) + pad + '<span class="c-red">║</span>';
+    }
+
+    function panelLines(state) {
+        var title = "[ FLATLINEOS 1.0 // RECOVERY SHELL ]";
+        var module = state.moduleState === "ok" ? ["LOADED", "c-ok", "srcversion verified"]
+            : state.moduleState === "wrong" ? ["MISMATCH", "c-warn", "srcversion differs from the record"]
+            : ["NOT LOADED", "c-fail", "module slot empty"];
+        var init = state.initState === "ok" ? ["OK", "c-ok", "contains the current flcomp"] : ["STALE", "c-warn", "built before the incident"];
+        var screen = state.configState === "ok" ? ["OK", "c-ok", "display.conf verified"]
+            : state.configState === "stale" ? ["STALE ABI", "c-warn", "display.conf abi differs"]
+            : state.configState === "missing" ? ["FAILED", "c-fail", "display.conf missing"]
+            : ["FAILED", "c-fail", "display.conf unreadable"];
+        return [
+            '<span class="c-red">╔═' + esc(title) + "═".repeat(PANEL_WIDTH - 1 - title.length) + "╗</span>",
+            panelRow("host", "", "c-dim", HOST),
+            panelRow("kernel", "", "c-dim", L.kernel),
+            panelRow("user", "", "c-dim", USER),
+            panelRow("session", "LOST", "c-fail", "peer dropped 03:14:12"),
+            panelRow("flcomp", module[0], module[1], module[2]),
+            panelRow("initramfs", init[0], init[1], init[2]),
+            panelRow("display", screen[0], screen[1], screen[2]),
+            '<span class="c-red">╚' + "═".repeat(PANEL_WIDTH) + "╝</span>"
+        ];
+    }
+
+    function bannerLines() {
+        return [
+            '<span class="c-dim">       =[ </span>FlatlineOS recovery 1.0<span class="c-dim"> ]</span>',
+            '<span class="c-red">+ -- --=[ </span>3 recovery modules, ' + BUILD_COUNT + ' staged images<span class="c-red"> ]</span>',
+            '<span class="c-red">+ -- --=[ </span>start with <span class="c-bright">sysdiag</span>, or type <span class="c-bright">help</span><span class="c-red"> ]</span>'
+        ];
+    }
+
+    var STATE_LABELS = {
+        module: { ok: "ok", wrong: "srcversion mismatch", missing: "missing" },
+        config: { ok: "ok", stale: "stale abi", corrupt: "corrupt", missing: "missing" },
+        init: { ok: "ok", stale: "stale", missing: "missing" }
+    };
+
+    var STATE_TEXT = {
+        module: { ok: "OK", wrong: "SRCVERSION MISMATCH", missing: "MISSING" },
+        config: { ok: "OK", stale: "STALE ABI", corrupt: "CORRUPT", missing: "MISSING" },
+        init: { ok: "OK", stale: "STALE", missing: "MISSING" }
+    };
+
+    async function updateBar() {
+        var state = await inspect();
+        function seg(name, field, value) {
+            var cls = value === "ok" ? "good" : value === "wrong" || value === "stale" ? "mid" : "bad";
+            var mark = value === "ok" ? "●" : "○";
+            return name + ' <span class="' + cls + '">' + mark + " " + STATE_LABELS[field][value] + "</span>";
+        }
+        $("#sModule").innerHTML = seg("flcomp", "module", state.moduleState);
+        $("#sConfig").innerHTML = seg("config", "config", state.configState);
+        $("#sInit").innerHTML = seg("initramfs", "init", state.initState);
+        var hint = "start with sysdiag";
+        if (state.moduleState === "ok" && state.configState === "ok" && state.initState === "ok") hint = "ready: sysrepair --rebuild";
+        else if (current) hint = current.name + ": show options, set, run, back";
+        else if (!diagRun) hint = "start with sysdiag";
+        else if (state.moduleState !== "ok") hint = "kernel module: recovery/module/load";
+        else if (state.configState !== "ok") hint = "display profile: recovery/config/rebuild";
+        else hint = "initramfs: recovery/initramfs/rebuild";
+        $("#sHint").textContent = hint;
+    }
+
+    function renderPrompt() {
+        clearHint();
+        if (current) {
+            rPrompt.innerHTML = "";
+            rSigil.innerHTML = '<span class="c-dim">rcv</span> module(<span class="c-mod">' + esc(current.name) + "</span>) &gt;";
+            return;
+        }
+        rPrompt.innerHTML = '<span class="c-deep">┌──(</span><span class="c-red">' + esc(USER) + '</span><span class="c-dim">)-[</span><span class="c-bright">' + esc(show(cwd)) + '</span><span class="c-dim">]</span>';
+        rSigil.innerHTML = '<span class="c-dim">└─</span><span class="c-red">$</span>';
+    }
+
+    async function openRecovery() {
+        busy = true;
+        recovery.hidden = false;
+        rBrand.innerHTML = "";
+        rInfo.innerHTML = "";
+        rBanner.innerHTML = "";
+        rOut.innerHTML = "";
+        rLine.hidden = true;
+        try {
+            var hex = document.createElement("div");
+            hex.className = "hex";
+            hex.textContent = [hexRow(0), hexRow(1)].join("\n");
+            rBrand.appendChild(hex);
+            var logoNode = document.createElement("pre");
+            logoNode.className = "logo";
+            rBrand.appendChild(logoNode);
+            await revealLogo(logoNode, logoRows());
+            var ecgWrap = document.createElement("div");
+            ecgWrap.className = "ecgwrap";
+            var ecg = document.createElement("div");
+            ecg.className = "ecg";
+            ecgWrap.appendChild(ecg);
+            rBrand.appendChild(ecgWrap);
+            await drawEcg(ecg);
+            var tipsBox = document.createElement("div");
+            tipsBox.className = "tips";
+            rBanner.appendChild(tipsBox);
+            var panel = panelLines(await inspect());
+            var tips = bannerLines();
+            for (var n = 0; n < panel.length; n += 1) {
+                out(panel[n], rInfo);
+                if (n >= 1 && n <= tips.length) out(tips[n - 1], tipsBox);
+                if (!reduced) await sleep(70);
+            }
+            renderPrompt();
+            await updateBar();
+        } finally {
+            busy = false;
+            rLine.hidden = false;
+        }
+        rIn.value = "";
+        rIn.focus();
+    }
+
+    function table(opts) {
+        var names = Object.keys(opts);
+        var width = Math.max.apply(null, names.map(function (name) { return opts[name].v.length; }).concat([15]));
+        out("   " + "Name".padEnd(9) + "Current Setting".padEnd(width + 2) + "Description");
+        out("   " + "----".padEnd(9) + "---------------".padEnd(width + 2) + "-----------");
+        names.forEach(function (name) {
+            out("   " + esc(name.padEnd(9)) + esc(opts[name].v.padEnd(width + 2)) + esc(opts[name].d));
+        });
+    }
+
+    function colorState(field, value) {
+        var cls = value === "ok" ? "c-ok" : value === "wrong" || value === "stale" ? "c-warn" : "c-fail";
+        return '<span class="' + cls + '">' + STATE_TEXT[field][value].padEnd(20) + "</span>";
+    }
+
+    var MOD_FIELDS = [
+        ["filename", null],
+        ["version", function (m) { return m.version; }],
+        ["description", function () { return "FlatlineOS display compositor"; }],
+        ["author", function () { return "Flatline Systems"; }],
+        ["license", function () { return "GPL"; }],
+        ["srcversion", function (m) { return m.srcversion; }],
+        ["depends", function (m) { return m.depends; }],
+        ["retpoline", function () { return "Y"; }],
+        ["name", function (m) { return m.name; }],
+        ["vermagic", function (m) { return m.vermagic; }],
+        ["sig_id", function () { return "PKCS#7"; }],
+        ["signer", function () { return "Flatline Release Signing Key"; }],
+        ["parm", function (m) { return "abi:flcomp ABI level (default " + m.abi + ")"; }]
+    ];
+
+    async function loadImage(path) {
+        var segs = resolve(path);
+        var info = await lookup(segs);
+        if (!info || info.isFolder === true || info.extension !== "ko") return { segs: segs, fields: null };
+        var text = Files.read(info.id) || "";
+        return { segs: segs, fields: isImage(text) ? parseFields(text) : null, text: text };
+    }
+
+    var MODULES = {
+        "recovery/module/load": {
+            desc: "Load a staged flcomp image into the kernel",
+            opts: function () {
+                return {
+                    IMAGE: { v: "", d: "staged kernel module image (.ko)" },
+                    DEPENDS: { v: "", d: "modules to load first, comma separated" }
+                };
+            },
+            run: async function (o) {
+                if (o.IMAGE.v === "") { out(msg("fail", "IMAGE is not set")); return; }
+                var image = await loadImage(o.IMAGE.v);
+                var shown = show(image.segs);
+                if (!image.fields) { out(msg("fail", o.IMAGE.v + " is not a kernel module image")); return; }
+                out(msg("info", "insmod " + shown));
+                var wanted = o.DEPENDS.v.split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+                var unknown = wanted.filter(function (item) { return L.depends.indexOf(item) < 0; });
+                if (unknown.length > 0) {
+                    out(msg("fail", "modprobe: FATAL: Module " + unknown[0] + " not found in directory /lib/modules/" + L.kernel));
+                    return;
+                }
+                if (image.fields.vermagic !== L.vermagic) {
+                    out(msg("fail", "insmod: ERROR: could not insert module " + shown + ": Invalid module format"));
+                    out(dim("kernel: flcomp: version magic '" + image.fields.vermagic + "' should be '" + L.vermagic + "'"));
+                    return;
+                }
+                var missing = L.depends.filter(function (item) { return wanted.indexOf(item) < 0; });
+                if (missing.length > 0) {
+                    out(msg("fail", "insmod: ERROR: could not insert module " + shown + ": Unknown symbol in module"));
+                    out(dim("kernel: flcomp: Unknown symbol " + (SYMBOLS[missing[0]] || missing[0] + "_init") + " (err -2)"));
+                    return;
+                }
+                if ((await lookup(pathSegs(L.modulePath))) !== null) {
+                    out(msg("fail", "insmod: ERROR: could not insert module " + shown + ": File exists"));
+                    return;
+                }
+                await writeAt(L.modulePath, image.text);
+                out(msg("ok", "flcomp loaded, srcversion " + image.fields.srcversion));
+            }
+        },
+        "recovery/config/rebuild": {
+            desc: "Rewrite display.conf from the stored profile",
+            opts: async function () {
+                var text = await readPath(L.backupPath);
+                var backup = text === null ? {} : parseFields(text);
+                return {
+                    PROFILE: { v: backup.profile || "flatline", d: "display profile name" },
+                    REFRESH: { v: backup.refresh || "60", d: "refresh rate in Hz" },
+                    ABI: { v: backup.abi || L.staleAbi, d: "flcomp ABI level the profile targets" }
+                };
+            },
+            run: async function (o) {
+                out(msg("info", "loading defaults from " + L.backupPath));
+                out(msg("info", "writing " + L.configPath));
+                await writeAt(L.configPath, "# flcomp display profile\nprofile=" + o.PROFILE.v + "\nrefresh=" + o.REFRESH.v + "\nabi=" + o.ABI.v);
+                out(msg("ok", "display.conf written"));
+            }
+        },
+        "recovery/initramfs/rebuild": {
+            desc: "Rebuild the initramfs so flcomp loads at boot",
+            opts: function () {
+                return { KERNEL: { v: "", d: "kernel release to build for" } };
+            },
+            run: async function (o) {
+                if (o.KERNEL.v === "") { out(msg("fail", "KERNEL is not set")); return; }
+                if (o.KERNEL.v !== L.kernel) {
+                    out(msg("fail", "update-initramfs: Cannot find /lib/modules/" + o.KERNEL.v));
+                    return;
+                }
+                var text = await readPath(L.modulePath);
+                var fields = text === null ? null : parseFields(text);
+                out(msg("info", "update-initramfs: Generating " + L.initramfsPath));
+                await writeAt(L.initramfsPath, "INITRAMFS " + L.kernel + "\nflcomp=" + (fields && fields.srcversion ? fields.srcversion : "none"));
+                if (!fields) {
+                    out(msg("warn", "flcomp.ko not found in " + L.moduleDir + ", it will not be loaded at boot"));
+                    return;
+                }
+                out(msg("ok", pathSegs(L.initramfsPath).pop() + " rebuilt with flcomp " + fields.srcversion));
+            }
+        }
+    };
+
+    function noModule() { out('<span class="c-fail">no module selected. use &lt;module&gt;</span>'); }
+
+    var HELP_LEFT = [
+        { title: "Core Commands", rows: [
+            ["ls [-al] [path]", "List a folder"],
+            ["cd [path]", "Change folder"],
+            ["cat <file>", "Print a text file"],
+            ["pwd", "Print the current folder"],
+            ["uname [-r|-a]", "Kernel information"],
+            ["lsmod", "List loaded kernel modules"],
+            ["modinfo <file>", "Describe a kernel module image"],
+            ["rmmod <name>", "Remove a loaded kernel module"],
+            ["clear", "Clear the screen"],
+            ["help", "Show this menu"]
+        ] }
+    ];
+
+    var HELP_RIGHT = [
+        { title: "Recovery Commands", rows: [
+            ["sysdiag", "Check module, config and initramfs"],
+            ["sysrepair --rebuild", "Reboot into the repaired system"]
+        ] },
+        { title: "Module Commands", rows: [
+            ["show modules", "List recovery modules"],
+            ["use <module>", "Select a module"],
+            ["show options", "List the module options"],
+            ["set <NAME> <value>", "Set an option"],
+            ["run", "Run the selected module"],
+            ["back", "Leave the module"]
+        ] }
+    ];
+
+    function frame(text) { return '<span class="c-deep">' + text + "</span>"; }
+
+    function helpPanel(groups) {
+        var cmdWidth = 0;
+        var descWidth = 0;
+        groups.forEach(function (group) {
+            group.rows.forEach(function (row) {
+                cmdWidth = Math.max(cmdWidth, row[0].length);
+                descWidth = Math.max(descWidth, row[1].length);
+            });
+        });
+        var width = cmdWidth + descWidth + 6;
+        var lines = [];
+        groups.forEach(function (group, n) {
+            var rule = frame((n === 0 ? "┌" : "├") + "─ ") + '<span class="c-red">' + esc(group.title) + "</span>" +
+                frame(" " + "─".repeat(width - 5 - group.title.length) + (n === 0 ? "┐" : "┤"));
+            lines.push(rule);
+            group.rows.forEach(function (row) {
+                lines.push(frame("│") + " " + '<span class="c-bright">' + esc(row[0].padEnd(cmdWidth)) + "</span>  " + esc(row[1].padEnd(descWidth)) + " " + frame("│"));
+            });
+        });
+        return { width: width, lines: lines, blank: frame("│") + " ".repeat(width - 2) + frame("│"), bottom: frame("└" + "─".repeat(width - 2) + "┘") };
+    }
+
+    var COMMANDS = {
+        help: function () {
+            var left = helpPanel(HELP_LEFT);
+            var right = helpPanel(HELP_RIGHT);
+            var height = Math.max(left.lines.length, right.lines.length);
+            [left, right].forEach(function (panel) {
+                while (panel.lines.length < height) panel.lines.push(panel.blank);
+                panel.lines.push(panel.bottom);
+            });
+            if (left.width + 1 + right.width <= termCols()) {
+                left.lines.forEach(function (line, n) { out(line + " " + right.lines[n], null, "box"); });
+                return;
+            }
+            left.lines.forEach(function (line) { out(line, null, "box"); });
+            right.lines.forEach(function (line) { out(line, null, "box"); });
+        },
+        pwd: function () { out(esc(show(cwd))); },
+        clear: function () { rOut.innerHTML = ""; },
+        uname: function (args) {
+            if (args[0] === "-r") out(L.kernel);
+            else if (args[0] === "-a") out("Linux " + HOST + " " + L.kernel + " #1 SMP PREEMPT_DYNAMIC x86_64 FlatlineOS");
+            else out("Linux");
+        },
+        lsmod: async function () {
+            var present = (await lookup(pathSegs(L.modulePath))) !== null;
+            out("Module                  Size  Used by");
+            if (present) {
+                out("flcomp                 98304  0");
+                out("flfb                   24576  1 flcomp");
+                out("drm_kms_helper        311296  1 flcomp");
+            }
+            out("e1000e                311296  0");
+            out("nvme                   57344  2");
+            out("nvme_core             200704  3 nvme");
+        },
+        rmmod: async function (args) {
+            if (!args[0]) { out(msg("fail", "usage: rmmod <module>")); return; }
+            var present = (await lookup(pathSegs(L.modulePath))) !== null;
+            if (args[0] !== "flcomp" || !present) { out(msg("fail", "rmmod: ERROR: Module " + args[0] + " is not currently loaded")); return; }
+            await removeAt(L.modulePath);
+            out(msg("ok", "flcomp removed"));
+        },
+        modinfo: async function (args) {
+            if (!args[0]) { out(msg("fail", "usage: modinfo <file>")); return; }
+            var image = await loadImage(args[0]);
+            if (!image.fields) { out(msg("fail", "modinfo: ERROR: Module " + args[0] + " not found.")); return; }
+            MOD_FIELDS.forEach(function (field) {
+                var value = field[1] === null ? show(image.segs) : field[1](image.fields);
+                out('<span class="c-dim">' + (field[0] + ":").padEnd(16) + "</span>" + esc(value));
+            });
+        },
+        ls: async function (args) {
+            var flags = "";
+            var target = null;
+            args.forEach(function (arg) {
+                if (arg.charAt(0) === "-" && arg.length > 1) flags += arg.slice(1);
+                else if (target === null) target = arg;
+            });
+            var unknown = flags.replace(/[al]/g, "");
+            if (unknown !== "") { out('<span class="c-fail">ls: invalid option -- ' + esc(unknown.charAt(0)) + "</span>"); return; }
+            var node = await lookup(target === null ? cwd : resolve(target));
+            if (!node) { out('<span class="c-fail">ls: cannot access ' + esc(target) + ": no such file or folder</span>"); return; }
+            var entries = node.isFolder === true || node === fsRoot ? await Files.getChildren(node.id) : [node];
+            entries = entries.filter(function (kid) { return flags.indexOf("a") >= 0 || kid.hidden !== true; });
+            if (entries.length === 0) return;
+            entries.sort(byName);
+            if (flags.indexOf("l") >= 0) { longList(entries); return; }
+            columns(entries.map(function (kid) { return nameCell(display(kid), kindOf(kid)); }));
+        },
+        cd: async function (args) {
+            var segs = args[0] ? resolve(args[0]) : homeSegs.slice();
+            var node = await lookup(segs);
+            if (!node || (node.isFolder !== true && node !== fsRoot)) { out('<span class="c-fail">cd: ' + esc(args[0] || "") + ": no such folder</span>"); return; }
+            cwd = segs;
+        },
+        cat: async function (args) {
+            if (!args[0]) { out('<span class="c-fail">usage: cat &lt;file&gt;</span>'); return; }
+            var segs = resolve(args[0]);
+            var node = await lookup(segs);
+            if (!node || node.isFolder === true) { out('<span class="c-fail">cat: ' + esc(args[0]) + ": no such file</span>"); return; }
+            if (node.extension === "ko") { out('<span class="c-fail">cat: ' + esc(args[0]) + ": binary file (use modinfo)</span>"); return; }
+            textOf(node).split("\n").forEach(function (text) { out(esc(text)); });
+            if (segs.join("/") === pathSegs(L.incidentPath).join("/")) emit(LOG_READ_EVENT, { path: L.incidentPath });
+        },
+        sysdiag: async function () {
+            diagRun = true;
+            var s = await inspect();
+            var blank = " ".repeat(20);
+            function row(kind, name, state, path) {
+                out("   " + kind.padEnd(11) + name.padEnd(27) + state + ' <span class="c-dim">' + esc(path) + "</span>");
+            }
+            out("");
+            row("module", "flcomp.ko", colorState("module", s.moduleState), L.modulePath);
+            row("config", "display.conf", colorState("config", s.configState), L.configPath);
+            row("initramfs", pathSegs(L.initramfsPath).pop(), colorState("init", s.initState), L.initramfsPath);
+            row("record", "flcomp-incident.log", blank, L.incidentPath);
+            row("images", "recovery/", blank, L.recoveryDir);
+            out("");
+            if (s.moduleState === "missing") out('   <span class="c-warn">the session record remembers which build was running.</span>');
+            if (s.moduleState === "wrong") out('   <span class="c-warn">flcomp srcversion does not match the session record</span>');
+            if (s.configState === "stale") out('   <span class="c-warn">display.conf abi does not match the flcomp module</span>');
+            if (s.moduleState !== "missing" && s.initState === "stale") out('   <span class="c-warn">initramfs does not contain the current flcomp module</span>');
+            if (s.moduleState === "ok" && s.configState === "ok" && s.initState === "ok") out('   <span class="c-ok">verified. run sysrepair --rebuild</span>');
+            else out('   <span class="c-fail">rebuild blocked</span>');
+            out("");
+        },
+        sysrepair: async function (args) {
+            if (args.indexOf("--rebuild") < 0) { out('<span class="c-fail">usage: sysrepair --rebuild</span>'); return; }
+            var s = await inspect();
+            if (s.moduleState !== "ok" || s.configState !== "ok" || s.initState !== "ok") {
+                out('<span class="c-fail">sysrepair: components not verified. run sysdiag</span>');
+                return;
+            }
+            await repaired();
+        },
+        show: async function (args) {
+            if (args[0] === "modules") {
+                out("");
+                Object.keys(MODULES).forEach(function (name) {
+                    out("   " + '<span class="c-mod">' + esc(name.padEnd(30)) + "</span>" + esc(MODULES[name].desc));
+                });
+                out("");
+                return;
+            }
+            if (args[0] === "options") {
+                if (!current) { noModule(); return; }
+                out("");
+                out("Module options (" + esc(current.name) + "):");
+                out("");
+                table(current.opts);
+                out("");
+                return;
+            }
+            out('<span class="c-fail">usage: show modules | show options</span>');
+        },
+        use: async function (args) {
+            var def = MODULES[args[0]];
+            if (!def) { out('<span class="c-fail">unknown module ' + esc(args[0] || "") + ". try show modules</span>"); return; }
+            current = { name: args[0], def: def, opts: await def.opts() };
+        },
+        set: function (args) {
+            if (!current) { noModule(); return; }
+            var name = (args[0] || "").toUpperCase();
+            if (!current.opts[name]) { out('<span class="c-fail">unknown option ' + esc(args[0] || "") + "</span>"); return; }
+            current.opts[name].v = args.slice(1).join(" ");
+            out(esc(name) + " =&gt; " + esc(current.opts[name].v));
+        },
+        run: async function () {
+            if (!current) { noModule(); return; }
+            await current.def.run(current.opts);
+        },
+        back: function () { current = null; },
+        exit: function () { out('<span class="c-dim">no session to return to. repair the system first.</span>'); }
+    };
+
+    async function repaired() {
+        out('<span class="c-ok">[+]</span> components verified, restarting the desktop session');
+        await sleep(700);
+        writeSave(STAGE_KEY, "rising");
+        recovery.hidden = true;
+        await playBoot(upSequence());
+        emit(FINISHED_EVENT, null);
+    }
+
+    function echoLine(raw) {
+        var head = rPrompt.innerHTML === "" ? rSigil.innerHTML : rPrompt.innerHTML + "\n" + rSigil.innerHTML;
+        out(head + " " + esc(raw));
+    }
+
+    async function submit(raw) {
+        var line = raw.trim();
+        echoLine(raw);
+        if (line === "") return;
+        history.push(line);
+        historyIndex = history.length;
+        var parts = line.split(/\s+/);
+        var name = parts[0];
+        if (name === "recovery" || name === "msf" || !Object.prototype.hasOwnProperty.call(COMMANDS, name)) {
+            out('<span class="c-fail">' + esc(name) + ": command not found. type help</span>");
+            return;
+        }
+        try {
+            await COMMANDS[name](parts.slice(1));
+        } catch (error) {
+            out(msg("fail", name + ": " + (error && error.message ? error.message : String(error))));
+        }
+    }
+
+    var hintToken = 0;
+    var hintPinned = false;
+
+    function commonPrefix(items) {
+        var prefix = items[0];
+        items.forEach(function (item) {
+            while (item.indexOf(prefix) !== 0) prefix = prefix.slice(0, -1);
+        });
+        return prefix;
+    }
+
+    function wordsOf(items, kind, fold) {
+        return {
+            fold: fold === true,
+            items: items.map(function (item) { return { value: item, label: item, kind: kind }; })
+        };
+    }
+
+    async function candidates(parts) {
+        var command = parts[0];
+        var last = parts[parts.length - 1];
+        if (parts.length === 1) return wordsOf(Object.keys(COMMANDS), "file");
+        if (command === "use" && parts.length === 2) return wordsOf(Object.keys(MODULES), "mod");
+        if (command === "set" && parts.length === 2 && current) return wordsOf(Object.keys(current.opts), "file", true);
+        if (command === "show" && parts.length === 2) return wordsOf(["modules", "options"], "file");
+        if (command === "sysrepair") return wordsOf(["--rebuild"], "file");
+        if (command === "uname") return wordsOf(["-r", "-a"], "file");
+        if (command === "rmmod" && parts.length === 2) return wordsOf(["flcomp"], "mod");
+        var imageArg = command === "set" && parts.length === 3 && parts[1].toUpperCase() === "IMAGE";
+        if (["ls", "cd", "cat", "modinfo"].indexOf(command) < 0 && !imageArg) return wordsOf([], "file");
+        var slash = last.lastIndexOf("/");
+        var base = slash >= 0 ? last.slice(0, slash + 1) : "";
+        var node = await lookup(resolve(base === "" ? "." : base));
+        if (!node || (node.isFolder !== true && node !== fsRoot)) return wordsOf([], "file");
+        var kids = (await Files.getChildren(node.id)).filter(function (kid) {
+            return kid.hidden !== true && (command !== "cd" || kid.isFolder === true);
+        });
+        return {
+            fold: false,
+            items: kids.map(function (kid) {
+                var tail = kid.isFolder === true ? "/" : "";
+                return { value: base + display(kid) + tail, label: display(kid) + tail, kind: kindOf(kid) };
+            })
+        };
+    }
+
+    async function matchesFor(value) {
+        var parts = value.replace(/^\s+/, "").split(/\s+/);
+        var last = parts[parts.length - 1];
+        var found = await candidates(parts);
+        var needle = found.fold ? last.toLowerCase() : last;
+        var hits = found.items.filter(function (item) {
+            return (found.fold ? item.value.toLowerCase() : item.value).indexOf(needle) === 0;
+        });
+        hits.sort(function (a, b) { return a.label < b.label ? -1 : a.label > b.label ? 1 : 0; });
+        return { parts: parts, last: last, hits: hits };
+    }
+
+    function setHint(html) {
+        rHint.innerHTML = current === null ? html : "";
+        rHintRow.innerHTML = current === null ? "" : html;
+    }
+
+    function hintBudget() {
+        var cols = termCols();
+        if (current !== null) return Math.floor(cols / 2);
+        return Math.max(10, cols - rPrompt.textContent.length - 2);
+    }
+
+    function hintCells(hits, budget) {
+        function widthOf(count) {
+            var sum = 0;
+            for (var n = 0; n < count; n += 1) sum += hits[n].label.length + (n > 0 ? 2 : 0);
+            if (count < hits.length) sum += (count > 0 ? 2 : 0) + ("… +" + (hits.length - count)).length;
+            return sum;
+        }
+        var shown = hits.length;
+        while (shown > 0 && widthOf(shown) > budget) shown -= 1;
+        var cells = hits.slice(0, shown).map(function (item) { return nameCell(item.label, item.kind).html; });
+        if (shown < hits.length) cells.push(dim("… +" + (hits.length - shown)));
+        return cells.join("  ");
+    }
+
+    async function refreshHint() {
+        hintToken += 1;
+        var token = hintToken;
+        var html = "";
+        if (!busy && !recovery.hidden && (rIn.value.trim() !== "" || hintPinned)) {
+            try {
+                var match = await matchesFor(rIn.value);
+                var settled = match.hits.length === 1 && match.hits[0].value === match.last;
+                if (match.hits.length > 0 && !settled) html = hintCells(match.hits, hintBudget());
+            } catch (error) {
+                html = "";
+            }
+        }
+        if (token === hintToken) setHint(html);
+    }
+
+    async function complete() {
+        if (rIn.value.trim() === "") {
+            hintPinned = true;
+            await refreshHint();
+            return;
+        }
+        var before = rIn.value;
+        var match = await matchesFor(before);
+        if (rIn.value !== before) return;
+        if (match.hits.length > 0) {
+            var prefix = commonPrefix(match.hits.map(function (item) { return item.value; }));
+            if (match.hits.length === 1 || prefix.length > match.last.length) {
+                match.parts[match.parts.length - 1] = prefix;
+                var finish = match.hits.length === 1 && prefix.slice(-1) !== "/" ? " " : "";
+                rIn.value = match.parts.join(" ") + finish;
+            }
+        }
+        await refreshHint();
+    }
+
+    function clearHint() {
+        hintToken += 1;
+        hintPinned = false;
+        setHint("");
+    }
+
+    rIn.addEventListener("input", function () {
+        hintPinned = false;
+        refreshHint();
+    });
+
+    rIn.addEventListener("keydown", async function (event) {
+        if (event.key === "Enter") {
+            if (busy) return;
+            var raw = rIn.value;
+            rIn.value = "";
+            clearHint();
+            busy = true;
+            try { await submit(raw); } finally { busy = false; }
+            if (!recovery.hidden) { renderPrompt(); await updateBar(); rIn.focus(); }
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            if (historyIndex > 0) { historyIndex -= 1; rIn.value = history[historyIndex]; }
+            hintPinned = false;
+            refreshHint();
+        } else if (event.key === "ArrowDown") {
+            event.preventDefault();
+            if (historyIndex < history.length - 1) { historyIndex += 1; rIn.value = history[historyIndex]; }
+            else { historyIndex = history.length; rIn.value = ""; }
+            hintPinned = false;
+            refreshHint();
+        } else if (event.key === "PageUp" || event.key === "PageDown") {
+            event.preventDefault();
+            rScroll.scrollBy({ top: (event.key === "PageUp" ? -1 : 1) * rScroll.clientHeight * 0.8 });
+        } else if (event.key === "Tab") {
+            event.preventDefault();
+            if (!busy) await complete();
+        }
+    });
+
+    recovery.addEventListener("click", function () { rIn.focus(); });
+    document.addEventListener("keydown", function (event) {
+        if (recovery.hidden || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (document.activeElement !== rIn) rIn.focus();
+    });
+
+    function parentWindow() {
+        try {
+            var host = window.parent;
+            if (host && host !== window && host.document && host.document.body) return host;
+        } catch (error) { return null; }
+        return null;
+    }
+
+    function forwardKey(event) {
+        if (event.key !== "Escape" && event.key !== "F1") return;
+        var host = parentWindow();
+        if (!host) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event.repeat) return;
+        host.document.body.dispatchEvent(new host.KeyboardEvent("keydown", {
+            key: event.key, code: event.code, keyCode: event.keyCode, which: event.which,
+            ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
+            bubbles: true, cancelable: true
+        }));
+    }
+
+    function reclaimFocus(event) {
+        if (!window.frameElement || !window.frameElement.isConnected) { unwatchParent(); return; }
+        if (!event.isTrusted || recovery.hidden || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.key === "Escape" || /^F\d+$/.test(event.key)) return;
+        if (event.target !== event.target.ownerDocument.body) return;
+        rIn.focus();
+        if (event.key.length !== 1) return;
+        event.preventDefault();
+        rIn.setRangeText(event.key, rIn.selectionStart, rIn.selectionEnd, "end");
+        rIn.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    var watchedHost = null;
+
+    function unwatchParent() {
+        if (watchedHost) watchedHost.document.removeEventListener("keydown", reclaimFocus);
+        watchedHost = null;
+    }
+
+    document.addEventListener("keydown", forwardKey, true);
+    (function watchParent() {
+        var host = parentWindow();
+        if (!host) return;
+        watchedHost = host;
+        host.document.addEventListener("keydown", reclaimFocus);
+        window.addEventListener("pagehide", unwatchParent);
+    })();
+
+    function showFailure(text) {
+        bootEl.hidden = false;
+        bootEl.textContent = text;
+    }
+
+    async function start() {
+        reduced = readCalm();
+        document.body.classList.toggle("calm", reduced);
+        emit(READY_EVENT, null);
+
+        breach = readSave(BREACH_KEY);
+        if (!Files || !breach || breach.version !== STATE_VERSION || !breach.layout) {
+            showFailure("flatline-recovery: no recovery session is registered.");
+            return;
+        }
+
+        L = breach.layout;
+        cwd = homeSegs.slice();
+
+        var stage = readSave(STAGE_KEY) || "recovery";
+        if (stage === "rising") {
+            await playBoot(upSequence());
+            emit(FINISHED_EVENT, null);
+            return;
+        }
+
+        await playBoot(stage === "falling" ? downSequence().concat(recoverySequence()) : recoverySequence());
+        writeSave(STAGE_KEY, "recovery");
+        bootEl.hidden = true;
+        await openRecovery();
+    }
+
+    window.addEventListener("unhandledrejection", function (event) {
+        if (!recovery.hidden) out(msg("fail", "internal error: " + (event.reason && event.reason.message ? event.reason.message : String(event.reason))));
+    });
+
+    start();
+})();
+</script>
+</body>
+</html>

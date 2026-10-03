@@ -1,101 +1,127 @@
-import { Localization, Mail, Scheduler } from "@hotbunny/hackhub-content-sdk";
+import { Mail, Scheduler } from "@hotbunny/hackhub-content-sdk";
 
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
-import { DESKTOP_RESTORED_EVENT, startBreach } from "../../components/desktop-breach.js";
-import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { DESKTOP_RESTORED_EVENT, startBreach, type BreachSpec } from "../../components/desktop-breach.js";
+import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
+import { dismissIncidentBanner } from "../../components/incident-banner.js";
+import { activeStrike } from "../../components/intrusion.js";
+import { INCIDENT_FILE_EXTENSION, INCIDENT_FILE_NAME } from "../../components/kernel-layout.js";
+import { RECOVERY_LOG_READ_EVENT } from "../../components/recovery-widget.js";
 import { M04_GATES } from "../../content/m04/gates.js";
-import { M04_HUNTER_EMAIL, M04_STATIC_HOP_IP } from "../../content/m04/network.js";
+import { M04_RESTORED_MAIL } from "../../content/m04/mail.js";
+import { M04_STATIC_HOP_IP } from "../../content/m04/network.js";
 import { M04_LOG_BREACH } from "../../content/m04/quest-logs.js";
 import {
-    M04_BREACH_DELAY_REAL_MS,
+    M04_BREACH_HANDOFF_REAL_MS,
+    M04_FIREWALL_LOG_DELAY_REAL_MS,
+    M04_RESTORE_MAIL_DELAY_REAL_MS,
     M04_SAVE_PREFIX,
     M04_SCOPE,
+    M04_STORY_DAY,
     M04_STRIKE_BREACH_ID,
 } from "../../content/m04/quest.js";
-import { INCIDENT_FILE_EXTENSION, INCIDENT_FILE_NAME } from "../../components/desktop-breach.js";
-import { trace } from "../../helpers/logger.js";
-import { kitBreachText } from "../../i18n/global/kit.js";
-import { M04_I18N_KEY } from "../../i18n/m04/core.js";
+import { unlock } from "../../core/index.js";
 import { advanceStep } from "../../middleware/gate.js";
+import { seedFirewallLog } from "./firewall-log.js";
 import { buildM04IncidentLog } from "./incident.js";
 import type { M04Quest } from "./types.js";
+import { M04_WORLD } from "./world.js";
 
 const BREACH_JOB = "flatline.m04.breach";
+const FIREWALL_LOG_JOB = "flatline.m04.firewallLog";
+const RESTORED_MAIL_JOB = "flatline.m04.restoredMail";
 
-interface ReadFile {
-    readonly name: string;
-    readonly extension?: string;
-}
+const BREACH_SPEC: BreachSpec = {
+    scope: M04_SCOPE,
+    mission: "m04",
+    ip: M04_STATIC_HOP_IP,
+    alias: M04_STRIKE_BREACH_ID,
+    buildIncidentLog: buildM04IncidentLog,
+    logDay: M04_STORY_DAY,
+};
 
 let pendingQuest: M04Quest | null = null;
 
-const isIncidentLog = (file: ReadFile): boolean =>
-    file.name === INCIDENT_FILE_NAME && file.extension === INCIDENT_FILE_EXTENSION;
+const isIncidentLog = (file: ReadFile): boolean => isNamedFile(file, INCIDENT_FILE_NAME, INCIDENT_FILE_EXTENSION);
+
+const markBreachBegan = (): void => {
+    traceBacktraceFinding("m4", "breach");
+    appendBacktraceLogs("m4", M04_LOG_BREACH(), { quiet: true });
+};
+
+const markIncidentLogRead = (quest: M04Quest): void => {
+    advanceStep(quest, M04_GATES, "incidentLogRead", () => unlock(M04_WORLD, "relayLead"));
+};
+
+const markDesktopRestored = (quest: M04Quest): void => {
+    advanceStep(quest, M04_GATES, "desktopRestored", () => {
+        scheduleFirewallLog();
+        scheduleRestoredMail();
+    });
+};
 
 const runBreach = async (): Promise<void> => {
     const quest = pendingQuest;
     if (quest === null || quest.Data.breachBegan) return;
 
-    const started = await startBreach(
-        {
-            scope: M04_SCOPE,
-            mission: "m04",
-            ip: M04_STATIC_HOP_IP,
-            alias: M04_STRIKE_BREACH_ID,
-            buildIncidentLog: buildM04IncidentLog,
-        },
-        kitBreachText(),
-    );
+    const started = await startBreach(BREACH_SPEC);
     if (!started) {
-        trace(M04_SCOPE, "breach refused: one is already active");
+        dismissIncidentBanner();
+        quest.SetData("breachScheduled", false);
         return;
     }
 
-    Mail.send({
-        from: M04_HUNTER_EMAIL,
-        subject: Localization.t(M04_I18N_KEY.MAIL_STRIKE2_SUBJECT),
-        content: Localization.t(M04_I18N_KEY.MAIL_STRIKE2_CONTENT),
-    });
+    advanceStep(quest, M04_GATES, "breachBegan", markBreachBegan);
+};
 
-    advanceStep(quest, M04_GATES, "breachBegan", () => {
-        traceBacktraceFinding("m4", "breach");
-        appendBacktraceLogs("m4", M04_LOG_BREACH());
-    });
-    trace(M04_SCOPE, "probe:breach-began");
+const runRestoredMail = (): void => {
+    Mail.send(M04_RESTORED_MAIL());
 };
 
 Scheduler.register(BREACH_JOB, () => runBreach());
+Scheduler.register(FIREWALL_LOG_JOB, () => seedFirewallLog());
+Scheduler.register(RESTORED_MAIL_JOB, runRestoredMail);
 
-export const scheduleM04Breach = (quest: M04Quest): void => {
+export const scheduleM04Breach = (quest: M04Quest, delayRealMs: number = M04_BREACH_HANDOFF_REAL_MS): void => {
     if (quest.Data.breachScheduled) return;
 
     quest.SetData("breachScheduled", true);
     Scheduler.cancelKind(BREACH_JOB);
-    Scheduler.schedule(BREACH_JOB, {}, { realMs: M04_BREACH_DELAY_REAL_MS });
-    trace(M04_SCOPE, `probe:breach-scheduled delayMs=${M04_BREACH_DELAY_REAL_MS}`);
+    Scheduler.schedule(BREACH_JOB, {}, { realMs: delayRealMs });
+};
+
+const scheduleFirewallLog = (): void => {
+    Scheduler.cancelKind(FIREWALL_LOG_JOB);
+    Scheduler.schedule(FIREWALL_LOG_JOB, {}, { realMs: M04_FIREWALL_LOG_DELAY_REAL_MS });
+};
+
+const scheduleRestoredMail = (): void => {
+    Scheduler.cancelKind(RESTORED_MAIL_JOB);
+    Scheduler.schedule(RESTORED_MAIL_JOB, {}, { realMs: M04_RESTORE_MAIL_DELAY_REAL_MS });
+};
+
+export const cancelM04BreachJobs = (): void => {
+    Scheduler.cancelKind(BREACH_JOB);
+    Scheduler.cancelKind(FIREWALL_LOG_JOB);
+    Scheduler.cancelKind(RESTORED_MAIL_JOB);
 };
 
 export const bindM04Breach = (quest: M04Quest): void => {
     pendingQuest = quest;
 
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (!isIncidentLog(data)) return;
-
-        advanceStep(quest, M04_GATES, "incidentLogRead");
+    onFileRead(quest.Events, (file) => {
+        if (isIncidentLog(file)) markIncidentLogRead(quest);
     });
 
-    quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
-        if (!isIncidentLog(data)) return;
-
-        advanceStep(quest, M04_GATES, "incidentLogRead");
-    });
+    quest.Events.on(RECOVERY_LOG_READ_EVENT, () => markIncidentLogRead(quest));
 
     quest.Events.on(DESKTOP_RESTORED_EVENT, (data: { readonly mission: string }) => {
         if (data.mission !== "m04") return;
 
-        trace(M04_SCOPE, "probe:desktop-restored");
-        advanceStep(quest, M04_GATES, "desktopRestored");
+        markDesktopRestored(quest);
     });
 
-    if (quest.Data.intruderRepelled && !quest.Data.breachBegan) scheduleM04Breach(quest);
+    if (quest.Data.probeStarted && !quest.Data.breachBegan && activeStrike(M04_SAVE_PREFIX) === null) {
+        scheduleM04Breach(quest);
+    }
 };

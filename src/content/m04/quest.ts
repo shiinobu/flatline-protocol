@@ -21,10 +21,12 @@ export const M04_SCOPE = "M04";
 
 export const M04_STRIKE_PROBE_ID = "probe";
 export const M04_STRIKE_DELAY_REAL_MS = 20_000;
-export const M04_STRIKE_DEADLINE_REAL_MS = 120_000;
-export const M04_STRIKE_PENALTY = 300;
+export const M04_STRIKE_DEADLINE_REAL_MS = 60_000;
 export const M04_HONEYPOT_PENALTY = 500;
 
 export const M04_STRIKE_BREACH_ID = "breach";
-export const M04_BREACH_DELAY_REAL_MS = 15_000;
-export const M04_INCIDENT_CLOCK = "03:14:07";
+export const M04_BREACH_HANDOFF_REAL_MS = 100;
+export const M04_FIREWALL_LOG_DELAY_REAL_MS = 1_500;
+export const M04_RESTORE_MAIL_DELAY_REAL_MS = 4_000;
+
+export const M04_STORY_DAY = { year: 2026, month: 9, day: 24 } as const;

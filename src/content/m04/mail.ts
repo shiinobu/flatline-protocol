@@ -10,10 +10,25 @@ export const M04_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M04_WARNING_SUBJECT = (): string => Localization.t(M04_I18N_KEY.MAIL_WARNING_SUBJECT);
 export const M04_WARNING_CONTENT = (): string => Localization.t(M04_I18N_KEY.MAIL_WARNING_CONTENT);
 
-export const M04_STRIKE1_MAIL = (): MailDefinition => ({
+export const M04_STRIKE1_MAIL = (stamp: string): MailDefinition => ({
     from: M04_HUNTER_EMAIL,
     subject: Localization.t(M04_I18N_KEY.MAIL_STRIKE1_SUBJECT),
-    content: Localization.t(M04_I18N_KEY.MAIL_STRIKE1_CONTENT),
+    content: Localization.t(M04_I18N_KEY.MAIL_STRIKE1_CONTENT, { stamp }),
+});
+
+export const M04_STRIKE1_MAIL_SLOT = "m04.strike1Mail";
+
+export const M04_RESTORED_MAIL = (): MailDefinition => ({
+    from: M04_DEAD_DROP_EMAIL,
+    subject: Localization.t(M04_I18N_KEY.MAIL_RESTORED_SUBJECT),
+    content: Localization.t(M04_I18N_KEY.MAIL_RESTORED_CONTENT),
+});
+
+export const M04_HONEYPOT_MAIL_SLOT = "m04.honeypotMail";
+export const M04_HONEYPOT_MAIL = (): MailDefinition => ({
+    from: M04_HUNTER_EMAIL,
+    subject: Localization.t(M04_I18N_KEY.MAIL_HONEYPOT_SUBJECT),
+    content: Localization.t(M04_I18N_KEY.MAIL_HONEYPOT_CONTENT),
 });
 
 export const M04_PREMATURE_MAIL_SLOT = "m04.prematureReply";
@@ -22,8 +37,7 @@ export const M04_PREMATURE_SUBJECT = (): string => Localization.t(M04_I18N_KEY.M
 const M04_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M04Step, string>>> = {
     warningRead: M04_I18N_KEY.MAIL_PREMATURE_HINT_WARNING,
     probeStarted: M04_I18N_KEY.MAIL_PREMATURE_HINT_PROBE,
-    intruderRepelled: M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL,
-    breachBegan: M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL,
+    breachBegan: M04_I18N_KEY.MAIL_PREMATURE_HINT_ATTACK,
     incidentLogRead: M04_I18N_KEY.MAIL_PREMATURE_HINT_INCIDENT,
     desktopRestored: M04_I18N_KEY.MAIL_PREMATURE_HINT_INCIDENT,
     relayProfiled: M04_I18N_KEY.MAIL_PREMATURE_HINT_RELAY,

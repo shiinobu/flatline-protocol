@@ -14,7 +14,7 @@ export const M04_I18N_KEY = {
     MAIL_PREMATURE_OUTRO: "M04.MAIL.PREMATURE.OUTRO",
     MAIL_PREMATURE_HINT_WARNING: "M04.MAIL.PREMATURE.HINT_WARNING",
     MAIL_PREMATURE_HINT_PROBE: "M04.MAIL.PREMATURE.HINT_PROBE",
-    MAIL_PREMATURE_HINT_REPEL: "M04.MAIL.PREMATURE.HINT_REPEL",
+    MAIL_PREMATURE_HINT_ATTACK: "M04.MAIL.PREMATURE.HINT_ATTACK",
     MAIL_REPORT_SUBJECT: "M04.MAIL.REPORT.SUBJECT",
     MAIL_REPORT_TEMPLATE_CONTENT: "M04.MAIL.REPORT.TEMPLATE_CONTENT",
     MAIL_REPORT_BODY: "M04.MAIL.REPORT.BODY",
@@ -22,11 +22,10 @@ export const M04_I18N_KEY = {
     BANNER_LABEL: "M04.BANNER.LABEL",
     BANNER_CRITICAL: "M04.BANNER.CRITICAL",
     BANNER_DETAIL: "M04.BANNER.DETAIL",
-    BANNER_SEVERED: "M04.BANNER.SEVERED",
-    BANNER_SEVERED_DETAIL: "M04.BANNER.SEVERED_DETAIL",
-    BANNER_BREACHED: "M04.BANNER.BREACHED",
-    BANNER_BREACHED_DETAIL: "M04.BANNER.BREACHED_DETAIL",
     TOAST_STRIKE: "M04.TOAST.STRIKE",
+    TOAST_PENALTY: "M04.TOAST.PENALTY",
+    REPEL_REFUSED: "M04.REPEL.REFUSED",
+    FLATLINE_NOT_READY: "M04.FLATLINE.NOT_READY",
 
     DEVICE_FIREWALL_LOG: "M04.DEVICE.FIREWALL_LOG",
     DEVICE_AUTH_LOG: "M04.DEVICE.AUTH_LOG",
@@ -35,8 +34,8 @@ export const M04_I18N_KEY = {
     DEVICE_OPERATOR_NOTES: "M04.DEVICE.OPERATOR_NOTES",
     DEVICE_MOTH_README: "M04.DEVICE.MOTH_README",
 
-    MAIL_STRIKE2_SUBJECT: "M04.MAIL.STRIKE2.SUBJECT",
-    MAIL_STRIKE2_CONTENT: "M04.MAIL.STRIKE2.CONTENT",
+    MAIL_RESTORED_SUBJECT: "M04.MAIL.RESTORED.SUBJECT",
+    MAIL_RESTORED_CONTENT: "M04.MAIL.RESTORED.CONTENT",
     MAIL_HONEYPOT_SUBJECT: "M04.MAIL.HONEYPOT.SUBJECT",
     MAIL_HONEYPOT_CONTENT: "M04.MAIL.HONEYPOT.CONTENT",
     MAIL_CLOSING_SUBJECT: "M04.MAIL.CLOSING.SUBJECT",
@@ -61,7 +60,7 @@ Localization.registerAll({
         [M04_I18N_KEY.QUEST_DESCRIPTION]:
             "Somebody is working your own machine. Find out who is looking for you, and make them stop.",
         [M04_I18N_KEY.OBJECTIVE_REPORT_FINDINGS]:
-            "Someone came back down the line you left open. Hold them off your own machine, follow the hops they came through, and report who was looking to the dead drop.",
+            "Someone came back down the line you left open. Follow the hops they came through, and report who was looking to the dead drop.",
 
         [M04_I18N_KEY.MAIL_WARNING_SUBJECT]: "something's wrong",
         [M04_I18N_KEY.MAIL_WARNING_CONTENT]: [
@@ -74,8 +73,13 @@ Localization.registerAll({
 
         [M04_I18N_KEY.MAIL_STRIKE1_SUBJECT]: "you left a door open",
         [M04_I18N_KEY.MAIL_STRIKE1_CONTENT]: [
-            "saw your traffic. i am already in your firewall log, and i am not the only thing in there.",
-            "cut me off before i finish, if you can work out which line is me.",
+            "you left a rule open on the finance network and i walked through it.",
+            "i am inside your machine now, uid 0. you will find me in your own firewall log afterwards. you cannot cut me off.",
+            "",
+            "when the clock on your screen reaches {{stamp}} your display module comes out of the kernel. the config goes after it. the boot image goes last.",
+            "",
+            "i am not taking the balance. i could. i would rather you sit in front of a dead screen and wonder who else has your name.",
+            "rebuild it, if you can. the logs stay. i want you to read them and see how close i was.",
         ].join("\n"),
 
         [M04_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "not yet",
@@ -84,7 +88,7 @@ Localization.registerAll({
         [M04_I18N_KEY.MAIL_PREMATURE_OUTRO]: "Send it again when they are off you.",
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_WARNING]: "Read what I sent you first.",
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_PROBE]: "Nothing has touched you yet. Wait for it.",
-        [M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL]: "Something is still inside. Your own logs name it.",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_ATTACK]: "They are already inside. You cannot stop this one; wait it out.",
 
         [M04_I18N_KEY.MAIL_REPORT_SUBJECT]: "Burn Notice — who was looking",
         [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
@@ -104,14 +108,15 @@ Localization.registerAll({
             "Contained: {{contained}}",
         ].join("\n"),
 
-        [M04_I18N_KEY.BANNER_LABEL]: "INCOMING CONNECTION",
-        [M04_I18N_KEY.BANNER_CRITICAL]: "TRACE CRITICAL",
-        [M04_I18N_KEY.BANNER_DETAIL]: "Unauthorized session on your firewall. Your own log names the source.",
-        [M04_I18N_KEY.BANNER_SEVERED]: "CONNECTION SEVERED",
-        [M04_I18N_KEY.BANNER_SEVERED_DETAIL]: "The session is cut. They know you noticed.",
-        [M04_I18N_KEY.BANNER_BREACHED]: "TRACE COMPLETE",
-        [M04_I18N_KEY.BANNER_BREACHED_DETAIL]: "They finished before you did.",
+        [M04_I18N_KEY.BANNER_LABEL]: "Broadcast message from sentry@darknull.io",
+        [M04_I18N_KEY.BANNER_CRITICAL]: "Final broadcast from sentry@darknull.io",
+        [M04_I18N_KEY.BANNER_DETAIL]: "flcomp: display module unload scheduled for {{stamp}}",
         [M04_I18N_KEY.TOAST_STRIKE]: "Unusual activity on your own firewall.",
+        [M04_I18N_KEY.TOAST_PENALTY]: "Unauthorized transfer: ${{amount}} taken from your account.",
+        [M04_I18N_KEY.REPEL_REFUSED]:
+            "flatline refused: the session holds uid 0 and the firewall no longer answers to you. This one cannot be cut.",
+        [M04_I18N_KEY.FLATLINE_NOT_READY]:
+            "flatline refused: you do not know whose host this is yet. Look it up first.",
 
         [M04_I18N_KEY.DEVICE_FIREWALL_LOG]: [
             "Sep 24 02:20:11 ghostwire kernel: [fw] ACCEPT out 443 mirror.update.pool",
@@ -155,6 +160,7 @@ Localization.registerAll({
             "beacon_interval = {{interval}}",
             "",
             "# the control host answers for scheduling only. do not stage from it.",
+            "# teardown: flatline <control_host>. the beacon stops and the schedule goes with it.",
         ].join("\n"),
         [M04_I18N_KEY.DEVICE_OLD_TARGETS]: [
             "skynet/finance: {{accomplice}}: monitor",
@@ -168,11 +174,15 @@ Localization.registerAll({
         [M04_I18N_KEY.DEVICE_MOTH_README]:
             "decommissioned. nothing on this box is current.",
 
-        [M04_I18N_KEY.MAIL_STRIKE2_SUBJECT]: "nice desktop",
-        [M04_I18N_KEY.MAIL_STRIKE2_CONTENT]: [
-            "compositor unloaded, display config rewritten.",
-            "i could have taken the balance instead. i wanted you to sit and look at it.",
-            "the logs are still there if you want your desktop back.",
+        [M04_I18N_KEY.MAIL_RESTORED_SUBJECT]: "you're still there",
+        [M04_I18N_KEY.MAIL_RESTORED_CONTENT]: [
+            "Your machine answered, so you are still on this side of it. Good.",
+            "",
+            "They did not take your money. They took the room you work in and made you watch. People who do that want you frightened, not poor. Do not give them that.",
+            "",
+            "What they left is a trail, and every hop that carried them marks the next one. Start from the log in your own house and walk it back, one machine at a time. Stay quiet on each. Do not touch anything that looks too easy.",
+            "",
+            "When you know who was looking, tell me. The report form is \"Mission 4 Findings\".",
         ].join("\n"),
         [M04_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "SYSTEM ALERT — relay probe answered",
         [M04_I18N_KEY.MAIL_HONEYPOT_CONTENT]: [
@@ -204,7 +214,7 @@ Localization.registerAll({
         [M04_I18N_KEY.QUEST_TITLE]: "烧毁通知",
         [M04_I18N_KEY.QUEST_DESCRIPTION]: "有人正在对你自己的机器下手。查出是谁在找你，然后让他们停下。",
         [M04_I18N_KEY.OBJECTIVE_REPORT_FINDINGS]:
-            "有人顺着你留下的那条线回来了。把他们从你自己的机器上挡开，顺着他们经过的跳板往回查，再把到底是谁在找你报给死信箱。",
+            "有人顺着你留下的那条线回来了。顺着他们经过的跳板往回查，再把到底是谁在找你报给死信箱。",
 
         [M04_I18N_KEY.MAIL_WARNING_SUBJECT]: "出事了",
         [M04_I18N_KEY.MAIL_WARNING_CONTENT]: [
@@ -217,8 +227,13 @@ Localization.registerAll({
 
         [M04_I18N_KEY.MAIL_STRIKE1_SUBJECT]: "你留了一扇门没关",
         [M04_I18N_KEY.MAIL_STRIKE1_CONTENT]: [
-            "看到你的流量了。我已经在你的防火墙日志里，而且里面不止我一个。",
-            "在我做完之前把我切掉——前提是你能分辨出哪一行是我。",
+            "你在财务网络上留了一条规则没关，我就从那里走了进来。",
+            "我现在已经在你的机器里，uid 0。事后你会在自己的防火墙日志里找到我。你切不断我。",
+            "",
+            "等你屏幕上的时钟走到 {{stamp}}，你的显示模块就会从内核里被拽出来。配置紧随其后，启动镜像排在最后。",
+            "",
+            "我不会拿走你的余额。我完全可以。我更愿意让你坐在一块死掉的屏幕前，琢磨还有谁知道你的名字。",
+            "想重建就重建吧，如果你做得到。日志会留着。我要你读一遍，看清我离你有多近。",
         ].join("\n"),
 
         [M04_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "还不到时候",
@@ -226,7 +241,7 @@ Localization.registerAll({
         [M04_I18N_KEY.MAIL_PREMATURE_OUTRO]: "等他们从你身上下来，再发一次。",
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_WARNING]: "先读我发给你的东西。",
         [M04_I18N_KEY.MAIL_PREMATURE_HINT_PROBE]: "还没有东西碰到你。等着。",
-        [M04_I18N_KEY.MAIL_PREMATURE_HINT_REPEL]: "有东西还在里面。你自己的日志会点出它。",
+        [M04_I18N_KEY.MAIL_PREMATURE_HINT_ATTACK]: "他们已经在里面了。这一次拦不住，等它过去。",
 
         [M04_I18N_KEY.MAIL_REPORT_SUBJECT]: "烧毁通知 — 是谁在找",
         [M04_I18N_KEY.MAIL_REPORT_TEMPLATE_CONTENT]: [
@@ -246,14 +261,13 @@ Localization.registerAll({
             "已控制：{{contained}}",
         ].join("\n"),
 
-        [M04_I18N_KEY.BANNER_LABEL]: "有连接进入",
-        [M04_I18N_KEY.BANNER_CRITICAL]: "追踪即将完成",
-        [M04_I18N_KEY.BANNER_DETAIL]: "防火墙上有未授权会话。你自己的日志会点出来源。",
-        [M04_I18N_KEY.BANNER_SEVERED]: "连接已切断",
-        [M04_I18N_KEY.BANNER_SEVERED_DETAIL]: "会话已切断。他们知道你注意到了。",
-        [M04_I18N_KEY.BANNER_BREACHED]: "追踪已完成",
-        [M04_I18N_KEY.BANNER_BREACHED_DETAIL]: "他们比你先做完。",
+        [M04_I18N_KEY.BANNER_LABEL]: "来自 sentry@darknull.io 的广播消息",
+        [M04_I18N_KEY.BANNER_CRITICAL]: "来自 sentry@darknull.io 的最后广播",
+        [M04_I18N_KEY.BANNER_DETAIL]: "flcomp：显示模块将于 {{stamp}} 卸载",
         [M04_I18N_KEY.TOAST_STRIKE]: "你自己的防火墙上有异常活动。",
+        [M04_I18N_KEY.TOAST_PENALTY]: "未经授权的转账：已从你的账户划走 ${{amount}}。",
+        [M04_I18N_KEY.REPEL_REFUSED]: "flatline 被拒绝：该会话持有 uid 0，防火墙已不再听你的。这一个切不断。",
+        [M04_I18N_KEY.FLATLINE_NOT_READY]: "flatline 被拒绝：你还不知道这台主机是谁的。先查清楚。",
 
         [M04_I18N_KEY.DEVICE_FIREWALL_LOG]: [
             "Sep 24 02:20:11 ghostwire kernel: [fw] ACCEPT out 443 mirror.update.pool",
@@ -297,6 +311,7 @@ Localization.registerAll({
             "beacon_interval = {{interval}}",
             "",
             "# 这台控制主机只负责排程。不要从它上面发起行动。",
+            "# 拆除：flatline <control_host>。信标一停，排程随之消失。",
         ].join("\n"),
         [M04_I18N_KEY.DEVICE_OLD_TARGETS]: [
             "skynet/finance: {{accomplice}}: 继续盯着",
@@ -309,11 +324,15 @@ Localization.registerAll({
         ].join("\n"),
         [M04_I18N_KEY.DEVICE_MOTH_README]: "已注销。这台机器上的东西都不是现行的。",
 
-        [M04_I18N_KEY.MAIL_STRIKE2_SUBJECT]: "桌面不错",
-        [M04_I18N_KEY.MAIL_STRIKE2_CONTENT]: [
-            "合成器已卸载，显示配置已被改写。",
-            "我本来可以直接把余额拿走。我更想让你坐在那儿看着它。",
-            "想把桌面弄回来的话，日志还在。",
+        [M04_I18N_KEY.MAIL_RESTORED_SUBJECT]: "你还在",
+        [M04_I18N_KEY.MAIL_RESTORED_CONTENT]: [
+            "你的机器应了声，说明你还在这一侧。很好。",
+            "",
+            "他们没拿你的钱。他们拿走的是你干活的那间屋子，还逼你看着。干这种事的人要的是你害怕，不是你破产。别让他们如愿。",
+            "",
+            "他们留下的是一条痕迹，带过他们的每一跳都会在下一跳上留下印记。从你自己家里的那份日志开始，一台一台往回走。每一台都要安静。别碰任何看起来太容易的东西。",
+            "",
+            "等你知道是谁在找你，告诉我。报告表是「Mission 4 Findings」。",
         ].join("\n"),
         [M04_I18N_KEY.MAIL_HONEYPOT_SUBJECT]: "系统告警 — 中继探测被应答",
         [M04_I18N_KEY.MAIL_HONEYPOT_CONTENT]: [

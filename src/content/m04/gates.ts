@@ -7,7 +7,6 @@ export type M04Step = FlagKey<M04QuestData>;
 export const M04_STEP_ORDER: readonly M04Step[] = [
     "warningRead",
     "probeStarted",
-    "intruderRepelled",
     "breachBegan",
     "incidentLogRead",
     "desktopRestored",
@@ -23,8 +22,7 @@ export const M04_STEP_ORDER: readonly M04Step[] = [
 
 export const M04_GATES: readonly Gate<M04QuestData>[] = [
     { step: "probeStarted", requires: ["warningRead"] },
-    { step: "intruderRepelled", requires: ["probeStarted"] },
-    { step: "breachBegan", requires: ["intruderRepelled"] },
+    { step: "breachBegan", requires: ["probeStarted"] },
     { step: "incidentLogRead", requires: ["breachBegan"] },
     { step: "desktopRestored", requires: ["breachBegan"] },
     { step: "relayProfiled", requires: ["incidentLogRead", "desktopRestored"] },

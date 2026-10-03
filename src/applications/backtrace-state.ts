@@ -112,7 +112,15 @@ export const traceBacktraceKeyById = (mission: BacktraceMissionId, key: string):
 export const traceBacktraceFinding = <M extends BacktraceMissionId>(mission: M, key: BacktraceKey<M>): boolean =>
     traceBacktraceKeyById(mission, key);
 
-const appendLogs = (mission: BacktraceMissionId, texts: readonly string[]): readonly string[] => {
+export interface BacktraceLogOptions {
+    readonly quiet?: boolean;
+}
+
+const appendLogs = (
+    mission: BacktraceMissionId,
+    texts: readonly string[],
+    quiet: boolean,
+): readonly string[] => {
     const current = readBacktraceState()[mission];
     if (current.status === "complete") return [];
 
@@ -123,13 +131,19 @@ const appendLogs = (mission: BacktraceMissionId, texts: readonly string[]): read
     const status: BacktraceMissionStatus = current.status === "locked" ? "progress" : current.status;
     writeBacktraceMission(mission, { ...current, status, logs: [...logs, ...fresh] });
     trace("Backtrace", `${mission} logged`, fresh.join(" | "));
-    UI.toast(`BACKTRACE: ${fresh.length} new personal log ${fresh.length === 1 ? "entry" : "entries"} recorded.`, "info");
+    if (!quiet) {
+        UI.toast(`BACKTRACE: ${fresh.length} new personal log ${fresh.length === 1 ? "entry" : "entries"} recorded.`, "info");
+    }
     return fresh;
 };
 
-export const appendBacktraceLogs = (mission: BacktraceMissionId, texts: readonly string[]): readonly string[] => {
+export const appendBacktraceLogs = (
+    mission: BacktraceMissionId,
+    texts: readonly string[],
+    options: BacktraceLogOptions = {},
+): readonly string[] => {
     try {
-        return appendLogs(mission, texts);
+        return appendLogs(mission, texts, options.quiet === true);
     } catch (error: unknown) {
         trace("Backtrace", `${mission} log failed`, describeError(error));
         return [];

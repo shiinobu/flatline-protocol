@@ -11,6 +11,8 @@ import { findSessionFile } from "./meterpreter-files.js";
 
 export const OPEN_FILE_READ_EVENT = "flatline.open.fileRead";
 
+const ENTRY_LOG_EXTENSION = "log";
+
 @RegisterCommand({ default: true, scope: "both" })
 export class OpenCommand extends Command {
     CommandName = "open";
@@ -39,14 +41,16 @@ export class OpenCommand extends Command {
         }
 
         const content = Files.read(file.id);
-        if (content === undefined) {
+        const isEntryLog = content === undefined && file.extension === ENTRY_LOG_EXTENSION;
+        if (content === undefined && !isEntryLog) {
             tools.printError(`Could not read: ${target}`);
             return;
         }
 
         const label = file.extension ? `${file.name}.${file.extension}` : file.name;
         tools.println([{ text: label, color: "cyan", bold: true }]);
-        printLines(tools, content);
+        if (content === undefined) await tools.exec(`cat ${target}`);
+        else printLines(tools, content);
         Events.emit(OPEN_FILE_READ_EVENT, { id: file.id, name: file.name, extension: file.extension });
     }
 }

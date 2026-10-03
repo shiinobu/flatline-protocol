@@ -25,7 +25,6 @@ import {
     M07_LEDGER_WIPED_CONTENT,
 } from "../../content/m07/server-files.js";
 import { trace } from "../../helpers/logger.js";
-import { kitBreachText } from "../../i18n/global/kit.js";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { buildM07IncidentLog } from "./incident.js";
 import type { M07Quest } from "./types.js";
@@ -100,16 +99,13 @@ export const bindM07Tracking = (quest: M07Quest): void => {
             const charged = penalty(M07_SCOPE, M07_TRACE_PENALTY, "Traced session — loss");
             trace(M07_SCOPE, `trace expired penalty=${charged}`);
             await wipeLedger(quest);
-            await startBreach(
-                {
-                    scope: M07_SCOPE,
-                    mission: "m07",
-                    ip: M07_C2_IP,
-                    alias: M07_TRACE_STRIKE_ID,
-                    buildIncidentLog: buildM07IncidentLog,
-                },
-                kitBreachText(),
-            );
+            await startBreach({
+                scope: M07_SCOPE,
+                mission: "m07",
+                ip: M07_C2_IP,
+                alias: M07_TRACE_STRIKE_ID,
+                buildIncidentLog: buildM07IncidentLog,
+            });
         },
     });
 };

@@ -1,7 +1,6 @@
 export interface M04QuestData {
     readonly warningRead: boolean;
     readonly probeStarted: boolean;
-    readonly intruderRepelled: boolean;
     readonly breachBegan: boolean;
     readonly incidentLogRead: boolean;
     readonly desktopRestored: boolean;
@@ -23,7 +22,6 @@ export interface M04QuestData {
 export const createM04Data = (): M04QuestData => ({
     warningRead: false,
     probeStarted: false,
-    intruderRepelled: false,
     breachBegan: false,
     incidentLogRead: false,
     desktopRestored: false,

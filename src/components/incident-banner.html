@@ -8,7 +8,7 @@
         height: 100%;
         overflow: hidden;
         background: transparent;
-        font-family: Consolas, "Courier New", monospace;
+        font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
     }
     body {
         padding: 6px;
@@ -18,11 +18,10 @@
         display: none;
         box-sizing: border-box;
         width: 100%;
-        padding: 9px 14px 11px;
-        background: rgba(16, 4, 9, 0.93);
+        padding: 10px 14px 12px;
+        background: rgba(14, 4, 9, 0.94);
         border: 1px solid var(--accent);
-        color: var(--accent);
-        box-shadow: 0 0 16px var(--glow), inset 0 0 12px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 0 18px var(--glow), inset 0 0 14px rgba(0, 0, 0, 0.6);
         user-select: none;
     }
     .warning {
@@ -31,7 +30,7 @@
     }
     .critical {
         --accent: #ff3b4e;
-        --glow: rgba(255, 59, 78, 0.55);
+        --glow: rgba(255, 59, 78, 0.6);
         animation: pulse 0.9s ease-in-out infinite;
     }
     .severed {
@@ -48,25 +47,50 @@
         align-items: baseline;
     }
     .label {
-        font-size: 12px;
-        font-weight: bold;
-        letter-spacing: 0.22em;
+        position: relative;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+    }
+    .critical .label::before,
+    .critical .label::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+        clip-path: inset(0 0 100% 0);
+    }
+    .critical .label::before {
+        color: #00dcff;
+        mix-blend-mode: screen;
+        animation: slice-a 1.3s steps(1) infinite;
+    }
+    .critical .label::after {
+        color: #ff2d6a;
+        mix-blend-mode: screen;
+        animation: slice-b 1.7s steps(1) infinite;
     }
     .timer {
-        font-size: 20px;
-        font-weight: bold;
-        letter-spacing: 0.08em;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
     }
-    .track {
-        height: 4px;
-        margin: 8px 0 7px;
+    .ticks {
+        display: flex;
+        gap: 3px;
+        margin: 8px 0;
+    }
+    .ticks i {
+        flex: 1;
+        height: 6px;
         background: rgba(255, 255, 255, 0.08);
     }
-    .fill {
-        height: 100%;
-        width: 0;
+    .ticks i.on {
         background: var(--accent);
-        transition: width 0.25s linear;
     }
     .detail {
         font-size: 11px;
@@ -76,9 +100,99 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .banner.broadcast {
+        --accent: #e6e3da;
+        --glow: rgba(0, 0, 0, 0);
+        --track: #2c3036;
+        padding: 10px 14px 11px;
+        background: rgba(16, 18, 20, 0.94);
+        border: 1px solid var(--track);
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+    }
+    .banner.broadcast.critical {
+        --accent: #e8505b;
+        animation: none;
+    }
+    .broadcast .label {
+        min-width: 0;
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0;
+        color: #8a8f98;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .broadcast.critical .label {
+        color: #e6e3da;
+    }
+    .broadcast.critical .label::before,
+    .broadcast.critical .label::after {
+        display: none;
+    }
+    .broadcast .timer {
+        margin-left: 12px;
+        font-size: 30px;
+        line-height: 1;
+        letter-spacing: 0;
+    }
+    .broadcast.critical .timer {
+        animation: beat 0.9s ease-in-out infinite;
+    }
+    .broadcast .ticks {
+        display: block;
+        position: relative;
+        height: 2px;
+        margin: 9px 0 8px;
+        background: var(--track);
+    }
+    .broadcast .ticks i {
+        display: none;
+    }
+    .broadcast .ticks::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: calc(var(--fill, 0) * 100%);
+        background: var(--accent);
+    }
+    .broadcast .detail {
+        font-size: 12px;
+        letter-spacing: 0;
+        color: #e6e3da;
+        white-space: pre;
+    }
+    body.calm .critical,
+    body.calm .critical .label::before,
+    body.calm .critical .label::after,
+    body.calm .broadcast.critical .timer {
+        animation: none;
+    }
+    @keyframes beat {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.55; }
+    }
     @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 10px var(--glow), inset 0 0 12px rgba(0, 0, 0, 0.55); }
-        50% { box-shadow: 0 0 26px var(--glow), inset 0 0 12px rgba(0, 0, 0, 0.55); }
+        0%, 100% { box-shadow: 0 0 10px var(--glow), inset 0 0 14px rgba(0, 0, 0, 0.6); }
+        50% { box-shadow: 0 0 28px var(--glow), inset 0 0 14px rgba(0, 0, 0, 0.6); }
+    }
+    @keyframes slice-a {
+        0% { clip-path: inset(0 0 100% 0); transform: none; }
+        30% { clip-path: inset(0 0 55% 0); transform: translateX(-3px); }
+        36% { clip-path: inset(50% 0 0 0); transform: translateX(2px); }
+        42% { clip-path: inset(0 0 100% 0); transform: none; }
+        80% { clip-path: inset(25% 0 40% 0); transform: translateX(-2px); }
+        86% { clip-path: inset(0 0 100% 0); transform: none; }
+    }
+    @keyframes slice-b {
+        0% { clip-path: inset(0 0 100% 0); transform: none; }
+        20% { clip-path: inset(50% 0 0 0); transform: translateX(3px); }
+        27% { clip-path: inset(0 0 100% 0); transform: none; }
+        66% { clip-path: inset(0 0 55% 0); transform: translateX(-3px); }
+        73% { clip-path: inset(35% 0 25% 0); transform: translateX(2px); }
+        79% { clip-path: inset(0 0 100% 0); transform: none; }
     }
 </style>
 </head>
@@ -88,19 +202,24 @@
         <span id="label" class="label"></span>
         <span id="timer" class="timer"></span>
     </div>
-    <div class="track"><div id="fill" class="fill"></div></div>
+    <div id="ticks" class="ticks"></div>
     <div id="detail" class="detail"></div>
 </div>
 <script>
 (function () {
     var VIEW_KEY = "flatlineIncidentView";
+    var REDUCE_SETTING = "reduceFlashing";
     var MAX_EXTRAPOLATION_MS = 2500;
     var RENDER_INTERVAL_MS = 200;
+    var TICK_COUNT = 40;
     var banner = document.getElementById("banner");
     var label = document.getElementById("label");
     var timer = document.getElementById("timer");
-    var fill = document.getElementById("fill");
+    var ticks = document.getElementById("ticks");
     var detail = document.getElementById("detail");
+    var lastText = null;
+
+    for (var index = 0; index < TICK_COUNT; index += 1) ticks.appendChild(document.createElement("i"));
 
     function pad(value) {
         return value < 10 ? "0" + value : String(value);
@@ -111,12 +230,47 @@
         return pad(Math.floor(seconds / 60)) + ":" + pad(seconds % 60);
     }
 
+    function stampSeconds(stamp) {
+        var match = /^(\d{1,2}):(\d{2}):(\d{2})$/.exec(stamp || "");
+        return match ? Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]) : null;
+    }
+
+    function formatStamp(totalSeconds) {
+        var wrapped = ((totalSeconds % 86400) + 86400) % 86400;
+        return pad(Math.floor(wrapped / 3600)) + ":" + pad(Math.floor((wrapped % 3600) / 60)) + ":" + pad(wrapped % 60);
+    }
+
+    function describe(view, live, remaining) {
+        var base = view.detail || "";
+        if (view.variant !== "broadcast" || !live) return base;
+
+        var end = stampSeconds(view.clockEnd);
+        if (end === null) return base;
+
+        return formatStamp(end - Math.max(0, Math.ceil(remaining / 1000))) + "  " + base;
+    }
+
     function readView() {
         try {
             return window.HackhubSDK.Variables.get(VIEW_KEY) || null;
         } catch (error) {
             return null;
         }
+    }
+
+    function readCalm() {
+        try {
+            return window.HackhubSDK.ModSettings.get(REDUCE_SETTING) === true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function paintTicks(ratio) {
+        var filled = Math.round(ratio * TICK_COUNT);
+        Array.prototype.forEach.call(ticks.children, function (tick, position) {
+            tick.className = position < filled ? "on" : "";
+        });
     }
 
     function render() {
@@ -131,12 +285,18 @@
         var remaining = live ? Math.max(0, view.remainingRealMs - elapsed) : 0;
         var ratio = live ? remaining / view.totalRealMs : (view.phase === "severed" ? 1 : 0);
 
-        banner.className = "banner " + view.phase;
+        document.body.classList.toggle("calm", readCalm());
+        banner.className = "banner " + view.phase + (view.variant === "broadcast" ? " broadcast" : "");
         banner.style.display = "block";
-        label.textContent = view.label || "";
+        if (view.label !== lastText) {
+            label.textContent = view.label || "";
+            label.setAttribute("data-text", view.label || "");
+            lastText = view.label;
+        }
         timer.textContent = live ? formatClock(remaining) : "";
-        fill.style.width = Math.round(ratio * 100) + "%";
-        detail.textContent = view.detail || "";
+        paintTicks(ratio);
+        ticks.style.setProperty("--fill", String(ratio));
+        detail.textContent = describe(view, live, remaining);
     }
 
     setInterval(render, RENDER_INTERVAL_MS);

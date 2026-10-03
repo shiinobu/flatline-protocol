@@ -1,9 +1,12 @@
-import { Desktop, SaveStorage, Scheduler, Time, Variables } from "@hotbunny/hackhub-content-sdk";
+import { Desktop, Events, SaveStorage, Scheduler, Time, Variables } from "@hotbunny/hackhub-content-sdk";
 
 import { trace } from "../helpers/logger.js";
+import { burstDesktop, setGlitchLevel } from "./desktop-glitch.js";
+import { isDesktopMounted, onSessionLeft } from "./session-guard.js";
 
 export type IncidentPhase = "warning" | "critical" | "severed" | "breached";
 export type IncidentOutcome = "severed" | "breached";
+export type IncidentVariant = "broadcast";
 
 export interface IncidentBannerSpec {
     readonly scope: string;
@@ -12,6 +15,8 @@ export interface IncidentBannerSpec {
     readonly label: string;
     readonly criticalLabel: string;
     readonly detail: string;
+    readonly variant?: IncidentVariant;
+    readonly clockEnd?: string;
 }
 
 export interface IncidentBannerResolution {
@@ -19,6 +24,7 @@ export interface IncidentBannerResolution {
     readonly outcome: IncidentOutcome;
     readonly label: string;
     readonly detail: string;
+    readonly holdRealMs?: number;
 }
 
 interface StoredIncident {
@@ -29,6 +35,8 @@ interface StoredIncident {
     readonly label: string;
     readonly criticalLabel: string;
     readonly detail: string;
+    readonly variant?: IncidentVariant;
+    readonly clockEnd?: string;
 }
 
 interface IncidentView {
@@ -38,6 +46,8 @@ interface IncidentView {
     readonly remainingRealMs: number;
     readonly totalRealMs: number;
     readonly publishedAt: number;
+    readonly variant?: IncidentVariant;
+    readonly clockEnd?: string;
 }
 
 const WIDGET_ID = "flatline.incidentBanner";
@@ -46,13 +56,15 @@ const VIEW_KEY = "flatlineIncidentView";
 const INCIDENT_KEY = "flatline.incidentBanner";
 const TICK_JOB = "flatline.incidentBanner.tick";
 const CLEAR_JOB = "flatline.incidentBanner.clear";
-const WIDGET_WIDTH = 520;
-const WIDGET_HEIGHT = 96;
+const WIDGET_WIDTH = 540;
+const WIDGET_HEIGHT = 112;
 const WIDGET_TOP = 12;
 const WIDGET_MIN_LEFT = 8;
 const TICK_REAL_MS = 1000;
 const RESOLVED_REAL_MS = 4000;
 const CRITICAL_FRACTION = 0.35;
+const STRIKE_BURST_POWER = 2.6;
+const BREACHED_BURST_POWER = 2.2;
 
 const centeredLeft = (): number =>
     typeof window === "undefined"
@@ -60,6 +72,7 @@ const centeredLeft = (): number =>
         : Math.max(WIDGET_MIN_LEFT, Math.round((window.innerWidth - WIDGET_WIDTH) / 2));
 
 const ensureWidget = (): void => {
+    if (!isDesktopMounted()) return;
     if (Desktop.getWidgets().some((widget) => widget.id === WIDGET_ID)) return;
 
     Desktop.addWidget({
@@ -83,6 +96,7 @@ const remainingRealMsOf = (incident: StoredIncident): number =>
 const publishLive = (incident: StoredIncident): void => {
     const remaining = remainingRealMsOf(incident);
     const critical = remaining <= incident.totalRealMs * CRITICAL_FRACTION;
+    setGlitchLevel(critical ? 3 : 2);
     publish({
         phase: critical ? "critical" : "warning",
         label: critical ? incident.criticalLabel : incident.label,
@@ -90,6 +104,8 @@ const publishLive = (incident: StoredIncident): void => {
         remainingRealMs: remaining,
         totalRealMs: incident.totalRealMs,
         publishedAt: Date.now(),
+        variant: incident.variant,
+        clockEnd: incident.clockEnd,
     });
 };
 
@@ -123,6 +139,8 @@ export const showIncidentBanner = (spec: IncidentBannerSpec): void => {
         label: spec.label,
         criticalLabel: spec.criticalLabel,
         detail: spec.detail,
+        variant: spec.variant,
+        clockEnd: spec.clockEnd,
     };
 
     Scheduler.cancelKind(CLEAR_JOB);
@@ -130,6 +148,7 @@ export const showIncidentBanner = (spec: IncidentBannerSpec): void => {
     SaveStorage.set(INCIDENT_KEY, incident);
     ensureWidget();
     publishLive(incident);
+    burstDesktop(STRIKE_BURST_POWER);
     scheduleTick();
     trace(spec.scope, `banner shown ip=${spec.ip} totalMs=${spec.totalRealMs}`);
 };
@@ -141,6 +160,7 @@ export const resolveIncidentBanner = (resolution: IncidentBannerResolution): voi
     Scheduler.cancelKind(TICK_JOB);
     Scheduler.cancelKind(CLEAR_JOB);
     SaveStorage.set(INCIDENT_KEY, null);
+    setGlitchLevel(0);
     ensureWidget();
     publish({
         phase: resolution.outcome,
@@ -149,8 +169,11 @@ export const resolveIncidentBanner = (resolution: IncidentBannerResolution): voi
         remainingRealMs: 0,
         totalRealMs: incident.totalRealMs,
         publishedAt: Date.now(),
+        variant: incident.variant,
+        clockEnd: incident.clockEnd,
     });
-    Scheduler.schedule(CLEAR_JOB, {}, { realMs: RESOLVED_REAL_MS });
+    Scheduler.schedule(CLEAR_JOB, {}, { realMs: resolution.holdRealMs ?? RESOLVED_REAL_MS });
+    if (resolution.outcome === "breached") burstDesktop(BREACHED_BURST_POWER);
     trace(resolution.scope, `banner resolved outcome=${resolution.outcome}`);
 };
 
@@ -158,5 +181,15 @@ export const dismissIncidentBanner = (): void => {
     Scheduler.cancelKind(TICK_JOB);
     Scheduler.cancelKind(CLEAR_JOB);
     SaveStorage.set(INCIDENT_KEY, null);
+    setGlitchLevel(0);
     removeBanner();
 };
+
+onSessionLeft(() => Desktop.removeWidget(WIDGET_ID));
+
+Events.on("Game.SessionStarted", () => {
+    if (storedIncident() !== null) return;
+
+    setGlitchLevel(0);
+    if (Desktop.getWidgets().some((widget) => widget.id === WIDGET_ID)) removeBanner();
+});

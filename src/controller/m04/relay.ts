@@ -1,5 +1,5 @@
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
-import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { M04_GATES } from "../../content/m04/gates.js";
 import {
     M04_NIGHT_SHIFT_IP,
@@ -9,7 +9,6 @@ import {
     M04_STATIC_HOP_IP,
 } from "../../content/m04/network.js";
 import { M04_LOG_ORIGIN } from "../../content/m04/quest-logs.js";
-import { M04_SCOPE } from "../../content/m04/quest.js";
 import {
     M04_AUTH_LOG_FILE_EXTENSION,
     M04_AUTH_LOG_FILE_NAME,
@@ -17,21 +16,15 @@ import {
     M04_WATCHDOG_CONF_FILE_NAME,
 } from "../../content/m04/server-files.js";
 import { unlock } from "../../core/index.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M04Quest } from "./types.js";
 import { M04_WORLD } from "./world.js";
 
-interface ReadFile {
-    readonly name: string;
-    readonly extension?: string;
-}
-
 const isAuthLog = (file: ReadFile): boolean =>
-    file.name === M04_AUTH_LOG_FILE_NAME && file.extension === M04_AUTH_LOG_FILE_EXTENSION;
+    isNamedFile(file, M04_AUTH_LOG_FILE_NAME, M04_AUTH_LOG_FILE_EXTENSION);
 
 const isWatchdogConf = (file: ReadFile): boolean =>
-    file.name === M04_WATCHDOG_CONF_FILE_NAME && file.extension === M04_WATCHDOG_CONF_FILE_EXTENSION;
+    isNamedFile(file, M04_WATCHDOG_CONF_FILE_NAME, M04_WATCHDOG_CONF_FILE_EXTENSION);
 
 const markRelayLog = (quest: M04Quest): void => {
     advanceStep(quest, M04_GATES, "relayLogRead", () => unlock(M04_WORLD, "quietMirrorSsh"));
@@ -70,7 +63,6 @@ const bindHydra = (quest: M04Quest): void => {
         if (data.ip !== M04_R1_IP) return;
         if (data.credentials.username !== M04_R1_PANEL_USERNAME) return;
 
-        trace(M04_SCOPE, `probe:hydra-run ip=${data.ip} port=${data.port}`);
         advanceStep(quest, M04_GATES, "hydraRun", () => unlock(M04_WORLD, "staticHopSsh"));
     });
 };
@@ -91,14 +83,9 @@ const bindSessions = (quest: M04Quest): void => {
 };
 
 const bindFiles = (quest: M04Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (isAuthLog(data)) markRelayLog(quest);
-        if (isWatchdogConf(data)) markControl(quest);
-    });
-
-    quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
-        if (isAuthLog(data)) markRelayLog(quest);
-        if (isWatchdogConf(data)) markControl(quest);
+    onFileRead(quest.Events, (file) => {
+        if (isAuthLog(file)) markRelayLog(quest);
+        if (isWatchdogConf(file)) markControl(quest);
     });
 };
 
