@@ -141,9 +141,10 @@ const registerMsfLabTraceListeners = (): void => {
     });
 };
 
-if (isDebug) registerMsfLabTraceListeners();
-
-trace("MSFLAB", `loaded rev=${MSF_LAB_REV} debug=${isDebug} router=${MSF_LAB_ROUTER_IP} targets=${MSF_LAB_TARGETS.length}`);
+if (isDebug) {
+    registerMsfLabTraceListeners();
+    trace("MSFLAB", `loaded rev=${MSF_LAB_REV} router=${MSF_LAB_ROUTER_IP} targets=${MSF_LAB_TARGETS.length}`);
+}
 
 @registerDebugCommand({ default: true, scope: "both" })
 export class MsfLabCommand extends Command {
