@@ -49,11 +49,11 @@ const nextBacktraceMission = (mission: BacktraceMissionId): BacktraceMissionId |
 const keysOf = (mission: BacktraceMissionId): readonly string[] => BACKTRACE_KEYS[mission];
 
 @registerDevCommand({ default: true, scope: "both" })
-export class ScratchBacktraceCommand extends Command {
-    CommandName = "scratchbt";
-    Description = "scratch: set, inspect or reset the BACKTRACE mission state, or trace a single clue";
+export class BacktraceCommand extends Command {
+    CommandName = "backtrace";
+    Description = "dev: set, inspect or reset the BACKTRACE mission state, or trace a single clue";
     Autocomplete: CommandAutoComplete[] = [
-        { label: "scratchbt", type: "STRING" },
+        { label: "backtrace", type: "STRING" },
         { label: `<${MISSION_CHOICES}|applied|reset> <locked|progress|complete|keys|key|on|off>`, type: "STRING" },
     ];
 
@@ -66,7 +66,7 @@ export class ScratchBacktraceCommand extends Command {
 
     private traceKey(tools: CommandTools, mission: BacktraceMissionId, key: string): void {
         if (!isBacktraceKey(mission, key)) {
-            tools.printError(`"${key}" is not a key finding of ${mission}. Try: scratchbt ${mission} keys`);
+            tools.printError(`"${key}" is not a key finding of ${mission}. Try: backtrace ${mission} keys`);
             return;
         }
         if (readBacktraceStatus(mission) === "complete") {
@@ -112,7 +112,7 @@ export class ScratchBacktraceCommand extends Command {
         }
 
         if (!isBacktraceMission(first) || !isBacktraceStatus(second)) {
-            tools.printError(`Usage: scratchbt [<${MISSION_CHOICES}> <locked|progress|complete|keys|key> | applied [on|off] | reset]`);
+            tools.printError(`Usage: backtrace [<${MISSION_CHOICES}> <locked|progress|complete|keys|key> | applied [on|off] | reset]`);
             return;
         }
 
