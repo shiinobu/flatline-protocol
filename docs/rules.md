@@ -366,7 +366,15 @@ dump traced 5, M3's ledger dump 4) "makes no sense".
   no trace (an optional note, a story moment). A log written with `{ moment: true }`
   raises no toast and is flagged "Moment" in the finished card.
 - At COMPLETE the optional traces and optional logs that were never reached are
-  kept in `skipped` and stay visible, flagged "Skipped".
+  kept in `skipped` and stay visible, flagged "Skipped". Every required log the player
+  never recorded is filled in at its play-order position (2026-10-04, `backtrace-logs.ts`), and the
+  logs of a story moment always carry the "Moment" flag, so a mission never completes with an empty or
+  unflagged Personal Log.
+- The Personal Log sheet captions each run of lines with its source (2026-10-04): `TRACE n · label`, n being the key's
+  position in `BACKTRACE_KEYS` (the optional M3 Accomplice is `TRACE 6`), or `NOTE` for a side note. A moment log of its
+  own is captioned `MOMENT` (a moment log that belongs to a trace, M4's breach, keeps its `[ MOMENT ]` flag); a line with
+  no known source is captioned `OTHER`. Captions are interface text and stay English (#54). The sheet's header stays
+  pinned while the log scrolls.
 - **Language of the app (2026-10-04, `docs/world-building/README.md` #54).** The BACKTRACE interface
   (titles, labels, buttons, toasts, trace values) is English only. Only prose that is read is localized:
   the personal logs (`Localization.t`) and, in `backtrace.html`, the mission summaries, the Key findings,

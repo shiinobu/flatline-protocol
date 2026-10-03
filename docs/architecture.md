@@ -374,11 +374,23 @@ case file), as six flat files:
   no `trace()`: the BACKTRACE files were stripped of every one at the lock of
   2026-10-04.
 - `backtrace-facts.ts` — `BACKTRACE_KEYS` (the ordered key list per mission),
-  `BACKTRACE_OPTIONAL_KEYS`, `buildBacktraceSkipped`, `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
+  `BACKTRACE_OPTIONAL_KEYS`, `buildBacktraceSkipped` (its optional log texts come from `backtrace-logs.ts`), `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
   BACKTRACE reads mission canon (`content/m01/`, `content/m02/`,
   `content/m03/`, `content/global/finance.ts` and the per-save winning M1 listing
   from `content/m01/listing-pool.ts`). This is the one deliberate
   `applications/` → `content/` import; nothing in `content/` imports back.
+- `backtrace-logs.ts` — `MISSION_LOGS`, every personal log of each mission in play order, each group marked
+  `optional` and/or `moment` (the same log functions the controllers call). It feeds the Skipped list
+  (`optionalBacktraceLogs`) and the completion fill (`fillBacktraceLogs`): when `setBacktraceMission(mission,
+  "complete")` runs, every required log the player never recorded is inserted at its play-order position (the
+  recorded order is kept; optional logs stay Skipped) and every log of a `moment` group present in `logs` is
+  added to `moments`, so a save written by an older build gets the missing lines and the Moment flag. Completing a
+  mission that is already complete repairs it the same way and is idempotent. Each group also names its source
+  (`key` = the trace it belongs to, `note` = a side note) and COMPLETE stores the text-to-source map in the mission's
+  `sources`; the Personal Log sheet reads it to caption each run of lines with `TRACE n · <label>` or `NOTE`. A moment
+  log with no trace of its own (M3 aftermath, the M7 ending) is captioned `MOMENT` and drops its inline flag; any other
+  line that is not in the table (an older build's text) is captioned `OTHER`. A mission whose `sources` is empty (a save
+  not completed again yet) shows no captions at all.
 - `backtrace-command.ts` — the `backtrace` dev command, a temporary helper
   for the owner who deletes it after production (the file and its one import in
   `main/global.ts`). It started in `src/debug/scratch.ts`, moved here on
