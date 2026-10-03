@@ -296,22 +296,58 @@ case file), as six flat files:
   `public/assets/global/backtrace-icon.png`) that imports the HTML and
   injects the font CSS at its `<style data-slot="fonts">` slot.
 - `backtrace.html` — the whole UI in one file (the v3 "forensic
-  oscilloscope" look, redesigned 2026-10-03). It reads mission state
-  through `HackhubSDK.SaveStorage`, polls it every 2 s, and drives:
-  - a header with a heartbeat scope (one beat per completed mission, the
-    mission in progress as a blinking amber beat, a flat line to the right
-    edge once all seven are complete), the TRACED / EVIDENCE / ENTITIES
-    counters and the operator;
-  - a sidebar of spine nodes (The story, M1-M7, and the Caseboard dock). The
-    amber animated node starts at The story until the HackHub Post claim,
-    then follows the mission in progress;
+  oscilloscope" look, redesigned 2026-10-03; the caseboard rebuilt
+  2026-10-04; design FINAL LOCK 2026-10-04). It reads mission state through `HackhubSDK.SaveStorage`,
+  polls it every 2 s, and drives:
+  - a header with a full-height heartbeat scope (one beat per completed
+    mission, the mission in progress as a blinking amber beat, a flat line
+    to the right edge once all seven are complete), the TRACED / EVIDENCE /
+    ENTITIES counters (label and number centred on one axis in their cell)
+    and the operator, whose photo has a 2 px ring (a 1 px ring broke into
+    dashes on the owner's screen);
+  - a sidebar spine drawn as a hop route (The story, M1-M7, Signing off and
+    the Caseboard dock). Each mission is a diamond node (outline = locked,
+    amber with a pulsing ring = in progress, red with a dark core =
+    traced) and each link states its stage: dotted = not reached, dashed
+    dim red = next hop, flowing amber dashes = trace running, solid red =
+    traced. The finish node is a spinning target. The dash pattern is
+    locked to the spine's own coordinates (period `HOP_DASH_PERIOD`, offset
+    from each link's start), so a link that crosses two rows has no seam.
+    A light packet with a short tail (`hopPacket`) runs down the red line
+    from The story through every traced node, stops on the last traced
+    node (or on the target once M7 is complete), rests and repeats on a
+    4.8 s loop: `HOP_STEP_SECONDS` (0.4 s per row) times 12 steps, the same
+    timing the `hsPass*` keyframes carry; under `prefers-reduced-motion`
+    it is not shown. Its tail gradient `hpTail` lives in the sprite
+    `<defs>` at the top of the body. The amber node starts at The story
+    until the HackHub Post claim, then follows the mission in progress;
   - the report views of M1-M7. The head stays fixed, Key findings scroll in a
     hidden-scrollbar column with fades, and Evidence, Entities and the
     Personal log are compact cards that open a detail sheet. The "Completed"
     date is a fixed story day (`STORY_DATES`), not the in-game clock;
-  - the CASEBOARD, whose nodes and connections appear as keys are traced.
-    While a mission is open its card shows only the "TRACED SO FAR // x OF
-    N" panel: one row (title + value) per key, no descriptions;
+  - the CASEBOARD, an evidence board that fills in as keys are traced.
+    Entities hang on it as portraits (people), folders (companies), screens
+    (hosts), a boss card (the Architect) and an envelope (the ending);
+    evidence documents sit between the objects they link or hang below one.
+    Every object has a fixed spot and a small tilt in the `ENTITIES` and
+    `DOCS` tables, and straight red threads run centre to centre beneath
+    them. Hovering or selecting an object dims the rest and lights its
+    threads; selecting opens the entity drawer or the evidence sheet. A
+    document appears once its mission is complete and either the object it
+    hangs from (`attach`) or at least two of the objects it links (`links`)
+    are on the board. The view fits the visible objects (zoom 50-200%, drag
+    to pan). Around the objects, the `FILL` layer (`aria-hidden`, no pointer
+    events) adds an analyst note per mission, a Key card and props: an
+    evidence bag, a torn clipping, a barcode label, a loose red string, an
+    UNDER REVIEW stamp and two photographs, `backtrace-receipt.jpg` (M1) and
+    `backtrace-corridor.jpg` (M5), 480 px copies of the vault scans
+    `public/assets/m01/q3-receipt.png` and `q3-corridor.png`. A fill item
+    appears once its mission is complete and the objects it `needs` are on
+    the board; the M1 photograph is `outside` the frame, so it does not move
+    the fit. A name inside a note is a `{key}` token resolved to the name on
+    that entity's card, so the notes hardcode no story fact. While a
+    mission is open its card shows only the "TRACED SO FAR // x OF N" panel:
+    one row (title + value) per key, no descriptions;
   - a closing page, "Signing off", that appears in the sidebar only once M7
     is complete and carries the author's thank-you letter, a "SIGNED OFF"
     stamp and the font credit. The finish node of the spine sits on it.

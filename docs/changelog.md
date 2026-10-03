@@ -25,6 +25,40 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-04
+
+- **[milestone] BACKTRACE design reached FINAL LOCK.** Declared by the owner on 2026-10-04 after the last spine and
+  header changes were approved in a scratchpad preview: the evidence-board caseboard, the hop-route spine, the centred
+  header counters and the 2 px operator ring. Never run in the game yet. See `docs/world-building/README.md` #49 and
+  `docs/architecture.md` (Applications: BACKTRACE).
+- **[mechanic] The BACKTRACE sidebar spine is a hop route with a travelling light packet.**
+  `src/applications/backtrace.html`: each mission is a diamond node (outline = locked, amber with a pulsing ring = in
+  progress, red with a dark core = traced) and each link says its stage (dotted = not reached, dashed dim red = next
+  hop, flowing amber dashes = running, solid red = traced); the finish node is a spinning target. The per-mission
+  zigzag, the travelling amber blip and the `.has-blip` z-index fix are gone (`setSpine` no longer toggles it). A light
+  packet with a short tail runs down the red line from The story through every traced node, stops on the last one (or
+  on the target once M7 is complete) and repeats every 4.8 s; it is not shown under `prefers-reduced-motion`. The dash
+  pattern is locked to the spine's coordinates, so a link that crosses two rows no longer breaks (the owner saw a
+  seam between a traced and a running node). The `hpTail` gradient sits in the sprite `<defs>`. `tsc` clean, zero
+  comments in `src/`; not yet tested in-game. See `docs/architecture.md` (Applications: BACKTRACE).
+- **[bug] The header counters were left-aligned and the operator photo ring broke into dashes.** The TRACED /
+  EVIDENCE / ENTITIES cells now centre label and number on one axis (the label's trailing letter-spacing is
+  compensated). The photo's `1px` border and the faint `1px` outer ring showed as dashes on a curved line (the owner's
+  screenshot); they became one 2 px ring (`#8f2536`) plus a 2 px black moat drawn with `box-shadow`, so the 44 px photo
+  is no longer clipped by a border. Checked at 100% and 125% display scale in headless Chrome.
+- **[milestone] BACKTRACE caseboard rebuilt as an evidence board.** `src/applications/backtrace.html`: entities are
+  portraits, folders, screens, a boss card and an envelope on a fixed layout; evidence documents sit on straight red
+  threads drawn centre to centre; hovering or selecting an object dims the rest and lights its threads. A decorative
+  `FILL` layer adds an analyst note per mission (names bound to facts through `{key}` tokens), a Key card and evidence
+  props (bag, clipping, barcode, red string, UNDER REVIEW stamp, two photographs). The header scope now fills the header
+  height; its corner ticks and the hover mission marks under it are gone. The zoom range is 50-200% (was 50-150%) and
+  `will-change: transform` is removed from the board canvas, which had blurred the zoomed board. Two 480 px photographs,
+  `backtrace-receipt.jpg` and `backtrace-corridor.jpg`, are added under `public/assets/global/`. `tsc` clean, zero
+  comments in `src/`; not yet tested in-game. See `docs/architecture.md` (Applications: BACKTRACE).
+- **[mechanic] Clicking the open caseboard card again closes the right panel.** `src/applications/backtrace.html`: the
+  click handler now closes the drawer when the clicked board node is the one already selected, instead of reopening it.
+  Other cards, the drawer links, the X button and the sidebar dock behave as before.
+
 ## 2026-10-03
 
 - **[docs] Every `.original` reference copy moved to `src/archive/`.** The eight `*.original.ts` mission backups

@@ -51,39 +51,27 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .brand { flex: none; width: var(--sidebar); align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 12px; text-align: center; border-right: 1px solid var(--line-chrome); }
 .brand-name { margin-right: -.26em; font: 900 31px/.95 var(--display); letter-spacing: .26em; text-transform: uppercase; color: var(--bright); }
 .brand-sub { margin: 5px -.3em 0 0; font: 400 10.5px var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--soft); }
-.head-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 22px; padding: 0 24px; }
+.head-main { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: stretch; padding: 0 24px 0 0; }
 .hud { flex: none; display: flex; }
-.hud-cell { display: flex; flex-direction: column; gap: 3px; padding: 0 16px; border-left: 1px solid var(--fail); }
-.hud-cell > span { font: 400 10px var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--soft); }
-.hud-cell b { font: 800 26px/1 var(--display); letter-spacing: .04em; color: var(--bright); }
+.hud-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0 16px; text-align: center; border-left: 1px solid var(--fail); }
+.hud-cell > span { padding-left: .22em; font: 400 10px var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--soft); }
+.hud-cell b { padding-left: .04em; font: 800 26px/1 var(--display); letter-spacing: .04em; color: var(--bright); }
 .hud-cell small { font: 700 16px var(--display); color: var(--soft); }
 .operator { flex: none; display: flex; align-items: center; gap: 12px; padding-left: 18px; border-left: 1px solid var(--fail); }
 .avatar-wrap { position: relative; width: 44px; height: 44px; }
-.avatar { display: block; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--panel-solid); border: 1px solid #7a1f2c; box-shadow: 0 0 0 3px #000, 0 0 0 4px var(--edge), 0 0 18px rgba(255, 59, 78, .5); }
+.avatar { display: block; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--panel-solid); box-shadow: 0 0 0 2px #8f2536, 0 0 0 4px #000, 0 0 18px rgba(255, 59, 78, .5); }
 .avatar-led { position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid #000; background: var(--ok); box-shadow: 0 0 9px var(--ok); animation: online 1.6s ease-in-out infinite; }
 @keyframes online { 0%, 100% { opacity: 1; box-shadow: 0 0 9px var(--ok); } 50% { opacity: .3; box-shadow: 0 0 2px var(--ok); } }
 .op-name { font: 800 18px/1 var(--display); letter-spacing: .26em; text-transform: uppercase; color: var(--hot); text-shadow: 0 0 14px var(--glow); }
 
-.scope { position: relative; flex: 1; min-width: 0; align-self: center; height: 50px; border: 1px solid var(--edge-chrome); background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(10, 3, 5, .9)); }
-.tk { position: absolute; width: 8px; height: 8px; border: 2px solid #9b3a46; pointer-events: none; }
-.tk.tl { left: -2px; top: -2px; border-right: 0; border-bottom: 0; }
-.tk.tr { right: -2px; top: -2px; border-left: 0; border-bottom: 0; }
-.tk.bl { left: -2px; bottom: -2px; border-right: 0; border-top: 0; }
-.tk.br { right: -2px; bottom: -2px; border-left: 0; border-top: 0; }
-.scope-screen { position: absolute; left: 0; right: 0; top: 3px; bottom: 16px; overflow: hidden; background-image: linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px); background-size: 22px 10px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.scope { position: relative; flex: 1; min-width: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(10, 3, 5, .9)); }
+.scope-screen { position: absolute; inset: 0; overflow: hidden; background-image: linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px); background-size: 22px 11px; }
 .pulse-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .pulse-flat { fill: none; stroke: #5a2a32; stroke-width: 1.4; stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
 .pulse-line { fill: none; stroke: var(--hot); stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .pulse-glow { fill: none; stroke: var(--fail); stroke-width: 6; stroke-linejoin: round; opacity: .15; filter: blur(3px); vector-effect: non-scaling-stroke; }
 .pulse-live { fill: none; stroke: var(--warn); stroke-width: 1.8; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(255, 159, 28, .9)); vector-effect: non-scaling-stroke; animation: blink 1s steps(1) infinite; }.pulse-sweep { position: absolute; top: 0; bottom: 0; left: -16%; width: 16%; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(90deg, transparent, rgba(255, 59, 78, .2) 55%, rgba(255, 150, 160, .6) 92%, transparent 100%); animation: sweep 5s linear infinite; }
 @keyframes sweep { 0% { left: -16%; } 100% { left: 104%; } }
-.scope-marks { position: absolute; left: 0; right: 0; bottom: 2px; height: 13px; }
-.pulse-mark { position: absolute; bottom: 0; transform: translateX(-50%); padding: 0 5px; font: 800 11.5px/13px var(--display); letter-spacing: .08em; color: var(--dim); transition: color var(--ease), text-shadow var(--ease); }
-.pulse-mark[data-status="complete"] { color: var(--hot); }
-.pulse-mark[data-status="progress"] { color: var(--warn); text-shadow: 0 0 8px rgba(255, 159, 28, .7); }
-.pulse-mark:hover { color: var(--bright); text-shadow: 0 0 8px var(--glow); }
-.pulse-mark::after { content: attr(data-name); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); padding: 3px 9px; background: var(--panel-solid); border: 1px solid var(--edge); font: 700 12.5px/1.2 var(--display); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; color: var(--bright); opacity: 0; pointer-events: none; transition: opacity var(--ease); z-index: 5; }
-.pulse-mark:hover::after, .pulse-mark:focus-visible::after { opacity: 1; }
 
 .sidebar { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: 0; padding-top: 10px; background: rgba(10, 3, 5, .74); border-right: 1px solid var(--line-chrome); }
 .nav-list { display: flex; flex-direction: column; }
@@ -93,7 +81,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .nav-item.active { background: linear-gradient(90deg, rgba(255, 40, 60, .18), rgba(255, 40, 60, .02)); }
 .nav-item.active::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: var(--hot); box-shadow: 0 0 14px var(--hot); }
 .spine { position: relative; height: 64px; }
-.spine.has-blip { z-index: 1; }
 .spine svg { position: absolute; inset: 0; width: 48px; height: 64px; overflow: visible; }
 .nav-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 0 14px 0 2px; }
 .nav-name { display: flex; align-items: baseline; font: 700 18px/1.1 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -114,15 +101,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .sp { fill: none; stroke-width: 2.5; stroke-linejoin: round; }
 .sp-solid { stroke: var(--hot); filter: drop-shadow(0 0 4px rgba(255, 59, 78, .85)); }
-.sp-dash { stroke: #4a2a30; stroke-dasharray: 3 4; }
-.sp-node { fill: #000; stroke: var(--dim); stroke-width: 2; }
 .sp-signal { fill: var(--warn); filter: drop-shadow(0 0 5px rgba(255, 159, 28, .95)); }
 .sp-quiet { fill: var(--soft); }
-.sp-end { fill: var(--hot); filter: drop-shadow(0 0 5px rgba(255, 59, 78, .9)); }
 .sp-ring { fill: none; stroke: var(--warn); stroke-width: 1.5; transform-origin: 24px 32px; animation: spRing 2.2s ease-out infinite; }
-.sp-blip { fill: var(--warn); animation: spBlip 3.2s linear infinite; }
 @keyframes spRing { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(2.5); } }
-@keyframes spBlip { 0% { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateY(52px); opacity: 0; } }
+.hs { fill: none; stroke-width: 2; stroke-dashoffset: var(--o, 0px); }
+.hs-done { stroke: var(--hot); filter: drop-shadow(0 0 4px rgba(255, 59, 78, .85)); }
+.hs-flow { stroke: var(--warn); stroke-dasharray: 3 5; filter: drop-shadow(0 0 4px rgba(255, 159, 28, .9)); animation: hsFlow .45s linear infinite; }
+.hs-lead { stroke: #7a2c36; stroke-dasharray: 3 5; }
+.hs-lock { stroke: #3b2a2e; stroke-dasharray: 1 3; stroke-linecap: round; }
+.hp { fill: #ffe3e6; opacity: 0; filter: drop-shadow(0 0 3px #ff3b4e) drop-shadow(0 0 8px rgba(255, 59, 78, .95)); animation: hsPass 4.8s linear infinite; }
+.hp-half { animation-name: hsPassHalf; }
+.hp-start { animation-name: hsPassStart; }
+.hn { stroke-width: 2; stroke-linejoin: miter; }
+.hn-done { fill: var(--hot); stroke: var(--hot); filter: drop-shadow(0 0 5px rgba(255, 59, 78, .9)); }
+.hn-core { fill: #000; }
+.hn-run { fill: var(--warn); stroke: var(--warn); filter: drop-shadow(0 0 5px rgba(255, 159, 28, .95)); }
+.hn-lock { fill: #000; stroke: var(--dim); }
+.hn-ring { fill: none; stroke: var(--warn); stroke-width: 1.5; transform-origin: 24px 32px; animation: spRing 2.2s ease-out infinite; }
+.hn-end { fill: var(--hot); filter: drop-shadow(0 0 5px rgba(255, 59, 78, .9)); }
+.hn-target { fill: none; stroke: var(--hot); stroke-width: 1.5; stroke-dasharray: 3 3; transform-origin: 24px 32px; animation: hsSpin 9s linear infinite; }
+@keyframes hsPass { 0% { transform: translateY(0); opacity: 1; } 8.33% { transform: translateY(64px); opacity: 1; } 8.34%, 100% { transform: translateY(64px); opacity: 0; } }
+@keyframes hsPassHalf { 0% { transform: translateY(0); opacity: 1; } 4.17% { transform: translateY(32px); opacity: 1; } 4.18%, 100% { transform: translateY(32px); opacity: 0; } }
+@keyframes hsPassStart { 0% { transform: translateY(0); opacity: 1; } 4.17% { transform: translateY(32px); opacity: 1; } 4.18%, 100% { transform: translateY(32px); opacity: 0; } }
+@keyframes hsFlow { from { stroke-dashoffset: var(--o, 0px); } to { stroke-dashoffset: calc(var(--o, 0px) - 8px); } }
+@keyframes hsSpin { to { transform: rotate(360deg); } }
 @keyframes navGlitch {
   0%, 82%, 100% { transform: none; opacity: 1; text-shadow: -1px 0 rgba(255, 59, 78, .6), 1px 0 rgba(89, 208, 255, .5), var(--nav-glow, 0 0 0 transparent); }
   84% { transform: translateX(-2px) skewX(-8deg); text-shadow: 3px 0 rgba(255, 59, 78, .95), -3px 0 rgba(89, 208, 255, .95), var(--nav-glow, 0 0 0 transparent); }
@@ -281,36 +284,151 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .board-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; cursor: grab; touch-action: none; }
 .board-viewport::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 45%, rgba(0, 0, 0, .72) 100%); }
 .board-viewport.dragging { cursor: grabbing; }
-.board-canvas { position: absolute; left: 0; top: 0; z-index: 2; width: 1200px; height: 800px; transform-origin: 0 0; will-change: transform; }
-.board-svg { position: absolute; inset: 0; width: 1200px; height: 800px; overflow: visible; pointer-events: none; }
-.band { fill: rgba(255, 40, 60, .035); stroke: rgba(255, 59, 78, .18); stroke-width: 1; stroke-dasharray: 4 6; }
-.link { fill: none; stroke: #5a1c25; stroke-width: 1.6; }
-.link.is-new { stroke: var(--hot); stroke-width: 2; stroke-dasharray: 7 5; filter: drop-shadow(0 0 4px rgba(255, 59, 78, .85)); animation: flow 1s linear infinite; }
-@keyframes flow { to { stroke-dashoffset: -12; } }
-.link-cap { fill: #000; stroke: #7a2a35; stroke-width: 1.5; }
-.link-cap.is-new { stroke: var(--hot); fill: var(--hot); filter: drop-shadow(0 0 4px var(--hot)); }
-.packet { fill: #fff; filter: drop-shadow(0 0 5px var(--hot)) drop-shadow(0 0 9px var(--hot)); }
-.halo { fill: none; stroke: var(--hot); stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: halo 2.8s ease-out infinite; }
-@keyframes halo { 0% { transform: scale(.75); opacity: .6; } 100% { transform: scale(2.1); opacity: 0; } }
-.lane-label { position: absolute; font: 800 15px var(--display); letter-spacing: .3em; text-transform: uppercase; color: var(--soft); white-space: nowrap; }
-.lane-label::before { content: "// "; font-family: var(--mono); color: var(--hot); }
-.board-node { position: absolute; width: 200px; height: 108px; display: flex; flex-direction: column; padding: 0; overflow: hidden; background: linear-gradient(180deg, rgba(255, 40, 60, .05), var(--panel-solid) 45%); border: 1px solid var(--edge); box-shadow: inset 0 0 18px rgba(255, 40, 60, .05); transition: box-shadow var(--ease), border-color var(--ease); }
-.board-node:hover { border-color: #7a1f2c; box-shadow: 0 0 16px rgba(255, 59, 78, .26), inset 0 0 18px rgba(255, 40, 60, .09); }
-.board-node.is-new { border-color: var(--hot); animation: nodePulse 1.8s ease-in-out infinite; }
-@keyframes nodePulse { 0%, 100% { box-shadow: 0 0 10px rgba(255, 59, 78, .25), inset 0 0 18px rgba(255, 40, 60, .1); } 50% { box-shadow: 0 0 28px rgba(255, 59, 78, .6), inset 0 0 18px rgba(255, 40, 60, .1); } }
-.board-node.selected { border-color: var(--link); animation: none; box-shadow: 0 0 24px rgba(89, 208, 255, .38), inset 0 0 18px rgba(89, 208, 255, .07); }
-.node-type { display: flex; align-items: center; padding: 5px 10px; background: var(--bar); border-bottom: 1px solid var(--edge-soft); font: 700 13px/1.1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.led { flex: none; width: 6px; height: 6px; margin-right: 8px; background: var(--ok); box-shadow: 0 0 6px var(--ok); }
-.is-new .led { background: var(--hot); box-shadow: 0 0 9px var(--hot); animation: blink 1.1s steps(1) infinite; }
-.node-name { padding: 8px 10px 0; font: 700 13.5px/1.35 var(--mono); color: var(--bright); overflow-wrap: anywhere; }
-.node-foot { margin-top: auto; padding: 0 10px 8px; font: 400 11.5px var(--mono); color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.board-node[data-entity="architect"] { border-color: var(--fail); box-shadow: 0 0 22px rgba(255, 59, 78, .3), inset 0 0 26px rgba(255, 40, 60, .12); }
-.board-node[data-entity="architect"]::before, .board-node[data-entity="architect"]::after { content: ""; position: absolute; width: 12px; height: 12px; pointer-events: none; border: 2px solid var(--hot); }
-.board-node[data-entity="architect"]::before { left: 4px; bottom: 4px; border-right: 0; border-top: 0; }
-.board-node[data-entity="architect"]::after { right: 4px; bottom: 4px; border-left: 0; border-top: 0; }
-.board-node[data-entity="architect"] .node-type::after { content: " // TARGET"; margin-left: 6px; color: var(--hot); }
-.booting .board-node { animation: nodeBoot .55s steps(6) both; animation-delay: calc(var(--i) * 80ms); }
-@keyframes nodeBoot { 0% { opacity: 0; transform: translateY(8px); filter: brightness(3); } 40% { opacity: .5; transform: translateX(-3px); } 70% { opacity: .9; transform: translateX(2px); } 100% { opacity: 1; transform: none; filter: none; } }
+.board-canvas { position: absolute; left: 0; top: 0; z-index: 2; width: 1400px; height: 800px; transform-origin: 0 0; }
+.board-svg { position: absolute; inset: 0; width: 1400px; height: 800px; overflow: visible; pointer-events: none; }
+.wire { transition: opacity var(--ease); }
+.thread { fill: none; stroke: rgba(255, 92, 108, .82); stroke-width: 1.6; stroke-linecap: round; filter: drop-shadow(0 0 3px rgba(255, 59, 78, .5)); transition: stroke var(--ease), stroke-width var(--ease); }
+.thread.is-new { stroke: #ff7a88; stroke-width: 2; filter: drop-shadow(0 0 5px rgba(255, 59, 78, .9)); }
+.wire[data-kind="ending"] .thread { stroke-dasharray: 7 6; }
+.has-focus .wire { opacity: .14; }
+.has-focus .wire.is-linked { opacity: 1; }
+.wire.is-linked .thread { stroke: #ff8c98; stroke-width: 2.3; filter: drop-shadow(0 0 6px rgba(255, 59, 78, .95)); }
+
+.board-canvas { --lift: drop-shadow(0 7px 7px rgba(0, 0, 0, .7)); }
+.board-node, .board-doc { position: absolute; display: block; padding: 0; text-align: center; isolation: isolate; transform-origin: 50% 50%; rotate: calc(var(--r, 0) * 1deg); filter: var(--lift); transition: filter var(--ease), opacity var(--ease); }
+.board-node:hover, .board-doc:hover { filter: var(--lift) drop-shadow(0 0 8px rgba(255, 59, 78, .55)); }
+.board-node.is-new, .board-doc.is-new { animation: newPulse 1.8s ease-in-out infinite; }
+@keyframes newPulse { 0%, 100% { filter: var(--lift) drop-shadow(0 0 4px rgba(255, 59, 78, .3)); } 50% { filter: var(--lift) drop-shadow(0 0 13px rgba(255, 59, 78, .85)); } }
+.board-node.selected, .board-doc.selected { animation: none; filter: var(--lift) drop-shadow(0 0 10px rgba(244, 244, 244, .55)); }
+.has-focus .board-node:not(.is-related), .has-focus .board-doc:not(.is-related) { opacity: .45; }
+.pin-head { position: absolute; left: var(--px); top: var(--py); z-index: 4; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f4ecec 0 12%, #a29698 48%, #4b3e42 100%); box-shadow: 0 2px 3px rgba(0, 0, 0, .75), 0 0 0 1px rgba(0, 0, 0, .55); }
+.is-new > .pin-head { background: radial-gradient(circle at 35% 30%, #ffe3e6 0 12%, #ff5c6c 50%, #8a1424 100%); box-shadow: 0 0 9px rgba(255, 59, 78, .9), 0 0 0 1px rgba(0, 0, 0, .55); }
+.m-tab { font: 700 11.5px/16px var(--mono); padding: 0 6px; }
+.node-type { max-width: 100%; font: 700 11.5px/13px var(--display); letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node-name { overflow-wrap: anywhere; }
+
+.form-portrait, .form-boss { display: flex; flex-direction: column; padding: 6px 6px 0; background: linear-gradient(180deg, #c9c0c3 0%, #a79da1 100%); border-radius: 1px; }
+.form-boss { padding: 7px 7px 0; background: linear-gradient(180deg, #b4414f 0%, #6d1b26 100%); }
+.photo { position: relative; flex: none; height: 106px; overflow: hidden; background: radial-gradient(ellipse at 50% 28%, #46595e 0%, #273539 58%, #172125 100%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5); }
+.form-boss .photo { height: 150px; background: radial-gradient(ellipse at 50% 28%, #6e2c36 0%, #3c1b21 60%, #240f14 100%); }
+.photo::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px); pointer-events: none; }
+.sil { position: absolute; left: 50%; bottom: 0; width: 88%; height: 92%; transform: translateX(-50%); fill: #05090a; stroke: none; }
+.photo .m-tab { position: absolute; left: 0; top: 0; z-index: 1; background: #0c0708; color: #e8dfe2; }
+.plate { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 3px; }
+.form-portrait .node-type { white-space: normal; line-height: 12px; letter-spacing: .12em; color: #4f444a; }
+.form-portrait .node-name { font: 700 14.5px/1.15 var(--mono); color: #150d10; }
+.form-portrait:not([data-tech]) .node-name { font: 800 18px/1.02 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.form-boss .node-type { white-space: normal; font-size: 12px; color: #f6cdd2; }
+.form-boss .node-name { font: 800 22px/1.02 var(--display); letter-spacing: .05em; text-transform: uppercase; color: #fff; }
+
+.f-paper { position: absolute; left: 96px; right: 14px; top: 4px; height: 18px; background: #cdc4b9; transform: rotate(-1.4deg); }
+.f-tab { position: absolute; left: 0; top: 0; width: 82px; height: 20px; display: flex; align-items: center; padding-left: 12px; background: #5a4630; clip-path: polygon(0 100%, 9px 0, calc(100% - 11px) 0, 100% 100%); }
+.f-tab .m-tab { padding: 0; color: #ecdcc6; }
+.f-body { position: absolute; left: 0; right: 0; top: 16px; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 14px 10px 5px; background: linear-gradient(180deg, #503e2d 0%, #2f2319 100%); border: 1px solid #7d6548; box-shadow: inset 0 1px 0 rgba(255, 225, 180, .14); }
+.form-folder .node-type { color: #d3b998; }
+.form-folder .node-name { font: 800 18.5px/1.04 var(--display); letter-spacing: .04em; text-transform: uppercase; color: #fbf3ea; }
+.form-folder.is-long .node-name { font-size: 15.5px; }
+
+.form-screen { overflow: hidden; background: #040806; border: 1px solid #2f6b4c; border-radius: 2px; }
+.form-screen::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .3) 0 1px, transparent 1px 3px); pointer-events: none; }
+.s-bar { display: flex; align-items: center; gap: 4px; height: 20px; padding: 0 3px 0 7px; background: #0b1d14; border-bottom: 1px solid #1d4430; }
+.s-bar i { width: 6px; height: 6px; border-radius: 50%; background: #2b6048; }
+.s-bar .m-tab { margin-left: auto; color: #8de3ae; }
+.s-body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: calc(100% - 20px); padding: 0 8px; }
+.form-screen .node-type { font: 400 12px/1 var(--mono); letter-spacing: .02em; text-transform: none; color: #5db487; }
+.form-screen .node-type::before { content: "> "; }
+.form-screen .node-name { font: 700 16px/1.15 var(--mono); color: #9af2c3; text-shadow: 0 0 8px rgba(80, 230, 150, .45); }
+
+.form-envelope { background: linear-gradient(180deg, #2f1117 0%, #1c0a0e 100%); border: 1px dashed var(--fail); }
+.env { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: rgba(255, 92, 108, .4); stroke-width: 1; }
+.seal { position: absolute; left: 86px; top: 54px; width: 15px; height: 15px; margin: -7.5px 0 0 -7.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff9aa5 0%, #d4283c 55%, #7d0f1e 100%); box-shadow: 0 0 10px rgba(255, 59, 78, .7); }
+.form-envelope .node-name { position: absolute; left: 0; right: 0; top: 66px; font: 800 20px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: #fff; }
+.form-envelope .node-type { position: absolute; left: 0; right: 0; top: 92px; color: var(--soft); }
+
+.art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.art .paper { fill: var(--sheet); stroke: var(--sheet-edge); stroke-width: 1; }
+.art .fold { fill: var(--fold); stroke: var(--sheet-edge); stroke-width: 1; }
+.art .rule { fill: none; stroke: var(--rule); stroke-width: 1; }
+.art .dashed { stroke-dasharray: 2 3; }
+.art .bars { fill: none; stroke: var(--ink-c); stroke-width: 1.4; opacity: .7; }
+.art .ink rect { fill: var(--ink-c); opacity: .55; }
+.art .hole circle { fill: #07090a; stroke: var(--sheet-edge); stroke-width: .8; }
+.art .head { fill: var(--head); opacity: .8; }
+.art .redact { fill: #030303; }
+.doc-log { --sheet: #121b17; --sheet-edge: #3b5c4c; --rule: rgba(110, 200, 150, .3); --ink-c: #6fb58f; }
+.doc-ledger { --sheet: #201b13; --sheet-edge: #70603a; --rule: rgba(210, 180, 120, .28); --ink-c: #d0b57a; --head: #7a2c2c; }
+.doc-memo { --sheet: #211c1f; --sheet-edge: #56484e; --fold: #382f34; --ink-c: #aa9ea3; }
+.doc-ticket { --sheet: #2b1f13; --sheet-edge: #8e6d31; --rule: rgba(230, 170, 70, .5); --ink-c: #e0a548; }
+.ev-id { position: absolute; left: 11px; top: 16px; z-index: 1; font: 700 12px/14px var(--mono); letter-spacing: .01em; color: #b9b2b5; }
+.ev-title { position: absolute; left: 11px; right: 11px; bottom: 9px; z-index: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left; font: 700 15px/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--bright); }
+.doc-log .ev-id { left: 21px; }
+.doc-log .ev-title { left: 21px; right: 19px; font-size: 13.5px; }
+.doc-ticket .ev-title { right: 46px; bottom: 8px; -webkit-line-clamp: 3; font-size: 13px; }
+.doc-ticket .ev-id { top: 15px; }
+
+.booting .board-node, .booting .board-doc { animation: nodeBoot .55s steps(6) both; animation-delay: var(--d, 0ms); }
+.booting .thread { stroke-dasharray: 1; animation: threadDraw .6s ease-out both; animation-delay: var(--d, 0ms); }
+.booting .wire[data-kind="ending"] .thread { stroke-dasharray: 7 6; animation: wireFade .6s ease-out both; animation-delay: var(--d, 0ms); }
+@keyframes threadDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes wireFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nodeBoot { 0% { opacity: 0; transform: translateY(8px); filter: brightness(3); } 40% { opacity: .5; transform: translateX(-3px); } 70% { opacity: .9; transform: translateX(2px); } 100% { opacity: 1; transform: none; filter: var(--lift); } }
+
+.board-fill { position: absolute; pointer-events: none; transform-origin: 50% 50%; rotate: calc(var(--r, 0) * 1deg); transition: opacity var(--ease); }
+.has-focus .board-fill { opacity: .25; }
+.booting .board-fill { animation: fillIn .6s ease both; animation-delay: var(--d, 0ms); }
+@keyframes fillIn { from { opacity: 0; } to { opacity: 1; } }
+
+.fill-note { padding: 14px 11px 8px; background: #cbc2ac; border: 1px solid #8f8670; border-top: 3px solid #b4414f; box-shadow: 0 7px 7px rgba(0, 0, 0, .6); color: #1b1512; }
+.fill-note .tape, .fill-polaroid .tape { position: absolute; left: 50%; top: -11px; width: 56px; height: 16px; margin-left: -28px; background: rgba(205, 205, 205, .3); border: 1px solid rgba(255, 255, 255, .14); transform: rotate(-3deg); }
+.fill-note .note-tab { position: absolute; left: 0; top: 0; padding: 0 6px; background: #0c0708; color: #e8dfe2; font: 700 11.5px/16px var(--mono); }
+.fill-note p { margin: 12px 0 0; font: 600 14px/1.25 var(--mono); }
+
+.fill-stamp { display: grid; place-items: center; border: 3px double rgba(255, 92, 108, .6); border-radius: 3px; color: rgba(255, 92, 108, .66); }
+.fill-stamp span { font: 800 25px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
+
+
+.fill-legend { padding: 8px 10px; background: rgba(12, 7, 8, .85); border: 1px solid #3a0f16; box-shadow: 0 7px 7px rgba(0, 0, 0, .5); }
+.key-title { display: block; margin-bottom: 4px; font: 700 12px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--soft); }
+.key-row { display: flex; align-items: center; gap: 9px; height: 19px; font: 400 12px/1 var(--mono); color: #b9b2b5; }
+.key-row i { flex: none; width: 16px; height: 12px; }
+.k-person { background: #a79da1; border-bottom: 4px solid #46595e; }
+.k-company { background: #5a4630; border: 1px solid #7d6548; clip-path: polygon(0 100%, 0 20%, 35% 20%, 45% 0, 100% 0, 100% 100%); }
+.k-host { background: #040806; border: 1px solid #2f6b4c; }
+.k-paper { background: #211c1f; border: 1px solid #56484e; }
+.k-end { height: 0 !important; border-top: 2px dashed #ff5c6c; }
+
+.fill-note.has-clip .tape { display: none; }
+.fill-note.has-clip::before { content: ""; position: absolute; right: 22px; top: -12px; width: 12px; height: 34px; border: 2px solid #9ba1a7; border-radius: 7px; }
+.fill-note.has-clip::after { content: ""; position: absolute; right: 26px; top: -7px; width: 5px; height: 22px; border: 2px solid #9ba1a7; border-radius: 4px; }
+
+.fill-bag { background: linear-gradient(135deg, rgba(210, 225, 230, .13), rgba(210, 225, 230, .03) 55%, rgba(210, 225, 230, .11)); border: 1px solid rgba(200, 215, 220, .42); border-radius: 3px 3px 9px 9px; box-shadow: 0 7px 7px rgba(0, 0, 0, .55), inset 0 0 18px rgba(255, 255, 255, .05); }
+.bag-seal { position: absolute; left: -1px; right: -1px; top: 10px; height: 24px; background: repeating-linear-gradient(135deg, #b4414f 0 8px, #8d2e3b 8px 16px); color: #fff; font: 800 13px/24px var(--display); letter-spacing: .26em; text-align: center; text-transform: uppercase; }
+.bag-usb { position: absolute; left: 34px; top: 44px; width: 60px; height: 92px; }
+.usb-metal { fill: #b8bcc0; stroke: #6f757a; stroke-width: 1; }
+.usb-body { fill: #2b3238; stroke: #4a545b; stroke-width: 1.2; }
+.usb-hole { fill: #0b0e10; }
+.usb-led { fill: #ff3b4e; filter: drop-shadow(0 0 4px rgba(255, 59, 78, .9)); }
+.bag-tag { position: absolute; left: 50%; bottom: 8px; padding: 0 9px; background: #cbc2ac; color: #1b1512; font: 700 11px/16px var(--mono); letter-spacing: .12em; text-transform: uppercase; transform: translateX(-50%); }
+
+.fill-clip svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .6)); }
+.clip-paper { fill: #cdc6b3; stroke: #8f8670; stroke-width: 1; }
+.clip-head rect { fill: #1d1814; }
+.clip-ink rect { fill: #5d5548; opacity: .75; }
+.clip-redact rect { fill: #050505; }
+
+.fill-barcode svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .6)); }
+.bc-paper { fill: #d9d3c4; stroke: #8f8670; stroke-width: 1; }
+.bc-bars rect { fill: #14100d; }
+.fill-barcode text { font: 700 9px var(--mono); letter-spacing: .3em; fill: #14100d; }
+
+.fill-string svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.str { fill: none; stroke: rgba(255, 92, 108, .82); stroke-width: 1.6; stroke-linecap: round; filter: drop-shadow(0 0 3px rgba(255, 59, 78, .5)); }
+.str-fray { fill: none; stroke: rgba(255, 92, 108, .7); stroke-width: 1.1; stroke-linecap: round; }
+.str-pin { fill: #cfc6c8; stroke: #4b3e42; stroke-width: 1.5; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .75)); }
+
+.fill-polaroid { padding: 9px 9px 0; background: #e4ddcc; border: 1px solid #a49b84; box-shadow: 0 8px 8px rgba(0, 0, 0, .65); }
+.fill-polaroid img { display: block; width: 100%; height: auto; filter: saturate(.85) contrast(1.06); outline: 1px solid rgba(0, 0, 0, .45); }
+.fill-polaroid::after { content: ""; position: absolute; left: 9px; right: 9px; top: 9px; bottom: 30px; background: linear-gradient(118deg, rgba(255, 255, 255, .1) 0 24%, transparent 24%); pointer-events: none; }
 .board-controls { position: absolute; right: 20px; top: 16px; z-index: 5; display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--panel-solid); border: 1px solid var(--edge); }
 .tool { width: 30px; height: 28px; text-align: center; font: 700 15px/28px var(--mono); color: var(--soft); }
 .tool:hover { background: rgba(255, 40, 60, .16); color: var(--bright); }
@@ -373,17 +491,27 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="hpTail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3b4e" stop-opacity="0"/><stop offset="1" stop-color="#ffd0d6" stop-opacity=".95"/></linearGradient>
+<symbol id="g-company" viewBox="0 0 48 48"><path d="M8 42V10h20v32M28 42h12V22H28M14 17h8M14 24h8M14 31h8M33 29h2M33 35h2"/></symbol>
+<symbol id="g-host" viewBox="0 0 48 48"><rect x="7" y="8" width="34" height="11"/><rect x="7" y="22" width="34" height="11"/><path d="M12 13.5h2M12 27.5h2M16 33v7M32 33v7M10 40h28"/></symbol>
+<symbol id="g-gate" viewBox="0 0 48 48"><path d="M24 5l17 19-17 19L7 24z"/><path d="M24 15l8 9-8 9-8-9z"/></symbol>
+<symbol id="s-broker" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><ellipse cx="50" cy="30" rx="30" ry="5.5"/><path d="M34 30C34 10 66 10 66 30Z"/></symbol>
+<symbol id="s-buyer" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><path d="M34 36C34 20 66 20 66 36Z"/><path d="M60 34H88L84 40H60Z"/></symbol>
+<symbol id="s-operator" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><path d="M20 100C20 74 16 22 50 12C84 22 80 74 80 100Z"/><circle cx="41" cy="46" r="2.8" fill="#ff3b4e"/><circle cx="59" cy="46" r="2.8" fill="#ff3b4e"/></symbol>
+<symbol id="s-greta" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><path d="M32 40C32 74 29 82 26 88H74C71 82 68 74 68 40Z"/><circle cx="50" cy="42" r="16"/><path d="M33 40C33 18 67 18 67 40Z"/></symbol>
+<symbol id="s-decider" viewBox="0 0 100 100"><path d="M2 100C2 77 22 67 50 67S98 77 98 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><path d="M38 67L50 87L62 67Z" fill="#2c3b40"/><path d="M47.5 76L50 100L52.5 76Z"/></symbol>
+<symbol id="s-architect" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="16"/><circle cx="50" cy="42" r="30" fill="none" stroke="#ff3b4e" stroke-width="1.6" stroke-dasharray="4 4"/><path d="M50 4V13M50 71V80M12 42H21M79 42H88" fill="none" stroke="#ff3b4e" stroke-width="1.6"/></symbol>
+</defs></svg>
 <div class="app">
   <header class="topbar">
     <div class="brand"><span class="brand-name">Backtrace</span><span class="brand-sub">Forensic case file</span></div>
     <div class="head-main">
-      <div class="scope" aria-label="Investigation progress">
-        <i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>
+      <div class="scope" role="img" aria-label="Investigation progress">
         <div class="scope-screen" id="scopeScreen">
           <svg class="pulse-svg" id="pulseSvg" viewBox="0 0 700 30" preserveAspectRatio="none" aria-hidden="true"></svg>
           <div class="pulse-sweep" aria-hidden="true"></div>
         </div>
-        <div class="scope-marks" id="pulseMarks"></div>
       </div>
       <div class="hud" aria-label="Case totals">
         <div class="hud-cell"><span>Traced</span><b><span id="hudTraced">0</span><small id="hudTotal"></small></b></div>
@@ -795,10 +923,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
           <button class="tool" id="zoomReset" type="button" aria-label="Fit the board to the window">↺</button>
         </div>
         <div class="board-canvas" id="boardCanvas">
-          <svg class="board-svg" id="boardSvg" viewBox="0 0 1200 800" aria-hidden="true"></svg>
+          <svg class="board-svg" id="boardSvg" viewBox="0 0 1400 800" aria-hidden="true"></svg>
           <div id="boardNodes"></div>
         </div>
-        <p class="board-hint">Drag to move, scroll to zoom, select an entity for detail.</p>
+        <p class="board-hint">Drag to move, scroll to zoom, select an entity or a document.</p>
         <aside class="drawer" id="drawer" aria-label="Entity detail">
           <div class="drawer-head">
             <div><div class="drawer-type" id="drawerType">Entity</div><div class="drawer-name" id="drawerName">—</div></div>
@@ -864,30 +992,55 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     pending: { status: 'Report pending', copy: 'The trace is complete. The report has not been compiled yet.' }
   };
 
-  const NODE_W = 200;
-  const NODE_H = 108;
-  const LANE_LABEL_GAP = 36;
-  const BAND_PAD = 14;
+  const BOUNDS_PAD = 28;
   const FIT_PADDING = 24;
-  const BOARD_W = 1200;
+  const BOOT_STEP = 64;
+  const NODE_BOOT = 550;
+  const WIRE_LAG = 300;
+  const FORM = {
+    portrait: { w: 136, h: 172, px: 68, py: 8 },
+    boss: { w: 184, h: 226, px: 92, py: 9 },
+    folder: { w: 172, h: 110, px: 86, py: 24 },
+    screen: { w: 172, h: 108, px: 86, py: 10 },
+    envelope: { w: 172, h: 116, px: 86, py: 10 },
+    log: { w: 142, h: 100, px: 71, py: 8 },
+    ledger: { w: 142, h: 100, px: 71, py: 8 },
+    memo: { w: 142, h: 100, px: 71, py: 8 },
+    ticket: { w: 142, h: 80, px: 71, py: 8 }
+  };
+  const BOARD_W = 1400;
   const BOARD_H = 800;
   const ZOOM_MIN = 0.5;
-  const ZOOM_MAX = 1.5;
+  const ZOOM_MAX = 2;
 
   const ENTITIES = {
-    broker: { type: 'Broker', refs: 'm1.broker', lane: 'money', x: 20, y: 70, ev: ['EV-M1-01'] },
-    buyer: { type: 'Buyer', refs: 'm1.buyer,m2.buyer', lane: 'money', x: 260, y: 70, ev: ['EV-M1-01', 'EV-M2-01'] },
-    shell: { type: 'Shell company', refs: 'm2.shellCompany', lane: 'money', x: 500, y: 70, ev: ['EV-M2-01', 'EV-M3-01'] },
-    parent: { type: 'Parent entity', refs: 'm3.parentEntity', lane: 'money', x: 740, y: 70, ev: ['EV-M3-01', 'EV-M7-02'] },
-    endpoint: { type: 'Tunnel endpoint', refs: 'm3.architectVpn', lane: 'money', x: 980, y: 70, ev: ['EV-M4-02', 'EV-M6-02'] },
-    registrant: { type: 'Registrant', refs: 'm4.origin', lane: 'infra', x: 980, y: 270, ev: ['EV-M4-02', 'EV-M6-02'] },
-    control: { type: 'Control host', refs: 'm4.control', lane: 'infra', x: 980, y: 470, ev: ['EV-M4-02'] },
-    operator: { type: 'Operator tag', refs: 'm4.hunter', lane: 'infra', x: 980, y: 670, ev: ['EV-M4-01', 'EV-M4-02'] },
-    greta: { type: 'Blamed administrator', refs: 'm5.gretaName', lane: 'people', x: 20, y: 470, ev: ['EV-M5-02'] },
-    decider: { type: 'Decision maker', refs: 'm5.decider', lane: 'people', x: 260, y: 470, ev: ['EV-M5-01'] },
-    insurer: { type: 'Insurer', refs: 'm5.insurer', lane: 'people', x: 500, y: 470, ev: ['EV-M5-01', 'EV-M6-02'] },
-    holdings: { type: 'Holding company', refs: 'm6.holdings', lane: 'people', x: 740, y: 470, ev: ['EV-M6-01'] },
-    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', lane: null, x: 500, y: 670, ev: ['EV-M6-02', 'EV-M7-02'] }
+    operator: { type: 'Operator tag', refs: 'm4.hunter', form: 'portrait', sil: 'operator', x: 1463, y: 420, tilt: 0.8, ev: ['EV-M4-01', 'EV-M4-02'], tech: true },
+    control: { type: 'Control host', refs: 'm4.control', form: 'screen', x: 1257, y: 722, tilt: -1.2, ev: ['EV-M4-02'], tech: true },
+    registrant: { type: 'Registrant', refs: 'm4.origin', form: 'folder', x: 809, y: 721, tilt: 0.6, ev: ['EV-M4-02', 'EV-M6-02'] },
+    endpoint: { type: 'Tunnel endpoint', refs: 'm3.architectVpn', form: 'screen', x: 584, y: 492, tilt: -0.7, ev: ['EV-M4-02', 'EV-M6-02'], tech: true },
+    broker: { type: 'Broker', refs: 'm1.broker', form: 'portrait', sil: 'broker', x: 3, y: 0, tilt: -1.1, ev: ['EV-M1-01'], tech: true },
+    buyer: { type: 'Buyer', refs: 'm1.buyer,m2.buyer', form: 'portrait', sil: 'buyer', x: 3, y: 690, tilt: 0.9, ev: ['EV-M1-01', 'EV-M2-01'], tech: true },
+    shell: { type: 'Shell company', refs: 'm2.shellCompany', form: 'folder', x: 369, y: 721, tilt: -0.6, ev: ['EV-M2-01', 'EV-M3-01'] },
+    parent: { type: 'Parent entity', refs: 'm3.parentEntity', form: 'folder', x: 369, y: 341, tilt: 1, ev: ['EV-M3-01', 'EV-M7-02'] },
+    greta: { type: 'Blamed administrator', refs: 'm5.gretaName', form: 'portrait', sil: 'greta', x: 1463, y: 0, tilt: 1.2, ev: ['EV-M5-02'] },
+    decider: { type: 'Decision maker', refs: 'm5.decider', form: 'portrait', sil: 'decider', x: 1257, y: 0, tilt: -0.8, ev: ['EV-M5-01'] },
+    insurer: { type: 'Insurer', refs: 'm5.insurer', form: 'folder', x: 809, y: 31, tilt: 0.7, ev: ['EV-M5-01', 'EV-M6-02'] },
+    holdings: { type: 'Holding company', refs: 'm6.holdings', form: 'folder', x: 369, y: 31, tilt: -1, ev: ['EV-M6-01'] },
+    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', form: 'boss', sil: 'architect', x: 803, y: 283, tilt: 0, ev: ['EV-M6-02', 'EV-M7-02'] },
+    ending: { type: 'Ending', refs: '', gate: true, name: 'The decision', found: 'm7', requires: 'm7', form: 'envelope', x: 809, y: 555, tilt: 0.6, ev: ['EV-M7-01'] }
+  };
+  const DOCS = {
+    'EV-M1-01': { form: 'log', links: ['broker', 'buyer'], x: 0, y: 346, tilt: -2 },
+    'EV-M2-01': { form: 'memo', links: ['buyer', 'shell'], x: 183, y: 726, tilt: 2 },
+    'EV-M3-01': { form: 'ledger', links: ['shell', 'parent'], x: 384, y: 536, tilt: -1.5 },
+    'EV-M4-01': { form: 'log', attach: 'operator', x: 1460, y: 584, tilt: 3 },
+    'EV-M4-02': { form: 'memo', links: ['control', 'operator', 'registrant'], x: 1045, y: 726, tilt: -2 },
+    'EV-M5-01': { form: 'memo', links: ['decider', 'insurer'], x: 1045, y: 36, tilt: 1.5 },
+    'EV-M5-02': { form: 'ticket', attach: 'greta', x: 1460, y: 164, tilt: -3 },
+    'EV-M6-01': { form: 'memo', links: ['holdings', 'parent'], x: 384, y: 191, tilt: -3 },
+    'EV-M6-02': { form: 'memo', links: ['endpoint', 'registrant'], x: 599, y: 726, tilt: 1.5 },
+    'EV-M7-01': { form: 'ledger', links: ['architect'], x: 1045, y: 346, tilt: 2.5 },
+    'EV-M7-02': { form: 'ledger', links: ['parent', 'architect'], x: 599, y: 196, tilt: -1.5 }
   };
   const MISSION_ENTITIES = {
     m1: ['broker', 'buyer'],
@@ -899,23 +1052,21 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     m7: ['architect', 'parent']
   };
   const LINKS = [
-    ['broker', 'buyer', 'linked to', 'linked to'],
-    ['buyer', 'shell', 'associated with', 'associated with'],
-    ['shell', 'parent', 'money ends at', 'receives money from'],
-    ['parent', 'endpoint', 'noted as owner of', 'owner noted as'],
-    ['endpoint', 'registrant', 'registered to', 'registrant of'],
-    ['control', 'registrant', 'registered to', 'registrant of'],
-    ['control', 'operator', 'profile names', 'named in the profile of'],
-    ['greta', 'decider', 'blamed in a decision approved by', 'approved the decision that blamed'],
-    ['decider', 'insurer', 'Head of Cyber Risk at', 'Head of Cyber Risk'],
-    ['insurer', 'holdings', 'shareholder of', 'shareholder'],
-    ['holdings', 'parent', 'new owner of', 'new owner'],
-    ['insurer', 'architect', 'risk committee chaired by', 'chairs the risk committee of']
-  ];
-  const LANES = [
-    { id: 'money', label: 'Money', x: 20, y: 38 },
-    { id: 'infra', label: 'Infrastructure', x: 980, y: 238 },
-    { id: 'people', label: 'People', x: 20, y: 438 }
+    ['broker', 'buyer', 'linked to', 'linked to', 'money'],
+    ['buyer', 'shell', 'associated with', 'associated with', 'money'],
+    ['shell', 'parent', 'money ends at', 'receives money from', 'money'],
+    ['parent', 'endpoint', 'noted as owner of', 'owner noted as', 'money'],
+    ['endpoint', 'registrant', 'registered to', 'registrant of', 'infra'],
+    ['control', 'registrant', 'registered to', 'registrant of', 'infra'],
+    ['control', 'operator', 'profile names', 'named in the profile of', 'infra'],
+    ['greta', 'decider', 'blamed in a decision approved by', 'approved the decision that blamed', 'people'],
+    ['decider', 'insurer', 'Head of Cyber Risk at', 'Head of Cyber Risk', 'people'],
+    ['insurer', 'holdings', 'shareholder of', 'shareholder', 'people'],
+    ['holdings', 'parent', 'new owner of', 'new owner', 'people'],
+    ['insurer', 'architect', 'risk committee chaired by', 'chairs the risk committee of', 'people'],
+    ['endpoint', 'architect', 'Certificate comparison', 'Certificate comparison', 'infra', 'EV-M6-02'],
+    ['parent', 'architect', 'Master ledger index', 'Master ledger index', 'money', 'EV-M7-02'],
+    ['architect', 'ending', 'leads to', 'follows', 'ending']
   ];
 
   const EVIDENCE = {
@@ -995,7 +1146,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const zoomLabel = $('zoomLabel');
   const scopeScreen = $('scopeScreen');
   const pulseSvg = $('pulseSvg');
-  const pulseMarks = $('pulseMarks');
   const REDUCED = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const BEAT = [[-26, 0], [-20, -4], [-14, 0], [-6, 0], [-3, 4], [0, -19], [4, 16], [7, 0], [14, 0], [20, -6], [28, 0]];
   const BEAT_SPAN = 58;
@@ -1018,6 +1168,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   let originX = 0;
   let originY = 0;
   let bootTimer = null;
+  let hoverKey = null;
+  let visibleLinks = [];
 
   function isComplete(id) { return state[id].status === 'complete'; }
 
@@ -1097,39 +1249,59 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     return MISSION_IDS.find((id) => state[id].status === 'progress') || MISSION_IDS.filter(isComplete).pop() || null;
   }
 
-  function spinePath(d, cls) { return `<path class="sp ${cls}" d="${d}"/>`; }
+  const HOP_STEP_SECONDS = 0.4;
+  const HOP_DASH_PERIOD = 8;
+  const HOP_DIAMOND = 'points="24,23 33,32 24,41 15,32"';
+  const HOP_CORE = 'points="24,28 28,32 24,36 20,32"';
+
+  function hopSeg(d, cls, startY = 0) {
+    return `<path class="hs ${cls}" style="--o:${startY % HOP_DASH_PERIOD}px" d="${d}"/>`;
+  }
+
+  function hopPacket(row, kind) {
+    const delay = Math.max(0, (row - 0.5) * HOP_STEP_SECONDS).toFixed(2);
+    const tail = kind === 'start' ? '' : '<rect x="23.2" y="-18" width="1.6" height="18" fill="url(#hpTail)"/>';
+    const cy = kind === 'start' ? 32 : 0;
+    return `<g class="hp hp-${kind}" style="animation-delay:${delay}s">${tail}<circle cx="24" cy="${cy}" r="2.4"/></g>`;
+  }
+
+  function hopLink(index) {
+    const prevDone = index === 0 ? applied : isComplete(MISSION_IDS[index - 1]);
+    const status = state[MISSION_IDS[index]].status;
+    if (!prevDone) return 'hs-lock';
+    if (status === 'complete') return 'hs-done';
+    if (status === 'progress') return 'hs-flow';
+    return 'hs-lead';
+  }
 
   function missionSpine(index) {
-    const id = MISSION_IDS[index];
-    const status = state[id].status;
+    const status = state[MISSION_IDS[index]].status;
     const hasNext = index < MISSION_IDS.length - 1 || status === 'complete';
-    const prevDone = index === 0 ? applied : isComplete(MISSION_IDS[index - 1]);
-    const topClass = prevDone ? 'sp-solid' : 'sp-dash';
-    const bottom = (d) => (hasNext ? spinePath(d, status === 'complete' ? 'sp-solid' : 'sp-dash') : '');
+    const out = index < MISSION_IDS.length - 1 ? hopLink(index + 1) : 'hs-done';
+    const topLink = hopLink(index);
+    const lines = hopSeg('M24 0V23', topLink) + (hasNext ? hopSeg('M24 41V64', out, 41) : '');
     if (status === 'complete') {
-      return spinePath('M24 0V19', topClass) + spinePath('M24 19L34 26L14 38L24 45', 'sp-solid') + bottom('M24 45V64');
+      const packet = topLink === 'hs-done' ? hopPacket(index + 1, hasNext && out === 'hs-done' ? 'full' : 'half') : '';
+      return lines + packet + `<polygon class="hn hn-done" ${HOP_DIAMOND}/><polygon class="hn-core" ${HOP_CORE}/>`;
     }
-    if (status === 'progress') {
-      const blip = hasNext ? '<circle class="sp-blip" cx="24" cy="42" r="2.2"/>' : '';
-      return spinePath('M24 0V25', topClass) + '<circle class="sp-ring" cx="24" cy="32" r="6"/><circle class="sp-signal" cx="24" cy="32" r="6"/>' + bottom('M24 38V64') + blip;
-    }
-    return spinePath('M24 0V26', topClass) + '<circle class="sp-node" cx="24" cy="32" r="5"/>' + bottom('M24 38V64');
+    if (status === 'progress') return lines + `<polygon class="hn-ring" ${HOP_DIAMOND}/><polygon class="hn hn-run" ${HOP_DIAMOND}/>`;
+    return lines + `<polygon class="hn hn-lock" ${HOP_DIAMOND}/>`;
   }
 
   function storySpine() {
     if (!applied) {
-      return '<circle class="sp-ring" cx="24" cy="32" r="6"/><circle class="sp-signal" cx="24" cy="32" r="6"/>' + spinePath('M24 38V64', 'sp-dash') + '<circle class="sp-blip" cx="24" cy="42" r="2.2"/>';
+      return hopSeg('M24 38V64', 'hs-lock', 38) + '<circle class="sp-ring" cx="24" cy="32" r="6"/><circle class="sp-signal" cx="24" cy="32" r="6"/>';
     }
-    return '<circle class="sp-quiet" cx="24" cy="32" r="4"/>' + spinePath('M24 38V64', 'sp-solid');
+    const link = hopLink(0);
+    return hopSeg('M24 36V64', link, 36) + (link === 'hs-done' ? hopPacket(0, 'start') : '') + '<circle class="sp-quiet" cx="24" cy="32" r="4"/>';
   }
 
   function signoffSpine() {
-    return spinePath('M24 0V27', 'sp-solid') + '<circle class="sp-end" cx="24" cy="32" r="5"/>';
+    return hopSeg('M24 0V23', 'hs-done') + hopPacket(MISSION_IDS.length + 1, 'half') + '<circle class="hn-target" cx="24" cy="32" r="9"/><circle class="hn-end" cx="24" cy="32" r="4.5"/>';
   }
 
   function setSpine(spine, markup) {
     spine.innerHTML = markup ? `<svg viewBox="0 0 48 64" aria-hidden="true">${markup}</svg>` : '';
-    spine.classList.toggle('has-blip', markup.includes('sp-blip'));
   }
 
   function renderNav() {
@@ -1160,11 +1332,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const slot = width / slots;
     const span = Math.min(1, slot / BEAT_SPAN);
     const mid = height / 2;
-    const scale = (mid - 2) / 19;
+    const scale = (mid - 6) / 19;
     let traced = `M0 ${mid}`;
     let tracedEnd = 0;
     let live = '';
-    const marks = [];
     MISSION_IDS.forEach((id, index) => {
       const x = slot * (index + 1);
       const status = state[id].status;
@@ -1173,7 +1344,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         tracedEnd = x + 28 * span;
       }
       if (status === 'progress') live = `M${tracedEnd.toFixed(1)} ${mid}${beatPath(x, scale * 0.6, mid, span)}`;
-      marks.push(`<button class="pulse-mark" type="button" data-view="${id}" data-status="${status}" data-name="${esc(MISSION_TITLES[id])}" aria-label="${esc(MISSION_TITLES[id])}" style="left:${(((index + 1) / slots) * 100).toFixed(2)}%">${index + 1}</button>`);
     });
     const finished = MISSION_IDS.every(isComplete);
     const path = finished ? `${traced}L${width} ${mid}` : traced;
@@ -1182,12 +1352,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       (finished ? '' : `<path class="pulse-flat" d="M${tracedEnd.toFixed(1)} ${mid}L${width} ${mid}"/>`) +
       `<path class="pulse-glow" d="${path}"/><path class="pulse-line" d="${path}"/>` +
       (live ? `<path class="pulse-live" d="${live}"/>` : '');
-    pulseMarks.innerHTML = marks.join('');
   }
 
   function renderHud(entityCount) {
     const evidence = Object.keys(EVIDENCE).filter((id) => isComplete(EVIDENCE[id].mission)).length;
-    $('hudTraced').textContent = String(MISSION_IDS.filter(isComplete).length);
+    const traced = MISSION_IDS.filter(isComplete).length;
+    $('hudTraced').textContent = String(traced);
+    scopeScreen.parentElement.setAttribute('aria-label', `Investigation progress: ${traced} of ${MISSION_IDS.length} traced`);
     $('hudTotal').textContent = ` / ${MISSION_IDS.length}`;
     $('hudEvidence').textContent = String(evidence);
     $('hudEntities').textContent = String(entityCount);
@@ -1213,11 +1384,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   function bootBoard() {
     if (REDUCED) return;
-    boardNodes.classList.remove('booting');
-    void boardNodes.offsetWidth;
-    boardNodes.classList.add('booting');
+    canvas.classList.remove('booting');
+    void canvas.offsetWidth;
+    canvas.classList.add('booting');
     clearTimeout(bootTimer);
-    bootTimer = setTimeout(() => boardNodes.classList.remove('booting'), 2200);
+    const total = boardNodes.querySelectorAll('.board-node, .board-doc').length * BOOT_STEP + NODE_BOOT * 2 + WIRE_LAG + 700;
+    bootTimer = setTimeout(() => canvas.classList.remove('booting'), Math.max(2200, total));
   }
 
   function tracedMarkup(id) {
@@ -1281,6 +1453,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   function entityInfo(key) {
     const def = ENTITIES[key];
+    if (def.gate) return isComplete(def.requires) ? { key, def, name: def.name, found: def.found } : null;
     for (const ref of def.refs.split(',')) {
       const [mission, field] = ref.trim().split('.');
       const value = state[mission] && state[mission].facts[field];
@@ -1323,84 +1496,225 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     all('[data-personal-log]').forEach((el) => { el.innerHTML = personalLogMarkup(el.dataset.personalLog); });
   }
 
-  function edgePoint(from, to) {
-    const cx = from.x + NODE_W / 2;
-    const cy = from.y + NODE_H / 2;
-    const dx = to.x + NODE_W / 2 - cx;
-    const dy = to.y + NODE_H / 2 - cy;
-    const sx = dx === 0 ? Infinity : (NODE_W / 2) / Math.abs(dx);
-    const sy = dy === 0 ? Infinity : (NODE_H / 2) / Math.abs(dy);
-    const scale = Math.min(sx, sy);
-    return { x: cx + dx * scale, y: cy + dy * scale };
+  function formOf(def) {
+    return FORM[def.form];
   }
 
-  function boundsFor(infos) {
-    if (infos.length === 0) return { minX: 0, minY: 0, maxX: BOARD_W, maxY: BOARD_H };
+  function centerOf(def) {
+    const form = formOf(def);
+    return { x: def.x + form.w / 2, y: def.y + form.h / 2 };
+  }
+
+  function point(p) {
+    return `${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  }
+
+  function straightThread(from, to) {
+    return `M${point(from)}L${point(to)}`;
+  }
+
+  function linkVisible(link, byKey) {
+    const [a, b, , , , needs] = link;
+    return byKey.has(a) && byKey.has(b) && (!needs || isComplete(EVIDENCE[needs].mission));
+  }
+
+  function docVisible(id, byKey) {
+    const doc = DOCS[id];
+    if (!isComplete(EVIDENCE[id].mission)) return false;
+    if (doc.attach) return byKey.has(doc.attach);
+    return doc.links.filter((key) => byKey.has(key)).length >= Math.min(2, doc.links.length);
+  }
+
+  function sizeOf(def) {
+    return def.w ? def : formOf(def);
+  }
+
+  function boundsFor(defs) {
+    if (defs.length === 0) return { minX: 0, minY: 0, maxX: BOARD_W, maxY: BOARD_H };
     return {
-      minX: Math.min(...infos.map((info) => info.def.x)) - BAND_PAD,
-      minY: Math.min(...infos.map((info) => info.def.y)) - LANE_LABEL_GAP - BAND_PAD,
-      maxX: Math.max(...infos.map((info) => info.def.x + NODE_W)) + BAND_PAD,
-      maxY: Math.max(...infos.map((info) => info.def.y + NODE_H)) + BAND_PAD
+      minX: Math.min(...defs.map((def) => def.x)) - BOUNDS_PAD,
+      minY: Math.min(...defs.map((def) => def.y)) - BOUNDS_PAD,
+      maxX: Math.max(...defs.map((def) => def.x + sizeOf(def).w)) + BOUNDS_PAD,
+      maxY: Math.max(...defs.map((def) => def.y + sizeOf(def).h)) + BOUNDS_PAD
     };
+  }
+
+  function objectStyle(def, delay) {
+    const form = formOf(def);
+    return `left:${def.x}px;top:${def.y}px;width:${form.w}px;height:${form.h}px;--px:${form.px}px;--py:${form.py}px;--d:${delay}ms;--r:${def.tilt}`;
+  }
+
+  function missionTab(found) {
+    return `<b class="m-tab">M${MISSION_IDS.indexOf(found) + 1}</b>`;
+  }
+
+  function labelMarkup(info) {
+    return `<span class="node-type">${esc(info.def.type)}</span><span class="node-name">${esc(info.name)}</span>`;
+  }
+
+  const NODE_BODY = {
+    portrait: (info) => `<span class="photo"><svg class="sil" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-${info.def.sil}"/></svg>${missionTab(info.found)}</span><span class="plate">${labelMarkup(info)}</span>`,
+    boss: (info) => NODE_BODY.portrait(info),
+    folder: (info) => `<span class="f-paper"></span><span class="f-tab">${missionTab(info.found)}</span><span class="f-body">${labelMarkup(info)}</span>`,
+    screen: (info) => `<span class="s-bar"><i></i><i></i><i></i>${missionTab(info.found)}</span><span class="s-body">${labelMarkup(info)}</span>`,
+    envelope: (info) => `<svg class="env" viewBox="0 0 ${FORM.envelope.w} ${FORM.envelope.h}" aria-hidden="true"><path d="M1 1L${FORM.envelope.w / 2} 54L${FORM.envelope.w - 1} 1"/></svg><i class="seal"></i>${labelMarkup(info)}`
+  };
+
+  function inkRows(x, y, widths) {
+    return widths.map((width, i) => `<rect x="${x}" y="${y + i * 7}" width="${width}" height="2.6"/>`).join('');
+  }
+
+  function docArt(form) {
+    const { w, h } = FORM[form];
+    const open = `<svg class="art" viewBox="0 0 ${w} ${h}" aria-hidden="true">`;
+    if (form === 'log') {
+      const holes = [14, 32, 50, 68, 86].map((y) => `<circle cx="7.5" cy="${y}" r="2.6"/><circle cx="${w - 7.5}" cy="${y}" r="2.6"/>`).join('');
+      return `${open}<rect class="paper" x=".5" y=".5" width="${w - 1}" height="${h - 1}"/><path class="rule dashed" d="M15 3V${h - 3}M${w - 15} 3V${h - 3}"/><g class="hole">${holes}</g><g class="ink">${inkRows(22, 36, [76, 54, 86])}</g></svg>`;
+    }
+    if (form === 'ledger') {
+      return `${open}<rect class="paper" x=".5" y=".5" width="${w - 1}" height="${h - 1}"/><rect class="head" x="1" y="33" width="${w - 2}" height="6"/><path class="rule" d="M1 45.5H${w - 1}M1 52.5H${w - 1}M${w - 44.5} 33V54M${w - 40.5} 33V54"/><g class="ink"><rect x="${w - 36}" y="40.5" width="24" height="2.2"/><rect x="${w - 32}" y="47.5" width="20" height="2.2"/><rect x="${w - 38}" y="54.2" width="26" height="2.2"/><rect x="11" y="40.5" width="48" height="2.2"/><rect x="11" y="47.5" width="34" height="2.2"/></g></svg>`;
+    }
+    if (form === 'memo') {
+      return `${open}<path class="paper" d="M.5 .5H${w - 20}L${w - 0.5} 20V${h - 0.5}H.5Z"/><path class="fold" d="M${w - 20} .5V20H${w - 0.5}Z"/><g class="ink">${inkRows(11, 36, [78, 50, 70])}</g><rect class="redact" x="74" y="42.4" width="42" height="6"/></svg>`;
+    }
+    const bars = [0, 1, 2, 3, 4, 5, 6].map((i) => `M${w - 32 + i * 3.6} 20V${h - 20}`).join('');
+    return `${open}<path class="paper" d="M.5 .5H${w - 0.5}V${h / 2 - 6}A6 6 0 0 0 ${w - 0.5} ${h / 2 + 6}V${h - 0.5}H.5V${h / 2 + 6}A6 6 0 0 0 .5 ${h / 2 - 6}Z"/><path class="rule dashed" d="M${w - 40} 4V${h - 4}"/><path class="bars" d="${bars}"/></svg>`;
+  }
+
+  function docMarkup(id, delay, fresh) {
+    const def = DOCS[id];
+    const attach = def.attach ? ` data-attach="${def.attach}"` : '';
+    return `<button class="board-doc doc-${def.form}${fresh ? ' is-new' : ''}" type="button" data-evidence="${id}"${attach} style="${objectStyle(def, delay)}"><i class="pin-head"></i>${docArt(def.form)}<span class="ev-id">${id}</span><span class="ev-title">${esc(EVIDENCE[id].title)}</span></button>`;
+  }
+
+  const FILL = [
+    { id: 'note-m1', art: 'note', mission: 'm1', needs: ['broker'], x: 174, y: 26, w: 164, h: 120, tilt: -2, text: 'Broker sells, buyer pays. Where does the money go next?', clip: true },
+    { id: 'note-m6', art: 'note', mission: 'm6', needs: ['holdings'], x: 174, y: 196, w: 164, h: 120, tilt: 1.5, text: 'Same name on the insurer and the holding company. Same owners?' },
+    { id: 'note-m2', art: 'note', mission: 'm2', needs: ['shell'], x: 174, y: 560, w: 164, h: 120, tilt: 2, text: 'Buyer pays a shell. Who owns the shell?' },
+    { id: 'note-m3', art: 'note', mission: 'm3', needs: ['parent', 'endpoint'], x: 596, y: 346, w: 164, h: 116, tilt: -1.5, text: '{parent}: names on paper. Whose names?' },
+    { id: 'note-m4', art: 'note', mission: 'm4', needs: ['operator', 'control'], x: 1462, y: 722, w: 140, h: 128, tilt: 2, text: '{operator} runs the control host. Both hang off one registrant.' },
+    { id: 'note-m5', art: 'note', mission: 'm5', needs: ['decider', 'greta'], x: 1040, y: 190, w: 164, h: 120, tilt: 1.5, text: '{decider} decided; {greta} carries the blame.', clip: true },
+    { id: 'note-m7', art: 'note', mission: 'm7', needs: ['architect', 'ending'], x: 1040, y: 520, w: 164, h: 120, tilt: -2, text: 'All threads end at {architect}. Only the decision is left.', clip: true },
+    { id: 'card-key', art: 'legend', mission: null, needs: ['operator', 'greta'], x: 1452, y: 274, w: 150, h: 126, tilt: -1 },
+    { id: 'prop-stamp', art: 'stamp', mission: 'm5', needs: ['holdings', 'insurer'], x: 575, y: 6, w: 200, h: 54, tilt: -5, text: 'Under review' },
+    { id: 'prop-bag', art: 'bag', mission: 'm6', needs: ['holdings'], x: 196, y: 346, w: 128, h: 176, tilt: -3 },
+    { id: 'prop-clip', art: 'clip', mission: 'm4', needs: ['operator', 'control'], x: 1232, y: 452, w: 170, h: 112, tilt: 2 },
+    { id: 'prop-barcode', art: 'barcode', mission: 'm5', needs: ['holdings', 'insurer'], x: 600, y: 114, w: 150, h: 50, tilt: 3 },
+    { id: 'prop-string', art: 'string', mission: 'm6', needs: ['holdings', 'insurer'], x: 772, y: 182, w: 96, h: 76, tilt: 0 },
+    { id: 'prop-polaroid', art: 'polaroid', mission: 'm5', needs: ['greta', 'decider'], x: 1226, y: 243, w: 188, h: 168, tilt: -3, src: './assets/global/backtrace-corridor.jpg' },
+    { id: 'prop-receipt', art: 'polaroid', mission: 'm1', needs: ['broker'], x: -178, y: 179, w: 150, h: 160, tilt: -4, src: './assets/global/backtrace-receipt.jpg', outside: true }
+  ];
+
+  function fillVisible(item, byKey) {
+    if (item.mission && !isComplete(item.mission)) return false;
+    return item.needs.every((key) => byKey.has(key));
+  }
+
+  function noteText(item, byKey) {
+    return item.text.replace(/\{(\w+)\}/g, (token, key) => byKey.get(key).name);
+  }
+
+  const FILL_BODY = {
+    note: (item, byKey) => `<i class="tape"></i><b class="note-tab">M${MISSION_IDS.indexOf(item.mission) + 1}</b><p>${esc(noteText(item, byKey))}</p>`,
+    stamp: (item) => `<span>${esc(item.text)}</span>`,
+    bag: () => '<span class="bag-seal">Evidence</span><svg class="bag-usb" viewBox="0 0 60 92" aria-hidden="true"><rect class="usb-metal" x="17" y="1" width="26" height="28" rx="2"/><rect class="usb-hole" x="23" y="7" width="5" height="8"/><rect class="usb-hole" x="32" y="7" width="5" height="8"/><rect class="usb-body" x="8" y="28" width="44" height="62" rx="9"/><circle class="usb-led" cx="30" cy="42" r="3.2"/><rect class="usb-hole" x="24" y="76" width="12" height="5" rx="2.5"/></svg><span class="bag-tag">Sealed</span>',
+    clip: () => '<svg viewBox="0 0 170 112" aria-hidden="true"><path class="clip-paper" d="M2 6L14 2L26 7L40 2L55 6L70 1L86 6L102 2L118 7L134 2L150 6L168 3L166 40L169 76L167 108L152 111L138 106L122 111L104 106L88 111L70 106L54 110L38 105L22 110L8 106L1 108L3 70L0 36Z"/><g class="clip-head"><rect x="12" y="14" width="112" height="9"/><rect x="12" y="27" width="72" height="9"/></g><g class="clip-ink"><rect x="12" y="46" width="146" height="3"/><rect x="12" y="54" width="132" height="3"/><rect x="12" y="62" width="146" height="3"/><rect x="12" y="78" width="120" height="3"/><rect x="12" y="86" width="140" height="3"/><rect x="12" y="94" width="96" height="3"/></g><g class="clip-redact"><rect x="12" y="60" width="70" height="7"/><rect x="92" y="76" width="54" height="7"/></g></svg>',
+    barcode: () => {
+      let x = 12;
+      const bars = [3, 1, 2, 1, 1, 3, 2, 1, 4, 1, 2, 2, 1, 3, 1, 1, 2, 3, 1, 2, 1, 4, 2, 1, 1, 3, 2, 1, 2, 1, 3, 1, 1, 2].map((width, index) => {
+        const bar = index % 2 === 0 ? `<rect x="${x}" y="7" width="${width}" height="26"/>` : '';
+        x += width + 1;
+        return bar;
+      }).join('');
+      return `<svg viewBox="0 0 150 50" aria-hidden="true"><rect class="bc-paper" x=".5" y=".5" width="149" height="49"/><g class="bc-bars">${bars}</g><text x="12" y="45">EVIDENCE</text></svg>`;
+    },
+    string: () => '<svg viewBox="0 0 96 76" aria-hidden="true"><path class="str" d="M12 10C14 38 52 26 62 56"/><path class="str-fray" d="M62 56L57 69M62 56L64 72M62 56L71 67"/><circle class="str-pin" cx="12" cy="10" r="6"/></svg>',
+    polaroid: (item) => `<i class="tape"></i><img src="${item.src}" alt="" draggable="false">`,
+    legend: () => '<span class="key-title">Key</span><span class="key-row"><i class="k-person"></i>Person</span><span class="key-row"><i class="k-company"></i>Company</span><span class="key-row"><i class="k-host"></i>Host</span><span class="key-row"><i class="k-paper"></i>Evidence</span><span class="key-row"><i class="k-end"></i>Ending</span>'
+  };
+
+  function fillMarkup(item, delay, byKey) {
+    const style = `left:${item.x}px;top:${item.y}px;width:${item.w}px;height:${item.h}px;--r:${item.tilt};--d:${delay}ms`;
+    return `<div class="board-fill fill-${item.art}${item.clip ? ' has-clip' : ''}" style="${style}" aria-hidden="true">${FILL_BODY[item.art](item, byKey)}</div>`;
   }
 
   function renderCaseboard() {
     const infos = Object.keys(ENTITIES).map(entityInfo).filter(Boolean);
-    bounds = boundsFor(infos);
     const byKey = new Map(infos.map((info) => [info.key, info]));
+    const order = new Map(infos.map((info, index) => [info.key, index]));
     const latest = latestTraceId();
-    const links = LINKS.filter(([a, b]) => byKey.has(a) && byKey.has(b));
+    const links = LINKS.filter((link) => linkVisible(link, byKey));
+    visibleLinks = links;
+    const docIds = Object.keys(DOCS).filter((id) => docVisible(id, byKey));
+    docIds.forEach((id, index) => order.set(`ev:${id}`, infos.length + index));
+    const fills = FILL.filter((item) => fillVisible(item, byKey));
+    bounds = boundsFor(infos.map((info) => info.def).concat(docIds.map((id) => DOCS[id])).concat(fills.filter((item) => !item.outside)));
 
-    const bands = LANES.map((lane) => {
-      const members = infos.filter((info) => info.def.lane === lane.id);
-      if (members.length === 0) return '';
-      const x1 = Math.min(...members.map((m) => m.def.x)) - BAND_PAD;
-      const y1 = Math.min(...members.map((m) => m.def.y)) - LANE_LABEL_GAP - BAND_PAD;
-      const x2 = Math.max(...members.map((m) => m.def.x + NODE_W)) + BAND_PAD;
-      const y2 = Math.max(...members.map((m) => m.def.y + NODE_H)) + BAND_PAD;
-      return `<rect class="band" x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}" rx="3"/>`;
-    }).join('');
+    const anchorFor = (id) => (id.startsWith('ev:') ? centerOf(DOCS[id.slice(3)]) : centerOf(ENTITIES[id]));
+    const freshAt = (id) => (id.startsWith('ev:') ? EVIDENCE[id.slice(3)].mission === latest : byKey.get(id).found === latest);
+    const wire = (a, b, kind) => {
+      const [first, second] = order.get(a) <= order.get(b) ? [a, b] : [b, a];
+      const delay = Math.max(order.get(a), order.get(b)) * BOOT_STEP + WIRE_LAG;
+      const fresh = Boolean(latest) && (freshAt(a) || freshAt(b));
+      const drawn = kind === 'ending' ? '' : ' pathLength="1"';
+      return `<g class="wire" data-kind="${kind}" data-ends="${a} ${b}" style="--d:${delay}ms"><path class="thread${fresh ? ' is-new' : ''}"${drawn} d="${straightThread(anchorFor(first), anchorFor(second))}"/></g>`;
+    };
+    const carriedBy = (a, b) => docIds.find((id) => DOCS[id].links && DOCS[id].links.includes(a) && DOCS[id].links.includes(b));
+    const direct = links.filter(([a, b]) => !carriedBy(a, b)).map(([a, b, , , kind]) => wire(a, b, kind));
+    const viaDocs = docIds
+      .filter((id) => DOCS[id].links)
+      .flatMap((id) => DOCS[id].links.filter((key) => byKey.has(key)).map((key) => wire(key, `ev:${id}`, 'evidence')));
+    boardSvg.innerHTML = direct.concat(viaDocs).join('');
 
-    const halos = infos
-      .filter((info) => info.found === latest)
-      .map((info, index) => `<circle class="halo" cx="${info.def.x + NODE_W / 2}" cy="${info.def.y + NODE_H / 2}" r="72" style="animation-delay:${(index * 0.4).toFixed(2)}s"/>`)
-      .join('');
-
-    const wires = links.map(([a, b], index) => {
-      const p1 = edgePoint(ENTITIES[a], ENTITIES[b]);
-      const p2 = edgePoint(ENTITIES[b], ENTITIES[a]);
-      const fresh = Boolean(latest) && (byKey.get(a).found === latest || byKey.get(b).found === latest);
-      const cls = fresh ? ' is-new' : '';
-      const d = `M${p1.x} ${p1.y}L${p2.x} ${p2.y}`;
-      const packet = fresh && !REDUCED
-        ? `<circle class="packet" r="3"><animateMotion dur="${(1.4 + (index % 3) * 0.3).toFixed(1)}s" repeatCount="indefinite" path="${d}"/></circle>`
-        : '';
-      return `<path class="link${cls}" d="${d}"/><circle class="link-cap${cls}" cx="${p1.x}" cy="${p1.y}" r="3.2"/><circle class="link-cap${cls}" cx="${p2.x}" cy="${p2.y}" r="3.2"/>${packet}`;
-    }).join('');
-    boardSvg.innerHTML = bands + halos + wires;
-
-    const lanes = LANES
-      .filter((lane) => infos.some((info) => info.def.lane === lane.id))
-      .map((lane) => `<div class="lane-label" style="left:${lane.x}px;top:${lane.y}px">${lane.label}</div>`)
-      .join('');
     const nodes = infos.map((info, index) => {
       const fresh = info.found === latest;
       const selected = info.key === selectedKey;
-      return `<button class="board-node${fresh ? ' is-new' : ''}${selected ? ' selected' : ''}" type="button" data-entity="${info.key}" style="left:${info.def.x}px;top:${info.def.y}px;--i:${index}"><span class="node-type"><i class="led"></i>${esc(info.def.type)}</span><span class="node-name">${esc(info.name)}</span><span class="node-foot">Found in ${esc(MISSION_TITLES[info.found])}</span></button>`;
+      const classes = `board-node form-${info.def.form}${info.name.length > 20 ? ' is-long' : ''}${fresh ? ' is-new' : ''}${selected ? ' selected' : ''}`;
+      return `<button class="${classes}" type="button" data-entity="${info.key}"${info.def.tech ? ' data-tech' : ''} style="${objectStyle(info.def, index * BOOT_STEP)}"><i class="pin-head"></i>${NODE_BODY[info.def.form](info)}</button>`;
     }).join('');
-    boardNodes.innerHTML = lanes + nodes;
+    const docs = docIds.map((id) => docMarkup(id, order.get(`ev:${id}`) * BOOT_STEP, EVIDENCE[id].mission === latest)).join('');
+    const fillHtml = fills.map((item, index) => fillMarkup(item, (infos.length + docIds.length + index) * BOOT_STEP, byKey)).join('');
+    boardNodes.innerHTML = fillHtml + nodes + docs;
 
-    $('boardEntities').textContent = String(infos.length);
-    $('boardConnections').textContent = String(links.length);
+    const entityCount = infos.filter((info) => !info.def.gate).length;
+    $('boardEntities').textContent = String(entityCount);
+    $('boardConnections').textContent = String(links.filter((link) => link[4] !== 'ending').length);
     $('boardTrace').textContent = latest ? MISSION_TITLES[latest] : '—';
-    boardEmpty.classList.toggle('is-hidden', infos.length > 0);
-    renderHud(infos.length);
+    boardEmpty.classList.toggle('is-hidden', entityCount > 0);
+    renderHud(entityCount);
+    applyFocus();
+  }
+
+  function applyFocus() {
+    const focus = hoverKey || selectedKey;
+    const related = new Set();
+    const linked = new Set();
+    const wires = all('.wire').map((wire) => ({ wire, ends: wire.dataset.ends.split(' ') }));
+    const follow = (id) => wires.filter((item) => item.ends.includes(id)).forEach((item) => {
+      linked.add(item.wire);
+      item.ends.forEach((end) => related.add(end));
+    });
+    if (focus) {
+      related.add(focus);
+      follow(focus);
+      [...related].filter((id) => id !== focus && id.startsWith('ev:')).forEach(follow);
+      all('.board-doc[data-attach]').forEach((doc) => {
+        const id = `ev:${doc.dataset.evidence}`;
+        if (doc.dataset.attach === focus) related.add(id);
+        if (focus === id) related.add(doc.dataset.attach);
+      });
+    }
+    canvas.classList.toggle('has-focus', Boolean(focus));
+    wires.forEach((item) => item.wire.classList.toggle('is-linked', linked.has(item.wire)));
+    all('.board-node').forEach((node) => node.classList.toggle('is-related', related.has(node.dataset.entity)));
+    all('.board-doc').forEach((doc) => doc.classList.toggle('is-related', related.has(`ev:${doc.dataset.evidence}`)));
   }
 
   function closeDrawer() {
     drawer.classList.remove('open');
     selectedKey = null;
     all('.board-node').forEach((node) => node.classList.remove('selected'));
+    applyFocus();
   }
 
   function openEntity(key) {
@@ -1412,7 +1726,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     drawerName.textContent = info.name;
 
     const caseId = fact(`${info.found}.caseId`) || fact('m1.caseId');
-    const related = LINKS
+    const related = visibleLinks
       .filter(([a, b]) => a === key || b === key)
       .map(([a, b, labelA, labelB]) => ({ other: a === key ? b : a, label: a === key ? labelA : labelB }))
       .map((link) => ({ ...link, info: entityInfo(link.other) }))
@@ -1427,6 +1741,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       (relatedMarkup ? `<div class="d-block"><h3 class="d-label">Connections</h3>${relatedMarkup}</div>` : '') +
       (evidenceMarkup ? `<div class="d-block"><h3 class="d-label">Evidence</h3>${evidenceMarkup}</div>` : '');
     drawer.classList.add('open');
+    applyFocus();
   }
 
   function showView(id) {
@@ -1575,17 +1890,37 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const listEl = target.closest('[data-entities]');
     if (listEl) { openEntities(listEl.dataset.entities); return; }
     const entityEl = target.closest('[data-entity]');
-    if (entityEl) { closeDoc(); focusEntity(entityEl.dataset.entity); return; }
+    if (entityEl) {
+      closeDoc();
+      const isOpenEntity = entityEl.classList.contains('board-node') && entityEl.dataset.entity === selectedKey && drawer.classList.contains('open');
+      if (isOpenEntity) closeDrawer();
+      else focusEntity(entityEl.dataset.entity);
+      return;
+    }
     const viewEl = target.closest('[data-view]');
     if (viewEl) showView(viewEl.dataset.view);
   });
+
+  function hoverFrom(event) {
+    const el = event.target instanceof Element ? event.target.closest('.board-node, .board-doc') : null;
+    hoverKey = el ? (el.dataset.entity || `ev:${el.dataset.evidence}`) : null;
+    applyFocus();
+  }
+  function hoverClear() {
+    hoverKey = null;
+    applyFocus();
+  }
+  canvas.addEventListener('pointerover', hoverFrom);
+  canvas.addEventListener('pointerleave', hoverClear);
+  canvas.addEventListener('focusin', hoverFrom);
+  canvas.addEventListener('focusout', hoverClear);
 
   $('drawerClose').addEventListener('click', closeDrawer);
   $('sheetClose').addEventListener('click', closeDoc);
   lightbox.addEventListener('click', (event) => { if (event.target === lightbox) closeDoc(); });
 
   viewport.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('.board-node,.board-controls,.drawer')) return;
+    if (event.target.closest('.board-node,.board-doc,.board-controls,.drawer')) return;
     dragging = true;
     viewport.classList.add('dragging');
     startX = event.clientX;
