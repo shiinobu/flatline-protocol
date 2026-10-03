@@ -38,8 +38,8 @@ focus:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m05 = true` and every other
    entry to `false`. Leave `isDev = true`, `isDebug = false`, `isTester = false`.
 2. Build and install as usual (`.\build-install.ps1`), restart HackHub.
-3. Expect in the log: `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!`
-   and `[FP][Backtrace] m5 -> progress`.
+3. Expect in the log: `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!`,
+   and in the BACKTRACE app M5 listed as in progress.
 
 With focus on, the single objective shows immediately and no other story mission
 auto-starts. **Put the flag back to `false` before committing.**
@@ -95,7 +95,7 @@ locked content; M05 only listens for the event its `Exports` already emits. If
    `[FP][M05] probe:snapshot-seen path=/s/8fq2`.
 3. Open the 2026 capture (`/s/8fq7/`). Expect
    `[FP][M05] probe:snapshot-seen path=/s/8fq7`, then immediately
-   `[FP][Backtrace] m5 traced dismissed` and one BACKTRACE personal-log entry.
+   the BACKTRACE toast, the `dismissed` trace in the app and one personal-log entry.
 4. The comparison is the point: **two** names are gone from the later capture.
    Gareth Lim is gone because his contract ended 2026-07-31 (the capture says
    so). Greta de Souza is gone with nothing attached to it.
@@ -124,7 +124,7 @@ locked content; M05 only listens for the event its `Exports` already emits. If
    same) or her full name from the staff page, `lynx Greta de Souza`. Three
    lines: her role, the USB stick with a project code that she asked about in
    August, and her last post (they want her to sign something).
-2. Expect `[FP][Backtrace] m5 traced greta`.
+2. Expect the `greta` trace in the BACKTRACE app.
 3. `lynx g.lim` or `lynx Gareth Lim` works too and is a decoy — it must trace
    nothing.
 
@@ -220,7 +220,7 @@ worth a listener check) must also print nothing.
 4. Two deny rules are listed: **22 -> 192.168.1.4** and **3389 -> 192.168.1.5**.
    Each `destination` is the target's **LAN** address (engine fact E-5).
    Remove both and save.
-5. Expect `[FP][Backtrace]` nothing yet, but in the log:
+5. Expect no new BACKTRACE trace yet, but in the log:
    two `Network.removeFirewallRule` calls and two `Network.openPort` calls
    (`141.98.252.76:22` and `80.94.92.118:3389`).
 
@@ -233,8 +233,8 @@ before logging in must not advance.
 
 1. `ssh g.desouza@141.98.252.76` with `Marigold2019`. This is **Cold-Chart**,
    the clinical archive.
-2. Expect `[FP][M05] probe:archive-accessed`, `[FP][Backtrace] m5 traced
-   archive`, and a personal-log entry.
+2. Expect `[FP][M05] probe:archive-accessed`, the `archive` trace in the
+   BACKTRACE app, and a personal-log entry.
 3. `ls` her home: `notes.txt`. Read it — two more personal-log entries. It is
    her own account of the USB stick and it ends on the theatre ("Theatre 3 is
    not a system").
@@ -274,7 +274,8 @@ the payment time (**09:02**): **6 hours 21 minutes**.
 
 **Checks.** Each of the three must advance only after the archive session
 (step 11). Reading one must not set the other two. The extension matters:
-`cat decision_memo.log` must do nothing.
+`cat decision_memo.log` must do nothing. `open <file>` and a double-click in the
+Files app on a downloaded copy count the same as `cat`.
 
 ---
 
@@ -287,7 +288,7 @@ Not a step, and not required for the report.
 2. Expect `[FP][M05] probe:bedside-bonus`.
 3. `cat found_note.txt` on the box — the note from the M01 vault, in the place
    it actually came from. One personal-log entry, only after the session.
-4. `usb_history.log` is there too, and names the same asset tag as the ticket.
+4. `usb_history.log` is there too, and names the same asset tag as the ticket. It is two Log Viewer entries on 2026-08-11 00:12 (`cat` or the Files app; no gate reads it).
 
 **Checks.** Reading `found_note.txt` **before** the session must print nothing.
 
@@ -295,7 +296,7 @@ Not a step, and not required for the report.
 
 ## 12. The report
 
-Reply to `drop@drop.null` with the **Mission 5 Findings** template. The five
+Reply to `drop@drop.null` with the **Mission 5 Findings** template. The six
 fields are **empty tokens** in the compose window, not pre-filled text: type each
 answer, and Send enables after the last one is filled.
 
@@ -306,6 +307,7 @@ answer, and Send enables after the last one is filled.
 | `decider` | `Vivien Orchid` | "orchid" or "vivien" |
 | `gap` | `6 hours 21 minutes` | the numbers 6 and 21, or the single number 381 (minutes) |
 | `motive` | `insurance claim classification` | "insur", "claim" or "cover" (or 保险 / 理赔 / 承保) |
+| `archive` | `Cold-Chart` | "cold chart" (the clinical archive's codename) |
 
 Case, punctuation and spacing are ignored. A rejected report gets no reply.
 
@@ -313,7 +315,7 @@ Case, punctuation and spacing are ignored. A rejected report gets no reply.
    subject **"not yet"** naming the first unmet step. Send again: the old reply
    is withdrawn and replaced, never stacked.
 2. Send it complete: the objective completes, the mission completes, and expect
-   `[FP][Backtrace] m5 -> complete`, the facts dump, and (outside focus)
+   M5 listed as complete in the BACKTRACE app with its facts, and (outside focus)
    `[FP][M05] reward paid: 3200`.
 3. Answering `Gareth Lim` for `door`, or `third-party remote support tool` for
    `cause`, must be rejected. `6h21m` and `381 minutes` must both be accepted for

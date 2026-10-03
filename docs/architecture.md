@@ -85,7 +85,8 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   `recovery-widget` + `recovery-console.html` (the full-screen console, bugs
   #58), `desktop-glitch`, `desktop-lock`, `session-guard` (bugs #60),
   `css-inject`, `reward`, `mail`, plus the 2026-10-03 additions `log-file`
-  (syslog text to Log Viewer entries), `file-reads` (`cat`, `open` and
+  (syslog, ISO-dated and clock-only text to Log Viewer entries; `DeviceSpec.rootLogDay`,
+  `neutralLogs` and `typedLogs` convert a device's `.log` root files, `userLogDay` its users' files), `file-reads` (`cat`, `open` and
   `Files.Open` in one listener, bugs #56) and `flatline-sequence` (the
   println-only cut-off animation). Randomness in the kit goes through
   `Random.number`, not
@@ -293,12 +294,14 @@ case file), as six flat files:
 
 - `backtrace.ts` — the `@RegisterApp` class (`AppName = "backtrace"`,
   `Unlocked = true`, an AppStore `Store` listing, `Icon` from
-  `public/assets/global/backtrace-icon.png`) that imports the HTML and
-  injects the font CSS at its `<style data-slot="fonts">` slot.
+  `public/assets/global/backtrace-icon.png`) that imports the HTML,
+  injects the font CSS at its `<style data-slot="fonts">` slot and imports the two BACKTRACE i18n tables
+  (`i18n/global/backtrace.ts`, `i18n/global/backtrace-letter.ts`) for their registration side effect.
 - `backtrace.html` — the whole UI in one file (the v3 "forensic
   oscilloscope" look, redesigned 2026-10-03; the caseboard rebuilt
-  2026-10-04; design FINAL LOCK 2026-10-04). It reads mission state through `HackhubSDK.SaveStorage`,
-  polls it every 2 s, and drives:
+  2026-10-04; design FINAL LOCK 2026-10-04). It reads mission state through `HackhubSDK.SaveStorage`
+  and the player's language through `HackhubSDK.Localization` ("Localization of the app", below), polls both
+  every 2 s, and drives:
   - a header with a full-height heartbeat scope (one beat per completed
     mission, the mission in progress as a blinking amber beat, a flat line
     to the right edge once all seven are complete), the TRACED / EVIDENCE /
@@ -359,25 +362,31 @@ case file), as six flat files:
   faces (Latin, 700, 800, 900) as base64 `@font-face` rules. Licence and
   source: `docs/font-licenses.md`.
 - `backtrace-state.ts` — `setBacktraceMission(mission, status)`,
-  `traceBacktraceFinding(mission, key)` (typed: a key that is not in
-  `BACKTRACE_KEYS[mission]` does not compile) and its untyped sibling
+  `traceBacktraceFinding(mission, key, logs?, options?)` (typed: a key that is not in
+  `BACKTRACE_KEYS[mission]` does not compile; with `logs` it writes the trace and its
+  personal log in one call and raises one combined toast, and `options.moment` marks a
+  story moment: no toast, flagged in the card) and its untyped sibling
   `traceBacktraceKeyById` (dev command only),
-  `appendBacktraceLogs(mission, texts)` and `setBacktraceApplied(applied)`,
-  the only writers of the state, plus its types. All are fail-safe: an
-  error is logged with `trace()` and never reaches the quest that called
-  them.
+  `appendBacktraceLogs(mission, texts, options?)` for a log that belongs to no trace and
+  `setBacktraceApplied(applied)`, the only writers of the state, plus its types.
+  `setBacktraceMission(mission, "complete")` stores `skipped` before the snapshot replaces `facts`. All are fail-safe: an
+  error is swallowed and never reaches the quest that called them. They carry
+  no `trace()`: the BACKTRACE files were stripped of every one at the lock of
+  2026-10-04.
 - `backtrace-facts.ts` — `BACKTRACE_KEYS` (the ordered key list per mission),
-  `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
+  `BACKTRACE_OPTIONAL_KEYS`, `buildBacktraceSkipped`, `isBacktraceKey` and `buildBacktraceFacts(mission)`, the only place
   BACKTRACE reads mission canon (`content/m01/`, `content/m02/`,
   `content/m03/`, `content/global/finance.ts` and the per-save winning M1 listing
   from `content/m01/listing-pool.ts`). This is the one deliberate
   `applications/` → `content/` import; nothing in `content/` imports back.
-- `backtrace-debug.ts` — the `scratchbt` dev command (moved out of
-  `src/debug/scratch.ts` on 2026-09-29 since it is ongoing BACKTRACE tooling,
-  not a throwaway scratch experiment): inspects/sets a mission's status and
+- `backtrace-command.ts` — the `backtrace` dev command, a temporary helper
+  for the owner who deletes it after production (the file and its one import in
+  `main/global.ts`). It started in `src/debug/scratch.ts`, moved here on
+  2026-09-29 as `backtrace-debug.ts` (command `scratchbt`) and was renamed on
+  2026-10-04: inspects/sets a mission's status and
   traces one key at a time against the same `backtrace-state.ts` writers a
   quest uses, so a save's BACKTRACE state can be driven by hand without
-  replaying a mission. `scratchbt applied [on|off]` sets the HackHub Post
+  replaying a mission. `backtrace applied [on|off]` sets the HackHub Post
   claim flag. It covers m1-m7 and registers only while `isDev`,
   through its own private `registerDevCommand`: `applications/` never imports
   from `debug/`.
@@ -385,7 +394,8 @@ case file), as six flat files:
 State is one `SaveStorage` key, `backtrace`:
 
 ```text
-{ m1..m7: { status: "locked" | "progress" | "complete", facts?: { <key>: <string> }, logs?: <string>[] },
+{ m1..m7: { status: "locked" | "progress" | "complete", facts?: { <key>: <string> }, logs?: <string>[],
+            moments?: <string>[], skipped?: { keys: <string>[], logs: <string>[] } },
   story?: { applied: boolean } }
 ```
 
@@ -407,10 +417,10 @@ as the M1 listing resolution, so a finished report always has every value.
 Every mission carries keys and a report card as of 2026-10-02; nothing shows
 "REPORT PENDING" any more. An App iframe can read
 `SaveStorage` — unlike a `Website`'s `metadata()` (`docs/bugs.md` #20) —
-confirmed in-game with the `scratchbt` dev command (`src/applications/backtrace-debug.ts`):
-`scratchbt <mission> <status>` sets the state (facts included on `complete`)
-and cascades the next mission like the real `AutoStart` chain, `scratchbt
-<mission> keys` lists the keys and `scratchbt <mission> <key>` traces one.
+confirmed in-game with the `backtrace` dev command (`src/applications/backtrace-command.ts`):
+`backtrace <mission> <status>` sets the state (facts included on `complete`)
+and cascades the next mission like the real `AutoStart` chain, `backtrace
+<mission> keys` lists the keys and `backtrace <mission> <key>` traces one.
 
 ### Keys, extras and Key Findings
 
@@ -437,24 +447,25 @@ guessed.
 | Mission | Key | Checkpoint |
 |---|---|---|
 | M1 | `broker` | winning listing page opened (`Browser.Meta`, the `listingFound` flag) |
-| M1 | `buyer` | `cat` of the backend's `sales_ledger` whose content contains the buyer alias (`Terminal.Cat`) |
+| M1 | `buyer` | `sales_ledger.log` on the backend read by `cat`, `open` or the Log Viewer once the backend is reached (`onFileRead`, name and extension match; the file is Log Viewer entries) |
 | M1 | `vault` | LedgerVault domain visited (`Browser.Meta`, the `vaultVisited` flag) |
 | M1 | `caseId` | Q3-2026-SEA folder opened inside LedgerVault: the page calls the exported `flatlineOpenProject(folder)`, which emits `flatline.m01.projectOpened` (`Website.Exports` + `Events.emit`, the `caseFileOpened` flag) |
 | M2 | `developer` | `Sqlmap.DumpTable` of the `admins` table on the devbox IP |
 | M2 | `ransom` | `Sqlmap.DumpTable` of the `affiliates` table on the devbox IP |
-| M2 | `deployLog` | `cat deploy.log` (exact content match, `Terminal.Cat`) |
-| M2 | `homeLead` | `cat sync-home.txt` (exact content match, `Terminal.Cat`) |
+| M2 | `deployLog` | `deploy.log` on the devbox read by `cat`, `open` or the Log Viewer (`onFileRead`, name and extension match; the file is Log Viewer entries) |
+| M2 | `homeLead` | `sync-home.txt` on the devbox read by `cat`, `open` or the Files app (`onFileRead`, name and extension match) |
 | M2 | `firewall` | `PFSense.Login` on the home firewall |
 | M2 | `workstation` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the workstation (the plain `exploit` flow; `Metasploit.Meterpreter.Connected` is only raised by the reverse-TCP listener, `bugs.md` #29) |
-| M2 | `shellCompany` | `open wire_authorization.pdf` at the `meterpreter >` prompt, or on a downloaded copy, once the firewall is breached (`OPEN_FILE_READ_EVENT`) |
+| M2 | `shellCompany` | `open wire_authorization.pdf` at the `meterpreter >` prompt, or the Files app on a downloaded copy, once the firewall is breached (`onFileRead`) |
 | M3 | `portal` | first Save in the remote gateway's Port Forwarding panel (`Network.PortChanges` on `77.83.142.6`, the `portalReached` flag) — the gateway is a `Router`, whose TP-Link panel raises no login event (`bugs.md` #31) |
+| M3 | `pivot` | the first player-written forwarding rule that is active and whose banner answers (`Network.PortChanges`, `natPivotDone`); the value is the static "4 hosts behind the gateway" (`M03_INTERNAL_NETWORK_FACT`), added 2026-10-04 as the fifth required trace |
 | M3 | `parentEntity` | `Sqlmap.DumpTable` of `wire_transfers` or `Database.Connected` on Coin-Drift (one key, either route) |
 | M3 | `gateway` | `RemoteConnection.Established` with `t === "METASPLOIT"` on Vault-Line (`Metasploit.Meterpreter.Connected` is accepted too, for the reverse-TCP flow) |
-| M3 | `vpnPeer` | `cat site_to_site_backup.txt` at the gateway session (`Terminal.Cat`; `open` of it at the same prompt, or of a downloaded local copy, also counts, `OPEN_FILE_READ_EVENT`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
+| M3 | `vpnPeer` | `site_to_site_backup.txt` at the gateway session read by `cat` or `open` there, or in the Files app on a downloaded local copy (`onFileRead`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
 | M3 | `accomplice` | `RemoteConnection.Established` with `t === "SSH"` to Faded-Ledger (optional bonus thread; `Terminal.Explorer` there also counts but only Meterpreter/`evil-rm` raise it, `bugs.md` #33) |
 
 | M4 | `probe` | reading `~/logs/firewall.log` after the rebuild (a BACKTRACE key, not a gate; README #44, #45) |
-| M4 | `breach` | the scripted second strike reaching the desktop (`breachBegan`, raised by the mission's own Scheduler job, not a player action) |
+| M4 | `breach` | the scripted second strike reaching the desktop (`breachBegan`, raised by the mission's own Scheduler job, not a player action); its log is a story moment: no toast, flagged "Moment" |
 | M4 | `relay1` | `RemoteConnection.Established` with `t === "SSH"` on Static-Hop, after its router panel is cracked with `hydra` |
 | M4 | `relay2` | `RemoteConnection.Established` with `t === "SSH"` on Quiet-Mirror — reachable only once `auth.log` on relay 1 is read |
 | M4 | `control` | `cat watchdog.conf` on relay 2 (`Terminal.Cat`, the `controlFound` flag) |
@@ -462,9 +473,9 @@ guessed.
 | M5 | `dismissed` | both dated Echoline captures of the hospital IT page visited (`Browser.Meta` x2 joining at `staffArchiveCompared`) |
 | M5 | `greta` | `lynx` on the administrator's handle (`Terminal.Lynx.Lookup` or `.Search`, the `gretaProfiled` flag) |
 | M5 | `archive` | `RemoteConnection.Established` with `t === "SSH"` on Cold-Chart, the clinical archive |
-| M5 | `statement` | `cat acknowledgement_gdesouza.txt` (`Terminal.Cat`, or `open` at the same prompt) |
-| M5 | `decisionMemo` | `cat decision_memo.txt` |
-| M5 | `usbTicket` | `cat usb_ticket_PC-IT-017.txt` |
+| M5 | `statement` | `acknowledgement_gdesouza.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
+| M5 | `decisionMemo` | `decision_memo.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
+| M5 | `usbTicket` | `usb_ticket_PC-IT-017.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M6 | `nominees` | the nominee company's own register record opened (`Browser.Meta` on `/entity/r7k4/`) |
 | M6 | `registeredAgent` | `whois` on the registered agent's domain (`Terminal.Whois`, the `agentIdentified` flag) |
 | M6 | `ownershipChange` | both superseded ownership filings read (`Browser.Meta` x2 joining at `snapshotsCompared`) |
@@ -472,15 +483,17 @@ guessed.
 | M6 | `infra` | `whois` on the insurer's domain, which answers with M3's own registrant (`Terminal.Whois`) |
 | M6 | `architect` | the officer record, reachable only once the insurer page **and** the insurer `whois` are both done |
 | M7 | `nodes` | the hidden dashboard on the index host visited over https (`Browser.Meta`, the `dashboardFound` flag) |
-| M7 | `credential` | `cat ash-gate_backup.txt` on the forgotten relay (`Terminal.Cat`, the `credentialRead` flag) |
+| M7 | `credential` | `ash-gate_backup.txt` on the forgotten relay read by `cat`, `open` or the Files app (`onFileRead`, the `credentialRead` flag) |
 | M7 | `firewall` | first Save in the edge filter's pfSense panel (`PFSense.Changes`, the `firewallBreached` flag) |
 | M7 | `c2` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the index host (`shellObtained`) |
-| M7 | `manifest` | `cat manifest.txt` at that session (`Terminal.Cat`) |
+| M7 | `manifest` | `manifest.txt` at that session read by `cat`, `open` or the Files app (`onFileRead`) |
 | M7 | `ledger` | `Files.Transfer` `DOWNLOAD` of the ledger backup, refused while the payload is wiped (`fileExtracted`) |
 
 `open` is the project's own terminal command (`src/commands/open.ts`): it
 prints a file of any extension and emits `flatline.open.fileRead`, which is
-how a file becomes a checkpoint (`cat` only reads `.txt`/`.log`). At a
+how a file becomes a checkpoint (`cat` only reads `.txt`/`.log`). Every file checkpoint listens through
+`onFileRead` (`components/file-reads.ts`: `Terminal.Cat`, that event and `Files.Open`), so `cat`, `open` and a
+double-click in the Files app all count; only the M7 ledger trap still listens to `open` alone. At a
 `meterpreter >` prompt it reads the target's file (`src/commands/meterpreter-files.ts`:
 the session target is tracked from `RemoteConnection.Established` /
 `.Disconnected` and the path is walked with the ID-based `Files` calls,
@@ -490,8 +503,10 @@ persisted flag every time `OnObjectivesStart` runs, so saves that passed a
 checkpoint before tracing existed catch up.
 
 `logs` is a separate, append-only list of plain narrative lines (GHOSTWIRE's
-own reflections), written by `appendBacktraceLogs(mission, texts)` instead of
-`traceBacktraceFinding` — there is no canon builder to rebuild them from, so
+own reflections), written together with a trace by `traceBacktraceFinding(mission, key, logs)`
+or, when no trace owns the line, by `appendBacktraceLogs(mission, texts)`; the group
+counts below predate the rule of 2026-10-04 that gives every trace its own log —
+there is no canon builder to rebuild them from, so
 `OnComplete`'s full snapshot carries the accumulated array forward rather
 than regenerating it. Duplicate text for the same mission is a no-op. M2 logs
 two groups this way: `deployLogFound` (the deploy log's `cat`) and
@@ -520,6 +535,68 @@ only add it to the builder and bind it in the report copy with
 `data-fact="mN.key"` (comma-separated fallbacks are allowed, e.g.
 `m2.buyer,m1.buyer`). Values are inserted as text or escaped, and a missing
 fact renders as "—".
+
+### Required traces, personal logs and the report
+
+Rule of 2026-10-04 (`docs/world-building/README.md` #52 and #53, `docs/rules.md` §13):
+
+- A mission has at least 5 **required** traces (M1 stays at 4, owner-approved). A trace is required when its
+  value is a field of the mission's report, optional otherwise (`BACKTRACE_OPTIONAL_KEYS`: M3 `accomplice`,
+  M4 `probe`). The app counts every traced key over the required count, so it can read "7 OF 5"; the
+  player is not told which traces are optional (hatched slots fill up to the required count, and nothing is
+  tagged while the mission runs).
+- Every trace has a personal log, written in the same call (`traceBacktraceFinding(mission, key, logs)`),
+  with one combined toast, "BACKTRACE: new trace and log recorded.". A log with no trace (M2 aftermath, M3
+  Reyes, M5 notes and Bedside-17, M6 archived capture) uses `appendBacktraceLogs` and toasts "new personal
+  log entry". A log written as a story moment (`{ moment: true }`: M3 aftermath, M4 breach, M7 ending)
+  raises no toast and is stored in `moments`; the finished card flags it "Moment".
+- At COMPLETE the state keeps `skipped`: the optional keys never traced and the optional logs never written
+  (M3 `accomplice` and the Reyes note, M4 `probe`, M5 notes and Bedside-17, M6 capture). The finished card
+  lists them in a Skipped block and, for logs, in the personal-log sheet under a divider, flagged "Skipped".
+- The report asks for the value of every required trace, so a report cannot be filed without it. Chained
+  traces may share one field (M2 `homePath`, M3 `entry`, M7 `path`), the way M4's `relays` already holds two.
+
+| Mission | Report fields (new since 2026-10-04 in bold) |
+|---|---|
+| M1 | `listingCode`, `broker`, `buyer`, `caseId`, `project`, `vaultUrl` |
+| M2 | `developer_url`, `shellCompany`, **`ransom`**, **`payload`**, **`homePath`** (router, firewall and workstation addresses) |
+| M3 | `shellCompany`, `parentEntity`, `vpnLead`, **`entry`** (remote portal, Vault-Line, 4 hosts) |
+| M4 | `hunter`, `relays`, `control`, `origin`, `contained` |
+| M5 | `door`, `cause`, `decider`, `gap`, `motive`, **`archive`** |
+| M6 | `architect`, `role`, **`agent`**, `chain`, `proof`, `front` |
+| M7 | `architect`, **`path`**, `evidence`, `choice` |
+
+A template field stays an unreplaced `{{field}}` token (`docs/rules.md` §3), so facts that used to be
+pre-filled (M2's ransom amount, M3's gateway name) are no longer interpolated into the template; they
+appear only in the freehand body.
+
+### Localization of the app
+
+Decision of 2026-10-04 (`docs/world-building/README.md` #54, `docs/rules.md` §13). The BACKTRACE interface
+(titles, labels, buttons, toasts, trace values) is English only. Only prose that is read is localized:
+the personal logs (written by the controllers through `Localization.t`, so each one keeps the language that
+was active when it was written) and, inside `backtrace.html`, the 7 mission summaries, the 53 Key findings,
+The story, and the closing letter (four paragraphs, the thanks line and the "Warm regards" greeting only;
+"— the author" stays English).
+
+- English stays inline in the HTML and is the default. Each localized element carries a `data-i18n` key:
+  `BACKTRACE.Mn.SUMMARY`, `BACKTRACE.Mn.FINDING.k`, `BACKTRACE.STORY`, and the six letter keys
+  `BACKTRACE.LETTER.OPENING`, `TRAIL`, `SIGNING_OFF`, `WORKSHOP`, `THANKS` and `SIGNATURE` (the greeting
+  alone: `<span data-i18n="BACKTRACE.LETTER.SIGNATURE">Warm regards</span>` inside `.letter-sign`).
+- The Mandarin lives in `src/i18n/global/backtrace.ts` (61 texts, zh only, never a copy of the English)
+  and the letter in `src/i18n/global/backtrace-letter.ts` (6 slots, written by the owner; an empty slot
+  keeps that part English). `applications/backtrace.ts` imports both so they are registered before the app
+  can open.
+- The HTML reads `HackhubSDK.Localization`, the same bridge object as `SaveStorage`. `syncLanguage()` runs
+  at the start of every `refresh()` and from `onLanguageChange`; for a non-English language it replaces each
+  element's innerHTML with `t(key)` only when the result is a non-empty string different from the key, and
+  sets `lang` on the element for the right CJK glyphs. Anything else, and every return to English,
+  restores the stashed English. The bridge missing, throwing or returning the key leaves the English
+  untouched. `renderFacts()` runs right after, because a translated Key finding carries the same
+  `<span data-fact>` markup as its English source (checked: same fact keys and tags, key by key).
+- To add a prose element: write the English inline, add `data-i18n`, add the key and its zh to
+  `backtrace.ts`. Not verified in game: that `HackhubSDK.Localization` resolves the mod's keys inside the
+  app, and the CJK font fallback in the game's Chromium.
 
 ## Naming convention
 

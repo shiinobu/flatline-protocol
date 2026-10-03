@@ -36,7 +36,7 @@ focus:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m06 = true` and every other
    entry to `false`. Leave `isDev = true`, `isDebug = false`, `isTester = false`.
 2. Build and install as usual (`.\build-install.ps1`), restart HackHub.
-3. Expect `[FP][Backtrace] m6 -> progress` and
+3. Expect M6 listed as in progress in the BACKTRACE app and
    `[FP][M06] probe:zero-network register built=true`.
 4. Expect `[FP][M06] probe:m3-consequence struckOff=false` under focus (M3 is
    not complete in a focused save) and `struckOff=true` in a full playthrough.
@@ -91,7 +91,7 @@ advances nothing.
    the page bakes its search payload before the `Browser.Meta` event runs
    (`docs/bugs.md` #55).
 4. Open **SKN Capital Nominees Ltd** (`/entity/r7k4/`). Expect
-   `[FP][Backtrace] m6 traced nominees` and one personal-log entry.
+   the BACKTRACE toast, the `nominees` trace in the app and one personal-log entry.
 5. The record gives: company number, incorporated **2017-03-09**, jurisdiction,
    the registered agent **Marlowe & Pryce Corporate Services ·
    marlowepryce.biz**, and two directors — Alexander Voss (since 2017-03-09) and
@@ -128,7 +128,7 @@ eleven records are gates.
 
 1. `whois marlowepryce.biz` → the agent's own name as the contact.
 2. Expect `[FP][M06] probe:agent-whois` and
-   `[FP][Backtrace] m6 traced registeredAgent`.
+   the `registeredAgent` trace in the BACKTRACE app.
 3. From here `echoline.net` starts resolving.
 
 **Checks.** `whois` on any other domain advances nothing. This is a CLI gate, not
@@ -166,7 +166,7 @@ a page gate — the first of two.
    registered agent**, flagged for inspection, with one more line — the
    shareholding was declared against this entity by **Nordhaven Holdings (PC)
    Ltd · PC-141009**. The entity did not name its owner; the owner named itself.
-4. After both: `[FP][Backtrace] m6 traced ownershipChange`, two personal-log
+4. After both: the `ownershipChange` trace in the BACKTRACE app, two personal-log
    entries and `probe:stage=4`. A second mail arrives from `drop@drop.null`,
    subject **"who runs the machines"**: it names `hosttrail.net` and the
    insurer's customer portal, `portal.nordhaven-mutual.com`. That mail is the
@@ -194,7 +194,7 @@ Both need step 6 and nothing else, and they can be done in either order.
 2. Its officers: **Vivien Orchid**, Head of Cyber Risk **2019-2024**, and
    **Conrad Lindqvist**, Chairman of the Risk Committee **2018-2024**. The
    record also lists **Customer portal: `portal.nordhaven-mutual.com`**.
-3. Expect `[FP][Backtrace] m6 traced insurer` and one personal-log entry.
+3. Expect the `insurer` trace in the BACKTRACE app and one personal-log entry.
    Vivien Orchid is the officer who authorised the hospital payout in M5.
 
 **Step 8, the infrastructure:**
@@ -227,7 +227,7 @@ not an empty card.
 2. **Conrad Lindqvist** — three appointments: Chief Actuary **2009-2018**,
    Chairman of the Risk Committee **2018-2024**, and director of Nordhaven
    Holdings **2021-12-02 — 2024-03-01**.
-3. Expect `[FP][Backtrace] m6 traced architect`, two personal-log entries and
+3. Expect the `architect` trace in the BACKTRACE app, two personal-log entries and
    `probe:stage=5`.
 
 **Checks.** Search the register for `Lindqvist` before step 9: no match. After
@@ -261,7 +261,7 @@ staff page and this one. The M5 captures are 404 once M5 completes; this one is
 
 ## 11. The report
 
-Reply to `drop@drop.null` with the **Mission 6 Findings** template. The five
+Reply to `drop@drop.null` with the **Mission 6 Findings** template. The six
 fields are **empty tokens** in the compose window, not pre-filled text: type each
 answer, and Send enables after the last one is filled.
 
@@ -269,6 +269,7 @@ answer, and Send enables after the last one is filled.
 |---|---|---|
 | `architect` | `Conrad Lindqvist` | "lindqvist", and no "voss" |
 | `role` | `Chairman Risk Committee, Nordhaven Mutual Assurance Ltd` | "chair" (or 主席) and "risk" (or 风险) |
+| `agent` | `Marlowe & Pryce Corporate Services` | "marlowe" or "pryce" |
 | `chain` | `Nordhaven Mutual Assurance Ltd, Nordhaven Holdings (PC) Ltd, SKN Capital Nominees` | all of "mutual", "holdings" and "nominee" |
 | `proof` | `shared certificate and registrant Bulletproof VPN Ltd.` | "certificate" (or 证书) and "bulletproof" (or 防弹) |
 | `front` | `Alexander Voss is a nominee, not the owner` | "voss" and one of "nominee", "front", "not the owner" (or 名义 / 代持 / 不是所有人) |
@@ -277,8 +278,8 @@ Case, punctuation and spacing are ignored. A rejected report gets no reply.
 
 1. Send it early: one reply, subject **"not yet"**, naming the first unmet step.
    Sending again replaces that reply rather than stacking a second.
-2. Send it complete: the objective completes, `[FP][Backtrace] m6 -> complete`,
-   the facts dump, and (outside focus) `[FP][M06] reward paid: 4000`.
+2. Send it complete: the objective completes, M6 is listed as complete in the
+   BACKTRACE app with its facts, and (outside focus) `[FP][M06] reward paid: 4000`.
 3. `Alexander Voss` as `architect` is rejected. `the registered agent filed it`
    as `proof` is rejected.
 

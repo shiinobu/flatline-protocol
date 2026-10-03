@@ -35,7 +35,7 @@ reachable in production once M03 is complete. For a focused test:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m04 = true` and every other
    entry to `false`. Keep `isDebug = false`.
 2. Build, install, restart.
-3. Expect `[FP][Backtrace] m4 -> progress`. The four one-device subnets listed
+3. Expect M4 listed as in progress in the BACKTRACE app. The four one-device subnets listed
    in `docs/network.md` (M4) now exist: `nmap` on a router address such as
    `193.164.228.17` prints its live ports.
 
@@ -45,12 +45,12 @@ reachable in production once M03 is complete. For a focused test:
 of the breach (`M04_DEV_SKIP_BREACH`) were removed, every `DEV_FOCUS_QUEST` entry is
 `false`, and the whole attack (§2-§6) always runs. The `[FP][M04] ...` log lines quoted
 in the sections below no longer print: judge each step by what happens on screen and by
-the `[FP][Backtrace]` lines, which come from the shared BACKTRACE app.
+what the shared BACKTRACE app shows (it writes no log lines).
 
 Game log: `C:\Users\Administrator\AppData\Roaming\hackhub\logs\hackhub-<date>.log`
 (the game keeps writing to the previous day's file after midnight). The shared kit still
-prints `[FP][BREACH]`, `[FP][KERNEL]`, `[FP][RECOVERY]`, `[FP][OPEN]` and
-`[FP][Backtrace]` lines (M07 is not final yet).
+prints `[FP][BREACH]`, `[FP][KERNEL]`, `[FP][RECOVERY]` and `[FP][OPEN]` lines
+(M07 is not final yet).
 
 ---
 
@@ -380,7 +380,7 @@ both Static-Hop and Quiet-Mirror in any order and must not name Paper-Moth
 Paper-Moth's address is rejected; `origin` needs "Bulletproof" (or 防弹);
 `contained` takes `yes`, `true` or `contained`. A rejected report gets no reply.
 
-Expect the objective to complete, `[FP][Backtrace] m4 -> complete`, and
+Expect the objective to complete, M4 listed as complete in the BACKTRACE app, and
 `[FP][M04] reward skipped under focus: 2400`. Sending early gets one *"not yet"*
 reply naming the step you are actually missing (during the countdown that is *"They
 are already inside. You cannot stop this one; wait it out."*).
@@ -394,15 +394,15 @@ M04 has a full report card. Six keys, one per action:
 | Key | Earned by |
 |---|---|
 | `probe` | reading `~/logs/firewall.log` (it exists only after the rebuild) |
-| `breach` | the desktop being taken (recorded quietly, no toast) |
+| `breach` | the desktop being taken (a story moment: its log raises no toast and is flagged "Moment") |
 | `relay1` | the SSH session on Static-Hop |
 | `relay2` | the SSH session on Quiet-Mirror |
 | `control` | reading `watchdog.conf` |
 | `origin` | the `whois` on Night-Shift |
 
-Three personal-log beats: after `probe` ("they already had my name"), at `breach`
+Six personal-log beats, one per key (relay 1, relay 2 and the control host were added on 2026-10-04): after `probe` ("they already had my name"), at `breach`
 ("they took the desktop, not the balance"), after `origin` ("the same hand, one more
-time"). Only the `breach` entry skips the BACKTRACE toast.
+time"). Only the `breach` entry skips the BACKTRACE toast. `probe` is the one optional key: if it is never earned, it and its log are listed as skipped after the report.
 
 When M04 completes the card fills every fact whether or not the key was earned, so a
 skipped `firewall.log` costs nothing at the end. Finding 02 now reads *"They could not

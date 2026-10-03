@@ -15,7 +15,8 @@ gone; `rootgrab /etc/passwd` still runs in the game but nothing in the mod
 listens. The line that log carried (the shell company and the address off the
 map are the same hand) is now the third `tunnel` line, written when the config is
 read. `open site_to_site_backup.txt` at the `meterpreter >` prompt also counts now
-(`open` reads a Meterpreter target's files, `docs/bugs.md` #30 follow-up).
+(`open` reads a Meterpreter target's files, `docs/bugs.md` #30 follow-up); the Files app on a downloaded copy
+counts too (`onFileRead`, 2026-10-04).
 
 **2026-10-01 — migrated to the mission pipeline and live-tested (English; the
 Chinese texts were not played; `rootgrab` was optional again).** The
@@ -260,7 +261,7 @@ once its rule from node 12 is saved.
     since 2026-10-01 the mod no longer listens, so there is no log and no flag.
     Nothing depends on it; the report never checks it.
 23. At the `meterpreter >` prompt **`cat site_to_site_backup.txt`** (the file
-    sits at the session's root; `ls` lists it) → `Terminal.Cat` → key
+    sits at the session's root; `ls` lists it) → `onFileRead` → key
     **Site-to-site config** (`vpnPeer`), `vpnConfigRead` and the `tunnel`
     personal log (three lines since 2026-10-01). No `download`: the file is a `.txt` since round 3, so the
     engine's `cat` reads it where it lies (`docs/bugs.md` #34; the file used to
@@ -269,7 +270,7 @@ once its rule from node 12 is saved.
     SKN Capital Nominees and carries the `finance_svc` database credentials.
     `open site_to_site_backup.txt` at that prompt reads the target's file since
     2026-10-01 (`docs/bugs.md` #30 follow-up, not yet live-tested) and counts the
-    same; a `download`ed copy read with `open` still counts.
+    same; a `download`ed copy read with `open`, or opened in the Files app, still counts.
 
 ## 7. Bonus — Faded-Ledger (Reyes)
 
@@ -301,7 +302,8 @@ once its rule from node 12 is saved.
     is the player's choice. The tip mail says so ("yours to keep or remove").
 26. Mail to the dead drop, either:
     - **"Mission 3 Findings"** template — fields `shellCompany`,
-      `parentEntity`, `vpnLead` (`203.0.113.160`); or
+      `parentEntity`, `vpnLead` (`203.0.113.160`) and `entry` (the remote portal
+      `remote.skynet-importexport.biz`, `Vault-Line` and the number 4, e.g. "4 hosts"); or
     - Freehand matching `M03_REPORT_BODY` exactly (the body now includes two
       "Funds:" lines with the split).
 27. Completes on `Mail.Sent`, gated on ledger-seen + config-read (both true; the
@@ -311,9 +313,12 @@ once its rule from node 12 is saved.
 ## 9. What BACKTRACE shows
 
 While the mission runs, the M3 card lists only the **keys** found so far
-("TRACED SO FAR // x OF 5", title + value): Remote portal (node 12, the first
-Save in the router panel), Wire-transfer ledger (14/16), Tunnel gateway (21),
-Site-to-site config (23), Accomplice (24, bonus). The tunnel endpoint is no
+("TRACED SO FAR // x OF 5", title + value; five are required and Accomplice is the
+optional sixth, so it can read "6 OF 5"): Remote portal (node 12, the first
+Save in the router panel), Internal network (the first active player-written
+forwarding rule whose banner answers: "4 hosts behind the gateway"), Wire-transfer
+ledger (14/16), Tunnel gateway (21), Site-to-site config (23), Accomplice (24, bonus).
+Each key writes its own personal log in the same call, with one combined toast. The tunnel endpoint is no
 longer a key (it is an extra in the COMPLETE snapshot). One action, one key; no
 descriptions. Personal-log entries (a toast each) fire at the ledger, the
 config read (`tunnel`, three lines), the Reyes note (`cat`/`open`) and the report. At COMPLETE the M3 report
@@ -322,7 +327,7 @@ the fixed split, the same split on all three batches — $8,350,000 in,
 $5,010,000 to the parent — the nominee name, the tunnel, the config that ties
 both to one hand, the human way in, and what is unresolved), the Shell Company
 and Parent Entity cards, the personal log and evidence EV-M3-01 (the
-waterfall). `scratchbt m3 keys` lists the keys in-game.
+waterfall). `backtrace m3 keys` lists the keys in-game.
 
 ## 10. The money (single model: `src/content/global/finance.ts`)
 

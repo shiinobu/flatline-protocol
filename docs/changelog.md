@@ -27,6 +27,74 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-04
 
+- **[milestone] BACKTRACE app reached FINAL LOCK and final.** Declared by the owner on 2026-10-04 (`docs/world-building/README.md` #55),
+  together with the trace, log and report rule (#52, #53), the localization scope (#54) and the clean-up below. Never run in
+  game; the M5 playtest is the first live test of it. The closing-letter Mandarin is the owner's and its six slots are
+  still empty, so the letter shows English until they are filled.
+
+- **[refactor] Every `trace()` is gone from the BACKTRACE files and the dev command is now `backtrace`.** `backtrace-state.ts`
+  lost its 13 `trace()` calls, the logger import and `describeError`; each `catch` still swallows the error so a failed
+  write never reaches a quest, it is just no longer logged. The playtests of M4-M7 no longer quote `[FP][Backtrace] ...`
+  lines: they check the BACKTRACE app instead. `backtrace-debug.ts` became `backtrace-command.ts` (class
+  `BacktraceCommand`) and the command `scratchbt` became `backtrace`; it is still dev only (`isDev`) and a temporary helper
+  the owner deletes after production. `tsc` clean.
+
+- **[mechanic] BACKTRACE: only the prose that is read is localized; the rest of the app stays English.**
+  Owner decision of 2026-10-04 (`docs/world-building/README.md` #54, `docs/rules.md` §13, `docs/architecture.md`
+  "Localization of the app"). The interface (titles, labels, buttons, toasts, trace values) is English only;
+  the personal logs keep their English and Mandarin text, and `backtrace.html` now localizes 7 mission
+  summaries, 53 Key findings, The story and the closing letter through `data-i18n` keys. English stays inline;
+  the Mandarin is `src/i18n/global/backtrace.ts` (61 texts) and the letter is `src/i18n/global/backtrace-letter.ts`
+  (4 paragraphs, the thanks line and the "Warm regards" greeting only, written by the owner; "— the author"
+  stays English). The page reads `HackhubSDK.Localization` and falls back to the inline English when the
+  bridge is missing, throws or returns the key. The earlier plan to make the logs English only is cancelled.
+  Not run in game.
+
+- **[mechanic] BACKTRACE: required traces, a personal log per trace, and every required trace in the report.**
+  Owner rules, discussed and approved on 2026-10-04 (`docs/world-building/README.md` #52 and #53). A mission needs
+  at least 5 required traces (M1, locked at 4, is the one exception); a trace is required when its value is a
+  field of the report, optional otherwise (M3 `accomplice`, M4 `probe`). M3 gets the fifth required trace
+  `pivot` ("4 hosts behind the gateway", at `natPivotDone`). Every trace now has its own personal log, written
+  in the same call (`traceBacktraceFinding(mission, key, logs, options)`) with one combined toast; 23 new
+  entries (two lines each, English and Mandarin): M1 `buyer`, `caseId`; M2 `developer`, `ransom`, `homeLead`,
+  `firewall`, `workstation`, `shellCompany`; M3 `portal`, `pivot`, `gateway`, `accomplice`; M4 `relay1`,
+  `relay2`, `control`; M5 `greta`, `decisionMemo`, `usbTicket`; M6 `registeredAgent`; M7 `credential`,
+  `firewall`, `c2`, `ledger`. A log written as a story moment (M3 aftermath, M4 breach, M7 ending) raises no
+  toast and is flagged "Moment" in the finished card. The state keeps `moments` and, at COMPLETE, `skipped`
+  (optional keys and logs never reached); the app counts found over required ("3 OF 5", "7 OF 5" is
+  intentional), shows hatched slots up to the required count, and lists skipped items in a Skipped block and
+  under a divider in the personal-log sheet, flagged "Skipped". Report fields added so every required trace is
+  asked for: M2 `ransom`, `payload`, `homePath`; M3 `entry`; M5 `archive`; M6 `agent`; M7 `path` (template
+  and freehand body, English and Mandarin; M2's pre-filled ransom amount and M3's pre-filled gateway name are
+  no longer interpolated into the template). `tsc` clean, zero comments; not yet played in the game. See
+  `docs/architecture.md` (Required traces, personal logs and the report) and `docs/rules.md` §13.
+- **[mechanic] M1, M2 and M5 `.log` files are Log Viewer entries, and every way of reading a clue counts.** Same
+  shape as M4 (`components/log-file.ts`, `onFileRead`): the five M1 backend logs (`sales_ledger`, `ops-relay`, `auth`,
+  `cron`, `system`), M2's `deploy.log` and M5's `usb_history.log` are stored as `{id, date, type, description}`
+  entries and keep their `.log` names, so the Files app opens them in the Log Viewer while `cat` and `open` print the
+  engine's own line per entry. The M1 `buyer` trace, the M1 `suspiciousFileFound` gate and the M2 `deployLogRead`
+  gate no longer compare the file's text (an array never equals it, so they would have stalled silently): they match
+  the name and extension through `onFileRead`, so `cat`, `open` and the Log Viewer all pass. The `cat` and `open`
+  commands and `file-reads.ts` are untouched (M3, M6 and M7 have no `.log`). `parseLog` now also
+  reads the month and day of syslog lines (M4's 56 log lines parse identically) and ISO `YYYY-MM-DD HH:MM UTC`
+  lines, and takes an optional fixed `type`; `DeviceSpec.rootLogDay`, `neutralLogs` and `typedLogs` convert a device's `.log`
+  root files (the keyword typing would have shown "escrow released" as Disconnected). Story dates chosen by the owner:
+  `sales_ledger` rows 2026-06-18, 2026-07-14 and 2026-08-03, `ops-relay` 2026-09-16 15:01 (`docs/world-building/
+  13-story-timeline.md` B, README #50). `deploy.log` lost its two header lines (the build name moved into the first
+  entry) and the ledger its title and ruler. `ops-relay` shows only `[ENCRYPTED]` in the Log Viewer: its single entry keeps the base64 blob in the `type` field,
+  which the viewer never prints and `cat` does (`[2026-09-16 15:01:00] <blob> [ENCRYPTED]`). `tsc` clean, zero
+  comments; not yet tested in-game: that terminal line and the viewer row, and `open usb_history.log` at a
+  Meterpreter prompt (it falls back to `cat`). See `docs/bugs.md` #56 and `docs/architecture.md` (Tracing checkpoints).
+- **[mechanic] Every file checkpoint counts through `cat`, `open` and a double-click in the Files app (GUI gap
+  closed).** A double-click raises `Files.Open`, which only M4, M1's two `.log` gates and M2's `deploy.log` heard, so a
+  player who transferred a clue file and opened it in the Files app read it without advancing anything. M2
+  (`sync-home.txt`, the workstation files, `wire_authorization.pdf`), M3 (`site_to_site_backup`, the Reyes note), M5
+  (statement, memo, ticket, Greta notes, found note) and M7 (`manifest.txt`, `ash-gate_backup.txt`) now listen
+  through `onFileRead` and match the name and extension, ignoring a ` (n)` copy suffix. Side effect: M2
+  `sync-home.txt` also passes by `open` (it counted only `cat`, with an exact content match that is gone), and the
+  M2 workstation files also pass by `cat`. The M7 ledger trap still fires only on `open`. `tsc` clean, zero
+  comments; not yet tested in the game. See `docs/bugs.md` #56, `docs/architecture.md` and
+  `docs/world-building/README.md` #50 and #51.
 - **[milestone] BACKTRACE design reached FINAL LOCK.** Declared by the owner on 2026-10-04 after the last spine and
   header changes were approved in a scratchpad preview: the evidence-board caseboard, the hop-route spine, the centred
   header counters and the 2 px operator ring. Never run in the game yet. See `docs/world-building/README.md` #49 and

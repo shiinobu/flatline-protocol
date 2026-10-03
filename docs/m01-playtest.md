@@ -118,12 +118,19 @@ abandoned; they are open only while M1 runs (`gateMissionPages`,
 
 16. `ssh X7xS3NTRY9@<be7 ip>`, password from step 15's hydra output.
 17. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — flavor)
-    and `/logs` (`sales_ledger.log` → `ROW <winning listing code>`,
-    matches whatever code the winning slot resolved to this run, and names
-    the buyer `TR4C3#404` — `cat sales_ledger.log` → key **Buyer linked**
-    (`buyer`); `ops-relay.log` → `[ENCRYPTED]` + a base64 blob; `auth.log`/
-    `cron.log`/`system.log` are dummy noise).
-18. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
+    and `/logs` (every `.log` there is stored as Log Viewer entries: `cat`
+    prints `[date] TYPE text` per entry, the Files app opens the Log Viewer
+    after the file is downloaded). `sales_ledger.log` → three entries dated
+    2026-06-18, 2026-07-14 and 2026-08-03, the last one `ROW <winning listing
+    code>` (whatever code the winning slot resolved to this run); all name the
+    buyer `TR4C3#404` — reading it by `cat`, `open` or the Log Viewer → key
+    **Buyer linked** (`buyer`); `ops-relay.log` → one entry dated 2026-09-16
+    15:01 (see step 18); `auth.log`/`cron.log`/`system.log` are dummy noise.
+18. Read `ops-relay.log` (`cat`, `open` or the Log Viewer). The Log Viewer
+    shows only `[ENCRYPTED]`; the terminal prints
+    `[2026-09-16 15:01:00] <base64 blob> [ENCRYPTED]` (the blob rides in the
+    entry's `type`, which only `cat` prints), so copy the blob from the
+    terminal, then decrypt it with `openssl` → plaintext
     reveals IRC host `relay.blkledger.dark` and channel key `n0ledger`.
 
 ## 6. Confirm via IRC, find the vault
@@ -178,13 +185,13 @@ While the mission runs, the M1 card lists only the **keys** found so far
 | Key | Title | Action |
 |---|---|---|
 | `broker` | Broker identified | open the winning listing (step 5) |
-| `buyer` | Buyer linked | `cat sales_ledger.log` (step 17) |
+| `buyer` | Buyer linked | read `sales_ledger.log` by `cat`, `open` or the Log Viewer (step 17) |
 | `vault` | Vault reached | open LedgerVault (step 20) |
 | `caseId` | Case file opened | click the `Q3-2026-SEA` folder (step 20) |
 
 At COMPLETE the M1 report opens with 5 Key Findings composed from those keys
 plus the extras that only exist in the snapshot (the winning listing code and
-the project code). `scratchbt m1 keys` lists the keys in-game. The steps that
+the project code). `backtrace m1 keys` lists the keys in-game. The steps that
 keep a quest flag (the listing, the vault, the Q3 folder) are re-traced when
 the quest restarts; `buyer` has no flag and is not.
 

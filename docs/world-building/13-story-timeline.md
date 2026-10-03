@@ -18,7 +18,7 @@ Status: dibuat 2026-10-02 atas permintaan pemilik proyek ("tanggal di berkas SSH
 6. Hari dalam seminggu hanya boleh diambil dari bagian D (sudah dihitung). Jangan menulis "kamis" atau "Thu" untuk tanggal yang tidak ada di sana tanpa menghitungnya.
 7. Peristiwa serangan memakai UTC. Log server yang tidak menyebut zona dianggap UTC.
 8. Nominal uang, nomor batch, dan tanggal penyelesaian ransomware diturunkan dari `src/content/global/finance.ts` (`docs/rules.md` §14), bukan diketik ulang.
-9. M1-M3 terkunci. Tanggal di berkasnya hanya dicatat di bagian B dan anomalinya dilaporkan di bagian F; tidak diedit. Bila berkas M4-M7 bertabrakan dengan tanggal M1-M3, ubah berkas M4-M7 dan laporkan.
+9. M1-M3 terkunci. Tanggal di berkasnya hanya dicatat di bagian B dan anomalinya dilaporkan di bagian F; tidak diedit. Pengecualian 2026-10-04: pemilik menyetujui tanggal baru untuk `sales_ledger.log` dan `ops-relay.log` M1 supaya bisa tampil di Log Viewer (bagian B, README #50). Bila berkas M4-M7 bertabrakan dengan tanggal M1-M3, ubah berkas M4-M7 dan laporkan.
 10. Tanggal baru yang tidak ada di dokumen ini hanya boleh dibuat bila perlu dan harus memenuhi aturan 3 dan 4. Catat tiap tanggal baru di laporan akhir (butir "values you chose").
 
 ## B. Tanggal tetap
@@ -42,9 +42,12 @@ LOCKED = ada di kode M1-M3 yang terkunci. DECIDED = ada di spesifikasi yang suda
 | 2024-03-01 | Conrad keluar dari direksi Nordhaven Holdings | `09` C1 | DECIDED |
 | 2025-11-03 | Snapshot Echoline: halaman staf IT PacificCare memuat Greta dan Gareth | `09` B3 | DECIDED |
 | 2026-05-02 (Sab) | LOG-EU-2209, batch PB-2605-01, $1.400.000 | `src/content/global/finance.ts:35-40` | LOCKED |
+| 2026-06-18 11:42 UTC | Baris ledger penjualan akses `FIN-EU-2214` di `sales_ledger.log` (be7) | `src/i18n/m01/core.ts` LEDGER_CONTENT | DECIDED 2026-10-04 |
 | 2026-07-09 dan 2026-07-26 | Foto eksterior dan foto koridor di folder Q3-2026-SEA | `home.html:586-587` | LOCKED |
+| 2026-07-14 16:05 UTC | Baris ledger penjualan akses `MED-APAC-6689` di `sales_ledger.log` | `LEDGER_CONTENT` | DECIDED 2026-10-04 |
 | 2026-07-22 (Rab) | FIN-NA-0091, batch PB-2607-01, $4.100.000 | `finance.ts:42-47` | LOCKED |
 | 2026-07-31 (Jum) | Kontrak Gareth Lim berakhir | `09` B2 | DECIDED |
+| 2026-08-03 13:20 UTC | Baris ledger penjualan akses rumah sakit (kode listing per-simpanan, mis. `MED-SEA-0417`) di `sales_ledger.log`: 7 hari sebelum posting USB Greta, 11 hari sebelum serangan | `LEDGER_CONTENT` | DECIDED 2026-10-04 |
 | 2026-08-10 (Sen) | Greta memposting temuan USB berlabel "Q3-2026-SEA" | `09` B2 | DECIDED |
 | 2026-08-11 (Sel) 00:12 UTC | USB dicolokkan ke PC-IT-017 oleh `g.desouza` | `09` B5, B6 | DECIDED |
 | 2026-08-14 (Jum) | Serangan PacificCare, batch PB-2608-01, CASE-A7X-0417, $2.850.000. Jam UTC: 02:14 payload didorong, 02:41 sistem terkunci, 02:55 jadwal ruang operasi dan rekam medis mati, 03:20 tim krisis, 03:58 asuransi dihubungi, 04:35 negosiator dilibatkan, 05:12 "Clinical incident logged, Operating Theatre 3", 06:10 tuntutan terkonfirmasi, 07:30 asuransi setuju, 08:40 CRO mengotorisasi, 09:02 pembayaran (escrow released), 09:04 diterima, 09:15 paperwork diarsipkan, 09:20 parent dan sinkron, 09:24 panel, 09:27 broker. Jeda terkunci ke bayar: 6 jam 21 menit | `finance.ts:28-33,49-54`, `src/i18n/m02/core.ts:102,110-118`, `09` B5 | LOCKED dan DECIDED |
@@ -59,6 +62,7 @@ LOCKED = ada di kode M1-M3 yang terkunci. DECIDED = ada di spesifikasi yang suda
 | 2026-09-02 (Rab) | Snapshot Echoline: halaman staf IT tanpa Greta dan Gareth | `09` B3 | DECIDED |
 | 2026-09-09 sampai 2026-09-18 | Rentang log backend `be7` M1 (sshd, cron, kernel) | `src/content/m01/server-files.ts:33-80` | LOCKED |
 | 2026-09-16 (Rab) 14:55-15:20 | Sesi SSH broker X7xS3NTRY9 di `be7` | `server-files.ts:46-49` | LOCKED |
+| 2026-09-16 (Rab) 15:01:00 UTC | `ops-relay.log` di `be7` (satu entri: Log Viewer hanya menampilkan `[ENCRYPTED]`, blob base64 ada di kolom tipe yang dicetak `cat`), di dalam sesi SSH broker | `src/content/m01/irc.ts` | DECIDED 2026-10-04 |
 | 2026-09-18 (Jum) | Folder Q3-2026-SEA di LedgerVault dan scan `found_note` bertanggal Sep 18, 2026; log `be7` berakhir pukul 02:47. **Hari-cerita M1** | `home.html:532,590-600`, `server-files.ts:50-51,80` | LOCKED |
 
 Selisih serangan ke hari-cerita M1: 35 hari (2026-08-14 ke 2026-09-18). Premis "8-12 bulan" di `docs/story.md` bertentangan dengan ini dan belum diubah (`06-pertanyaan.md` T-a OPEN); tanggal di kode yang berlaku.

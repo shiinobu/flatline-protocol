@@ -2279,7 +2279,9 @@ save).
 dates from the story day; `asLogData` is the one cast) and `components/file-reads.ts` (`onFileRead` listens to
 `Terminal.Cat`, the `open` command's event and `Files.Open`, and matches names ignoring a ` (n)` copy suffix). M4's
 three clue logs use them, so reading a clue by `cat`, `open` or the Log Viewer advances the same step
-(`docs/world-building/README.md` #45). M1-M3, M5 and M7 still listen only to `Terminal.Cat` and `open`.
+(`docs/world-building/README.md` #45). Since 2026-10-04 every file checkpoint reads through `onFileRead`: M1 (`sales_ledger`, `ops-relay`), M2 (`deploy.log`, `sync-home.txt`, the workstation files), M3 (`site_to_site_backup`, the Reyes note), M5 (statement, memo, ticket, Greta notes, found note) and M7 (`manifest.txt`, `ash-gate_backup.txt`), so a double-click in the Files app on a transferred copy advances the same step as `cat` or `open`. That also widened two paths that counted only one way: M2 `sync-home.txt` counted only `cat` (with an exact content match), and the M2 workstation files only `open`. The M7 ledger trap alone still listens to `open`. The `.log` files of M1, M2 and M5 (`sales_ledger`, `ops-relay`, `auth`, `cron`, `system`, `deploy`, `usb_history`) are Log Viewer entries.
+
+**`ops-relay.log` shows only `[ENCRYPTED]` in the Log Viewer.** Its single entry keeps `[ENCRYPTED]` as the description and carries the base64 blob in the `type` field: the viewer maps an unknown type to a grey "Event" badge and never prints it, while `cat` prints `[date] TYPE description`, so the terminal shows `[2026-09-16 15:01:00] <blob> [ENCRYPTED]` and the blob is read and copied there. `DeviceSpec.typedLogs` fixes the type per file name. Read in the engine source (`cat` ~10640800, Log Viewer ~14825224), not yet seen in the game.
 
 ---
 

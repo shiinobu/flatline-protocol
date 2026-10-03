@@ -37,8 +37,8 @@ dev focus:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m07 = true` and every other
    entry to `false`. Leave `isDev = true`, `isDebug = false`, `isTester = false`.
 2. Build and install as usual (`.\build-install.ps1`), restart HackHub.
-3. Expect in the log: `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!`
-   and `[FP][Backtrace] m7 -> progress`.
+3. Expect in the log: `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!`,
+   and in the BACKTRACE app M7 listed as in progress.
 
 With focus on, all of M07's objectives show at once (`applyDevGating`) and no
 other story mission auto-starts. **Remember to put the flag back to `false`
@@ -134,7 +134,7 @@ cat ash-gate_backup.txt
 
 Expect an old configuration backup, dated 2022, naming the panel host
 `194.60.38.12`, the user `fw.admin`, its password, and the two deny rules.
-`open ash-gate_backup.txt` counts as well.
+`open ash-gate_backup.txt` and a double-click on a downloaded copy in the Files app count as well.
 
 Expected: internally `deadBoxEntered` then `credentialRead`.
 
@@ -276,11 +276,13 @@ extracted or the window was already halved.
 
 Compose to `drop@drop.null` with the **Mission 7 Findings** template. There is
 no free-text version of this report: the choice is read only from the template.
-`architect`, `evidence` and `choice` are **empty tokens** in the compose window
+`architect`, `path`, `evidence` and `choice` are **empty tokens** in the compose window
 (the parent entity and the list of choices are already filled in): type each
 answer, and Send enables after the last one is filled.
 
 - `architect` → `Conrad Lindqvist` (needs "lindqvist")
+- `path` → `Ash-Vector, ash-gate, 203.0.113.161` (needs all three: the dead box, the edge
+  firewall and the index host)
 - `evidence` → `employee negligence (G. de Souza)` (needs a fault word,
   "negligen" or 疏忽 / 过失, and "souza")
 - `choice` → one of `expose`, `handoff`, `destroy`
@@ -298,7 +300,7 @@ The two log lines and the letter are written when the report is accepted, before
 the mission completes, so the finished BACKTRACE report already shows them. Only
 `destroy` unregisters the C2 network; `expose` and `handoff` leave it standing.
 
-Then: `[FP][Backtrace] m7 -> complete` and `[FP][M07] reward skipped under
+Then: M7 listed as complete in the BACKTRACE app and `[FP][M07] reward skipped under
 focus: 5000`. The 5000 only pays in a **production** run (D1), which needs
 `flatline.m06` first.
 

@@ -106,7 +106,7 @@ purpose.
 8. `ssh -h root@139.162.45.98` (the resolved IP behind
    `f3a91b7c04d8.tr4c3404.dev` — the `ssh` command requires `-h` and an
    IP, never a domain name) with the cracked password.
-9. `cat deploy.log` → key **Deploy log** (`deployLog`, shows `payload_v9`) and
+9. Read `deploy.log` (`cat`, `open` or the Log Viewer; five entries on 2026-08-14) → key **Deploy log** (`deployLog`, shows `payload_v9`) and
    the first **personal-log** entry, with a toast ("CASE-A7X-0417. August
    14th, 2026. Same case. Same day my sibling never came out of surgery...
    This is the person who actually deployed it."). The log itself now dates
@@ -115,7 +115,8 @@ purpose.
    batch `PB-2608-01`), and the note that the payout paperwork goes to "the
    home workstation".
 10. `cat sync-home.txt` (note: `.txt`, not `.sh` — the in-game `cat`
-    command only supports `.txt`/`.log` extensions) → key **Home network
+    command only supports `.txt`/`.log` extensions; `open` and a double-click in the
+    Files app count as well) → key **Home network
     lead** (`homeLead`, the router's public IP `24.187.92.14`) — and a line
     about the NAS still being on its factory admin login.
 
@@ -184,7 +185,7 @@ purpose.
     with **`open`** (`open wire_authorization.pdf`; the prompt starts at the
     device root and `ls` lists them; `cat` only reads `.txt`/`.log`, so the
     `.pdf` needs `open` anyway). No `download` is needed; a `download`ed copy
-    read with `open ~/downloads/<file>` still counts:
+    read with `open ~/downloads/<file>`, or opened in the Files app, still counts:
     `wire_authorization.pdf`
     (names **Skynet Import-Export Co.** as the shell company, the batch
     `PB-2608-01` and `$2,850,000`) → key **Shell company** (`shellCompany`),
@@ -204,9 +205,11 @@ purpose.
 ## 8. Report findings (the one objective the player sees)
 
 22. Mail to the dead drop, either:
-    - **"Mission 2 Findings"** template — fields `developer:
+    - **"Mission 2 Findings"** template — fields `developer_url:
       f3a91b7c04d8.tr4c3404.dev`, `shellCompany: Skynet Import-Export
-      Co.`; or
+      Co.`, `ransom` (`$2,850,000`; any text whose digits contain 2850000), `payload`
+      (`payload_v9`) and `homePath` (the router, firewall and workstation addresses
+      `24.187.92.14`, `156.38.94.201`, `71.192.14.230`, all three needed); or
     - Freehand matching `M02_REPORT_BODY` exactly — subject "Toolkit
       developer confirmed — shell company named".
 23. Completes purely on the `Mail.Sent` match, no hard prior-step gate.

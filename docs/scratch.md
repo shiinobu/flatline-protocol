@@ -1702,7 +1702,7 @@ port rule at all (`Database.find` on host + user + password); an optional
 comment line in the `.conf` was proposed and skipped. The engine's "Sys log file
 not found for <ip>" error on each connection to a mission device is harmless. The
 BACKTRACE app showed M2 "in progress": leftover state from the 27/09 M2 test in
-the same save (`scratchbt m2 locked` clears it); the caseboard's TRACE label
+the same save (`backtrace m2 locked` clears it); the caseboard's TRACE label
 takes the first mission in progress, so it shows M2 while that is set. The
 "6/7" the owner mentioned was not identified.
 

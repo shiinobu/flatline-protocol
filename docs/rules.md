@@ -349,9 +349,32 @@ dump traced 5, M3's ledger dump 4) "makes no sense".
   later mission; it is an extra there.
 - The Key Findings list in a report is the chain of events, not a mirror of
   the keys, and may be longer than the key list.
-- Per-mission totals are a design decision, not a constant: M1 4, M2 7, M3
-  6 today. Adding a key means adding a new action that proves it, not
-  splitting an existing one.
+- Per-mission totals are a design decision, not a constant: M1 4, M2 7, M3 6
+  (5 required and `accomplice`), M4 6 (5 required and `probe`), M5 6, M6 6, M7 6
+  today. Adding a key means adding a new action that proves it, not splitting an
+  existing one.
+- **Required and optional traces (2026-10-04, `docs/world-building/README.md` #52).**
+  A mission has at least 5 *required* traces; M1, locked at 4, is the one
+  owner-approved exception. A trace is required when its value is a field of the
+  mission's report, so the report cannot be filed without it (#53). It is optional
+  otherwise (`BACKTRACE_OPTIONAL_KEYS`: M3 `accomplice`, M4 `probe`). The player is
+  never told which is which: the app counts every traced key over the required
+  count, so "7 OF 5" is intentional.
+- **Every trace carries a personal log, written in the same call:**
+  `traceBacktraceFinding(mission, key, logs, options)`, one combined toast, "new
+  trace and log recorded". `appendBacktraceLogs` is only for a log that belongs to
+  no trace (an optional note, a story moment). A log written with `{ moment: true }`
+  raises no toast and is flagged "Moment" in the finished card.
+- At COMPLETE the optional traces and optional logs that were never reached are
+  kept in `skipped` and stay visible, flagged "Skipped".
+- **Language of the app (2026-10-04, `docs/world-building/README.md` #54).** The BACKTRACE interface
+  (titles, labels, buttons, toasts, trace values) is English only. Only prose that is read is localized:
+  the personal logs (`Localization.t`) and, in `backtrace.html`, the mission summaries, the Key findings,
+  The story and the closing letter (its four paragraphs, the thanks line and the "Warm regards" greeting
+  only; "— the author" stays English). English stays inline in the HTML; the Mandarin lives in
+  `i18n/global/backtrace.ts`, and the letter's in `i18n/global/backtrace-letter.ts`, which the owner writes.
+  A new prose element needs `data-i18n` and its zh entry, and a translated Key finding keeps the same
+  `<span data-fact>` markup as its English source.
 
 Details, the checkpoint table and how to add a key: `docs/architecture.md`
 (Applications: BACKTRACE).
