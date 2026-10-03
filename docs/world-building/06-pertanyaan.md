@@ -92,7 +92,8 @@ Status: diperbarui 2026-10-02. Tandai `[x]` dan pindahkan ke log keputusan di
   ciptakan sendiri (C-c). DECIDED 2026-10-02 (`11-spec-m7.md` bagian I).
 - [ ] **X-c.** Aplikasi Sentinel (tabel koneksi dan tombol Block): DITAHAN, diputuskan nanti.
 - [ ] **X-d.** Nasib `src/debug/rival-*` setelah kit dimigrasi (tetap sebagai lab atau dihapus).
-- [ ] **X-e.** Nasib `*.original.ts` M4 lama setelah migrasi ke M7 (disimpan sebagai rujukan atau dihapus).
+- [x] **X-e.** Nasib `*.original.ts` M4 lama setelah migrasi ke M7: ARCHIVED 2026-10-03. Semua berkas `.original`
+  dipindah ke `src/archive/`, tidak dihapus (README #48).
 - [ ] **X-f.** Apakah HoneyCheck dipakai juga di M4 (hop relay) selain M7.
 
 ## Ending

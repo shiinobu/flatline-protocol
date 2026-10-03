@@ -22,8 +22,8 @@ the old M4 was migrated to mission id `m07` and rewritten as "The Architect",
 and `m04` was rebuilt as "Burn Notice", with `m05` ("The Door") and `m06`
 ("Open Register") written from their specs. The older shape (one
 `main/mNN.ts` holding the quest class plus all of its helpers, fed by a flat
-`content/mNN.ts`) survives only in the `*.original.ts` reference copies, which
-are not built. **None of M04-M07 has been live-tested yet** — `tsc --noEmit` is
+`content/mNN.ts`) survives only in the `*.original.*` reference copies under
+`src/archive/`, which are imported by nothing. **None of M04-M07 has been live-tested yet** — `tsc --noEmit` is
 clean and every mission has a mocked-SDK harness, but nothing beyond that; the
 per-mission scripts are `docs/m04-playtest.md` through `docs/m07-playtest.md`.
 The generic additions M2 and M3 needed (splitter and printer nodes, device and
@@ -236,6 +236,14 @@ src/
                  `isDebug` through `debug/debug-gate.ts`. The M4 lab
                  prototypes (rival-hacker lab, quiet-start) were removed on
                  2026-10-03 and live on in git history.
+  archive/     — frozen pre-redesign reference copies, imported by nothing:
+                 `archive/content/` and `archive/main/` hold the
+                 `mNN.original.ts` pairs of M01-M04, `archive/applications/`
+                 holds `backtrace.original.html` (the BACKTRACE UI from before
+                 the v3 redesign). Each `.original.ts` quest file imports its
+                 sibling `archive/content/mNN.original.js`, never the live
+                 content file. `tsc` still typechecks them because
+                 `tsconfig.json` includes `src`.
   index.ts     — production bootstrap: which missions are actually active
                  (import list is the single source of truth, same
                  convention as entity-resolution-mods).

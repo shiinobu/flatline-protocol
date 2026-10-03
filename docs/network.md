@@ -5,7 +5,7 @@ pass on 2026-09-20, M2-M4 in a second pass the same day, M2 and M3 were
 redesigned and live-tested on 2026-10-01, and on 2026-10-02 the old M4 became
 mission id `m07` while `m04`, `m05` and `m06` were written from their specs.
 Every mission's pre-redesign implementation is kept for reference at
-`src/content/m0X.original.ts`/`src/main/m0X-quest.original.ts`. **None of
+`src/archive/content/m0X.original.ts`/`src/archive/main/m0X.original.ts`. **None of
 M4-M7 has been live-tested yet** — `tsc --noEmit` is clean and each mission has
 a mocked-SDK harness, but nothing beyond that; the scripts are
 `docs/m04-playtest.md` through `docs/m07-playtest.md`. `docs/story.md` remains
@@ -461,7 +461,8 @@ literally implementable — same compromise already accepted for the
 Procedure actually followed, same as M1's:
 
 1. Copied `src/content/m0X.ts`/`src/main/m0X-quest.ts` to sibling
-   `m0X.original.ts` files before changing anything. Each `.original.ts`
+   `m0X.original.ts` files before changing anything (moved to `src/archive/`
+   on 2026-10-03). Each `.original.ts`
    quest file imports from its own sibling `m0X.original.js` content file,
    **not** the live one — the live content file's exports get renamed
    during a redesign, and a frozen backup that still imports the live path

@@ -192,7 +192,7 @@ masih terkunci. Berkas belum diekstrak: jangan membukanya begitu saja.
   terkunci). `content/global/mail-senders.ts` hanya diubah jalur impornya. `M04_ARCHITECT_REAL_NAME`
   menjadi `M07_ARCHITECT_REAL_NAME` = "Conrad Lindqvist".
 - Global: `QuestId` (`guard/flags.ts`), `BacktraceMissionId` dan `BACKTRACE_KEYS` (m7), `manifest.json`.
-- Nasib `*.original.ts` M4 lama: OPEN.
+- Nasib `*.original.ts` M4 lama: ARCHIVED 2026-10-03 (dipindah ke `src/archive/`, X-e ditutup).
 
 ## K. Verifikasi mekanik dan risiko
 | Butir | Status |
@@ -214,8 +214,8 @@ Kerangka jalan M7 lebih dulu: topologi bentuk M2, satu sesi RDP, `cat manifest.t
 live test `open` Meterpreter (juga syarat kunci M1-M3).
 
 ## M. Masih OPEN
-Prosa en dan zh, alamat IP dan password, penyesuaian angka (tenggat 240 detik, penalti), nasib
-`*.original.ts`, pemakaian HoneyCheck di M4.
+Prosa en dan zh, alamat IP dan password, penyesuaian angka (tenggat 240 detik, penalti),
+pemakaian HoneyCheck di M4.
 
 ## Catatan implementasi (2026-10-02, fase 1)
 

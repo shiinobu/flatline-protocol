@@ -114,7 +114,7 @@ purpose. What changed:
   `docs/bugs.md` entries 20 and 21.
 
 The pre-redesign implementation is kept for reference at
-`src/content/m01.original.ts` / `src/main/m01.original.ts`.
+`src/archive/content/m01.original.ts` / `src/archive/main/m01.original.ts`.
 
 **Target:** X7xS3NTRY9, the initial access broker who sold the hospital's
 network access. They sell through three marketplaces
@@ -189,7 +189,7 @@ across three candidate hosts was added, and the home network became a
 Splitter with a real NAS and four decoys — the chain below is only patched
 for the money and the `open` step (5, 9, 10), read the playtest for the
 rest. Pre-redesign
-implementation kept at `src/content/m02.original.ts`/`src/main/m02.original.ts`.
+implementation kept at `src/archive/content/m02.original.ts`/`src/archive/main/m02.original.ts`.
 
 **Target:** TR4C3#404, the ransomware toolkit developer / affiliate-panel
 admin.
@@ -234,7 +234,7 @@ genuinely produces M4's lead. Objectives collapsed to a **single**
 `reportFindings`, matching M1/M2. Engine-level detail and every unverified
 assumption: `docs/scratch.md` (last two sections); topology:
 `docs/network.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
-implementation kept at `src/content/m03.original.ts`/`src/main/m03.original.ts`.
+implementation kept at `src/archive/content/m03.original.ts`/`src/archive/main/m03.original.ts`.
 
 **Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
 laundering front — defended like a real corporate target: OSINT-hardened
@@ -376,7 +376,7 @@ real network's Router address (previously a disconnected OSINT-only
 lead), gated behind a `Firewall`+`Splitter`, with two new honeypot decoys
 ("Null-Crown", "Ash-Vector") alongside the C2 host as an extra
 red-herring layer. Objective count unchanged. Pre-redesign implementation
-kept at `src/content/m04.original.ts`/`src/main/m04.original.ts`.
+kept at `src/archive/content/m04.original.ts`/`src/archive/main/m04.original.ts`.
 
 **Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
 Nominees. Deliberate convergence point of all three prior threads

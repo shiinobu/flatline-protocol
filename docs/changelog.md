@@ -27,6 +27,12 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-03
 
+- **[docs] Every `.original` reference copy moved to `src/archive/`.** The eight `*.original.ts` mission backups
+  went from `src/content/` and `src/main/` to `src/archive/content/` and `src/archive/main/` (`git mv`, no content
+  change except one extra `../` on the 12 imports that reach live code; `tsc` clean). The pre-redesign BACKTRACE UI
+  was restored from `3a7474c` as `src/archive/applications/backtrace.original.html` after it had been deleted by
+  mistake. Question X-e in `docs/world-building/06-pertanyaan.md` is closed as ARCHIVED (README #48). See
+  `docs/architecture.md` (Layering).
 - **[milestone] BACKTRACE v3 redesign installed.** `src/applications/backtrace.html` was rebuilt as a "forensic
   oscilloscope" in a void-black and red signal palette: a header with a heartbeat scope and TRACED / EVIDENCE /
   ENTITIES counters, a sidebar spine whose amber node follows the mission in progress, report views with a fixed
@@ -34,8 +40,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   sheet, glitching titles, and a Folder-trail app icon (`public/assets/global/backtrace-icon.*`). Big Shoulders
   Display ships as base64 faces in the new `src/applications/backtrace-fonts.ts`. Dates in the reports are fixed story
   days (`STORY_DATES`), never the in-game clock, so `completedAt` and its `Time.now()` stamp left
-  `backtrace-state.ts`. The pre-redesign copy was `src/applications/backtrace.original.html` (equal to `HEAD`) and was
-  deleted. See `docs/architecture.md` (Applications: BACKTRACE). Never run in the game yet.
+  `backtrace-state.ts`. The pre-redesign copy is kept at
+  `src/archive/applications/backtrace.original.html` (the `HEAD` from before the redesign). See `docs/architecture.md` (Applications: BACKTRACE). Never run in the game yet.
 - **[mechanic] BACKTRACE gets a closing page, "Signing off".** After M7 is complete a last sidebar item appears with the
   author's thank-you letter (it names Flatline Protocol), a "SIGNED OFF" stamp and the font credit; the spine's finish
   node moves onto it. Hidden until M7 is complete, no new state. See `docs/architecture.md`.
