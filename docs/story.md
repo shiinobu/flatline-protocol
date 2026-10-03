@@ -325,7 +325,49 @@ report states it in its "Funds" lines. The tip mail names the $2,850,000
 batch. That the money ends at one nominee, and the tunnel's far end belongs to
 the same nominee, is what M4 builds on.
 
-### Mission 4 — "The Architect"
+### Mission 4 — "Burn Notice" (built 2026-10-02, redesigned and FINAL LOCK 2026-10-03)
+
+The decisions are in `docs/world-building/README.md` #42-#47 and the full specification in
+`docs/world-building/10-spec-m4.md`; this section keeps the reasons that did not fit a decision row.
+
+**Shape.** The Custodian, silent since M1, writes first: something is wrong, stay off the endpoint. Twenty seconds
+after the mail is read a 60 second `broadcast` countdown starts (a `wall` message from `sentry@darknull.io`, a remote
+clock running 03:13:07 to 03:14:07), and at zero the desktop is taken. The attacker "took the room, not the money": the
+owner's own live test showed that a version which cost money on every expiry punished waiting three times over, so
+attack 1 cannot be repelled, costs nothing and always lands. A defensive mechanic may come back in M7 as something else.
+The player rebuilds the display in a full-screen recovery console that works on real kernel files (module, `display.conf`,
+initramfs, three staged images), then hunts the operator back through the relays, ending the hunt on the control host.
+The report goes to the dead drop.
+
+**Why the chain has a parallel pair.** `relayProfiled` requires both `incidentLogRead` and `desktopRestored`. A player who
+repairs the desktop by trying all three builds without reading the log still reaches step 7 once they read it, and the
+other way round; neither order stalls.
+
+**Why `auth.log` has five outbound sessions.** The discriminator is the clock, not the hostname: only Quiet-Mirror is
+`ESTABLISHED` at 03:14:06, the minute the incident log stamps. Paper-Moth appears twice as a probe that forwarded 0 bytes,
+once at 03:14:41, close enough to look tempting and late enough to be wrong. Three keepalives sit before 03:00. All times
+come from `docs/world-building/13-story-timeline.md` §E.
+
+**Why the incident log outlives the rebuild.** The breach files are purged when the display is rebuilt, except
+`/var/log/flcomp-incident.log`: steps 5 to 7 need the two addresses it names (the session source and the NAT gateway).
+
+**Why the clue logs are Log Viewer entries.** Players open files in the Files app as readily as with `cat`, so reading a
+clue by `cat`, `open` or the Log Viewer counts the same (`docs/bugs.md` #56). `firewall.log` is written after the rebuild:
+the attacker's mail says "you will find me in your own firewall log afterwards".
+
+**Why `flatline`.** The control host beacons every 60 seconds (`beacon_interval` in `watchdog.conf`); cutting it means
+that heartbeat dies. The command used to be `repel`. Its only in-world hint is the last comment line of `watchdog.conf`,
+and it refuses to cut Night-Shift before the origin is linked, so the animation (five `beacon` pulse lines shrinking to
+flat) never plays for nothing.
+
+**The kit is mission-blind.** The breach lives at one well-known `SaveStorage` key (`flatline.desktopBreach`) with the
+owning mission inside the record, while the intrusion state keeps a per-mission prefix plus a pointer key; so the same
+`sysdiag`, `sysrepair` and `flatline` commands serve M4 and M7 and no command imports mission content.
+
+### Mission 4 (old numbering) — "The Architect" (now Mission 7)
+
+**Renumbered 2026-10-02:** this finale became **M7** when the new M4 took the id (`docs/world-building/README.md` #4).
+The text below is kept as written.
 
 **Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
 plot/chain below is unchanged; what changed (see `docs/network.md`)

@@ -76,7 +76,27 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   nodes, port/firewall changes, per-device vulnerabilities set after the
   build), `domains` (with optional vulnerabilities), `fixtures` (Shell command
   data), `database`, `persona` (Twotter), `report` (GoMail template and
-  dual-path validation).
+  dual-path validation). The M4/M7 kit lives here too (all mission-blind, state
+  under a `SaveStorage` prefix the mission passes in): `intrusion` (strike
+  state, deadline job, repel targets), `incident-banner` (+ `.html` widget, a
+  `broadcast` variant for M4), `desktop-breach` (breach state, kernel files,
+  restore), `kernel-files` / `kernel-layout` (real files under `/lib/modules`,
+  `/etc`, `/boot`, `/var/log`, written by sweeping `name (n)` copies, bugs #57),
+  `recovery-widget` + `recovery-console.html` (the full-screen console, bugs
+  #58), `desktop-glitch`, `desktop-lock`, `session-guard` (bugs #60),
+  `css-inject`, `reward`, `mail`, plus the 2026-10-03 additions `log-file`
+  (syslog text to Log Viewer entries), `file-reads` (`cat`, `open` and
+  `Files.Open` in one listener, bugs #56) and `flatline-sequence` (the
+  println-only cut-off animation). `src/debug/` keeps its own copy of
+  `css-inject`: two copies of a nineteen-line helper is the cost of leaving a
+  proven lab untouched. Randomness in the kit goes through `Random.number`, not
+  `Math.random`, called inside a handler so mod context holds (bugs #19).
+  A device spec marks its users' `.log` files for conversion with
+  `DeviceSpec.userLogDay` (a story day); `components/topology` turns their
+  text into entries when it builds the network, so `content/` stays data only.
+  A controller converts any log it writes itself (`controller/m04/firewall-log.ts`).
+  `playFlatline` takes its two labels as arguments, so no component imports
+  `i18n/`.
 - **`middleware/`** — flat step gating, the thing that keeps a mission's
   mechanics in order even when it shows a single objective:
   `advanceStep(quest, gates, step, onAdvance)` sets a progress flag only when
@@ -188,8 +208,9 @@ src/
   controller/ core/ components/ middleware/ i18n/ context/
                — the mission pipeline layers, described above.
   commands/    — custom @RegisterCommand terminal commands with no native
-                 SDK equivalent (`attrcheck` for Mission 4's booby-trapped
-                 file, `open`).
+                 SDK equivalent (`attrcheck` for the M7 booby-trapped
+                 file, `open`, `flatline` (was `repel`), `sysdiag`,
+                 `sysrepair`).
   applications/ — custom desktop Apps: currently BACKTRACE, GHOSTWIRE's
                   case file (the @RegisterApp class, its HTML, and the
                   SaveStorage state + facts helpers the quests use). Flat,

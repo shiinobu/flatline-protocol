@@ -1791,18 +1791,23 @@ and contents and come from `docs/world-building/13-story-timeline.md`, never fro
 
 ## 44. `mods.reset`: exact scope
 
-**Status: RESOLVED (rules; engine read 2026-10-02).**
+**Status: RESOLVED (rules; engine read 2026-10-02, corrected 2026-10-03).**
 `mods.reset <modId>` unclaims the mod's quests (`Manager.Unclaim`: listeners released, the quest's tweets
 and messages removed; `OnComplete` and `OnAbandon` do not run), removes quest-bound mail and quest posts,
-clears the mod's `SaveStorage` and `Variables`, and resets and closes the mod's apps. It does not touch
-networks (#35), `SharedVariables`, mail created with `Mail.send` (#37) or the player's own filesystem
+clears the mod's `Storage` (the global one) and `Variables`, and resets and closes the mod's apps. It does
+**not** clear `SaveStorage` (the first version of this entry said it did, a wrong reading of the minified
+names), persisted `Scheduler` jobs or `Desktop` widgets, and it does not touch networks (#35),
+`SharedVariables`, mail created with `Mail.send` (#37) or the player's own filesystem
 (`docs/app-asar-reference.md` E-4).
 **Rules:** (1) a checkpoint on a file that can linger on the player's PC also requires a quest-data flag
 set in this playthrough; (2) cleanup written in `OnAbandon` never runs on a reset, so the rebuild path of
 `core/register` does the cleaning; (3) `SharedVariables` mirrors can be stale until `OnStart` or
 `OnObjectivesStart` rewrites them; (4) right after a reset the world is rebuilt by a `Scheduler` job
 (`core/rebuild.ts`, 250 ms), so a tool used inside that window can report a missing target: retry before
-concluding that a mission is broken.
+concluding that a mission is broken; (5) kit state in `SaveStorage`, persisted `Scheduler` jobs and
+widgets survive a reset, so a mission's start must cancel its own jobs and clear its own state (M4 found
+this live: a stale 1 s tick job kept republishing the incident banner, and a breach flag outlived the
+reset; `onStartM04` now calls `abandonStrike`, `cancelM04Strike`, `cancelM04BreachJobs` and `resetBreach`).
 
 ---
 
@@ -1864,9 +1869,10 @@ the extraction. `core/rebuild.ts` already uses `{ realMs: 250 }` successfully
 for the rebuild job, but nothing has yet confirmed that a job measured in
 **tens of seconds** of real time still fires while the player sits inside a
 Meterpreter session, that `cancelKind` reliably stops it, or that it survives
-(or is cleared by) `mods.reset` — which clears `SaveStorage` and `Variables`
-but is not documented to touch the scheduler (`docs/app-asar-reference.md`
-E-4).
+(or is cleared by) `mods.reset` — which clears `Storage` and `Variables` but,
+per the corrected E-4 (`docs/app-asar-reference.md`, 2026-10-03), leaves
+`SaveStorage` and persisted `Scheduler` jobs alone, so a reset does not cancel
+the job.
 
 **How to settle it:** `controller/m07/probes.ts` arms a bare 60-second job on
 every METASPLOIT session to the C2 and cancels it on the download, with no
@@ -2233,3 +2239,154 @@ the mission starts. M06 now returns the register stage from `stageForM06` once
 unconditionally in `onObjectivesStartM06`: the monotonic `setM06Stage` let a
 stale high stage survive `mods.reset`, which does not touch `SharedVariables`
 (#44).
+
+---
+
+## 56. `.log` files open in the Log Viewer, which reads an array of entries, and `Files.read` cannot see that array
+
+**Status: RESOLVED (engine read 2026-10-03; verified live by the owner the same day).**
+Found: M4 live test, 2026-10-03 (every `firewall (n).log` showed "No logs recorded").
+
+Double-clicking a file in the Files app maps its extension to an app: `.log` to the Log Viewer, `.txt` to the Text
+Editor, `ts/js/json/md/conf/ini/sh/py` and similar to Code++ (offset ~20380200). Every open raises the engine event
+`Files.Open` with `{ app, data }`, where `data` is the full file record and `app` is `LogViewer`, `TextEditor`,
+`Code++`, or `FileExplorer` for a folder. The mod bridge forwards it under the same name, and base-game quests
+listen to it next to `Terminal_Cat`.
+
+**The viewer reads `data` as an array of `{ id, date, type, description }`** (date in ms). A plain string shows "No
+logs recorded". Rows sort newest first, show `MMM D, HH:mm` (full date on hover) and need a unique `id`. Known
+`type` values are `ACCOUNT_CREATION`, `CONNECTION_ETABLISHED` (sic, badge "Connection", green), `CONNECTION_LOST`
+("Disconnected", amber) and `SHELL_OBTAIN` ("Shell Access", red); anything else is a grey "Event", and each distinct
+unknown type string becomes its own filter chip. The player can *Delete Selected* entries, and deleting a
+`SHELL_OBTAIN` entry claims the base-game achievement `ach_ghost_in_shell`, so a mission clue must not use that type.
+The date is formatted in the player's **local** time (the engine never calls `.utc()` or `.tz()`): build it with
+`new Date(year, month - 1, day, h, m, s)` so a story clock such as 03:14 reads 03:14 everywhere, not with `Date.UTC`.
+
+**Terminal `cat` handles only `txt` and `log`.** For an array it prints `[YYYY-MM-DD HH:mm:ss] TYPE description` per
+entry, for a string it prints the string, and it raises `Terminal_Cat`. `.conf` and other extensions print "Unable to
+read file."
+
+**The mod bridge passes `data` through unchanged** in `Files.create`, `createTree`, a device's `rootFiles` and a
+user's `files`, so an array works with a cast (the typings say `data?: string`). But `Files.read`, `getById`,
+`getByPath` and `getChildren` return `data` only when it is a string: mod code and widget iframes cannot read an
+array log back. Keep a text copy where it is needed (the recovery console reads `breach.incidentLog` from the breach
+save).
+
+**`CommandTools.exec(cmd)` runs the command non-interactively and prints a returned string**, so
+`tools.exec("cat <path>")` is how a mod command shows an array log.
+
+**Fix shipped.** `components/log-file.ts` (`parseLog` turns syslog-style text into entries, types from keywords,
+dates from the story day; `asLogData` is the one cast) and `components/file-reads.ts` (`onFileRead` listens to
+`Terminal.Cat`, the `open` command's event and `Files.Open`, and matches names ignoring a ` (n)` copy suffix). M4's
+three clue logs use them, so reading a clue by `cat`, `open` or the Log Viewer advances the same step
+(`docs/world-building/README.md` #45). M1-M3, M5 and M7 still listen only to `Terminal.Cat` and `open`.
+
+---
+
+## 57. `Files.write` adds a duplicate record instead of replacing the file, and repeated `createTree` leaves `name (n)` copies
+
+**Status: WORKAROUND (engine read 2026-10-03; the workaround has run through the owner's live M4 breaches).**
+Found: M4 breach rebuild, 2026-10-03.
+
+`Files.write(id, data)` is `Ur.Create({ ...record, data })`, which adds a second record with the **same id** and
+renames it `name (1)`. `Files.read`, `getById` and `getByPath` keep returning the first (old) record, so the write
+looks lost. The reducer's `remove` splices only the first match and ignores a missing id, and `Ur.Remove` on a missing
+id pops the alert "This file cannot be deleted". `Files.remove` is fire-and-forget and settles on a microtask in
+singleplayer; `createTree` adds synchronously with a new id per file. A name collision in `Create` renames by the
+pattern `^name(?: \((\d+)\))?$` among files of the same parent and extension. Repeating `createTree` for the same name
+therefore piles up `name (n)` copies: the owner's `~/logs` held 13 `firewall (n).log` files after a repeated test.
+
+**Workaround.** `components/kernel-files.ts` and `recovery-console.html` never call `Files.write`. They sweep every
+`name` / `name (n)` copy of the same extension (one `Files.remove` per record, polling by awaiting SDK calls until none
+remain, up to 6 rounds of 60 polls, no timers) and then `createTree`. `controller/m04/firewall-log.ts` does the same
+for `~/logs/firewall.log` at every rebuild.
+
+**Still open.** M07's ledger (`controller/m07/tracking.ts`) and the Meterpreter wipe in #49 call `Files.write`, so the
+duplicate behaviour may apply there; not checked live.
+
+---
+
+## 58. A full-screen desktop widget: geometry, keyboard focus and what a widget can reach
+
+**Status: RESOLVED for geometry, file writes and typing (spike and owner live runs, 2026-10-03); the ESC and F1
+forwarding was checked only in headless Chromium.**
+Found: the recovery console spike, 2026-10-03 (`rcvspike`, since removed from `src/debug/`).
+
+- `Files.createTree` writes real files on the player's PC at `/lib/modules/...`, `/etc/...`, `/boot/...` and
+  `/var/log/...` (before the probe the root held `etc lib logs home`); they are found by path and read back equal.
+- `window.HackhubSDK`, `Files` and `SaveStorage` exist inside a widget iframe (sandbox `allow-scripts
+  allow-same-origin`). Its `src` is a path relative to the mod root and is **not** passed through `localizeHtml`, so a
+  `{{t:KEY}}` would print literally: text reaches the widget through a `Variables` payload (the banner) or from the
+  breach save (the console).
+- The widget host sits in `_modWidget_` inside `_desktopBounds_` (z-index 10), inside `.desktop`, inside the fixed
+  `.computer`. With a 1920x1009 window the `.desktopBounds` rect is `0,0 1920x965` and the taskbar is `0,965 1920x44`,
+  so a widget sized to the window is 44 px too tall and leaves the taskbar uncovered. Size it from `.desktopBounds`,
+  and to cover the hidden taskbar strip force the host to `position: fixed` below the title bar with a z-index of
+  2147483000 (`components/recovery-widget.ts`).
+- Keyboard input works once the geometry is right. **ESC and F1 are swallowed** while the iframe holds focus: the
+  pause menu opens on a bubbling `document` keydown and the dev console on a `documentElement` keydown that skips
+  INPUT, TEXTAREA and SELECT targets. The pause shell (z 100001) and dev console overlay (z 1000002) sit above the
+  widget (z 10). The console forwards `Escape` and `F1` as a synthetic keydown on `parent.document.body`, and hands
+  focus back to its input when nothing holds it.
+- The glitch overlay cost nothing measurable: 199.5 fps baseline against 196.9 fps with six windows (one frame at 25
+  fps, none over 50 ms).
+
+---
+
+## 59. `UI.toast` has no duration option
+
+**Status: DOCUMENTED (engine read, 2026-10-02).**
+Found: M4 live-test review, F3.
+
+The bridge passes only `{ title, message, type }` to the engine's toast service, which fixes its own options, so a
+mod cannot make a toast last longer. Text that must stay readable lives in the mod's own widget (the incident banner
+holds a result for `RESOLVED_REAL_MS`) or in mail.
+
+---
+
+## 60. The SDK has no session-end event, and injected CSS outlives the desktop
+
+**Status: WORKAROUND (engine read; `session-guard` was checked in headless Chromium, the leave-to-menu path was not
+reported from the real game).**
+Found: M4 breach, 2026-10-03.
+
+The SDK exposes `Game.SessionStarted` only. Returning to the main menu removes the desktop from the DOM but not the
+styles a mod put in `document.head` through `Theme.injectCSS`: the engine clears them only when a mod is disabled. A
+locked desktop, a glitch overlay or a recovery widget would otherwise stay on top of the menu.
+
+`components/session-guard.ts` watches `.desktopBounds` with a `MutationObserver`, runs the registered leave handlers
+when the desktop leaves the DOM (lock CSS, glitch overlay and CSS, recovery host CSS, the banner and recovery
+widgets) and keeps the `SaveStorage` state, and `Game.SessionStarted` re-applies everything from that state. Visual
+functions do nothing while the desktop is not mounted.
+
+---
+
+## 61. A device behind a router: the router holds the port forward, and SSH goes to the device's own address
+
+**Status: DOCUMENTED (engine read, 2026-10-03; the route was confirmed live in the M4 hunt).**
+Found: M4 hunt, 2026-10-03 (the owner pointed `ssh` and `hydra :22` at the router and got "Connection to the remote
+server could not be established." and "Could not connect to the server.").
+
+`CreateSubnetNetwork` gives a router `lanIp` 192.168.1.1, numbers its children `192.168.1.n` in order (a `lanIp`
+already set on a spec is kept, and it only has to be unique inside one router tree), and **moves each child device's
+ports onto the router's port list** with `lanIp` set to the device's, deleting them from the device. The device keeps
+its own public `ip`, with `parent` set to the router.
+
+`Network.openPort(deviceIp, port)` (`vcr` and `A3t` in the engine) finds the device and its router and flips `active`
+on the router's entry where `external === port` and `lanIp` equals the device's. For port 22 it also sets `ssh: true`
+on the device, and it removes the `nmap` command fixture registered for that address. So a mission that opens a port
+from an `UnlockSpec` and also wants a scripted `nmap` table must apply that fixture after `openPort`; the unlock order
+in `core/unlock.ts` is fixtures, domains, then `openPorts`. This last point is a reading of the source and was not
+checked live.
+
+**Consequences.** The player connects to the **device's** address (`ssh -h svc@141.77.202.84`; `ssh` needs `-h`). The
+router's own address answers only its own ports (`nmap` shows 80), so `ssh` and `hydra` aimed at `router:22` fail. M4's
+`hydra` fixture is the router's web panel (`193.164.228.17:80`), whose credentials are the SSH login of the device
+behind it; the engine's own text "attacking service ssh on target 193.164.228.17:80" nudges players to the router. The
+incident log names both addresses ("from 141.77.202.84 ... nat gateway 193.164.228.17"); no extra hint exists yet
+(one sentence in the Custodian's mail was proposed and is not written). `register`'s keep path (an existing network) leaves the network alone and does not re-apply
+`UnlockSpec.openPorts`: a port opened earlier is still open because the network survives (#35).
+
+**Also found in the M4-M7 run (filtered from the scratch notes).** A Scheduler job once awaited `import(...)`
+inside its handler (`controller/m04/breach.ts`, first draft): an async boundary in the middle of a handler is exactly
+how mod context is lost (#19). It is a static import now and `grep -rn "await import" src` is empty.

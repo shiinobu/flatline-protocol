@@ -162,8 +162,8 @@ cleared, so the next load of the save schedules the breach again.
 2. Expect: quest data cleared, the mission re-claimed from scratch, and **no
    leftover banner and no glitch**. `onStartM04` clears the stored strike, the strike
    and breach jobs and the Custodian-mail job, because `mods.reset` itself clears
-   neither `SaveStorage` nor Scheduler jobs (`docs/app-asar-reference.md` E-4 still
-   says otherwise and is waiting for its correction).
+   neither `SaveStorage` nor Scheduler jobs (`docs/app-asar-reference.md` E-4,
+   corrected 2026-10-03).
 3. Watch for the worst case: a banner still on screen with no strike behind it,
    or a desktop still locked with nothing to repair. Either is a finding —
    report it with the log.
@@ -419,7 +419,7 @@ inside the view, like M3's.
 Replay in Simplified Chinese. Everything has zh text, including the attack mail
 (with the `{{stamp}}` filled in), the broadcast banner, the `flatline` refusals, the
 Custodian's mail and the console messages. The zh strings written for the 2026-10-03
-redesign are not yet approved by the owner. The log **files** stay in English syslog
+redesign were approved by the owner on 2026-10-03. The log **files** stay in English syslog
 form on purpose (`13` §A.5 fixes that format); their surrounding prose does not.
 
 ---

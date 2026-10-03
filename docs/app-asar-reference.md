@@ -105,11 +105,11 @@ async Run(){const n="Usage: dirhunter <domain>";let i=this.Args[0];if(!i)return 
 
 ## E-4 `mods.reset`: exactly what it clears
 
-Status: VERIFIED 2026-10-02.
+Status: VERIFIED 2026-10-02, **CORRECTED 2026-10-03**. The first version said the reset clears `SaveStorage`. It does not: the SDK object maps `Storage:jF`, `SaveStorage:tnt`, `Variables:GF` (offset 20457379) and `sDr` calls only `jF.clear()` and `GF.clear()`. The owner's M4 live test agreed (a banner timer and a breach flag outlived a reset).
 
 **Claim.**
 
-`mods.reset <modId>` unclaims every quest of the mod (`Manager.Unclaim`: listeners released, the quest's tweets and messages removed; it does not run `OnComplete` or `OnAbandon`), removes quest-bound mail and quest posts, clears the mod's `SaveStorage` and `Variables`, and resets and closes the mod's apps. The function never touches networks, `SharedVariables`, mail created with `Mail.send`, or the player's own filesystem.
+`mods.reset <modId>` unclaims every quest of the mod (`Manager.Unclaim`: listeners released, the quest's tweets and messages removed; it does not run `OnComplete` or `OnAbandon`), removes quest-bound mail and quest posts, clears the mod's `Storage` (the global one, shared by every save) and `Variables`, and resets and closes the mod's apps. The function never touches `SaveStorage`, persisted `Scheduler` jobs, `Desktop` widgets, networks, `SharedVariables`, mail created with `Mail.send`, or the player's own filesystem. `quest.Data` does reset, because the quest is unclaimed.
 
 **Excerpts.** Needles: `name:"mods.reset",description:`, `async function sDr(t){`, `y.Unclaim=D=>{`.
 
@@ -127,6 +127,7 @@ y.Unclaim=D=>{(0,y.ReleaseListeners)(D),Bd.RemoveTweetsAssociatedToQuest(D),rS.M
 - A checkpoint that depends only on a file existing on the player's own PC can be satisfied by a leftover copy after a reset. Gate it on a quest-data flag that the real upstream action sets in the current playthrough.
 - Cleanup written in `OnAbandon` never runs on a reset; the rebuild path of `core/register` does the cleaning (`docs/bugs.md` #35).
 - `SharedVariables` mirrors can be stale after a reset until `OnStart` or `OnObjectivesStart` rewrites them.
+- Everything a mission keeps in `SaveStorage` (kit state such as `flatline.m04.activeStrike`, `flatline.incidentBanner`, the desktop-breach flag, BACKTRACE state), every persisted `Scheduler` job and every `Desktop.addWidget` widget outlives a reset, while `quest.Data` does not. A mission's start (`onStartM0X`) must therefore cancel its own jobs and clear its own kit state instead of assuming they are gone. M4 does it with `abandonStrike`, `cancelM04Strike`, `cancelM04BreachJobs` and `resetBreach`.
 - `Mail.send` mail survives a reset (`docs/bugs.md` #37); networks survive too (`docs/bugs.md` #35).
 - After a reset the mod's world is rebuilt by a `Scheduler` job (`src/core/rebuild.ts`, 250 ms real-time delay, sequential destroy then build). A tool used inside that short window can report a missing target; retry before concluding that a mission is broken (`docs/bugs.md` #35).
 

@@ -27,6 +27,10 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-03
 
+- **[refactor] Two layering slips of the M4 work fixed.** `content/m04/server-files.ts` no longer imports
+  `components/log-file`: a device spec now carries `userLogDay` and `components/topology` converts its users'
+  `.log` files when it builds the network, while the controller converts `firewall.log`. `playFlatline` takes
+  its labels as arguments instead of importing `i18n/global/kit`. Behaviour is unchanged; `tsc` clean.
 - **[milestone] M4 "Burn Notice" reached FINAL LOCK.** Declared by the owner after the live run of the
   whole hunt. Removed with it: the 20 `trace()` calls in `controller/m04`, the dev skip of the breach
   (`M04_DEV_SKIP_BREACH` and its job, plus the unused `seedIncidentLog`), the finished recovery spike
@@ -34,6 +38,13 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   dev-focus plumbing in `spec.ts` and `index.ts` stays, as in M1-M3, and the shared kit keeps its
   traces for M07. `tsc` clean, zero comments. See `docs/world-building/README.md` #47 and
   `docs/rules.md` §11.7.
+- **[docs] M4 lock pass.** The M4 sections of `docs/scratch.md` were filtered into `docs/bugs.md` #56-#61
+  (Log Viewer and `Files.Open`, the `Files.write` duplicate, the full-screen widget, `UI.toast`, no
+  session-end event, ports behind a router) and `docs/story.md` ("Mission 4 — Burn Notice"), and the file's
+  scope note was updated. `docs/app-asar-reference.md` E-4, `docs/bugs.md` #44 and #46 and the
+  implementation prompt now say `mods.reset` clears `Storage` and `Variables`, **not** `SaveStorage`,
+  `Scheduler` jobs or widgets. `docs/architecture.md` lists the kit components and two known layering
+  deviations. The owner approved the zh strings written for the redesign.
 - **[mechanic] The cut-off command is now `flatline` and plays an animation.** Renamed from `repel`
   (`commands/flatline.ts`, internal ids kept). A successful cut prints a locking line, five `beacon`
   pulse lines that shrink and go red then flat, and the "severed" line, about 3.8 s, with `println` and
@@ -59,6 +70,20 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 - **[docs] `docs/m04-playtest.md` rewritten** for the new attack, the recovery console puzzle and the
   kernel files; the parts that described `~/compositor`, `incident.txt`, the expiry penalty and
   `rivallab breach` are gone. README #42 wording fixed (Tab shows a fixed hint slot).
+- **[mechanic] The M4 desktop breach became a recovery console on real kernel files.** A full-screen widget
+  (`components/recovery-console.html`) with its own shell and puzzle replaced the locked Terminal; the
+  compositor is the kernel module `flcomp` with real files under `/lib/modules`, `/etc`, `/boot` and
+  `/var/log`; the strike banner and the desktop glitch got a redesign; `session-guard` removes every mod
+  visual when the desktop leaves the DOM and re-applies it from state. See `docs/world-building/README.md`
+  #42 and #43, and `docs/bugs.md` #58 and #60.
+- **[bug] `Files.write` duplicates the record and `createTree` leaves `name (n)` copies.** The kit never calls
+  `Files.write` and sweeps old copies before writing (`components/kernel-files.ts`); see `docs/bugs.md` #57.
+  The widget iframe also swallowed ESC and F1, so the console forwards both to the parent document
+  (`docs/bugs.md` #58).
+- **[bug] M4 live-test fixes (2026-10-02 report).** `onStartM04` clears the stored strike, the strike and breach
+  jobs and any breach left by `mods.reset`; the repeated strike mail replaces itself (`sendReplacingMail`); a
+  money loss shows a toast (`UI.toast` has no duration option, `docs/bugs.md` #59); `docs/bugs.md` #44 and E-4
+  were corrected in the lock pass above.
 
 ## 2026-10-02
 
