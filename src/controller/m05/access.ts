@@ -1,5 +1,5 @@
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
-import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { M05_GATES } from "../../content/m05/gates.js";
 import {
     M05_BEDSIDE_IP,
@@ -11,6 +11,8 @@ import {
     M05_LOG_BEDSIDE,
     M05_LOG_NOTES,
     M05_LOG_STATEMENT,
+    M05_LOG_MEMO,
+    M05_LOG_TICKET,
 } from "../../content/m05/quest-logs.js";
 import {
     M05_ACKNOWLEDGEMENT_FILE_NAME,
@@ -26,13 +28,7 @@ import { advanceStep } from "../../middleware/gate.js";
 import type { M05Quest } from "./types.js";
 import { M05_WORLD } from "./world.js";
 
-interface ReadFile {
-    readonly name: string;
-    readonly extension?: string;
-}
-
-const isTxt = (file: ReadFile, name: string): boolean =>
-    file.name === name && file.extension === M05_TXT;
+const isTxt = (file: ReadFile, name: string): boolean => isNamedFile(file, name, M05_TXT);
 
 const bindFirewall = (quest: M05Quest): void => {
     quest.Events.on("PFSense.Login", (data) => {
@@ -51,10 +47,9 @@ const bindSessions = (quest: M05Quest): void => {
     quest.Events.on("RemoteConnection.Established", (data) => {
         if (data.t === "SSH" && data.targetIp === M05_COLD_CHART_IP) {
             trace("M05", "probe:archive-accessed");
-            advanceStep(quest, M05_GATES, "archiveAccessed", () => {
-                traceBacktraceFinding("m5", "archive");
-                appendBacktraceLogs("m5", M05_LOG_ARCHIVE());
-            });
+            advanceStep(quest, M05_GATES, "archiveAccessed", () =>
+                traceBacktraceFinding("m5", "archive", M05_LOG_ARCHIVE()),
+            );
             return;
         }
 
@@ -67,20 +62,23 @@ const bindSessions = (quest: M05Quest): void => {
 
 const readDocument = (quest: M05Quest, file: ReadFile): void => {
     if (isTxt(file, M05_ACKNOWLEDGEMENT_FILE_NAME)) {
-        advanceStep(quest, M05_GATES, "statementRead", () => {
-            traceBacktraceFinding("m5", "statement");
-            appendBacktraceLogs("m5", M05_LOG_STATEMENT());
-        });
+        advanceStep(quest, M05_GATES, "statementRead", () =>
+            traceBacktraceFinding("m5", "statement", M05_LOG_STATEMENT()),
+        );
         return;
     }
 
     if (isTxt(file, M05_DECISION_MEMO_FILE_NAME)) {
-        advanceStep(quest, M05_GATES, "memoRead", () => traceBacktraceFinding("m5", "decisionMemo"));
+        advanceStep(quest, M05_GATES, "memoRead", () =>
+            traceBacktraceFinding("m5", "decisionMemo", M05_LOG_MEMO()),
+        );
         return;
     }
 
     if (isTxt(file, M05_USB_TICKET_FILE_NAME)) {
-        advanceStep(quest, M05_GATES, "ticketRead", () => traceBacktraceFinding("m5", "usbTicket"));
+        advanceStep(quest, M05_GATES, "ticketRead", () =>
+            traceBacktraceFinding("m5", "usbTicket", M05_LOG_TICKET()),
+        );
         return;
     }
 
@@ -95,8 +93,7 @@ const readDocument = (quest: M05Quest, file: ReadFile): void => {
 };
 
 const bindDocuments = (quest: M05Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => readDocument(quest, data));
-    quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => readDocument(quest, data));
+    onFileRead(quest.Events, (file) => readDocument(quest, file));
 };
 
 export const bindM05Access = (quest: M05Quest): void => {

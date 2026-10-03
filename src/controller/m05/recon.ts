@@ -1,6 +1,6 @@
 import { Mail } from "@hotbunny/hackhub-content-sdk";
 
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M01_PROJECT_OPENED_EVENT, M01_VAULT_PROJECT_FOLDER } from "../../content/global/vault-hook.js";
 import { M05_GATES } from "../../content/m05/gates.js";
 import {
@@ -16,7 +16,7 @@ import {
     M05_EDGE_DOMAIN,
     M05_EDGE_IP,
 } from "../../content/m05/network.js";
-import { M05_LOG_DISMISSED } from "../../content/m05/quest-logs.js";
+import { M05_LOG_DISMISSED, M05_LOG_GRETA } from "../../content/m05/quest-logs.js";
 import { M05_GRETA_LYNX_INPUTS } from "../../content/m05/twotter.js";
 import { setM05ArchiveOpen, setM05LookupOpen } from "../../context/m05/progress.js";
 import { unlock } from "../../core/index.js";
@@ -50,8 +50,7 @@ const bindVault = (quest: M05Quest): void => {
 
 const compareArchive = (quest: M05Quest): void => {
     advanceStep(quest, M05_GATES, "staffArchiveCompared", () => {
-        traceBacktraceFinding("m5", "dismissed");
-        appendBacktraceLogs("m5", M05_LOG_DISMISSED());
+        traceBacktraceFinding("m5", "dismissed", M05_LOG_DISMISSED());
         unlock(M05_WORLD, "edgeLead");
     });
 };
@@ -75,7 +74,9 @@ const bindArchive = (quest: M05Quest): void => {
 };
 
 const markGreta = (quest: M05Quest): void => {
-    advanceStep(quest, M05_GATES, "gretaProfiled", () => traceBacktraceFinding("m5", "greta"));
+    advanceStep(quest, M05_GATES, "gretaProfiled", () =>
+        traceBacktraceFinding("m5", "greta", M05_LOG_GRETA()),
+    );
 };
 
 const isGretaLookup = (subject: string): boolean => M05_GRETA_LYNX_INPUTS.includes(subject);

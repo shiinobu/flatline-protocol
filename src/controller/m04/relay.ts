@@ -1,4 +1,4 @@
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { M04_GATES } from "../../content/m04/gates.js";
 import {
@@ -8,7 +8,7 @@ import {
     M04_R1_PANEL_USERNAME,
     M04_STATIC_HOP_IP,
 } from "../../content/m04/network.js";
-import { M04_LOG_ORIGIN } from "../../content/m04/quest-logs.js";
+import { M04_LOG_ORIGIN, M04_LOG_RELAY1, M04_LOG_RELAY2, M04_LOG_CONTROL } from "../../content/m04/quest-logs.js";
 import {
     M04_AUTH_LOG_FILE_EXTENSION,
     M04_AUTH_LOG_FILE_NAME,
@@ -32,7 +32,7 @@ const markRelayLog = (quest: M04Quest): void => {
 
 const markControl = (quest: M04Quest): void => {
     advanceStep(quest, M04_GATES, "controlFound", () => {
-        traceBacktraceFinding("m4", "control");
+        traceBacktraceFinding("m4", "control", M04_LOG_CONTROL());
         unlock(M04_WORLD, "controlHost");
     });
 };
@@ -72,12 +72,16 @@ const bindSessions = (quest: M04Quest): void => {
         if (data.t !== "SSH") return;
 
         if (data.targetIp === M04_STATIC_HOP_IP) {
-            advanceStep(quest, M04_GATES, "relay1Accessed", () => traceBacktraceFinding("m4", "relay1"));
+            advanceStep(quest, M04_GATES, "relay1Accessed", () =>
+                traceBacktraceFinding("m4", "relay1", M04_LOG_RELAY1()),
+            );
             return;
         }
 
         if (data.targetIp === M04_QUIET_MIRROR_IP) {
-            advanceStep(quest, M04_GATES, "relay2Accessed", () => traceBacktraceFinding("m4", "relay2"));
+            advanceStep(quest, M04_GATES, "relay2Accessed", () =>
+                traceBacktraceFinding("m4", "relay2", M04_LOG_RELAY2()),
+            );
         }
     });
 };
@@ -91,10 +95,7 @@ const bindFiles = (quest: M04Quest): void => {
 
 const bindOrigin = (quest: M04Quest): void => {
     const linked = (): void => {
-        advanceStep(quest, M04_GATES, "originLinked", () => {
-            traceBacktraceFinding("m4", "origin");
-            appendBacktraceLogs("m4", M04_LOG_ORIGIN());
-        });
+        advanceStep(quest, M04_GATES, "originLinked", () => traceBacktraceFinding("m4", "origin", M04_LOG_ORIGIN()));
     };
 
     quest.Events.on("Terminal.Whois", (data) => {

@@ -228,6 +228,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .detail-card::after { content: none; }
 .detail-card .doc-more { padding-top: 10px; padding-bottom: 9px; }
 .log-empty { margin: 0; font: italic 400 13.5px var(--mono); color: var(--soft); }
+.log.skipped { opacity: .62; border-left-style: dashed; }
+.log-divider { margin: 22px 0 12px; font: 400 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+.skip-flag, .moment-flag { margin-left: 12px; font: 400 11px var(--mono); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+.skip-flag::before, .moment-flag::before { content: "[ "; }
+.skip-flag::after, .moment-flag::after { content: " ]"; }
+.traced-row.skipped-row { grid-template-columns: 150px minmax(0, 1fr) auto; }
+.traced-row.skipped-row strong { color: var(--soft); }
+.traced-row.skipped-row .skip-flag { margin-left: 0; }
+.traced.skipped-list { margin-top: 0; padding-top: 0; border-top: 0; }
 
 .report-foot { position: relative; z-index: 2; flex: none; height: var(--dock); display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 42px; border-top: 1px solid var(--edge); background: rgba(10, 3, 5, .9); }
 .report-foot p { margin: 0; font: 400 12.5px var(--mono); color: var(--soft); }
@@ -555,7 +564,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
           <p class="report-meta">Why this case exists</p>
         </header>
         <div class="prologue">
-          <p>Eight months ago my sibling went into surgery. Should have been routine. Mid-procedure, the hospital's systems locked up — ransomware, dropped clean and fast. Whoever did it knew exactly what they were doing. The hospital paid to get the systems back online. My sibling never came out of that operating room. The official investigation ran for three weeks, then just stopped. Nobody explained why. I stopped waiting for an explanation and started tracing the money instead. I'm not police. I'm not press. I don't have a client, a badge, or a deadline. I have one name — BLACKLEDGER — and I'm not stopping until I have every name behind it.</p>
+          <p data-i18n="BACKTRACE.STORY">Eight months ago my sibling went into surgery. Should have been routine. Mid-procedure, the hospital's systems locked up — ransomware, dropped clean and fast. Whoever did it knew exactly what they were doing. The hospital paid to get the systems back online. My sibling never came out of that operating room. The official investigation ran for three weeks, then just stopped. Nobody explained why. I stopped waiting for an explanation and started tracing the money instead. I'm not police. I'm not press. I don't have a client, a badge, or a deadline. I have one name — BLACKLEDGER — and I'm not stopping until I have every name behind it.</p>
           <div class="prologue-sign">— GHOSTWIRE</div>
         </div>
       </article></div>
@@ -569,15 +578,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">A preliminary trace isolated a broker identity embedded in the transaction trail. The recovered record also exposed a buyer identifier, establishing the first usable connection inside the case.</p>
+            <p class="summary" data-i18n="BACKTRACE.M1.SUMMARY">A preliminary trace isolated a broker identity embedded in the transaction trail. The recovered record also exposed a buyer identifier, establishing the first usable connection inside the case.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>Broker account identified as <span class="code" data-fact="m1.broker">—</span>, selling access under listing <span class="code" data-fact="m1.listing">—</span>.</li>
-        <li>Buyer identifier <span class="code" data-fact="m1.buyer">—</span> is directly linked to the broker trail: the same alias sits on every row of the broker's backend ledger.</li>
-        <li>The broker keeps a private archive at <span class="code" data-fact="m1.vault">—</span>, with project folders reaching back to 2020.</li>
-        <li>Case reference confirmed: <span class="code" data-fact="m1.caseId">—</span>, filed under project <span class="code" data-fact="m1.project">—</span> and signed BLACKLEDGER.</li>
-        <li>This is not an isolated listing: the same buyer alias shows up across multiple past incidents on record.</li>
+        <li data-i18n="BACKTRACE.M1.FINDING.1">Broker account identified as <span class="code" data-fact="m1.broker">—</span>, selling access under listing <span class="code" data-fact="m1.listing">—</span>.</li>
+        <li data-i18n="BACKTRACE.M1.FINDING.2">Buyer identifier <span class="code" data-fact="m1.buyer">—</span> is directly linked to the broker trail: the same alias sits on every row of the broker's backend ledger.</li>
+        <li data-i18n="BACKTRACE.M1.FINDING.3">The broker keeps a private archive at <span class="code" data-fact="m1.vault">—</span>, with project folders reaching back to 2020.</li>
+        <li data-i18n="BACKTRACE.M1.FINDING.4">Case reference confirmed: <span class="code" data-fact="m1.caseId">—</span>, filed under project <span class="code" data-fact="m1.project">—</span> and signed BLACKLEDGER.</li>
+        <li data-i18n="BACKTRACE.M1.FINDING.5">This is not an isolated listing: the same buyer alias shows up across multiple past incidents on record.</li>
               </ul>
             </section>
           </div>
@@ -593,6 +602,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m1"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m1">
+              <h2>Skipped</h2>
+              <div data-skipped="m1"></div>
             </section>
           </aside>
         </div>
@@ -612,19 +625,19 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">A deeper trace tied the buyer identifier to a shell-company layer, extending the investigation from an account-level clue into an organizational relationship.</p>
+            <p class="summary" data-i18n="BACKTRACE.M2.SUMMARY">A deeper trace tied the buyer identifier to a shell-company layer, extending the investigation from an account-level clue into an organizational relationship.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li><span class="code" data-fact="m2.buyer,m1.buyer">—</span> is associated with <span data-fact="m2.shellCompany">—</span>, named beneficiary of the ransom payout batch.</li>
-        <li>The company appears to function as a shell layer within the transaction chain.</li>
-        <li>Ties directly back to case <span class="code" data-fact="m2.caseId">—</span> — a second-level relationship now exposed.</li>
-        <li>Toolkit developer traced to <span class="code" data-fact="m2.developer">—</span>.</li>
-        <li>The case matches a payout of <span class="code" data-fact="m2.ransom">—</span>, settled <span class="code" data-fact="m2.settled">—</span>; the pattern is not isolated (<span class="code" data-fact="m2.victims">—</span>).</li>
-        <li>The panel books its own share of every close: <span class="code" data-fact="m2.panelShare">—</span> on batch <span class="code" data-fact="m2.batchRef">—</span>.</li>
-        <li>The deploy log ties the developer to the attack: <span class="code" data-fact="m2.deployLog">—</span> was pushed the day the hospital's systems locked, and the payout paperwork went to his home workstation.</li>
-        <li>The sync script leaks the home gateway <span class="code" data-fact="m2.homeLead">—</span> and admits the NAS behind it is still on its factory login.</li>
-        <li>The home firewall <span class="code" data-fact="m2.firewall">—</span> opens with the devbox admin password — one operator, one password — and the workstation <span class="code" data-fact="m2.workstation">—</span> behind it is where the payout paperwork lands.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.1"><span class="code" data-fact="m2.buyer,m1.buyer">—</span> is associated with <span data-fact="m2.shellCompany">—</span>, named beneficiary of the ransom payout batch.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.2">The company appears to function as a shell layer within the transaction chain.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.3">Ties directly back to case <span class="code" data-fact="m2.caseId">—</span> — a second-level relationship now exposed.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.4">Toolkit developer traced to <span class="code" data-fact="m2.developer">—</span>.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.5">The case matches a payout of <span class="code" data-fact="m2.ransom">—</span>, settled <span class="code" data-fact="m2.settled">—</span>; the pattern is not isolated (<span class="code" data-fact="m2.victims">—</span>).</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.6">The panel books its own share of every close: <span class="code" data-fact="m2.panelShare">—</span> on batch <span class="code" data-fact="m2.batchRef">—</span>.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.7">The deploy log ties the developer to the attack: <span class="code" data-fact="m2.deployLog">—</span> was pushed the day the hospital's systems locked, and the payout paperwork went to his home workstation.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.8">The sync script leaks the home gateway <span class="code" data-fact="m2.homeLead">—</span> and admits the NAS behind it is still on its factory login.</li>
+        <li data-i18n="BACKTRACE.M2.FINDING.9">The home firewall <span class="code" data-fact="m2.firewall">—</span> opens with the devbox admin password — one operator, one password — and the workstation <span class="code" data-fact="m2.workstation">—</span> behind it is where the payout paperwork lands.</li>
               </ul>
             </section>
           </div>
@@ -640,6 +653,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m2"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m2">
+              <h2>Skipped</h2>
+              <div data-skipped="m2"></div>
             </section>
           </aside>
         </div>
@@ -659,18 +676,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">Following the ransom through the shell company's own ledger showed where it goes: a fixed split, paid out the same morning, ending at a nominee name — while a tunnel off the finance network points at the address behind it.</p>
+            <p class="summary" data-i18n="BACKTRACE.M3.SUMMARY">Following the ransom through the shell company's own ledger showed where it goes: a fixed split, paid out the same morning, ending at a nominee name — while a tunnel off the finance network points at the address behind it.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>The ransom of <span class="code" data-fact="m3.gross">—</span> (batch <span class="code" data-fact="m3.batchRef">—</span>, case <span class="code" data-fact="m3.caseId">—</span>) reached <span data-fact="m3.shellCompany">—</span> on <span class="code" data-fact="m3.settled">—</span> and left the same morning.</li>
-        <li>It was split on a fixed schedule: <span class="code" data-fact="m3.toParent">—</span> to <span data-fact="m3.parentEntity">—</span>, <span class="code" data-fact="m3.toPanel">—</span> to the toolkit panel as consulting fees, <span class="code" data-fact="m3.toBroker">—</span> to the access broker as brokerage, <span class="code" data-fact="m3.retained">—</span> kept by the shell.</li>
-        <li>The identical split repeats on all <span class="code" data-fact="m3.batchCount">—</span> batches on the ledger: <span class="code" data-fact="m3.allBatches">—</span> in, <span class="code" data-fact="m3.allToParent">—</span> to <span data-fact="m3.parentEntity">—</span>.</li>
-        <li>"Nominees" is a name, not an operating company: the money stops at <span data-fact="m3.parentEntity">—</span>.</li>
-        <li>The finance gateway <span class="code" data-fact="m3.gateway">—</span> builds a tunnel to <span class="code" data-fact="m3.architectVpn">—</span> after every payout batch — not a customer, not a vendor.</li>
-        <li>Its site-to-site config peers to <span class="code" data-fact="m3.peerGateway">—</span>, labelled <span class="code" data-fact="m3.vpnPeer">—</span>, owner noted as <span data-fact="m3.peerOwner">—</span>: the money's destination and the tunnel's far end are the same hand.</li>
-        <li>The way in was human: the staff portal <span class="code" data-fact="m3.portal">—</span> fell to a password recipe posted in public, and the finance analyst <span class="code" data-fact="m3.accomplice">—</span> tied the numbers anyway.</li>
-        <li>Unresolved: someone real still owns the nominee, off every filing. The address at the far end of the tunnel is where they answer.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.1">The ransom of <span class="code" data-fact="m3.gross">—</span> (batch <span class="code" data-fact="m3.batchRef">—</span>, case <span class="code" data-fact="m3.caseId">—</span>) reached <span data-fact="m3.shellCompany">—</span> on <span class="code" data-fact="m3.settled">—</span> and left the same morning.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.2">It was split on a fixed schedule: <span class="code" data-fact="m3.toParent">—</span> to <span data-fact="m3.parentEntity">—</span>, <span class="code" data-fact="m3.toPanel">—</span> to the toolkit panel as consulting fees, <span class="code" data-fact="m3.toBroker">—</span> to the access broker as brokerage, <span class="code" data-fact="m3.retained">—</span> kept by the shell.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.3">The identical split repeats on all <span class="code" data-fact="m3.batchCount">—</span> batches on the ledger: <span class="code" data-fact="m3.allBatches">—</span> in, <span class="code" data-fact="m3.allToParent">—</span> to <span data-fact="m3.parentEntity">—</span>.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.4">"Nominees" is a name, not an operating company: the money stops at <span data-fact="m3.parentEntity">—</span>.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.5">The finance gateway <span class="code" data-fact="m3.gateway">—</span> builds a tunnel to <span class="code" data-fact="m3.architectVpn">—</span> after every payout batch — not a customer, not a vendor.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.6">Its site-to-site config peers to <span class="code" data-fact="m3.peerGateway">—</span>, labelled <span class="code" data-fact="m3.vpnPeer">—</span>, owner noted as <span data-fact="m3.peerOwner">—</span>: the money's destination and the tunnel's far end are the same hand.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.7">The way in was human: the staff portal <span class="code" data-fact="m3.portal">—</span> fell to a password recipe posted in public, and the finance analyst <span class="code" data-fact="m3.accomplice">—</span> tied the numbers anyway.</li>
+        <li data-i18n="BACKTRACE.M3.FINDING.8">Unresolved: someone real still owns the nominee, off every filing. The address at the far end of the tunnel is where they answer.</li>
               </ul>
             </section>
           </div>
@@ -686,6 +703,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m3"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m3">
+              <h2>Skipped</h2>
+              <div data-skipped="m3"></div>
             </section>
           </aside>
         </div>
@@ -705,17 +726,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">A forwarding rule left open on the finance network was audited, and whoever read that audit came back down it. The operator tagged <span class="code" data-fact="m4.hunter">—</span> worked this machine directly: first a session on the firewall, then the desktop itself, taken rather than emptied. The session they came in on led back through two relays to a host that schedules the work, registered to the same name as the endpoint the ransom money already answered to.</p>
+            <p class="summary" data-i18n="BACKTRACE.M4.SUMMARY">A forwarding rule left open on the finance network was audited, and whoever read that audit came back down it. The operator tagged <span class="code" data-fact="m4.hunter">—</span> worked this machine directly: first a session on the firewall, then the desktop itself, taken rather than emptied. The session they came in on led back through two relays to a host that schedules the work, registered to the same name as the endpoint the ransom money already answered to.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>The firewall log named the one source that behaved like an operator rather than a scanner: <span class="code" data-fact="m4.probe">—</span>, accepted on 443, holding uid 0 and beaconing on a fixed interval.</li>
-        <li>They could not be cut off, and they took the desktop instead of the balance: <span data-fact="m4.breach">—</span>.</li>
-        <li>The incident log traced the session to relay 1, <span class="code" data-fact="m4.relay1">—</span>, reached through its own router panel.</li>
-        <li>Relay 1's outbound log showed five sessions, of which exactly one matched the minute of the breach: relay 2, <span class="code" data-fact="m4.relay2">—</span>. The others, including a decommissioned box, did not.</li>
-        <li>Relay 2 held the operator profile naming the scheduling host <span class="code" data-fact="m4.control">—</span> and the tag <span class="code" data-fact="m4.hunter">—</span>.</li>
-        <li>That host is registered to <span data-fact="m4.origin">—</span> — the same registrant as <span class="code" data-fact="m4.architectVpn">—</span>, the endpoint the payouts already pointed at.</li>
-        <li>The same profile carried a short target list: one finance analyst still being watched, one hospital job marked closed, and one line reading only "next: prepping".</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.1">The firewall log named the one source that behaved like an operator rather than a scanner: <span class="code" data-fact="m4.probe">—</span>, accepted on 443, holding uid 0 and beaconing on a fixed interval.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.2">They could not be cut off, and they took the desktop instead of the balance: <span data-fact="m4.breach">—</span>.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.3">The incident log traced the session to relay 1, <span class="code" data-fact="m4.relay1">—</span>, reached through its own router panel.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.4">Relay 1's outbound log showed five sessions, of which exactly one matched the minute of the breach: relay 2, <span class="code" data-fact="m4.relay2">—</span>. The others, including a decommissioned box, did not.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.5">Relay 2 held the operator profile naming the scheduling host <span class="code" data-fact="m4.control">—</span> and the tag <span class="code" data-fact="m4.hunter">—</span>.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.6">That host is registered to <span data-fact="m4.origin">—</span> — the same registrant as <span class="code" data-fact="m4.architectVpn">—</span>, the endpoint the payouts already pointed at.</li>
+        <li data-i18n="BACKTRACE.M4.FINDING.7">The same profile carried a short target list: one finance analyst still being watched, one hospital job marked closed, and one line reading only "next: prepping".</li>
               </ul>
             </section>
           </div>
@@ -731,6 +752,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m4"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m4">
+              <h2>Skipped</h2>
+              <div data-skipped="m4"></div>
             </section>
           </aside>
         </div>
@@ -750,18 +775,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">The hospital that paid out under <span class="code" data-fact="m5.caseId">—</span> closed its own incident by naming a door and a person to blame for it. The archive the hospital kept of that decision says something else: the account used was <span data-fact="m5.greta">—</span>, whose work address had been sitting in a circulating dump with the password still in service, and the media the final finding rests on was connected to a machine that was never hers. The decision to pay was taken <span class="code" data-fact="m5.gap">—</span> after the note arrived — before any of it could have been established.</p>
+            <p class="summary" data-i18n="BACKTRACE.M5.SUMMARY">The hospital that paid out under <span class="code" data-fact="m5.caseId">—</span> closed its own incident by naming a door and a person to blame for it. The archive the hospital kept of that decision says something else: the account used was <span data-fact="m5.greta">—</span>, whose work address had been sitting in a circulating dump with the password still in service, and the media the final finding rests on was connected to a machine that was never hers. The decision to pay was taken <span class="code" data-fact="m5.gap">—</span> after the note arrived — before any of it could have been established.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>Two dated captures of the same public team page do not agree: <span data-fact="m5.dismissed">—</span>. Two names are gone from the later one: a contractor whose engagement ended on its own stated date, and one that did not end on anything.</li>
-        <li>The person removed is <span data-fact="m5.greta">—</span> — the one role on that page with standing access to the clinical archive.</li>
-        <li>Her work address appears in an indexed dump of a supplier portal, stored as a weak hash, and the password was never rotated afterwards. Nothing about the entry required an intrusion to find.</li>
-        <li>The clinical archive confirms the use: <span data-fact="m5.archive">—</span>. The record shows an account in good standing, not a forced door.</li>
-        <li>She was asked to sign for a conclusion she disputes in writing: <span data-fact="m5.statement">—</span>. The draft that preceded it named a different cause, and that draft was not the version filed.</li>
-        <li>The decision was already made: <span data-fact="m5.decisionMemo">—</span>, settled through <span data-fact="m5.negotiator">—</span> and approved by <span data-fact="m5.decider">—</span>. The gap between the note and the payment is <span class="code" data-fact="m5.gap">—</span>.</li>
-        <li>The cause the filed finding rests on does not sit on her: <span data-fact="m5.usbTicket">—</span>, on an asset the register assigns to the service desk, three days before the incident window opens.</li>
-        <li>Classified the way it was, the loss is payable: <span data-fact="m5.insurer">—</span> settles on negligence, and a named employee is cheaper than a finding against the hospital.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.1">Two dated captures of the same public team page do not agree: <span data-fact="m5.dismissed">—</span>. Two names are gone from the later one: a contractor whose engagement ended on its own stated date, and one that did not end on anything.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.2">The person removed is <span data-fact="m5.greta">—</span> — the one role on that page with standing access to the clinical archive.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.3">Her work address appears in an indexed dump of a supplier portal, stored as a weak hash, and the password was never rotated afterwards. Nothing about the entry required an intrusion to find.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.4">The clinical archive confirms the use: <span data-fact="m5.archive">—</span>. The record shows an account in good standing, not a forced door.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.5">She was asked to sign for a conclusion she disputes in writing: <span data-fact="m5.statement">—</span>. The draft that preceded it named a different cause, and that draft was not the version filed.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.6">The decision was already made: <span data-fact="m5.decisionMemo">—</span>, settled through <span data-fact="m5.negotiator">—</span> and approved by <span data-fact="m5.decider">—</span>. The gap between the note and the payment is <span class="code" data-fact="m5.gap">—</span>.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.7">The cause the filed finding rests on does not sit on her: <span data-fact="m5.usbTicket">—</span>, on an asset the register assigns to the service desk, three days before the incident window opens.</li>
+        <li data-i18n="BACKTRACE.M5.FINDING.8">Classified the way it was, the loss is payable: <span data-fact="m5.insurer">—</span> settles on negligence, and a named employee is cheaper than a finding against the hospital.</li>
               </ul>
             </section>
           </div>
@@ -777,6 +802,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m5"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m5">
+              <h2>Skipped</h2>
+              <div data-skipped="m5"></div>
             </section>
           </aside>
         </div>
@@ -796,18 +825,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">The company the ransom money answered to is a filing cabinet with a signature in it. The public register keeps every version it was ever given, and the versions disagree: the owner named in one filing had already been wound up when the next was made, and the company that replaced it was incorporated two days later. Follow the shareholding up and it ends at an insurer. Follow the address sideways and it ends at the same registrant as the tunnel the payouts walked down. One man sits on both: <span data-fact="m6.architect">—</span>.</p>
+            <p class="summary" data-i18n="BACKTRACE.M6.SUMMARY">The company the ransom money answered to is a filing cabinet with a signature in it. The public register keeps every version it was ever given, and the versions disagree: the owner named in one filing had already been wound up when the next was made, and the company that replaced it was incorporated two days later. Follow the shareholding up and it ends at an insurer. Follow the address sideways and it ends at the same registrant as the tunnel the payouts walked down. One man sits on both: <span data-fact="m6.architect">—</span>.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>The entity itself is a nominee company and nothing else: <span data-fact="m6.nominees">—</span>.</li>
-        <li>Everything filed for it is filed by one agent, <span data-fact="m6.registeredAgent">—</span>, who files on instruction the register does not record.</li>
-        <li>Its director is a professional: <span data-fact="m6.front">—</span>. The appointment is real and the interest behind it is not his.</li>
-        <li>The two ownership filings cannot both be true: <span data-fact="m6.ownershipChange">—</span>. The later filing withheld the owner instead of naming one, and the replacement declared the holding itself.</li>
-        <li>That replacement, <span data-fact="m6.holdings">—</span>, was incorporated <span class="code" data-fact="m6.incorporated">—</span> — two days after the previous owner was dissolved — and its shareholder is an insurer: <span data-fact="m6.insurer">—</span>.</li>
-        <li>The insurer's own domain is registered to <span class="code" data-fact="m6.registrant">—</span>, the same registrant as <span class="code" data-fact="m6.peerGateway">—</span>, the endpoint the wire transfers already answered to.</li>
-        <li>The two are served by the same operator: <span data-fact="m6.infra">—</span>. A shared certificate means a shared private key, which is a person, not a coincidence.</li>
-        <li>The name the register finally gives up is <span data-fact="m6.architect">—</span>, who chaired the committee deciding what the insurer pays and sat on the board of the company that owns the account it was paid into.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.1">The entity itself is a nominee company and nothing else: <span data-fact="m6.nominees">—</span>.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.2">Everything filed for it is filed by one agent, <span data-fact="m6.registeredAgent">—</span>, who files on instruction the register does not record.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.3">Its director is a professional: <span data-fact="m6.front">—</span>. The appointment is real and the interest behind it is not his.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.4">The two ownership filings cannot both be true: <span data-fact="m6.ownershipChange">—</span>. The later filing withheld the owner instead of naming one, and the replacement declared the holding itself.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.5">That replacement, <span data-fact="m6.holdings">—</span>, was incorporated <span class="code" data-fact="m6.incorporated">—</span> — two days after the previous owner was dissolved — and its shareholder is an insurer: <span data-fact="m6.insurer">—</span>.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.6">The insurer's own domain is registered to <span class="code" data-fact="m6.registrant">—</span>, the same registrant as <span class="code" data-fact="m6.peerGateway">—</span>, the endpoint the wire transfers already answered to.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.7">The two are served by the same operator: <span data-fact="m6.infra">—</span>. A shared certificate means a shared private key, which is a person, not a coincidence.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.8">The name the register finally gives up is <span data-fact="m6.architect">—</span>, who chaired the committee deciding what the insurer pays and sat on the board of the company that owns the account it was paid into.</li>
               </ul>
             </section>
           </div>
@@ -823,6 +852,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m6"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m6">
+              <h2>Skipped</h2>
+              <div data-skipped="m6"></div>
             </section>
           </aside>
         </div>
@@ -842,18 +875,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
+            <p class="summary" data-i18n="BACKTRACE.M7.SUMMARY">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li>The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</li>
-        <li>The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</li>
-        <li>That account opened the edge filter and the index host's remote port: <span class="code" data-fact="m7.firewall">—</span>.</li>
-        <li>A session on <span class="code" data-fact="m7.c2">—</span> reached the file the whole chain pointed at.</li>
-        <li>The master ledger index carries <span class="code" data-fact="m7.manifest">—</span>, totalling <span class="code" data-fact="m7.allBatches">—</span>, of which <span class="code" data-fact="m7.allToParent">—</span> went to <span data-fact="m7.parentEntity">—</span>.</li>
-        <li>The hospital's entry (<span class="code" data-fact="m7.caseId">—</span>) is classified <span class="code" data-fact="m7.evidence">—</span>, prepared with the hospital's own risk officer and approved by the insurer three days after the payout.</li>
-        <li>The backup was taken whole rather than opened: <span class="code" data-fact="m7.ledger">—</span>.</li>
-        <li>The Architect is <span data-fact="m7.architect">—</span>, who priced the losses he was arranging and booked them as a flat line.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.1">The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.2">The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.3">That account opened the edge filter and the index host's remote port: <span class="code" data-fact="m7.firewall">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.4">A session on <span class="code" data-fact="m7.c2">—</span> reached the file the whole chain pointed at.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.5">The master ledger index carries <span class="code" data-fact="m7.manifest">—</span>, totalling <span class="code" data-fact="m7.allBatches">—</span>, of which <span class="code" data-fact="m7.allToParent">—</span> went to <span data-fact="m7.parentEntity">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.6">The hospital's entry (<span class="code" data-fact="m7.caseId">—</span>) is classified <span class="code" data-fact="m7.evidence">—</span>, prepared with the hospital's own risk officer and approved by the insurer three days after the payout.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.7">The backup was taken whole rather than opened: <span class="code" data-fact="m7.ledger">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.8">The Architect is <span data-fact="m7.architect">—</span>, who priced the losses he was arranging and booked them as a flat line.</li>
               </ul>
             </section>
           </div>
@@ -869,6 +902,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
             <section class="block">
               <h2>Personal log</h2>
               <div data-personal-log="m7"></div>
+            </section>
+            <section class="block is-hidden" data-skipped-block="m7">
+              <h2>Skipped</h2>
+              <div data-skipped="m7"></div>
             </section>
           </aside>
         </div>
@@ -889,12 +926,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <div class="report-grid signoff-grid">
           <div class="report-main">
             <div class="letter">
-              <p>When you opened the first file, you wanted a name. Someone to blame for what happened, and a reason to keep going.</p>
-              <p>I wanted to give you something harder than that. A trail that kept turning the villain into a ledger, and the ledger into people with reasons of their own. Somewhere past the middle you stopped asking who to hate, and started asking what to do with all of it.</p>
-              <p>It took me almost two months to get here. The story was scrapped, rewritten and revised more times than I can count, and this is the version that survived. Whatever you chose at the end, you were the one who closed the book. Auditors call it signing off: you read every line, and you put your name under it. Thank you for reading every line of mine.</p>
-              <p>If you have a moment, tell me what you think on the Workshop page: feedback, criticism, appreciation, all of it. It would mean a great deal to me.</p>
-              <p class="letter-thanks">Thank you, truly, for playing <b>Flatline Protocol</b>.</p>
-              <div class="letter-sign">Warm regards — the author</div>
+              <p data-i18n="BACKTRACE.LETTER.OPENING">When you opened the first file, you wanted a name. Someone to blame for what happened, and a reason to keep going.</p>
+              <p data-i18n="BACKTRACE.LETTER.TRAIL">I wanted to give you something harder than that. A trail that kept turning the villain into a ledger, and the ledger into people with reasons of their own. Somewhere past the middle you stopped asking who to hate, and started asking what to do with all of it.</p>
+              <p data-i18n="BACKTRACE.LETTER.SIGNING_OFF">It took me almost two months to get here. The story was scrapped, rewritten and revised more times than I can count, and this is the version that survived. Whatever you chose at the end, you were the one who closed the book. Auditors call it signing off: you read every line, and you put your name under it. Thank you for reading every line of mine.</p>
+              <p data-i18n="BACKTRACE.LETTER.WORKSHOP">If you have a moment, tell me what you think on the Workshop page: feedback, criticism, appreciation, all of it. It would mean a great deal to me.</p>
+              <p class="letter-thanks" data-i18n="BACKTRACE.LETTER.THANKS">Thank you, truly, for playing <b>Flatline Protocol</b>.</p>
+              <div class="letter-sign"><span data-i18n="BACKTRACE.LETTER.SIGNATURE">Warm regards</span> — the author</div>
             </div>
           </div>
         </div>
@@ -970,12 +1007,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const KEY_LABELS = {
     m1: { broker: 'Broker identified', buyer: 'Buyer linked', vault: 'Vault reached', caseId: 'Case file opened' },
     m2: { developer: 'Developer server', ransom: 'Payout pattern', deployLog: 'Deploy log', homeLead: 'Home network lead', firewall: 'Home firewall', workstation: 'Home workstation', shellCompany: 'Shell company' },
-    m3: { portal: 'Remote portal', parentEntity: 'Wire-transfer ledger', gateway: 'Tunnel gateway', vpnPeer: 'Site-to-site config', accomplice: 'Accomplice' },
+    m3: { portal: 'Remote portal', pivot: 'Internal network', parentEntity: 'Wire-transfer ledger', gateway: 'Tunnel gateway', vpnPeer: 'Site-to-site config', accomplice: 'Accomplice' },
     m4: { probe: 'Intruder address', breach: 'Desktop breach', relay1: 'Relay 1', relay2: 'Relay 2', control: 'Control host', origin: 'Origin registrant' },
     m5: { dismissed: 'Staff list changed', greta: 'Named administrator', archive: 'Archive access', statement: 'Signed acknowledgement', decisionMemo: 'Decision memo', usbTicket: 'USB ticket' },
     m6: { nominees: 'Nominee company', registeredAgent: 'Registered agent', ownershipChange: 'Ownership change', insurer: 'Insurer linked', infra: 'Shared certificate', architect: 'Named officer' },
     m7: { nodes: 'Node inventory', credential: 'Edge credential', firewall: 'Edge opened', c2: 'Index host session', manifest: 'Master ledger index', ledger: 'Ledger extracted' }
   };
+  const OPTIONAL_KEYS = { m3: ['accomplice'], m4: ['probe'] };
   const STORY_DATES = {
     m1: '18 Sep 2026',
     m2: '19 Sep 2026',
@@ -1183,13 +1221,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     return raw.filter((entry) => typeof entry === 'string' && entry !== '');
   }
 
+  function sanitizeSkipped(raw) {
+    const source = raw && typeof raw === 'object' ? raw : {};
+    return { keys: sanitizeLogs(source.keys), logs: sanitizeLogs(source.logs) };
+  }
+
   function normalizeState(raw) {
     return Object.fromEntries(MISSION_IDS.map((id) => {
       const entry = (raw && raw[id]) || {};
       return [id, {
         status: STATUSES.includes(entry.status) ? entry.status : 'locked',
         facts: sanitizeFacts(entry.facts),
-        logs: sanitizeLogs(entry.logs)
+        logs: sanitizeLogs(entry.logs),
+        moments: sanitizeLogs(entry.moments),
+        skipped: sanitizeSkipped(entry.skipped)
       }];
     }));
   }
@@ -1392,15 +1437,21 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     bootTimer = setTimeout(() => canvas.classList.remove('booting'), Math.max(2200, total));
   }
 
+  function requiredKeys(id) {
+    const optional = OPTIONAL_KEYS[id] || [];
+    return Object.keys(KEY_LABELS[id]).filter((key) => !optional.includes(key));
+  }
+
   function tracedMarkup(id) {
     const labels = KEY_LABELS[id];
-    const facts = state[id].facts;
-    const found = Object.keys(labels).filter((key) => facts[key]);
+    const { facts, skipped } = state[id];
+    const found = Object.keys(labels).filter((key) => facts[key] && !skipped.keys.includes(key));
     if (found.length === 0) return '';
+    const required = requiredKeys(id);
     const rows = found.map((key) => `<div class="traced-row"><span>${esc(labels[key])}</span><strong>${esc(facts[key])}</strong></div>`).join('');
-    const missing = Object.keys(labels).length - found.length;
+    const missing = Math.max(0, required.length - found.length);
     const redacted = Array.from({ length: missing }, (_, i) => `<div class="traced-row redacted" aria-hidden="true"><span style="--w:${54 + ((i * 37) % 38)}%"></span><strong style="--w:${38 + ((i * 53) % 50)}%"></strong></div>`).join('');
-    return `<div class="traced"><h3>Traced so far, ${found.length} of ${Object.keys(labels).length}</h3>${rows}${redacted}</div>`;
+    return `<div class="traced"><h3>Traced so far, ${found.length} of ${required.length}</h3>${rows}${redacted}</div>`;
   }
 
   function logsMarkup(id) {
@@ -1432,6 +1483,60 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       el.textContent = value || '—';
       el.classList.toggle('has-fact', Boolean(value));
     });
+  }
+
+  const I18N_ENGLISH = new WeakMap();
+  let appliedLanguage = null;
+
+  function localizationBridge() {
+    const bridge = window.HackhubSDK && window.HackhubSDK.Localization;
+    return bridge && typeof bridge.t === 'function' ? bridge : null;
+  }
+
+  function currentLanguage(bridge) {
+    if (!bridge || typeof bridge.language !== 'function') return '';
+    try {
+      const code = bridge.language();
+      return typeof code === 'string' ? code : '';
+    } catch (_e) { return ''; }
+  }
+
+  function translation(bridge, key) {
+    try {
+      const value = bridge.t(key);
+      return typeof value === 'string' && value !== '' && value !== key ? value : null;
+    } catch (_e) { return null; }
+  }
+
+  function applyI18n(bridge, language) {
+    const foreign = bridge !== null && language !== '' && !/^en(?:[-_]|$)/i.test(language);
+    all('[data-i18n]').forEach((el) => {
+      if (!I18N_ENGLISH.has(el)) I18N_ENGLISH.set(el, el.innerHTML);
+      const text = foreign ? translation(bridge, el.dataset.i18n) : null;
+      const next = text === null ? I18N_ENGLISH.get(el) : text;
+      if (el.innerHTML !== next) el.innerHTML = next;
+      if (text === null) el.removeAttribute('lang');
+      else el.setAttribute('lang', language);
+    });
+    renderFacts();
+    updateFades();
+  }
+
+  function syncLanguage(override) {
+    const bridge = localizationBridge();
+    const language = typeof override === 'string' && override !== '' ? override : currentLanguage(bridge);
+    if (language === appliedLanguage) return;
+    appliedLanguage = language;
+    applyI18n(bridge, language);
+  }
+
+  function watchLanguage() {
+    const bridge = localizationBridge();
+    if (!bridge || typeof bridge.onLanguageChange !== 'function') return;
+    try {
+      const stop = bridge.onLanguageChange((language) => syncLanguage(language));
+      if (typeof stop === 'function') window.addEventListener('pagehide', () => { try { stop(); } catch (_e) {} });
+    } catch (_e) {}
   }
 
   function evidenceRows(id) {
@@ -1488,8 +1593,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   function personalLogMarkup(id) {
     const count = state[id].logs.length;
-    if (count === 0) return '<p class="log-empty">No log entries recorded.</p>';
-    return detailCardMarkup('Personal log', 'log', countLabel(count, 'entry', 'entries'), 'data-log', id);
+    const skipped = state[id].skipped.logs.length;
+    if (count + skipped === 0) return '<p class="log-empty">No log entries recorded.</p>';
+    const text = countLabel(count, 'entry', 'entries') + (skipped ? `, ${skipped} skipped` : '');
+    return detailCardMarkup('Personal log', 'log', text, 'data-log', id);
+  }
+
+  function renderSkipped() {
+    all('[data-skipped]').forEach((el) => {
+      const count = state[el.dataset.skipped].skipped.keys.length;
+      el.innerHTML = count === 0 ? '' : detailCardMarkup('Skipped traces', 'list', countLabel(count, 'trace', 'traces'), 'data-skipped-open', el.dataset.skipped);
+      el.closest('.block').classList.toggle('is-hidden', count === 0);
+    });
   }
 
   function renderPersonalLogs() {
@@ -1788,12 +1903,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
 
   function openLog(id) {
-    const logs = state[id].logs;
+    const { logs, moments, skipped } = state[id];
+    const flag = (text) => (moments.includes(text) ? '<span class="moment-flag">Moment</span>' : '');
+    const recorded = logs.map((text, i) => `<p class="log" style="--i:${i}">${esc(text)}${flag(text)}</p>`).join('');
+    const missed = skipped.logs.length === 0 ? '' : '<p class="log-divider">Not recorded during the mission</p>' + skipped.logs.map((text, i) => `<p class="log skipped" style="--i:${logs.length + i}">${esc(text)}<span class="skip-flag">Skipped</span></p>`).join('');
     openBodySheet(
       'Personal log',
-      `${MISSION_TITLES[id]}, ${countLabel(logs.length, 'entry', 'entries')}`,
-      logs.map((text, i) => `<p class="log" style="--i:${i}">${esc(text)}</p>`).join(''),
+      `${MISSION_TITLES[id]}, ${countLabel(logs.length, 'entry', 'entries')}${skipped.logs.length ? `, ${skipped.logs.length} skipped` : ''}`,
+      recorded + missed,
       `Written during ${MISSION_TITLES[id]}.`
+    );
+  }
+
+  function openSkipped(id) {
+    const keys = state[id].skipped.keys;
+    const rows = keys.map((key) => `<div class="traced-row skipped-row"><span>${esc(KEY_LABELS[id][key] || key)}</span><strong>${esc(state[id].facts[key] || '')}</strong><em class="skip-flag">Skipped</em></div>`).join('');
+    openBodySheet(
+      'Skipped traces',
+      `${MISSION_TITLES[id]}, ${countLabel(keys.length, 'trace', 'traces')}`,
+      `<div class="traced skipped-list">${rows}</div>`,
+      'These were not traced before the report was filed.'
     );
   }
 
@@ -1857,6 +1986,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
 
   function refresh() {
+    syncLanguage();
     const raw = readRawState();
     const serialized = JSON.stringify(raw);
     if (serialized === lastSerialized) return;
@@ -1871,6 +2001,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     renderEvidence();
     renderChips();
     renderPersonalLogs();
+    renderSkipped();
     renderCaseboard();
     if (!userMoved) fitBoard();
     updateFades();
@@ -1887,6 +2018,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     if (docEl) { openDoc(docEl.dataset.evidence); return; }
     const logEl = target.closest('[data-log]');
     if (logEl) { openLog(logEl.dataset.log); return; }
+    const skipEl = target.closest('[data-skipped-open]');
+    if (skipEl) { openSkipped(skipEl.dataset.skippedOpen); return; }
     const listEl = target.closest('[data-entities]');
     if (listEl) { openEntities(listEl.dataset.entities); return; }
     const entityEl = target.closest('[data-entity]');
@@ -1968,6 +2101,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   fitBoard();
   bootBoard();
   setInterval(refresh, REFRESH_MS);
+  watchLanguage();
 })();
 </script>
 </body>

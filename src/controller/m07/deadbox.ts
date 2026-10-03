@@ -14,19 +14,14 @@ import {
     M07_ASH_GATE_BACKUP_FILE_EXTENSION,
     M07_ASH_GATE_BACKUP_FILE_NAME,
 } from "../../content/m07/server-files.js";
-import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M07Quest } from "./types.js";
-
-interface ReadFile {
-    readonly name: string;
-    readonly extension?: string;
-}
+import { M07_LOG_CREDENTIAL } from "../../content/m07/quest-logs.js";
 
 const isAshGateBackup = (file: ReadFile): boolean =>
-    file.name === M07_ASH_GATE_BACKUP_FILE_NAME &&
-    file.extension === M07_ASH_GATE_BACKUP_FILE_EXTENSION;
+    isNamedFile(file, M07_ASH_GATE_BACKUP_FILE_NAME, M07_ASH_GATE_BACKUP_FILE_EXTENSION);
 
 const warnOnDecoy = (quest: M07Quest): void => {
     if (quest.Data.honeypotAlertSent) return;
@@ -55,20 +50,14 @@ const bindSessions = (quest: M07Quest): void => {
 };
 
 const markCredential = (quest: M07Quest): void => {
-    advanceStep(quest, M07_GATES, "credentialRead", () => traceBacktraceFinding("m7", "credential"));
+    advanceStep(quest, M07_GATES, "credentialRead", () =>
+        traceBacktraceFinding("m7", "credential", M07_LOG_CREDENTIAL()),
+    );
 };
 
 const bindCredential = (quest: M07Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (!isAshGateBackup(data)) return;
-
-        markCredential(quest);
-    });
-
-    quest.Events.on(OPEN_FILE_READ_EVENT, (data: ReadFile) => {
-        if (!isAshGateBackup(data)) return;
-
-        markCredential(quest);
+    onFileRead(quest.Events, (file) => {
+        if (isAshGateBackup(file)) markCredential(quest);
     });
 };
 

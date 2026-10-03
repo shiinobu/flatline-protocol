@@ -1,0 +1,21 @@
+import { Localization } from "@hotbunny/hackhub-content-sdk";
+
+export const BACKTRACE_LETTER_KEY = {
+    OPENING: "BACKTRACE.LETTER.OPENING",
+    TRAIL: "BACKTRACE.LETTER.TRAIL",
+    SIGNING_OFF: "BACKTRACE.LETTER.SIGNING_OFF",
+    WORKSHOP: "BACKTRACE.LETTER.WORKSHOP",
+    THANKS: "BACKTRACE.LETTER.THANKS",
+    SIGNATURE: "BACKTRACE.LETTER.SIGNATURE",
+} as const;
+
+Localization.registerAll({
+    zh: {
+        [BACKTRACE_LETTER_KEY.OPENING]: "",
+        [BACKTRACE_LETTER_KEY.TRAIL]: "",
+        [BACKTRACE_LETTER_KEY.SIGNING_OFF]: "",
+        [BACKTRACE_LETTER_KEY.WORKSHOP]: "",
+        [BACKTRACE_LETTER_KEY.THANKS]: "",
+        [BACKTRACE_LETTER_KEY.SIGNATURE]: "",
+    },
+});

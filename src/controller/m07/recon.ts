@@ -1,4 +1,4 @@
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M07_GATES } from "../../content/m07/gates.js";
 import { M07_LOG_NODES } from "../../content/m07/quest-logs.js";
 import { M07_DEAD_DROP_EMAIL, M07_TIP_SUBJECT } from "../../content/m07/mail.js";
@@ -36,8 +36,7 @@ const bindEdgeScan = (quest: M07Quest): void => {
 
 const markDashboard = (quest: M07Quest): void => {
     advanceStep(quest, M07_GATES, "dashboardFound", () => {
-        traceBacktraceFinding("m7", "nodes");
-        appendBacktraceLogs("m7", M07_LOG_NODES());
+        traceBacktraceFinding("m7", "nodes", M07_LOG_NODES());
     });
 };
 

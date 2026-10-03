@@ -29,6 +29,7 @@ import {
     M03_REMOTE_PORTAL_DOMAIN,
     M03_VAULTLINE_CODENAME,
     M03_VPN_PEER_LABEL,
+    M03_INTERNAL_NETWORK_FACT,
 } from "../content/m03/network.js";
 import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME } from "../content/global/characters.js";
 import { M07_INSURER_NAME } from "../content/global/entities.js";
@@ -73,7 +74,11 @@ import {
 } from "../content/m07/network.js";
 import { M07_ARCHITECT_REAL_NAME } from "../content/m07/report.js";
 import { M07_EVIDENCE_CLASSIFICATION, M07_LEDGER_FILE_NAME } from "../content/m07/server-files.js";
-import type { BacktraceFacts, BacktraceMissionId } from "./backtrace-state.js";
+import { M03_LOG_ACCOMPLICE, M03_LOG_REYES } from "../content/m03/quest.js";
+import { M04_LOG_PROBE } from "../content/m04/quest-logs.js";
+import { M05_LOG_BEDSIDE, M05_LOG_NOTES } from "../content/m05/quest-logs.js";
+import { M06_LOG_CAPTURE } from "../content/m06/quest-logs.js";
+import type { BacktraceFacts, BacktraceMissionId, BacktraceSkipped } from "./backtrace-state.js";
 
 const MISSING_FACT = "—";
 const M04_WHOIS_REGISTRANT = "Bulletproof VPN Ltd.";
@@ -81,7 +86,7 @@ const M04_WHOIS_REGISTRANT = "Bulletproof VPN Ltd.";
 export const BACKTRACE_KEYS = {
     m1: ["broker", "buyer", "vault", "caseId"],
     m2: ["developer", "ransom", "deployLog", "homeLead", "firewall", "workstation", "shellCompany"],
-    m3: ["portal", "parentEntity", "gateway", "vpnPeer", "accomplice"],
+    m3: ["portal", "pivot", "parentEntity", "gateway", "vpnPeer", "accomplice"],
     m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
     m5: ["dismissed", "greta", "archive", "statement", "decisionMemo", "usbTicket"],
     m6: ["nominees", "registeredAgent", "ownershipChange", "insurer", "infra", "architect"],
@@ -92,6 +97,32 @@ export type BacktraceKey<M extends BacktraceMissionId> = (typeof BACKTRACE_KEYS)
 
 export const isBacktraceKey = (mission: BacktraceMissionId, key: string): boolean =>
     (BACKTRACE_KEYS[mission] as readonly string[]).includes(key);
+
+export const BACKTRACE_OPTIONAL_KEYS: Readonly<Record<BacktraceMissionId, readonly string[]>> = {
+    m1: [],
+    m2: [],
+    m3: ["accomplice"],
+    m4: ["probe"],
+    m5: [],
+    m6: [],
+    m7: [],
+};
+
+const OPTIONAL_LOGS: Readonly<Partial<Record<BacktraceMissionId, () => readonly string[]>>> = {
+    m3: () => [...M03_LOG_ACCOMPLICE(), ...M03_LOG_REYES()],
+    m4: M04_LOG_PROBE,
+    m5: () => [...M05_LOG_NOTES(), ...M05_LOG_BEDSIDE()],
+    m6: M06_LOG_CAPTURE,
+};
+
+export const buildBacktraceSkipped = (
+    mission: BacktraceMissionId,
+    traced: BacktraceFacts,
+    logged: readonly string[],
+): BacktraceSkipped => ({
+    keys: BACKTRACE_OPTIONAL_KEYS[mission].filter((key) => traced[key] === undefined),
+    logs: (OPTIONAL_LOGS[mission]?.() ?? []).filter((text) => !logged.includes(text)),
+});
 
 const resolveWinningListingCode = (): string => {
     const resolution = ensureM01ListingResolution();
@@ -130,6 +161,7 @@ const buildM3Facts = (): BacktraceFacts => {
 
     return {
         portal: M03_REMOTE_PORTAL_DOMAIN,
+        pivot: M03_INTERNAL_NETWORK_FACT,
         parentEntity: M03_PARENT_ENTITY_NAME,
         architectVpn: M04_ARCHITECT_VPN_IP,
         gateway: M03_VAULTLINE_CODENAME,

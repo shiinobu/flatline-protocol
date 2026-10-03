@@ -19,6 +19,7 @@ import { destroyM07Network, recordM07Ending } from "./ending.js";
 import { M07_REPORT_SPEC, readM07Choice } from "./report.js";
 import { endM07Trace } from "./tracking.js";
 import type { M07Quest } from "./types.js";
+import { M07_LOG_LEDGER } from "../../content/m07/quest-logs.js";
 
 const bindTransfer = (quest: M07Quest): void => {
     quest.Events.on("Files.Transfer", (data) => {
@@ -26,7 +27,7 @@ const bindTransfer = (quest: M07Quest): void => {
         if (quest.Data.ledgerWiped) return;
 
         advanceStep(quest, M07_GATES, "fileExtracted", () => {
-            traceBacktraceFinding("m7", "ledger");
+            traceBacktraceFinding("m7", "ledger", M07_LOG_LEDGER());
             endM07Trace();
             if (!quest.Data.whatNowSent) {
                 quest.SetData("whatNowSent", true);

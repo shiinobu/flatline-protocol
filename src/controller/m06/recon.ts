@@ -1,4 +1,4 @@
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M06_GATES } from "../../content/m06/gates.js";
 import { M06_DEAD_DROP_EMAIL, M06_TIP_SUBJECT } from "../../content/m06/mail.js";
 import {
@@ -6,7 +6,7 @@ import {
     M06_INSURER_DOMAIN,
     M06_REGISTRY_DOMAIN,
 } from "../../content/m06/network.js";
-import { M06_LOG_CERTIFICATE } from "../../content/m06/quest-logs.js";
+import { M06_LOG_CERTIFICATE, M06_LOG_AGENT } from "../../content/m06/quest-logs.js";
 import { unlock } from "../../core/index.js";
 import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
@@ -26,7 +26,7 @@ const bindWhois = (quest: M06Quest): void => {
         if (data.domain === M06_AGENT_DOMAIN) {
             trace("M06", "probe:agent-whois");
             advanceStep(quest, M06_GATES, "agentIdentified", () => {
-                traceBacktraceFinding("m6", "registeredAgent");
+                traceBacktraceFinding("m6", "registeredAgent", M06_LOG_AGENT());
                 unlock(M06_WORLD, "filingArchive");
             });
             return;
@@ -36,8 +36,7 @@ const bindWhois = (quest: M06Quest): void => {
 
         trace("M06", "probe:insurer-whois");
         advanceStep(quest, M06_GATES, "infraLinked", () => {
-            traceBacktraceFinding("m6", "infra");
-            appendBacktraceLogs("m6", M06_LOG_CERTIFICATE());
+            traceBacktraceFinding("m6", "infra", M06_LOG_CERTIFICATE());
         });
     });
 };

@@ -1,6 +1,6 @@
 import { Localization, Scheduler } from "@hotbunny/hackhub-content-sdk";
 
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { beginStrike, registerIntrusionHandlers } from "../../components/intrusion.js";
 import { INCIDENT_START_STAMP } from "../../components/kernel-layout.js";
@@ -76,9 +76,7 @@ const isFirewallLog = (file: ReadFile): boolean =>
 
 const traceProbe = (quest: M04Quest, file: ReadFile): void => {
     if (!quest.Data.probeStarted || !isFirewallLog(file)) return;
-    if (!traceBacktraceFinding("m4", "probe")) return;
-
-    appendBacktraceLogs("m4", M04_LOG_PROBE());
+    traceBacktraceFinding("m4", "probe", M04_LOG_PROBE());
 };
 
 export const bindM04Intrusion = (quest: M04Quest): void => {

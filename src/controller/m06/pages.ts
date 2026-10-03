@@ -42,27 +42,23 @@ const REGISTRY_STEPS: readonly (readonly [string, M06Step])[] = [
 
 const afterStep = (step: M06Step): void => {
     if (step === "nomineesRead") {
-        traceBacktraceFinding("m6", "nominees");
-        appendBacktraceLogs("m6", M06_LOG_NOMINEES());
+        traceBacktraceFinding("m6", "nominees", M06_LOG_NOMINEES());
         return;
     }
 
     if (step === "insurerLinked") {
-        traceBacktraceFinding("m6", "insurer");
-        appendBacktraceLogs("m6", M06_LOG_INSURER());
+        traceBacktraceFinding("m6", "insurer", M06_LOG_INSURER());
         return;
     }
 
     if (step === "identityProven") {
-        traceBacktraceFinding("m6", "architect");
-        appendBacktraceLogs("m6", M06_LOG_IDENTITY());
+        traceBacktraceFinding("m6", "architect", M06_LOG_IDENTITY());
     }
 };
 
 const joinFilings = (quest: M06Quest): void => {
     advanceStep(quest, M06_GATES, "snapshotsCompared", () => {
-        traceBacktraceFinding("m6", "ownershipChange");
-        appendBacktraceLogs("m6", M06_LOG_OWNERSHIP());
+        traceBacktraceFinding("m6", "ownershipChange", M06_LOG_OWNERSHIP());
         unlock(M06_WORLD, "ownershipRecords");
         Mail.send(M06_HOSTS_LEAD_MAIL());
     });

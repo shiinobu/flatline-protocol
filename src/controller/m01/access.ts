@@ -1,16 +1,18 @@
 import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { isNamedFile, onFileRead } from "../../components/file-reads.js";
 import { M01_GATES } from "../../content/m01/gates.js";
 import {
     M01_IRC_HOST,
     M01_IRC_NOTES_CONTENT,
-    M01_IRC_NOTES_FILE_CONTENT,
+    M01_IRC_NOTES_FILE_EXTENSION,
     M01_IRC_NOTES_FILE_NAME,
 } from "../../content/m01/irc.js";
 import { M01_TARGET_IP } from "../../content/m01/network.js";
-import { M01_BUYER_ALIAS, M01_LEDGER_FILE_NAME } from "../../content/m01/server-files.js";
+import { M01_LEDGER_FILE_EXTENSION, M01_LEDGER_FILE_NAME } from "../../content/m01/server-files.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { setM01VaultSealed } from "../../context/m01/progress.js";
 import type { M01Quest } from "./types.js";
+import { M01_LOG_BUYER } from "../../content/m01/quest.js";
 
 const bindSession = (quest: M01Quest): void => {
     quest.Events.on("Terminal.SSH.Connected", (data) => {
@@ -21,18 +23,14 @@ const bindSession = (quest: M01Quest): void => {
 };
 
 const bindFiles = (quest: M01Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (data.name !== M01_IRC_NOTES_FILE_NAME || data.data !== M01_IRC_NOTES_FILE_CONTENT) return;
+    onFileRead(quest.Events, (file) => {
+        if (isNamedFile(file, M01_IRC_NOTES_FILE_NAME, M01_IRC_NOTES_FILE_EXTENSION)) {
+            advanceStep(quest, M01_GATES, "suspiciousFileFound");
+        }
 
-        advanceStep(quest, M01_GATES, "suspiciousFileFound");
-    });
-
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (data.name !== M01_LEDGER_FILE_NAME) return;
-        if (!data.data?.includes(M01_BUYER_ALIAS)) return;
-        if (!quest.Data.backendAccessed) return;
-
-        traceBacktraceFinding("m1", "buyer");
+        if (isNamedFile(file, M01_LEDGER_FILE_NAME, M01_LEDGER_FILE_EXTENSION) && quest.Data.backendAccessed) {
+            traceBacktraceFinding("m1", "buyer", M01_LOG_BUYER());
+        }
     });
 };
 

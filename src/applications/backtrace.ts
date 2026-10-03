@@ -1,5 +1,7 @@
 import { App, RegisterApp, type AppSize } from "@hotbunny/hackhub-content-sdk";
 
+import "../i18n/global/backtrace.js";
+import "../i18n/global/backtrace-letter.js";
 import BACKTRACE_HTML from "./backtrace.html";
 import { BACKTRACE_FONT_CSS } from "./backtrace-fonts.js";
 

@@ -33,7 +33,7 @@ export const recordM07Ending = (quest: M07Quest, choice: M07Choice): void => {
     if (quest.Data.endingApplied) return;
 
     quest.SetData("endingApplied", true);
-    appendBacktraceLogs("m7", M07_LOG_ENDING(choice));
+    appendBacktraceLogs("m7", M07_LOG_ENDING(choice), { moment: true });
 
     const letter = M07_GRETA_LETTER(choice);
     if (letter !== null) Mail.send(letter);

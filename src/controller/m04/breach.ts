@@ -1,6 +1,6 @@
 import { Mail, Scheduler } from "@hotbunny/hackhub-content-sdk";
 
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { DESKTOP_RESTORED_EVENT, startBreach, type BreachSpec } from "../../components/desktop-breach.js";
 import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { dismissIncidentBanner } from "../../components/incident-banner.js";
@@ -45,8 +45,7 @@ let pendingQuest: M04Quest | null = null;
 const isIncidentLog = (file: ReadFile): boolean => isNamedFile(file, INCIDENT_FILE_NAME, INCIDENT_FILE_EXTENSION);
 
 const markBreachBegan = (): void => {
-    traceBacktraceFinding("m4", "breach");
-    appendBacktraceLogs("m4", M04_LOG_BREACH(), { quiet: true });
+    traceBacktraceFinding("m4", "breach", M04_LOG_BREACH(), { moment: true });
 };
 
 const markIncidentLogRead = (quest: M04Quest): void => {

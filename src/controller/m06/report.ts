@@ -14,6 +14,7 @@ import {
     M06_REPORT_TEMPLATE_ID,
     M06_REPORT_TEMPLATE_LABEL,
     buildM06ReportBody,
+    M06_REPORT_AGENT_TERMS,
 } from "../../content/m06/report.js";
 import type { ReportSpec } from "../../core/types.js";
 
@@ -30,11 +31,12 @@ const matchesFront = (value: unknown): boolean =>
     answerHasAny(value, M06_REPORT_FRONT_TERMS) && answerHasAny(value, M06_REPORT_FRONT_NOMINEE_TERMS);
 
 const matchesFields = (fields: Record<string, unknown>): boolean => {
-    const { architect, role, chain, proof, front } = fields;
+    const { architect, role, agent, chain, proof, front } = fields;
 
     return (
         matchesArchitect(architect) &&
         matchesRole(role) &&
+        answerHasAny(agent, M06_REPORT_AGENT_TERMS) &&
         answerHasAll(chain, M06_REPORT_CHAIN_TERMS) &&
         matchesProof(proof) &&
         matchesFront(front)
@@ -44,7 +46,7 @@ const matchesFields = (fields: Record<string, unknown>): boolean => {
 export const M06_REPORT_SPEC: ReportSpec = {
     templateId: M06_REPORT_TEMPLATE_ID,
     templateLabel: M06_REPORT_TEMPLATE_LABEL,
-    fields: ["architect", "role", "chain", "proof", "front"],
+    fields: ["architect", "role", "agent", "chain", "proof", "front"],
     subject: M06_REPORT_SUBJECT,
     templateContent: M06_REPORT_TEMPLATE_CONTENT,
     body: buildM06ReportBody,

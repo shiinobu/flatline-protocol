@@ -1,5 +1,5 @@
 import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
-import { OPEN_FILE_READ_EVENT } from "../../commands/open.js";
+import { isNamedFile, onFileRead } from "../../components/file-reads.js";
 import { sendReplacingMail } from "../../components/mail.js";
 import { isReportSubmission } from "../../components/report.js";
 import { M03_GATES, M03_STEP_ORDER } from "../../content/m03/gates.js";
@@ -10,6 +10,8 @@ import {
     M03_LOG_REYES,
     M03_LOG_TUNNEL,
     M03_OBJECTIVE_IDS,
+    M03_LOG_ACCOMPLICE,
+    M03_LOG_GATEWAY,
 } from "../../content/m03/quest.js";
 import {
     M03_REYES_NOTE_FILE_EXTENSION,
@@ -21,36 +23,25 @@ import { advanceStep, firstUnmetStep } from "../../middleware/gate.js";
 import { M03_REPORT_SPEC } from "./report.js";
 import type { M03Quest } from "./types.js";
 
-interface OpenedFile {
-    readonly id: string;
-    readonly name: string;
-    readonly extension?: string;
-}
-
 const markShell = (quest: M03Quest): void => {
-    advanceStep(quest, M03_GATES, "gatewayShellObtained", () => traceBacktraceFinding("m3", "gateway"));
+    advanceStep(quest, M03_GATES, "gatewayShellObtained", () =>
+        traceBacktraceFinding("m3", "gateway", M03_LOG_GATEWAY()),
+    );
 };
 
 const markAccomplice = (quest: M03Quest): void => {
-    advanceStep(quest, M03_GATES, "accompliceReached", () => traceBacktraceFinding("m3", "accomplice"));
+    advanceStep(quest, M03_GATES, "accompliceReached", () =>
+        traceBacktraceFinding("m3", "accomplice", M03_LOG_ACCOMPLICE()),
+    );
 };
 
 const readConfig = (quest: M03Quest): void => {
-    advanceStep(quest, M03_GATES, "vpnConfigRead", () => {
-        traceBacktraceFinding("m3", "vpnPeer");
-        appendBacktraceLogs("m3", M03_LOG_TUNNEL());
-    });
+    advanceStep(quest, M03_GATES, "vpnConfigRead", () => traceBacktraceFinding("m3", "vpnPeer", M03_LOG_TUNNEL()));
 };
 
 const logReyes = (quest: M03Quest): void => {
     if (quest.Data.accompliceReached) appendBacktraceLogs("m3", M03_LOG_REYES());
 };
-
-const isConfig = (file: { readonly name: string; readonly extension?: string }): boolean =>
-    file.name === M03_VPN_CONFIG_FILE_NAME && file.extension === M03_VPN_CONFIG_FILE_EXTENSION;
-
-const isReyesNote = (file: { readonly name: string; readonly extension?: string }): boolean =>
-    file.name === M03_REYES_NOTE_FILE_NAME && file.extension === M03_REYES_NOTE_FILE_EXTENSION;
 
 const bindShell = (quest: M03Quest): void => {
     quest.Events.on("RemoteConnection.Established", (data) => {
@@ -72,14 +63,9 @@ const bindShell = (quest: M03Quest): void => {
 };
 
 const bindFiles = (quest: M03Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (isConfig(data)) readConfig(quest);
-        if (isReyesNote(data)) logReyes(quest);
-    });
-
-    quest.Events.on(OPEN_FILE_READ_EVENT, (data: OpenedFile) => {
-        if (isConfig(data)) readConfig(quest);
-        if (isReyesNote(data)) logReyes(quest);
+    onFileRead(quest.Events, (file) => {
+        if (isNamedFile(file, M03_VPN_CONFIG_FILE_NAME, M03_VPN_CONFIG_FILE_EXTENSION)) readConfig(quest);
+        if (isNamedFile(file, M03_REYES_NOTE_FILE_NAME, M03_REYES_NOTE_FILE_EXTENSION)) logReyes(quest);
     });
 
     quest.Events.on("Terminal.Explorer", (data) => {
@@ -97,7 +83,7 @@ const bindReport = (quest: M03Quest): void => {
         if (!isReportSubmission(M03_REPORT_SPEC, data.subject, data.content)) return;
 
         const accepted = advanceStep(quest, M03_GATES, "reportSent", () => {
-            appendBacktraceLogs("m3", M03_LOG_AFTERMATH());
+            appendBacktraceLogs("m3", M03_LOG_AFTERMATH(), { moment: true });
             quest.completeObjective(M03_OBJECTIVE_IDS.reportFindings);
         });
         if (accepted) return;

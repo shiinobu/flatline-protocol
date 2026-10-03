@@ -1,12 +1,13 @@
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { isNamedFile, onFileRead } from "../../components/file-reads.js";
 import { M02_ADMINS_TABLE, M02_AFFILIATE_TABLE } from "../../content/m02/database.js";
 import { M02_GATES } from "../../content/m02/gates.js";
 import { M02_DEV_IP, M02_DEV_SUBDOMAIN } from "../../content/m02/network.js";
-import { M02_LOG_DEFAULT } from "../../content/m02/quest.js";
+import { M02_LOG_DEFAULT, M02_LOG_DEVELOPER, M02_LOG_RANSOM, M02_LOG_HOME } from "../../content/m02/quest.js";
 import {
-    M02_DEPLOY_LOG_CONTENT,
+    M02_DEPLOY_LOG_FILE_EXTENSION,
     M02_DEPLOY_LOG_FILE_NAME,
-    M02_SYNC_SCRIPT_CONTENT,
+    M02_SYNC_SCRIPT_FILE_EXTENSION,
     M02_SYNC_SCRIPT_FILE_NAME,
 } from "../../content/m02/server-files.js";
 import { advanceStep } from "../../middleware/gate.js";
@@ -17,11 +18,15 @@ const bindDumps = (quest: M02Quest): void => {
         if (data.host !== M02_DEV_IP && data.host !== M02_DEV_SUBDOMAIN) return;
 
         if (data.tableName === M02_ADMINS_TABLE) {
-            advanceStep(quest, M02_GATES, "adminsDumped", () => traceBacktraceFinding("m2", "developer"));
+            advanceStep(quest, M02_GATES, "adminsDumped", () =>
+                traceBacktraceFinding("m2", "developer", M02_LOG_DEVELOPER()),
+            );
         }
 
         if (data.tableName === M02_AFFILIATE_TABLE) {
-            advanceStep(quest, M02_GATES, "affiliatesDumped", () => traceBacktraceFinding("m2", "ransom"));
+            advanceStep(quest, M02_GATES, "affiliatesDumped", () =>
+                traceBacktraceFinding("m2", "ransom", M02_LOG_RANSOM()),
+            );
         }
     });
 };
@@ -35,19 +40,18 @@ const bindSession = (quest: M02Quest): void => {
 };
 
 const bindFiles = (quest: M02Quest): void => {
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (data.name !== M02_DEPLOY_LOG_FILE_NAME || data.data !== M02_DEPLOY_LOG_CONTENT()) return;
+    onFileRead(quest.Events, (file) => {
+        if (isNamedFile(file, M02_DEPLOY_LOG_FILE_NAME, M02_DEPLOY_LOG_FILE_EXTENSION)) {
+            advanceStep(quest, M02_GATES, "deployLogRead", () =>
+                traceBacktraceFinding("m2", "deployLog", M02_LOG_DEFAULT()),
+            );
+        }
 
-        advanceStep(quest, M02_GATES, "deployLogRead", () => {
-            traceBacktraceFinding("m2", "deployLog");
-            appendBacktraceLogs("m2", M02_LOG_DEFAULT());
-        });
-    });
-
-    quest.Events.on("Terminal.Cat", (data) => {
-        if (data.name !== M02_SYNC_SCRIPT_FILE_NAME || data.data !== M02_SYNC_SCRIPT_CONTENT()) return;
-
-        advanceStep(quest, M02_GATES, "homeLeadRead", () => traceBacktraceFinding("m2", "homeLead"));
+        if (isNamedFile(file, M02_SYNC_SCRIPT_FILE_NAME, M02_SYNC_SCRIPT_FILE_EXTENSION)) {
+            advanceStep(quest, M02_GATES, "homeLeadRead", () =>
+                traceBacktraceFinding("m2", "homeLead", M02_LOG_HOME()),
+            );
+        }
     });
 };
 

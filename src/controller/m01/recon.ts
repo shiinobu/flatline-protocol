@@ -1,6 +1,6 @@
 import { Mail } from "@hotbunny/hackhub-content-sdk";
 
-import { appendBacktraceLogs, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { ensureM01ListingResolution, getM01ListingSlot } from "../../context/m01/listing.js";
 import { M01_GATES } from "../../content/m01/gates.js";
 import { M01_TIPSTER_EMAIL, M01_TIP_SUBJECT } from "../../content/m01/mail.js";
@@ -77,8 +77,7 @@ const bindListing = (quest: M01Quest): void => {
 
         advanceStep(quest, M01_GATES, "listingFound", () => {
             unlock(M01_WORLD, "brokerLead");
-            traceBacktraceFinding("m1", "broker");
-            appendBacktraceLogs("m1", M01_LOG_DEFAULT());
+            traceBacktraceFinding("m1", "broker", M01_LOG_DEFAULT());
         });
     });
 };
