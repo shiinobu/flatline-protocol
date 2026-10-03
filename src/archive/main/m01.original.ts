@@ -62,7 +62,7 @@ import {
     M01_TIP_CONTENT,
     M01_TIP_SUBJECT,
 } from "../content/m01.original.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, questGate } from "../../guard/flags.js";
 
 interface M01QuestData {
     readonly tipReviewed: boolean;

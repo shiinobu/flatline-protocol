@@ -38,7 +38,7 @@ import {
     M03_TIP_SUBJECT,
 } from "../content/m03.original.js";
 import { M02_SHELL_COMPANY_NAME } from "../content/m02.original.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, questGate } from "../../guard/flags.js";
 
 interface M03QuestData {
     readonly leadReviewed: boolean;

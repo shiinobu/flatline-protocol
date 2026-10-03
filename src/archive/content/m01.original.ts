@@ -1,6 +1,6 @@
 import type { QuestObjectiveDefinition, Shell } from "@hotbunny/hackhub-content-sdk";
 
-import { ANONYMOUS_TIPSTER, DEAD_DROP_CONTACT } from "./global/characters.js";
+import { ANONYMOUS_TIPSTER, DEAD_DROP_CONTACT } from "../../content/global/characters.js";
 
 export const M01_TARGET_IP = "203.0.113.90";
 export const M01_ROUTER_IP = "77.0.34.201";

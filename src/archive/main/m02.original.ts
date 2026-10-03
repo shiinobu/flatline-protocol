@@ -44,7 +44,7 @@ import {
     M02_WORKSTATION_IP,
     M02_WORKSTATION_ROUTER_IP,
 } from "../content/m02.original.js";
-import { applyDevGating, isQuestDevFocus, questGate } from "../guard/flags.js";
+import { applyDevGating, isQuestDevFocus, questGate } from "../../guard/flags.js";
 
 interface M02QuestData {
     readonly leadReviewed: boolean;
