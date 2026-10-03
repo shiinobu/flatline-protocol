@@ -230,6 +230,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .log-empty { margin: 0; font: italic 400 13.5px var(--mono); color: var(--soft); }
 .log.skipped { opacity: .62; border-left-style: dashed; }
 .log-divider { margin: 22px 0 12px; font: 400 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+.log-source { margin: 16px 0 8px; font: 400 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+.log-divider + .log-source, .sheet-body > .log-source:first-child { margin-top: 0; }
 .skip-flag, .moment-flag { margin-left: 12px; font: 400 11px var(--mono); font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
 .skip-flag::before, .moment-flag::before { content: "[ "; }
 .skip-flag::after, .moment-flag::after { content: " ]"; }
@@ -471,8 +473,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .lightbox.open { display: flex; }
 .lightbox.open .sheet { animation: sheetIn .38s ease-out both; }
 @keyframes sheetIn { from { opacity: 0; transform: scale(.96); filter: brightness(2.4) saturate(1.4); } to { opacity: 1; transform: none; filter: none; } }
-.sheet { position: relative; width: min(760px, 94vw); max-height: 92vh; overflow: auto; background: linear-gradient(180deg, rgba(255, 40, 60, .06), var(--panel-solid) 30%); color: var(--ink); border: 1px solid var(--edge); box-shadow: 0 0 50px rgba(255, 59, 78, .24), inset 0 0 30px rgba(255, 40, 60, .06); }
-.sheet-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 14px 22px; background: var(--bar); border-bottom: 1px solid var(--edge-soft); }
+.sheet { position: relative; width: min(760px, 94vw); max-height: 92vh; overflow: auto; scrollbar-width: none; background: linear-gradient(180deg, rgba(255, 40, 60, .06), var(--panel-solid) 30%); color: var(--ink); border: 1px solid var(--edge); box-shadow: 0 0 50px rgba(255, 59, 78, .24), inset 0 0 30px rgba(255, 40, 60, .06); }
+.sheet::-webkit-scrollbar { display: none; }
+.sheet-top { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 14px 22px; background: var(--bar); border-bottom: 1px solid var(--edge-soft); }
 .sheet-title { margin: 0; font: 800 30px/1.05 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--bright); text-shadow: 2px 2px 0 #4a0010, 0 0 14px rgba(255, 59, 78, .4); }
 .sheet-ref { margin-top: 6px; font: 400 12px var(--mono); color: var(--soft); }
 .sheet .close { color: var(--soft); }
@@ -490,7 +493,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sheet.body-mode .sheet-body { display: block; }
 .sheet.body-mode .sheet-rows, .sheet.body-mode .sheet-flag { display: none; }
 .sheet.body-mode::after { content: none; }
-.lightbox.open .sheet-body .log, .lightbox.open .sheet-body .chip { animation: rowIn .3s ease-out backwards; animation-delay: calc(var(--i) * 80ms + 90ms); }
+.lightbox.open .sheet-body .log, .lightbox.open .sheet-body .log-source, .lightbox.open .sheet-body .chip { animation: rowIn .3s ease-out backwards; animation-delay: calc(var(--i) * 80ms + 90ms); }
 .sheet-foot { margin: 8px 22px 0; padding: 12px 0 16px; border-top: 1px dashed var(--edge-soft); font: 400 12px var(--mono); color: var(--soft); }
 .sheet::after { content: "RECOVERED"; position: absolute; right: 26px; bottom: 46px; transform: rotate(-5deg); padding: 2px 14px; border: 3px solid rgba(255, 59, 78, .5); color: rgba(255, 59, 78, .55); font: 900 22px var(--display); letter-spacing: .28em; pointer-events: none; }
 
@@ -1226,6 +1229,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     return { keys: sanitizeLogs(source.keys), logs: sanitizeLogs(source.logs) };
   }
 
+  function sanitizeSources(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(Object.entries(raw).filter(([text, source]) => text !== '' && typeof source === 'string' && source !== ''));
+  }
+
   function normalizeState(raw) {
     return Object.fromEntries(MISSION_IDS.map((id) => {
       const entry = (raw && raw[id]) || {};
@@ -1234,7 +1242,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         facts: sanitizeFacts(entry.facts),
         logs: sanitizeLogs(entry.logs),
         moments: sanitizeLogs(entry.moments),
-        skipped: sanitizeSkipped(entry.skipped)
+        skipped: sanitizeSkipped(entry.skipped),
+        sources: sanitizeSources(entry.sources)
       }];
     }));
   }
@@ -1902,11 +1911,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     lightbox.classList.add('open');
   }
 
+  function logSource(id, source) {
+    if (source === 'note') return 'Note';
+    if (source === 'moment') return 'Moment';
+    if (source === 'other') return 'Other';
+    const at = Object.keys(KEY_LABELS[id]).indexOf(source);
+    return at === -1 ? '' : `Trace ${at + 1} · ${KEY_LABELS[id][source]}`;
+  }
+
+  function logRuns(id, texts, offset, sourceOf, paragraph) {
+    let previous = '';
+    return texts.map((text, i) => {
+      const source = sourceOf(text);
+      const caption = source !== '' && source !== previous ? logSource(id, source) : '';
+      previous = source;
+      return (caption ? `<p class="log-source" style="--i:${offset + i}">${esc(caption)}</p>` : '') + paragraph(text, offset + i);
+    }).join('');
+  }
+
   function openLog(id) {
-    const { logs, moments, skipped } = state[id];
-    const flag = (text) => (moments.includes(text) ? '<span class="moment-flag">Moment</span>' : '');
-    const recorded = logs.map((text, i) => `<p class="log" style="--i:${i}">${esc(text)}${flag(text)}</p>`).join('');
-    const missed = skipped.logs.length === 0 ? '' : '<p class="log-divider">Not recorded during the mission</p>' + skipped.logs.map((text, i) => `<p class="log skipped" style="--i:${logs.length + i}">${esc(text)}<span class="skip-flag">Skipped</span></p>`).join('');
+    const { logs, moments, skipped, sources } = state[id];
+    const labeled = Object.keys(sources).length > 0;
+    const sourceOf = (text) => (labeled ? sources[text] || (moments.includes(text) ? 'moment' : 'other') : '');
+    const flag = (text) => (moments.includes(text) && sourceOf(text) !== 'moment' ? '<span class="moment-flag">Moment</span>' : '');
+    const recorded = logRuns(id, logs, 0, sourceOf, (text, i) => `<p class="log" style="--i:${i}">${esc(text)}${flag(text)}</p>`);
+    const missed = skipped.logs.length === 0 ? '' : '<p class="log-divider">Not recorded during the mission</p>' + logRuns(id, skipped.logs, logs.length, sourceOf, (text, i) => `<p class="log skipped" style="--i:${i}">${esc(text)}<span class="skip-flag">Skipped</span></p>`);
     openBodySheet(
       'Personal log',
       `${MISSION_TITLES[id]}, ${countLabel(logs.length, 'entry', 'entries')}${skipped.logs.length ? `, ${skipped.logs.length} skipped` : ''}`,
