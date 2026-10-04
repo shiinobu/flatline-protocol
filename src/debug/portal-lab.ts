@@ -16,17 +16,17 @@ import dashboardPreview from "./dashboard-preview.html";
 
 type PortalLabSite = "portal" | "monitor" | "cipher";
 
-const PORTAL_LAB_REV = "r4 icons";
+const PORTAL_LAB_REV = "r5 vendor sites";
 const PORTAL_LAB_DOMAIN = "remote-lab.pacificcare-health.org";
-const MONITOR_LAB_DOMAIN = "monitor-lab.pacificcare-health.org";
-const CIPHER_LAB_DOMAIN = "cipher-lab.pacificcare-health.org";
+const MONITOR_LAB_DOMAIN = "remotedesktopconnection-lab.io";
+const CIPHER_LAB_DOMAIN = "cipherdesk-lab.io";
 const PORTAL_LAB_IP = "198.18.1.2";
 const MONITOR_LAB_IP = "198.18.1.3";
 const CIPHER_LAB_IP = "198.18.1.4";
 const PORTAL_LAB_ACCOUNT = "g.desouza / Marigold2019";
 const PREVIEW_ASSET_PREFIX = "../../public/assets/";
 const LIVE_ASSET_PREFIX = "./assets/";
-const MONITOR_LAB_SEARCH: readonly string[] = ["endpoint monitor", "remote display", "workstation console"];
+const MONITOR_LAB_SEARCH: readonly string[] = ["remote desktop connection", "remote desktop", "remote display", "workstation console"];
 const CIPHER_LAB_SEARCH: readonly string[] = ["encrypt", "decrypt", "cipher", "passphrase"];
 
 const labIcon = (shapes: string): string =>
@@ -65,6 +65,14 @@ const isPortalLabUp = (): boolean => Network.getSubnet(PORTAL_LAB_IP) !== null;
 const portalLabSubnets = (): string =>
     PORTAL_LAB_IPS.map((ip) => `${ip}=${Network.getSubnet(ip) !== null}`).join(" ");
 
+const FONT_SLOTS: Readonly<Record<string, PortalLabSite>> = { "rdc-fonts": "monitor", "cipher-fonts": "cipher" };
+
+const stripFontSlot = (html: string, slot: string): string => {
+    const start = html.indexOf(`<style data-slot="${slot}">`);
+    const end = start < 0 ? -1 : html.indexOf("</style>", start);
+    return end < 0 ? html : html.slice(0, start) + html.slice(end + "</style>".length);
+};
+
 const renderLabPage = (site: PortalLabSite): string => {
     const config = JSON.stringify({
         site,
@@ -72,8 +80,11 @@ const renderLabPage = (site: PortalLabSite): string => {
         monitor: MONITOR_LAB_DOMAIN,
         cipher: CIPHER_LAB_DOMAIN,
     });
+    const page = Object.keys(FONT_SLOTS)
+        .filter((slot) => FONT_SLOTS[slot] !== site)
+        .reduce(stripFontSlot, dashboardPreview);
 
-    return dashboardPreview
+    return page
         .split(PREVIEW_ASSET_PREFIX)
         .join(LIVE_ASSET_PREFIX)
         .replace("<body>", `<body>\n<script>window.PC_CFG=${config};</script>`);
@@ -95,10 +106,10 @@ const labPages = (
 ];
 
 const printPortalLabSheet = (tools: CommandTools): void => {
-    tools.println(`Portal : https://${PORTAL_LAB_DOMAIN}`);
-    tools.println(`Monitor: https://${MONITOR_LAB_DOMAIN} (Popular)`);
-    tools.println(`Cipher : https://${CIPHER_LAB_DOMAIN} (Popular)`);
-    tools.println(`Login  : ${PORTAL_LAB_ACCOUNT} (portal only; the monitor takes a token built from the portal data)`);
+    tools.println(`Hospital portal           : https://${PORTAL_LAB_DOMAIN}`);
+    tools.println(`Remote Desktop Connection : https://${MONITOR_LAB_DOMAIN} (Popular, third-party, not a hospital site)`);
+    tools.println(`Cipher Desk               : https://${CIPHER_LAB_DOMAIN} (Popular, third-party, not a hospital site)`);
+    tools.println(`Login                     : ${PORTAL_LAB_ACCOUNT} (portal only; Remote Desktop Connection takes a token built from the portal data)`);
     tools.println("The firewall and the game terminal are not used. Use the dock Guide tab to jump between steps.");
     tools.println("Check Goagle: both Popular sites should be listed, and a search for encrypt should find the cipher site.");
 };
@@ -114,12 +125,12 @@ export class PortalLabWebsite extends Website {
 
 @registerDebugWebsite
 export class MonitorLabWebsite extends Website {
-    SiteName = "Endpoint Monitor (lab)";
+    SiteName = "Remote Desktop Connection (lab)";
     Host = MONITOR_LAB_DOMAIN;
     Icon = MONITOR_LAB_ICON;
     Popular = true;
 
-    Pages: WebsitePageDefinition[] = labPages("monitor", "Endpoint Monitor", MONITOR_LAB_SEARCH);
+    Pages: WebsitePageDefinition[] = labPages("monitor", "Remote Desktop Connection", MONITOR_LAB_SEARCH);
 }
 
 @registerDebugWebsite
@@ -135,7 +146,7 @@ export class CipherLabWebsite extends Website {
 @registerDebugCommand({ default: true, scope: "both" })
 export class PortalLabCommand extends Command {
     CommandName = "portallab";
-    Description = "debug: register the remote access portal, Endpoint Monitor and Cipher Desk mock sites for live-testing";
+    Description = "debug: register the remote access portal, Remote Desktop Connection and Cipher Desk mock sites for live-testing";
     Autocomplete: CommandAutoComplete[] = [
         { label: "portallab", type: "STRING" },
         { label: "<up|down>", type: "STRING" },

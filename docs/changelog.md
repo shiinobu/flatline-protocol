@@ -27,6 +27,12 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-04
 
+- **[design] M5 debug lab: the Monitor site is renamed Remote Desktop Connection and rebuilt as an interactive remote
+  desktop on one framebuffer, Cipher Desk is redesigned, and login, encrypt/decrypt and display assembly get real
+  animation.** Puzzle logic and player text are unchanged and none of it has been tested in game yet; see
+  `docs/scratch.md` (2026-10-04 Remote Desktop Connection and Cipher Desk redesign) and `docs/font-licenses.md`. Remote
+  Desktop Connection and Cipher Desk are third-party sites, not part of the hospital's web, so the lab serves them on
+  `remotedesktopconnection-lab.io` and `cipherdesk-lab.io` instead of `*.pacificcare-health.org`.
 - **[milestone] The weblab passed its live test: all six probes behave as the M5 foundation needs.** Run by the owner on
   2026-10-04 with three debug sites in `src/debug/`: `portallab` (the three lab sites, the Popular grid and Goagle
   search), `seolab` (a closed `seo` page in four modes) and `exportslab` (website `Exports`). Proven in the running game:
