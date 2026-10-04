@@ -326,10 +326,10 @@ table.list.auto{table-layout:auto}
 .guide b{color:#fff}
 .guide .q{margin:0 0 14px;padding-left:10px;border-left:3px solid var(--dbg)}
 .dbgbtn{position:fixed;right:14px;bottom:14px;z-index:50;padding:6px 12px;background:#0a0d10;color:var(--dbg);border:1px dashed var(--dbg);border-radius:5px}
-.dsite{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #1b2328;color:#8a999e}
-.dsite button{height:26px;padding:0 10px;border:1px solid #2b373d;border-radius:5px;background:transparent;color:#c4d0d3}
+.dsite{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #1b2328;color:#8a999e}
+.dsite button{height:26px;padding:0 10px;border:1px solid #2b373d;border-radius:5px;background:transparent;color:#c4d0d3;white-space:nowrap}
 .dsite button.on{background:var(--dbg);border-color:var(--dbg);color:#fff}
-.dsite .addr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-size:12px}
+.dsite .addr{flex:1 1 160px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-size:12px}
 .dock select{height:30px;padding:0 28px 0 8px;background-color:#06090b;border:1px solid #1f2a30;border-radius:4px;color:#e5f1ef;font-size:13px}
 
 .mon{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--mbg)}
@@ -545,7 +545,7 @@ table.list.auto{table-layout:auto}
   var CFG = window.PC_CFG || {};
   var LOCK_SITE = CFG.site || "";
   var PORTAL_HOST = CFG.portal || "remote.pacificcare-health.org";
-  var MON_HOST = CFG.monitor || "endpointmonitor.io";
+  var MON_HOST = CFG.monitor || "remotedesktopconnection.io";
   var CIPHER_HOST = CFG.cipher || "cipherdesk.io";
   var TOKEN_KEY = "L-2608-03";
   var TOKEN_PLAIN = "g.desouza:Marigold2019:192.168.1.3:CHG-2608-014:arc-ir-01";
@@ -610,9 +610,9 @@ table.list.auto{table-layout:auto}
     "Tickets: kenapa akunnya tetap terbuka",
     "Config: apa yang berubah pada 30 Juni",
     "Config: siapa yang mengunci arsip",
-    "Systems: temukan alamat PC dan jalan ke monitor",
-    "Token: rangkai, enkripsi, login monitor",
-    "Terminal: pulihkan sinyal monitor",
+    "Systems: temukan alamat PC dan jalan ke Remote Desktop Connection",
+    "Token: rangkai, enkripsi, login Remote Desktop Connection",
+    "Terminal: pulihkan sinyal Remote Desktop Connection",
     "Arsip: baca tiga dokumen"
   ];
 
@@ -680,7 +680,7 @@ table.list.auto{table-layout:auto}
     { id: "HD-4468", at: "2026-08-03 07:15", by: "h.park", title: "VPN token for visiting consultant", pr: "P4", stt: "CLOSED", who: "r.wong", notes: ["2026-08-03 08:00 r.wong: Issued, expires in 14 days."] },
     { id: "HD-4481", at: "2026-08-10 09:02", by: "g.desouza", title: "Unknown USB on my desk, whose is it?", pr: "P4", stt: "OPEN", who: "unassigned", note: "usb", notes: ["2026-08-10 09:02 g.desouza: Found a USB stick on my desk. Label says Q3-2026-SEA. Is this ours? I do not want to plug it into anything without asking.", "(no reply)"] },
     { id: "HD-4490", at: "2026-08-12 13:40", by: "k.tan", title: "Theatre 2 scheduling display flicker", pr: "P4", stt: "CLOSED", who: "it.ops", notes: ["2026-08-12 15:10 it.ops: Cable swapped."] },
-    { id: "HD-4496", at: "2026-08-14 06:10", by: "t.nair", title: "IR review access to PC-IT-017 (isolated)", pr: "P2", stt: "CLOSED", who: "it.ops", tok: true, notes: ["2026-08-14 06:10 t.nair: IR needs a look at PC-IT-017 while the isolation stands. Break-glass token issued through Endpoint Monitor, sealed with the matter reference as agreed with Legal.", "2026-08-14 06:11 t.nair: " + SAMPLE_HEX, "2026-08-14 07:40 it.ops: Review done. The token stays valid until the isolation is reviewed."] },
+    { id: "HD-4496", at: "2026-08-14 06:10", by: "t.nair", title: "IR review access to PC-IT-017 (isolated)", pr: "P2", stt: "CLOSED", who: "it.ops", tok: true, notes: ["2026-08-14 06:10 t.nair: IR needs a look at PC-IT-017 while the isolation stands. Break-glass token issued through Remote Desktop Connection, sealed with the matter reference as agreed with Legal.", "2026-08-14 06:11 t.nair: " + SAMPLE_HEX, "2026-08-14 07:40 it.ops: Review done. The token stays valid until the isolation is reviewed."] },
     { id: "HD-4503", at: "2026-08-19 10:20", by: "hr.ops", title: "Account closure: G. de Souza (separation effective today)", pr: "P2", stt: "OPEN", who: "it.ops", key: "separation", notes: ["2026-08-19 10:20 hr.ops: Separation effective today. Close all access.", "2026-08-19 10:41 it.ops: Queued behind HD-4417 (directory sync). Manual closure not permitted during the migration window."] }
   ];
 
@@ -1195,7 +1195,7 @@ table.list.auto{table-layout:auto}
   }
 
   function drawSystems() {
-    return head("Systems", "Systems managed by this role.") + '<div class="note info">Remote display for held hosts runs through Endpoint Monitor at <span class="mono">https://' + MON_HOST + "</span>. It needs an access token for the host. The service desk has issued some before, see Tickets.</div>" + '<div class="card"><table class="list auto"><thead><tr><th>Host</th><th>Role</th><th>LAN address</th><th>Owner</th><th>Status</th></tr></thead><tbody>' +
+    return head("Systems", "Systems managed by this role.") + '<div class="note info">Remote display for held hosts runs through Remote Desktop Connection at <span class="mono">https://' + MON_HOST + "</span>. It needs an access token for the host. The service desk has issued some before, see Tickets.</div>" + '<div class="card"><table class="list auto"><thead><tr><th>Host</th><th>Role</th><th>LAN address</th><th>Owner</th><th>Status</th></tr></thead><tbody>' +
       SYSTEMS.map(function (s) { return '<tr class="' + (ui.answers && s.h === "Cold-Chart" ? "ans" : "") + '"><td class="c2"><b>' + s.h + "</b><small>" + s.tag + "</small></td><td>" + esc(s.role) + '</td><td class="mono">' + s.lan + "</td><td>" + s.own + "</td><td>" + sysPill(s) + "</td></tr>"; }).join("") + "</tbody></table></div>";
   }
 
@@ -1349,7 +1349,7 @@ table.list.auto{table-layout:auto}
     var el = $("dsite"), hosts = { portal: PORTAL_HOST, monitor: MON_HOST, cipher: CIPHER_HOST };
     el.classList.toggle("hide", !!LOCK_SITE);
     if (LOCK_SITE) return;
-    el.innerHTML = "<span>Browser</span>" + [["portal", "Portal"], ["monitor", "Monitor"], ["cipher", "Cipher"]].map(function (s) {
+    el.innerHTML = "<span>Browser</span>" + [["portal", "Portal"], ["monitor", "Remote Desktop Connection"], ["cipher", "Cipher"]].map(function (s) {
       return '<button class="' + (st.site === s[0] ? "on" : "") + '" data-act="site" data-v="' + s[0] + '">' + s[1] + "</button>";
     }).join("") + '<span class="addr mono">https://' + hosts[st.site] + "</span>";
   }
@@ -1369,7 +1369,7 @@ table.list.auto{table-layout:auto}
       }).join("") +
       "<h5 style=\"margin-top:14px\">Kunci arsip: " + docCount() + " dari " + DOC_GATES + "</h5>" + DOCS.filter(function (d) { return d.gate; }).map(function (d) {
         var on = P && P.docs[d.name];
-        return '<div class="key ' + (on ? "on" : "") + '"><b>' + d.key + "</b><span>" + (on ? "dibaca di monitor" : st.step >= 7 ? "belum dibaca" : "belum terbuka") + "</span></div>";
+        return '<div class="key ' + (on ? "on" : "") + '"><b>' + d.key + "</b><span>" + (on ? "dibaca di Remote Desktop Connection" : st.step >= 7 ? "belum dibaca" : "belum terbuka") + "</span></div>";
       }).join("") +
       "<h5 style=\"margin-top:14px\">Catatan</h5><div class=\"evl\">" + (st.notes.usb ? "NOTE: she asked about the USB and nobody answered." : "belum ada") + (heldKeys.length ? "<br>Ditahan: " + heldKeys.join(", ") : "") + "</div>";
     drawEvents();
@@ -1390,10 +1390,10 @@ table.list.auto{table-layout:auto}
       '<div class="q"><p><b>2. Tickets.</b> Cari tiket tentang G. de Souza (HD-4503). Catatannya menunjuk HD-4417 dan 30 Juni. Hasil: kunci separation, menu Config muncul. HD-4481 (USB) hanya log NOTE, bukan gerbang. Tiket HD-4496 (14 Agu) memuat string hex yang belum dipahami; simpan untuk langkah 6.</p></div>' +
       '<div class="q"><p><b>3. Config, 30 Juni.</b> Pilih dua snapshot di sekitar 30 Juni, tekan Compare snapshots, lalu buka View change record pada CHG-2606-022. Hasil: kunci controls.</p></div>' +
       '<div class="q"><p><b>4. Config, arsip dikunci.</b> Bandingkan snapshot di sekitar tanggal foothold (08-09 sampai 08-16), buka CHG-2608-014. Hasil: kunci hold, menu Systems dan Network muncul. Bila dibuka sebelum controls, pengamatan ditahan dan baru dihitung saat gilirannya, jadi tidak ada langkah yang macet.</p></div>' +
-      '<div class="q"><p><b>5. Systems.</b> Catatan perubahan menyebut alias host (arc-ir-01), bukan alamat. Systems: arc-ir-01 adalah Cold-Chart, 192.168.1.3 (jangan tertukar dengan arc-img-02). Catatan di halaman itu menyebut Endpoint Monitor di <span class="mono">' + MON_HOST + '</span> dan access token. Membuka Systems memajukan langkah. Endpoint Monitor dan Cipher Desk dibuka lewat bilah Browser di dock (di game: daftar Popular Goagle).</p></div>' +
-      '<div class="q"><p><b>6. Token.</b> Di tiket HD-4496 ada string hex: token t.nair untuk Bedside-17. Buka Cipher Desk, mode Decrypt, passphrase = nomor perkara hold (<span class="mono">L-2608-03</span>, ada di kartu perubahan dan aturan Network). Hasilnya lima keping <span class="mono">user:password:alamat:perubahan:tag</span>. Pola: alamat LAN host, perubahan yang memasang aturan pada host itu, tag host. Rangkai milik Cold-Chart (alamat dari Systems, CHG yang memuat IR-22, tag arc-ir-01), mode Encrypt dengan passphrase yang sama, tempel di Endpoint Monitor. Pesan tolak menyebut bagian yang salah; tiga kali salah menahan 15 detik. Pasangan lain (Bedside-17, Lead-Apron, Pay-Station) membuka konsol umpan tanpa modul display.</p></div>' +
-      '<div class="q"><p><b>7. Terminal.</b> Konsol agent di Cold-Chart bebas dijelajahi (hanya /var/ir yang disegel). Pipeline sinyal berurutan: lease, source, link, format, sync. Mulai dari <span class="mono">agent diag</span>. Jendela Monitor muncul pada <span class="mono">signal apply</span> pertama dan menampilkan tahap pertama yang gagal; log agent mencatat sebabnya. Stride dihitung (lebar x bpp/8, naik ke kelipatan 64). Sync dikalibrasi paling akhir; mengubah tahap sebelumnya membuatnya STALE. Selesai dengan <span class="mono">agent attach</span>. Kedua jendela bisa digeser lewat judulnya dan diubah ukurannya lewat sudut kanan bawah; tombol di judul Monitor memenuhi layar.</p></div>' +
-      '<div class="q"><p><b>8. Arsip.</b> Setelah attach, desktop Monitor membuka browser mini berisi arsip. Baca tiga dokumen: acknowledgement_gdesouza, decision_memo, usb_ticket_PC-IT-017 (empat file lain pengecoh). Semuanya terbaca: objective selesai.</p></div>' + answers;
+      '<div class="q"><p><b>5. Systems.</b> Catatan perubahan menyebut alias host (arc-ir-01), bukan alamat. Systems: arc-ir-01 adalah Cold-Chart, 192.168.1.3 (jangan tertukar dengan arc-img-02). Catatan di halaman itu menyebut Remote Desktop Connection di <span class="mono">' + MON_HOST + '</span> dan access token. Membuka Systems memajukan langkah. Remote Desktop Connection dan Cipher Desk dibuka lewat bilah Browser di dock (di game: daftar Popular Goagle).</p></div>' +
+      '<div class="q"><p><b>6. Token.</b> Di tiket HD-4496 ada string hex: token t.nair untuk Bedside-17. Buka Cipher Desk, mode Decrypt, passphrase = nomor perkara hold (<span class="mono">L-2608-03</span>, ada di kartu perubahan dan aturan Network). Hasilnya lima keping <span class="mono">user:password:alamat:perubahan:tag</span>. Pola: alamat LAN host, perubahan yang memasang aturan pada host itu, tag host. Rangkai milik Cold-Chart (alamat dari Systems, CHG yang memuat IR-22, tag arc-ir-01), mode Encrypt dengan passphrase yang sama, tempel di Remote Desktop Connection. Pesan tolak menyebut bagian yang salah; tiga kali salah menahan 15 detik. Pasangan lain (Bedside-17, Lead-Apron, Pay-Station) membuka konsol umpan tanpa modul display.</p></div>' +
+      '<div class="q"><p><b>7. Terminal.</b> Konsol agent di Cold-Chart bebas dijelajahi (hanya /var/ir yang disegel). Pipeline sinyal berurutan: lease, source, link, format, sync. Mulai dari <span class="mono">agent diag</span>. Jendela Remote Desktop Connection muncul pada <span class="mono">signal apply</span> pertama dan menampilkan tahap pertama yang gagal; log agent mencatat sebabnya. Stride dihitung (lebar x bpp/8, naik ke kelipatan 64). Sync dikalibrasi paling akhir; mengubah tahap sebelumnya membuatnya STALE. Selesai dengan <span class="mono">agent attach</span>. Kedua jendela bisa digeser lewat judulnya dan diubah ukurannya lewat sudut kanan bawah; tombol di judul Remote Desktop Connection memenuhi layar.</p></div>' +
+      '<div class="q"><p><b>8. Arsip.</b> Setelah attach, desktop Remote Desktop Connection membuka browser mini berisi arsip. Baca tiga dokumen: acknowledgement_gdesouza, decision_memo, usb_ticket_PC-IT-017 (empat file lain pengecoh). Semuanya terbaca: objective selesai.</p></div>' + answers;
   }
 
   var TARGETS = [
@@ -1594,8 +1594,8 @@ table.list.auto{table-layout:auto}
     });
     file("/usr/share/doc/agent/README", "agent 4.2.1, endpoint console and display agent\n\nThe console and the display are separate. The console runs as a system\nservice. The display is attached on request through a signal chain:\n\n  lease    the display lock must be free\n  source   capture head to read frames from\n  link     relay and framing used to carry the frames\n  format   how the frames are laid out (see format.txt)\n  sync     frame timing, calibrated last\n\nWhen the picture is wrong, read troubleshooting.txt and the agent log.\n");
     file("/usr/share/doc/agent/format.txt", "Framebuffer format\n\n  width, height   visible size in pixels\n  bpp             bits per pixel: 16, 24 or 32\n  order           channel order of one pixel: rgb or bgr\n  stride          bytes per row: width x (bpp / 8), rounded up to the\n                  next multiple of 64\n\nThe kernel does not report the stride. Compute it.\n");
-    file("/usr/share/doc/agent/troubleshooting.txt", "Symptoms and the stage that causes them\n\n  black screen .................. the capture head has no frame to give\n  only a pointer ................ the head is the cursor plane\n  frozen picture ................ the relay is not talking to us\n  snow .......................... relay and agent disagree on framing\n  slanted picture ............... row length (stride) is wrong\n  swapped colours ............... channel order is wrong\n  banded colours ................ bpp is lower than the framebuffer\n  smeared colour edges .......... bpp is 24 against 32, or the reverse\n  repeated or squeezed columns .. width is wrong\n  repeated or stretched rows .... height is wrong\n  rolling picture ............... sync is stale, or the rate is wrong\n\nThe monitor shows the earliest stage that fails. Fix that one first.\nChanging an earlier stage makes the calibration stale.\n");
-    file("/usr/share/doc/agent/signal.txt", "signal show                  print the current profile\nsignal sources               list capture heads\nsignal relays                list relays\nsignal set <key> <value>     keys: source relay framing width height\n                             bpp order stride rate\nsignal apply                 push the profile and show it on the monitor\nsignal calibrate             lock frame timing to the current chain\nsignal reset                 go back to profile.bak\n");
+    file("/usr/share/doc/agent/troubleshooting.txt", "Symptoms and the stage that causes them\n\n  black screen .................. the capture head has no frame to give\n  only a pointer ................ the head is the cursor plane\n  frozen picture ................ the relay is not talking to us\n  snow .......................... relay and agent disagree on framing\n  slanted picture ............... row length (stride) is wrong\n  swapped colours ............... channel order is wrong\n  banded colours ................ bpp is lower than the framebuffer\n  smeared colour edges .......... bpp is 24 against 32, or the reverse\n  repeated or squeezed columns .. width is wrong\n  repeated or stretched rows .... height is wrong\n  rolling picture ............... sync is stale, or the rate is wrong\n\nRemote Desktop Connection shows the earliest stage that fails. Fix that one first.\nChanging an earlier stage makes the calibration stale.\n");
+    file("/usr/share/doc/agent/signal.txt", "signal show                  print the current profile\nsignal sources               list capture heads\nsignal relays                list relays\nsignal set <key> <value>     keys: source relay framing width height\n                             bpp order stride rate\nsignal apply                 push the profile and show it in Remote Desktop Connection\nsignal calibrate             lock frame timing to the current chain\nsignal reset                 go back to profile.bak\n");
     file("/run/agent/display.lock", "pid=" + R.deadPid + "\ncmd=agent-display\nstarted=2026-08-14 02:57:44\n", "root", "Aug 14 02:57");
     file("/run/agent/session.lock", "pid=" + R.livePid + "\ncmd=agent-console\nstarted=2026-09-27 14:03:02\n", "root", "Sep 27 14:03");
     file("/var/log/agent/agent.log", function () {
@@ -1605,7 +1605,7 @@ table.list.auto{table-layout:auto}
     file("/var/log/agent/session.log.1", "2026-08-13 07:55:10 attach user=sibrahim source=" + blk + " relay=" + R.relayOf.expired + " framing=" + R.fo + " mode=" + od.w + "x" + od.h + " bpp=" + od.bpp + " order=" + od.order + " rate=" + od.rate + "\n2026-08-13 18:02:41 detach user=sibrahim\n", "root", "Aug 31 23:59");
     file("/var/log/kern.log", "2026-08-09 06:00:11 arc-ir-01 kernel: Linux version 6.1.0-23-amd64\n2026-08-09 06:00:13 arc-ir-01 kernel: " + blk + ": registered, vesafb\n2026-08-09 06:00:13 arc-ir-01 kernel: " + act + ": registered, i915drmfb\n2026-08-09 06:00:14 arc-ir-01 kernel: " + cur + ": cursor plane registered\n2026-08-14 02:58:03 arc-ir-01 kernel: nf_conntrack: containment rule IR-3389 loaded\n2026-08-15 03:02:11 arc-ir-01 kernel: " + act + ": mode change " + od.w + "x" + od.h + " -> " + tr.w + "x" + tr.h + " (" + tr.bpp + "bpp, " + pixFmt(tr) + ", " + tr.rate + " Hz)\n2026-08-15 03:02:11 arc-ir-01 kernel: " + blk + ": dpms off\n2026-09-01 00:00:02 arc-ir-01 kernel: random: crng reseeded\n", "root", "Sep  1 00:00");
     file("/var/log/Xorg.0.log", "[    12.401] (II) Module drm: vendor=\"X.Org Foundation\"\n[    12.552] (II) " + act + ": depth " + tr.bpp + ", " + pixFmt(tr) + ", " + tr.w + "x" + tr.h + "@" + tr.rate + "\n[    12.553] (II) " + blk + ": no output connected\n[    12.560] (WW) " + cur + ": cursor plane only, skipping\n[    12.610] (==) Using config directory: \"/etc/X11/xorg.conf.d\"\n", "root", "Sep 27 06:00");
-    file("/var/log/syslog", "Sep 27 06:00:01 arc-ir-01 systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 arc-ir-01 CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 arc-ir-01 CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 arc-ir-01 systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: console session opened by monitor relay\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: display lease check: held by " + R.deadPid + "\n", "root", "Sep 27 14:03");
+    file("/var/log/syslog", "Sep 27 06:00:01 arc-ir-01 systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 arc-ir-01 CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 arc-ir-01 CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 arc-ir-01 systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: console session opened by Remote Desktop Connection relay\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: display lease check: held by " + R.deadPid + "\n", "root", "Sep 27 14:03");
     file("/var/log/auth.log", "Jul  9 03:20:11 arc-ir-01 sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 arc-ir-01 sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 arc-ir-01 sshd[2301]: Accepted publickey for rwong from 10.8.0.14 port 51422\nAug 14 02:57:40 arc-ir-01 sudo: rwong : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 arc-ir-01 sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 arc-ir-01 sshd[2480]: Accepted publickey for rwong from 10.8.0.14 port 51500\nAug 15 11:04:02 arc-ir-01 sshd[2480]: Received disconnect from 10.8.0.14\n", "root", "Aug 15 11:04");
     HEADS.forEach(function (h) {
       var role = R.heads[h], base = "/sys/class/graphics/" + h + "/", md = role === "active" ? tr : od;
@@ -1985,7 +1985,7 @@ table.list.auto{table-layout:auto}
     sym = curSym();
     applyLogs(P, P.shown, sym, R);
     ev("signal applied: " + sym.first);
-    return "pushed 9 parameters. The monitor window shows the result.";
+    return "pushed 9 parameters. The Remote Desktop Connection window shows the result.";
   }
   function signalCalibrate() {
     var P = PZ();
@@ -2018,11 +2018,11 @@ table.list.auto{table-layout:auto}
     same = fullSig(P.cfg) === fullSig(P.shown) && P.cal === P.shownCal;
     if (!same) return "attach refused: the profile changed since the last apply. Run signal apply again.";
     sym = curSym();
-    if (sym.first !== "clear") return "attach refused: signal not clean. Look at the monitor window.";
+    if (sym.first !== "clear") return "attach refused: signal not clean. Look at the Remote Desktop Connection window.";
     P.attached = true;
     ev("Exports.flatlineMonitorSignal(1)");
     ev("archiveAccessed");
-    gameToast("Endpoint Monitor (game, mock)", "Display attached. The archive is open on the monitor.");
+    gameToast("Remote Desktop Connection (game, mock)", "Display attached. The archive is open in Remote Desktop Connection.");
     return "display: lease acquired\ndisplay: attaching arc-ir-01\ndisplay: attached";
   }
 
@@ -2124,12 +2124,12 @@ table.list.auto{table-layout:auto}
   function hintText() {
     var M = st.mon, P = M.pz, sym;
     if (M.host !== "cold") return "The display module is not installed on this host.";
-    if (P.attached) return "Display attached. Use the monitor window.";
+    if (P.attached) return "Display attached. Use the Remote Desktop Connection window.";
     if (!P.lease) return "The display is busy. Something may still be holding its lease.";
     if (!P.applied) return "Nothing is being shown yet. Push the profile with signal apply.";
     sym = curSym();
     if (sym.first === "clear") return "The signal is clean. Attach the display.";
-    return "The monitor shows the earliest failing stage. Read it, then the agent log.";
+    return "Remote Desktop Connection shows the earliest failing stage. Read it, then the agent log.";
   }
   function chipsHtml() {
     var M = st.mon;
@@ -2533,7 +2533,7 @@ table.list.auto{table-layout:auto}
     return '<section class="win" id="w-term" data-id="term"><div class="wbar" data-win="term"><i class="wd on"></i><span class="wt">Agent console</span><span class="wh">' + esc(t.tag + " " + t.lan) + '</span></div><div class="tw"><div class="tstat" id="tstat"></div><div id="mscroll"></div><div class="tcand" id="tcand"></div><div class="thint" id="thint"></div></div><i class="wrz" data-rz="term"></i></section>';
   }
   function monWinHtml() {
-    return '<section class="win pop" id="w-scr" data-id="scr"><div class="wbar" data-win="scr"><i class="wd on"></i><span class="wt">Monitor</span><span class="wh" id="mwh"></span><button class="wb" data-act="winmax" aria-label="Fit to workspace">' + ic("max") + '</button></div><div class="mv" id="mv"><canvas id="msig" width="' + CW + '" height="' + CH + '"></canvas><div class="dsk hide" id="dsk"></div></div><div class="mhud" id="mhud"></div><i class="wrz" data-rz="scr"></i></section>';
+    return '<section class="win pop" id="w-scr" data-id="scr"><div class="wbar" data-win="scr"><i class="wd on"></i><span class="wt">Remote Desktop Connection</span><span class="wh" id="mwh"></span><button class="wb" data-act="winmax" aria-label="Fit to workspace">' + ic("max") + '</button></div><div class="mv" id="mv"><canvas id="msig" width="' + CW + '" height="' + CH + '"></canvas><div class="dsk hide" id="dsk"></div></div><div class="mhud" id="mhud"></div><i class="wrz" data-rz="scr"></i></section>';
   }
   function openMonitorWindow() {
     var wsp = $("wsp"), P = PZ();
@@ -2548,7 +2548,7 @@ table.list.auto{table-layout:auto}
   }
   function drawWork() {
     var M = st.mon, t = targetById(M.host), P = M.host === "cold" ? PZ() : null;
-    $("stage").innerHTML = '<div class="mon"><header class="mtop"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Endpoint Monitor</b><span>Remote display and endpoint console</span></div></div><div class="sp"></div><span class="hostchip mono">' + esc(t.name + "  " + t.tag + "  " + t.lan) + '</span><span class="rs-k mono" id="mclk">00:00</span><button class="btn ghost sm" data-act="monout">' + ic("out") + 'Disconnect</button></header><div class="wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
+    $("stage").innerHTML = '<div class="mon"><header class="mtop"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Remote Desktop Connection</b><span>Remote display and agent console</span></div></div><div class="sp"></div><span class="hostchip mono">' + esc(t.name + "  " + t.tag + "  " + t.lan) + '</span><span class="rs-k mono" id="mclk">00:00</span><button class="btn ghost sm" data-act="monout">' + ic("out") + 'Disconnect</button></header><div class="wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
     ensureWin();
     placeWin("term");
     front(M.top || "term");
@@ -2571,7 +2571,7 @@ table.list.auto{table-layout:auto}
 
   function monLoginHtml() {
     var M = st.mon, locked = M.lock > Date.now();
-    return '<div class="mlogin"><section class="mlg-l"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Endpoint Monitor</b><span>Remote display and endpoint console</span></div></div><div class="mlg-f"><h2>Connect to a workstation</h2><p class="lead">Paste the access token issued for the host you want to open.</p><label class="fldl" for="mtok">Access token</label><textarea id="mtok" class="mtok" name="token" autocomplete="off" spellcheck="false" placeholder="Token" aria-label="Access token"></textarea><div class="err" id="mlerr">' + esc(locked ? lockText() : M.err) + '</div><button class="btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '>Connect</button><small>Each token is issued for one host. Sessions are recorded and reviewed by IT Operations.</small></div></section>' +
+    return '<div class="mlogin"><section class="mlg-l"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Remote Desktop Connection</b><span>Remote display and agent console</span></div></div><div class="mlg-f"><h2>Connect to a workstation</h2><p class="lead">Paste the access token issued for the host you want to open.</p><label class="fldl" for="mtok">Access token</label><textarea id="mtok" class="mtok" name="token" autocomplete="off" spellcheck="false" placeholder="Token" aria-label="Access token"></textarea><div class="err" id="mlerr">' + esc(locked ? lockText() : M.err) + '</div><button class="btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '>Connect</button><small>Each token is issued for one host. Sessions are recorded and reviewed by IT Operations.</small></div></section>' +
       '<section class="mlg-r"><div class="wall" aria-hidden="true">' + ["on", "on", "off", "on", "held", "on"].map(function (k) { return '<div class="scr ' + k + '"><i></i><i></i><i></i><i></i></div>'; }).join("") + "</div><p>Open a read only console on a workstation or server, and bring up its screen without leaving this page.</p></section></div>";
   }
   function lockText() {
@@ -2777,7 +2777,7 @@ table.list.auto{table-layout:auto}
     if (a === "monlogin") { monLogin(); return; }
     if (a === "monout") { monOut(); return; }
     if (a === "winmax") { winMax("scr"); return; }
-    if (a === "dico") { toast("Not available", "This monitor session is read only."); return; }
+    if (a === "dico") { toast("Not available", "This Remote Desktop Connection session is read only."); return; }
     if (a === "mbopen") { openBrowser(); return; }
     if (a === "adoc") { openDoc(d.v); return; }
     if (a === "cphmode") { st.ci.mode = d.v; st.ci.out = ""; st.ci.note = ""; st.ci.ok = false; drawCipher(); return; }

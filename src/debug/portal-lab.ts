@@ -19,7 +19,7 @@ type PortalLabSite = "portal" | "monitor" | "cipher";
 
 const PORTAL_LAB_REV = "r2 token";
 const PORTAL_LAB_DOMAIN = "remote-lab.pacificcare-health.org";
-const MONITOR_LAB_DOMAIN = "monitor-lab.pacificcare-health.org";
+const MONITOR_LAB_DOMAIN = "remote-desktop-lab.pacificcare-health.org";
 const CIPHER_LAB_DOMAIN = "cipher-lab.pacificcare-health.org";
 const PORTAL_LAB_IP = "198.18.1.2";
 const MONITOR_LAB_IP = "198.18.1.3";
@@ -27,7 +27,7 @@ const CIPHER_LAB_IP = "198.18.1.4";
 const PORTAL_LAB_ACCOUNT = "g.desouza / Marigold2019";
 const PREVIEW_ASSET_PREFIX = "../../public/assets/";
 const LIVE_ASSET_PREFIX = "./assets/";
-const MONITOR_LAB_SEARCH: readonly string[] = ["endpoint monitor", "remote display", "workstation console"];
+const MONITOR_LAB_SEARCH: readonly string[] = ["remote desktop connection", "remote desktop", "remote display", "workstation console"];
 const CIPHER_LAB_SEARCH: readonly string[] = ["encrypt", "decrypt", "cipher", "passphrase"];
 
 const PORTAL_LAB_RECORDS: readonly DomainSpec[] = [
@@ -71,10 +71,10 @@ const labPages = (
 ];
 
 const printPortalLabSheet = (tools: CommandTools): void => {
-    tools.println(`Portal : https://${PORTAL_LAB_DOMAIN}`);
-    tools.println(`Monitor: https://${MONITOR_LAB_DOMAIN} (Popular)`);
-    tools.println(`Cipher : https://${CIPHER_LAB_DOMAIN} (Popular)`);
-    tools.println(`Login  : ${PORTAL_LAB_ACCOUNT} (portal only; the monitor takes a token built from the portal data)`);
+    tools.println(`Portal                    : https://${PORTAL_LAB_DOMAIN}`);
+    tools.println(`Remote Desktop Connection : https://${MONITOR_LAB_DOMAIN} (Popular)`);
+    tools.println(`Cipher                    : https://${CIPHER_LAB_DOMAIN} (Popular)`);
+    tools.println(`Login                     : ${PORTAL_LAB_ACCOUNT} (portal only; Remote Desktop Connection takes a token built from the portal data)`);
     tools.println("The firewall and the game terminal are not used. Use the dock Guide tab to jump between steps.");
     tools.println("Check Goagle: both Popular sites should be listed, and a search for encrypt should find the cipher site.");
 };
@@ -90,12 +90,12 @@ export class PortalLabWebsite extends Website {
 
 @registerDebugWebsite
 export class MonitorLabWebsite extends Website {
-    SiteName = "Endpoint Monitor (lab)";
+    SiteName = "Remote Desktop Connection (lab)";
     Host = MONITOR_LAB_DOMAIN;
     Icon = "";
     Popular = true;
 
-    Pages: DynamicWebsitePageDefinition[] = labPages("monitor", "Endpoint Monitor", MONITOR_LAB_SEARCH);
+    Pages: DynamicWebsitePageDefinition[] = labPages("monitor", "Remote Desktop Connection", MONITOR_LAB_SEARCH);
 }
 
 @registerDebugWebsite
@@ -111,7 +111,7 @@ export class CipherLabWebsite extends Website {
 @registerDebugCommand({ default: true, scope: "both" })
 export class PortalLabCommand extends Command {
     CommandName = "portallab";
-    Description = "debug: register the remote access portal, Endpoint Monitor and Cipher Desk mock sites for live-testing";
+    Description = "debug: register the remote access portal, Remote Desktop Connection and Cipher Desk mock sites for live-testing";
     Autocomplete: CommandAutoComplete[] = [
         { label: "portallab", type: "STRING" },
         { label: "<up|down>", type: "STRING" },
