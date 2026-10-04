@@ -4,8 +4,7 @@ import {
     Website,
     type CommandAutoComplete,
     type CommandTools,
-    type DynamicWebsitePageDefinition,
-    type PageMetadata,
+    type WebsitePageDefinition,
 } from "@hotbunny/hackhub-content-sdk";
 
 import { registerDomains, removeDomains } from "../components/domains.js";
@@ -17,7 +16,7 @@ import dashboardPreview from "./dashboard-preview.html";
 
 type PortalLabSite = "portal" | "monitor" | "cipher";
 
-const PORTAL_LAB_REV = "r2 token";
+const PORTAL_LAB_REV = "r4 icons";
 const PORTAL_LAB_DOMAIN = "remote-lab.pacificcare-health.org";
 const MONITOR_LAB_DOMAIN = "monitor-lab.pacificcare-health.org";
 const CIPHER_LAB_DOMAIN = "cipher-lab.pacificcare-health.org";
@@ -30,6 +29,30 @@ const LIVE_ASSET_PREFIX = "./assets/";
 const MONITOR_LAB_SEARCH: readonly string[] = ["endpoint monitor", "remote display", "workstation console"];
 const CIPHER_LAB_SEARCH: readonly string[] = ["encrypt", "decrypt", "cipher", "passphrase"];
 
+const labIcon = (shapes: string): string =>
+    `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${shapes}</svg>`)}`;
+
+const PORTAL_LAB_ICON = labIcon(
+    '<rect width="64" height="64" rx="14" fill="#0f4c3f"/>' +
+        '<g transform="translate(8 8) scale(1.5)">' +
+        '<path d="M4 28C3 14 12 4 29 3c1 16-7 26-21 26z" fill="#35c68c"/>' +
+        '<path d="M7 25c4-8 9-12 17-16" fill="none" stroke="#06231b" stroke-width="2" stroke-linecap="round"/></g>',
+);
+
+const MONITOR_LAB_ICON = labIcon(
+    '<rect width="64" height="64" rx="14" fill="#0b1720"/>' +
+        '<rect x="12" y="15" width="40" height="27" rx="4" fill="none" stroke="#5cc8f0" stroke-width="4"/>' +
+        '<path d="M32 42v8M24 50h16" stroke="#5cc8f0" stroke-width="4" stroke-linecap="round"/>' +
+        '<path d="M18 31h7l4-8 5 14 4-9h6" fill="none" stroke="#38c88e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+);
+
+const CIPHER_LAB_ICON = labIcon(
+    '<rect width="64" height="64" rx="14" fill="#e6edf5"/>' +
+        '<circle cx="24" cy="32" r="9" fill="none" stroke="#14304a" stroke-width="5"/>' +
+        '<path d="M33 32h21M46 32v9M54 32v6" fill="none" stroke="#14304a" stroke-width="5" stroke-linecap="round"/>' +
+        '<circle cx="24" cy="32" r="2.5" fill="#ff6b5e"/>',
+);
+
 const PORTAL_LAB_RECORDS: readonly DomainSpec[] = [
     { name: PORTAL_LAB_DOMAIN, ip: PORTAL_LAB_IP, needsSubnet: true },
     { name: MONITOR_LAB_DOMAIN, ip: MONITOR_LAB_IP, needsSubnet: true },
@@ -38,6 +61,9 @@ const PORTAL_LAB_RECORDS: readonly DomainSpec[] = [
 const PORTAL_LAB_IPS: readonly string[] = [PORTAL_LAB_IP, MONITOR_LAB_IP, CIPHER_LAB_IP];
 
 const isPortalLabUp = (): boolean => Network.getSubnet(PORTAL_LAB_IP) !== null;
+
+const portalLabSubnets = (): string =>
+    PORTAL_LAB_IPS.map((ip) => `${ip}=${Network.getSubnet(ip) !== null}`).join(" ");
 
 const renderLabPage = (site: PortalLabSite): string => {
     const config = JSON.stringify({
@@ -57,16 +83,14 @@ const labPages = (
     site: PortalLabSite,
     title: string,
     search: readonly string[] = [],
-): DynamicWebsitePageDefinition[] => [
+): WebsitePageDefinition[] => [
     {
         path: "/",
+        title,
+        description: "Debug lab: dashboard mock.",
+        html: renderLabPage(site),
         seo: search.length > 0,
-        metadata: (): PageMetadata => ({
-            title,
-            description: "Debug lab: dashboard mock.",
-            html: renderLabPage(site),
-            search: [...search],
-        }),
+        search: [...search],
     },
 ];
 
@@ -83,29 +107,29 @@ const printPortalLabSheet = (tools: CommandTools): void => {
 export class PortalLabWebsite extends Website {
     SiteName = "PacificCare Remote Access (lab)";
     Host = PORTAL_LAB_DOMAIN;
-    Icon = "";
+    Icon = PORTAL_LAB_ICON;
 
-    Pages: DynamicWebsitePageDefinition[] = labPages("portal", "PacificCare Remote Access");
+    Pages: WebsitePageDefinition[] = labPages("portal", "PacificCare Remote Access");
 }
 
 @registerDebugWebsite
 export class MonitorLabWebsite extends Website {
     SiteName = "Endpoint Monitor (lab)";
     Host = MONITOR_LAB_DOMAIN;
-    Icon = "";
+    Icon = MONITOR_LAB_ICON;
     Popular = true;
 
-    Pages: DynamicWebsitePageDefinition[] = labPages("monitor", "Endpoint Monitor", MONITOR_LAB_SEARCH);
+    Pages: WebsitePageDefinition[] = labPages("monitor", "Endpoint Monitor", MONITOR_LAB_SEARCH);
 }
 
 @registerDebugWebsite
 export class CipherLabWebsite extends Website {
     SiteName = "Cipher Desk (lab)";
     Host = CIPHER_LAB_DOMAIN;
-    Icon = "";
+    Icon = CIPHER_LAB_ICON;
     Popular = true;
 
-    Pages: DynamicWebsitePageDefinition[] = labPages("cipher", "Cipher Desk", CIPHER_LAB_SEARCH);
+    Pages: WebsitePageDefinition[] = labPages("cipher", "Cipher Desk", CIPHER_LAB_SEARCH);
 }
 
 @registerDebugCommand({ default: true, scope: "both" })
@@ -137,6 +161,8 @@ export class PortalLabCommand extends Command {
             return;
         }
 
+        trace("PORTALLAB", `state before: ${portalLabSubnets()}`);
+
         if (action === "down") {
             if (!isPortalLabUp()) {
                 tools.printWarning("Portal lab is not up.");
@@ -146,7 +172,7 @@ export class PortalLabCommand extends Command {
             for (const ip of PORTAL_LAB_IPS) {
                 await Network.destroyNetwork(ip);
             }
-            trace("PORTALLAB", "down");
+            trace("PORTALLAB", `down, state after: ${portalLabSubnets()}`);
             tools.printSuccess("Portal lab torn down.");
             return;
         }
@@ -161,7 +187,8 @@ export class PortalLabCommand extends Command {
         }
 
         if (isPortalLabUp()) {
-            tools.printWarning("Portal lab is already up. Run: portallab down");
+            trace("PORTALLAB", "up refused: already up");
+            tools.printWarning(`Portal lab is already up (${portalLabSubnets()}). Run: portallab down`);
             return;
         }
 
