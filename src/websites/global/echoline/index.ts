@@ -6,8 +6,8 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M05_SNAPSHOTS, type StaffRow } from "../../../content/m05/echoline.js";
-import { M05_ECHOLINE_DOMAIN, M05_EDGE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
+import { M05_ECHOLINE_CAPTURE, type StaffRow } from "../../../content/m05/echoline.js";
+import { M05_ECHOLINE_DOMAIN, M05_REMOTE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
 import {
     M06_ARCHIVE_AGENT_NAME,
     M06_ARCHIVE_CONTACT,
@@ -63,7 +63,7 @@ const groups = (): readonly CaptureGroup[] => {
     if (m05CapturesOpen()) {
         open.push({
             subject: `${M05_HOSPITAL_MAIL_DOMAIN}/it/team`,
-            captures: M05_SNAPSHOTS.map((snapshot) => ({ path: snapshot.path, date: snapshot.date })),
+            captures: [{ path: M05_ECHOLINE_CAPTURE.path, date: M05_ECHOLINE_CAPTURE.date }],
         });
     }
 
@@ -108,7 +108,7 @@ const renderStaffSnapshot = (date: string, staff: readonly StaffRow[]): string =
     fillMarkers(localizeHtml(snapshotPage), {
         EL_BANNER: escape(siteT(M05_SITE_KEY.EL_BANNER, { date })),
         EL_ROWS: renderStaffRows(staff),
-        EL_REMOTE: escape(siteT(M05_SITE_KEY.EL_REMOTE_NOTE, { host: M05_EDGE_DOMAIN })),
+        EL_REMOTE: escape(siteT(M05_SITE_KEY.EL_REMOTE_NOTE, { host: M05_REMOTE_DOMAIN })),
     });
 
 const archiveContact = (): string => {
@@ -163,14 +163,11 @@ export class EcholineArchiveWebsite extends Website {
 
     Pages: DynamicWebsitePageDefinition[] = [
         gated("/", "Echoline Archive", anyCaptureOpen, renderIndex),
-        ...gateMissionPages(
-            "m05",
-            M05_SNAPSHOTS.map((snapshot) =>
-                gated(snapshot.path, "Archived capture", isM05ArchiveOpen, () =>
-                    renderStaffSnapshot(snapshot.date, snapshot.staff),
-                ),
+        ...gateMissionPages("m05", [
+            gated(M05_ECHOLINE_CAPTURE.path, "Archived capture", isM05ArchiveOpen, () =>
+                renderStaffSnapshot(M05_ECHOLINE_CAPTURE.date, M05_ECHOLINE_CAPTURE.staff),
             ),
-        ),
+        ]),
         ...gateMissionPages("m06", [
             gated(
                 M06_ARCHIVE_PATH,

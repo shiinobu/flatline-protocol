@@ -14,13 +14,22 @@ import {
     type LeakRecord,
 } from "../../../content/m05/leakindex.js";
 import { M05_LEAKINDEX_DOMAIN } from "../../../content/m05/network.js";
-import { isM05LookupOpen } from "../../../context/m05/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M05_SITE_KEY } from "../../../i18n/m05/site.js";
-import { fillDataMarker, localizeHtml } from "../../global/localize.js";
-import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
+import { fillDataMarker, localizeHtml } from "../localize.js";
+import { requireHttps } from "../page-guards.js";
 
 import homePage from "./home.html";
+
+const LEAKINDEX_ICON =
+    "data:image/svg+xml," +
+    encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+            '<rect width="64" height="64" rx="14" fill="#140c0a"/>' +
+            '<circle cx="27" cy="27" r="12" fill="none" stroke="#ff7a4a" stroke-width="5"/>' +
+            '<path d="M36 36l13 13" fill="none" stroke="#ff7a4a" stroke-width="6" stroke-linecap="round"/>' +
+            '<path d="M22 27h10M27 22v10" stroke="#ffd0b8" stroke-width="3" stroke-linecap="round"/></svg>',
+    );
 
 const SOURCE_KEYS: Readonly<Record<LeakRecord["source"], string>> = {
     medvendor: M05_SITE_KEY.LI_SOURCE_MEDVENDOR,
@@ -52,7 +61,8 @@ const renderHome = (): string =>
 export class LeakIndexWebsite extends Website {
     SiteName = "LeakIndex";
     Host = M05_LEAKINDEX_DOMAIN;
-    Icon = "";
+    Icon = LEAKINDEX_ICON;
+    Popular = true;
 
     Exports = {
         flatlineOpenLeakRecord: (id: number): void => {
@@ -60,20 +70,15 @@ export class LeakIndexWebsite extends Website {
         },
     };
 
-    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
+    Pages: DynamicWebsitePageDefinition[] = [
         {
             path: "/",
-            metadata: (context: PageContext): PageMetadata => {
-                if (!isM05LookupOpen()) return notFoundMetadata();
-
-                return (
-                    requireHttps(context) ?? {
-                        title: "LeakIndex",
-                        description: "Breach record lookup.",
-                        html: renderHome(),
-                    }
-                );
-            },
+            metadata: (context: PageContext): PageMetadata =>
+                requireHttps(context) ?? {
+                    title: "LeakIndex",
+                    description: "Breach record lookup.",
+                    html: renderHome(),
+                },
         },
-    ]);
+    ];
 }

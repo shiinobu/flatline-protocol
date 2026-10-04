@@ -1,3 +1,4 @@
+import "../websites/global/leakindex/index.js";
 import { registerBreachText } from "../components/desktop-breach.js";
 import { kitBreachText } from "../i18n/global/kit.js";
 import "../applications/backtrace.js";
