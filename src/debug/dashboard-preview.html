@@ -562,6 +562,8 @@ table.list.auto{table-layout:auto}
 .rd-scr.one .rd-pan{overflow:auto}
 #msig{position:absolute;left:0;top:0;width:1280px;height:800px;transition:opacity .4s,filter .3s}
 #msig.off{opacity:0;pointer-events:none}
+.rd-roll{position:absolute;left:0;top:-800px;width:1280px;height:1600px;animation:rdRoll 4.3s linear infinite;pointer-events:none}
+@keyframes rdRoll{from{transform:translateY(0)}to{transform:translateY(800px)}}
 #msig.dim{opacity:.35}
 #msig.blank{opacity:0;transition:opacity .22s}
 #msig.lock{filter:brightness(1.35)}
@@ -2659,7 +2661,7 @@ table.list.auto{table-layout:auto}
   };
   var WALL = null;
   var SCENE = null;
-  var FX = { full: null, fmt: null, fmtKey: "", noise: null, loop: null, ni: 0 };
+  var FX = { full: null, fmt: null, fmtKey: "", cb: null, cbKey: "", noise: null, loop: null, ni: 0 };
   var DSP = { seq: null, desk: false, loading: false };
   function mkCanvas() { var c = document.createElement("canvas"); c.width = FB_W; c.height = FB_H; return c; }
   function ctx2(c) { try { return c && c.getContext ? c.getContext("2d") : null; } catch (e) { return null; } }
@@ -2757,7 +2759,7 @@ table.list.auto{table-layout:auto}
   function skel(g, x, y, w, h) { rrFill(g, x, y, w, h, h / 2, "#262b3d"); }
   function paintBrowserSkel(g, b) {
     var x = b.x, y = b.y, w = b.w, h = b.h, i, lx = x + 18, vy;
-    g.save(); g.shadowColor = "rgba(0,0,0,.55)"; g.shadowBlur = 40; g.shadowOffsetY = 18; rrFill(g, x, y, w, h, 9, "#1c2030"); g.restore();
+    g.save(); g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = 16; g.shadowOffsetY = 10; rrFill(g, x, y, w, h, 9, "#1c2030"); g.restore();
     g.save(); pathFill(g, rr(x, y, w, h, 9), null, "rgba(255,255,255,.1)", 1); g.beginPath(); g.rect(x, y, w, h); g.clip();
     g.fillStyle = "#262b3d"; g.fillRect(x, y, w, 36);
     artPaint(g, RK_ART.browser, x + 12, y + 10, 16 / 56);
@@ -2797,7 +2799,12 @@ table.list.auto{table-layout:auto}
     return c;
   }
   function colorPass(g, swap, low, ghost) {
-    var im = g.getImageData(0, 0, FB_W, FB_H), d = im.data, src = ghost ? new Uint8ClampedArray(d) : null, q = [], x, y, i, row, r, b, t;
+    var im = g.getImageData(0, 0, FB_W, FB_H), d = im.data, u = new Uint32Array(d.buffer), src = ghost ? new Uint8ClampedArray(d) : null, q = [], x, y, i, row, r, b, t, v, n = FB_W * FB_H;
+    if (swap && !low && !ghost) {
+      for (i = 0; i < n; i++) { v = u[i]; u[i] = (v & 0xff00ff00) | ((v & 0xff) << 16) | ((v >>> 16) & 0xff); }
+      g.putImageData(im, 0, 0);
+      return;
+    }
     for (i = 0; i < 256; i++) q.push(Math.round(i / 255 * 3) * 85);
     for (y = 0; y < FB_H; y++) {
       row = y * FB_W;
@@ -2812,20 +2819,32 @@ table.list.auto{table-layout:auto}
     }
     g.putImageData(im, 0, 0);
   }
+  function colorBase(base, swap, low, ghost) {
+    var key = [swap, low, ghost].join(), c, g;
+    if (FX.cb && FX.cbKey === key) return FX.cb;
+    c = mkCanvas();
+    try { g = c.getContext("2d", { willReadFrequently: true }); } catch (e) { g = null; }
+    if (!g) return base;
+    g.drawImage(base, 0, 0);
+    colorPass(g, swap, low, ghost);
+    FX.cb = c;
+    FX.cbKey = key;
+    return c;
+  }
   function fmtCanvas(base, fmt, c, T) {
-    var key = fmt.join(",") + "|" + upSig(c) + "|" + T.w, out, g, kW, kH, skew = 0, tw, th, x, y, bpp = fmt.indexOf("bpp") >= 0;
+    var key = fmt.join(",") + "|" + upSig(c) + "|" + T.w, out, g, kW, kH, skew = 0, tw, th, x, y, bpp = fmt.indexOf("bpp") >= 0, swap = fmt.indexOf("order") >= 0, src;
     if (FX.fmt && FX.fmtKey === key) return FX.fmt;
     out = mkCanvas(); g = ctx2(out);
     if (!g) return base;
+    src = swap || bpp ? colorBase(base, swap, bpp && c.bpp === 16, bpp && c.bpp !== 16) : base;
     kW = fmt.indexOf("width") >= 0 ? c.width / T.w : 1;
     kH = fmt.indexOf("height") >= 0 ? c.height / T.h : 1;
     if (fmt.indexOf("stride") >= 0) { skew = clamp((c.stride - stride(T.w, T.bpp)) / (T.bpp / 8) * (640 / T.w) / 8, -3, 3); if (Math.abs(skew) < 0.6) skew = skew < 0 ? -0.6 : 0.6; }
     tw = FB_W / kW; th = FB_H / kH;
     g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H);
     g.setTransform(1, 0, -skew, 1, 0, 0);
-    for (y = 0; y < FB_H; y += th) for (x = -3 * FB_W; x < 4 * FB_W; x += tw) g.drawImage(base, x, y, tw, th);
+    for (y = 0; y < FB_H; y += th) for (x = -3 * FB_W; x < 4 * FB_W; x += tw) if (x + tw > -skew * y - FB_W && x < FB_W + Math.abs(skew) * FB_H) g.drawImage(src, x, y, tw, th);
     g.setTransform(1, 0, 0, 1, 0, 0);
-    if (fmt.indexOf("order") >= 0 || bpp) colorPass(g, fmt.indexOf("order") >= 0, bpp && c.bpp === 16, bpp && c.bpp !== 16);
     FX.fmt = out; FX.fmtKey = key;
     return out;
   }
@@ -2847,7 +2866,7 @@ table.list.auto{table-layout:auto}
     return out;
   }
   function frameInto(g, t) {
-    var P = st.mon.pz, sym = curSym(), base = sceneCanvas(), off, i, band, nz;
+    var P = st.mon.pz, sym = curSym(), base = sceneCanvas(), off, nz;
     if (!g || !P || !P.shown || !sym || !base) return;
     g.setTransform(1, 0, 0, 1, 0, 0);
     if (sym.first === "black" || sym.first === "cursor") { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); return; }
@@ -2855,22 +2874,34 @@ table.list.auto{table-layout:auto}
     if (sym.first === "noise") { g.drawImage(base, 0, 0); nz = noiseTiles(); if (nz) { g.imageSmoothingEnabled = false; g.drawImage(nz[FX.ni % 3], 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; } return; }
     if (sym.first === "format") { g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0); return; }
     if (sym.first === "roll") {
-      off = Math.floor((calm() ? 0.3 * FB_H : t * 0.184)) % FB_H;
+      off = Math.floor(0.3 * FB_H);
       g.drawImage(base, 0, FB_H - off, FB_W, off, 0, 0, FB_W, off);
       g.drawImage(base, 0, 0, FB_W, FB_H - off, 0, off, FB_W, FB_H - off);
       g.fillStyle = "#000"; g.fillRect(0, off, FB_W, 18);
-      if (!calm()) for (i = 0; i < 3; i++) { band = Math.floor(Math.random() * (FB_H - 32)); g.drawImage(g.canvas, 0, band, FB_W, 16, Math.floor(Math.random() * 28 - 14), band, FB_W, 16); }
       return;
     }
     g.drawImage(base, 0, 0);
   }
   function paintFrame(t) { frameInto(ctx2($("msig")), t || 0); }
-  function stopLoop() { if (FX.loop) { FX.loop.kill(); FX.loop = null; } }
+  function stopLoop() { if (FX.loop) { FX.loop.kill(); FX.loop = null; } rollLayer(false); }
+  function rollLayer(on) {
+    var fb = $("rdfb"), c = $("rdroll"), g, base;
+    if (!on) { if (c) c.parentNode.removeChild(c); return; }
+    if (!fb || !(base = sceneCanvas())) return;
+    if (!c) { fb.insertAdjacentHTML("beforeend", '<canvas class="rd-roll" id="rdroll" width="' + FB_W + '" height="' + 2 * FB_H + '" aria-hidden="true"></canvas>'); c = $("rdroll"); }
+    g = ctx2(c);
+    if (!g) return;
+    g.drawImage(base, 0, 0);
+    g.drawImage(base, 0, FB_H);
+    g.fillStyle = "#000";
+    g.fillRect(0, FB_H - 18, FB_W, 18);
+  }
   function startLoop() {
     var sym = curSym(), cv = $("msig"), last = 0;
     stopLoop();
-    if (!cv || !sym || st.mon.pz.attached || calm() || (sym.first !== "noise" && sym.first !== "roll")) return;
-    FX.loop = SCH.frame(function (t) { if (t - last < (sym.first === "noise" ? 83 : 66)) return true; last = t; FX.ni++; paintFrame(t); return true; }, cv);
+    rollLayer(!!(cv && sym && !st.mon.pz.attached && sym.first === "roll" && !calm()));
+    if (!cv || !sym || st.mon.pz.attached || calm() || sym.first !== "noise") return;
+    FX.loop = SCH.frame(function (t) { if (t - last < 83) return true; last = t; FX.ni++; paintFrame(t); return true; }, cv);
   }
   function rdWords(s, w) { if ($("mws")) $("mws").setAttribute("data-s", s); if ($("mwh")) $("mwh").textContent = w; if ($("rdms")) $("rdms").textContent = w; }
   function rdStallSync() { var sym = curSym(), P = st.mon.pz; if (P && P.shown && !P.attached && sym && sym.first === "frozen") rdWords("stall", "signal received"); }
@@ -2903,9 +2934,9 @@ table.list.auto{table-layout:auto}
     if (first) { rdWords("off", "no signal"); black(); }
     else { cv.classList.add("blank"); }
     T0 = first ? (slow ? 250 : 80) : (slow ? 300 : 120);
-    steps.push({ t: T0, fn: function () { black(); negOn(first ? "Negotiating the display" : "Re-synchronising"); } });
-    if (first) steps.push({ t: slow ? 950 : 330, fn: function () { negOn("Waiting for the first frame"); } });
-    steps.push({ t: first ? (slow ? 1250 : 520) : (slow ? 900 : 420), fn: function () { var g; negOff(); FX.full = mkCanvas(); g = ctx2(FX.full); frameInto(g, 0); } });
+    steps.push({ t: T0, fn: function (fast) { black(); negOn(first ? "Negotiating the display" : "Re-synchronising"); if (!fast) sceneCanvas(); } });
+    steps.push({ t: first ? (slow ? 950 : 330) : (slow ? 640 : 260), fn: function () { var g; if (first) negOn("Waiting for the first frame"); FX.full = mkCanvas(); g = ctx2(FX.full); frameInto(g, 0); } });
+    steps.push({ t: first ? (slow ? 1250 : 520) : (slow ? 900 : 420), fn: function () { negOff(); } });
     if (slow) for (k = 0; k < n; k++) (function (i) { steps.push({ t: (first ? 1300 : 940) + i * 55, fn: function (fast) { if (!fast) tilesStep(i, n); } }); })(k);
     steps.push({ t: first ? (slow ? 1760 : 700) : (slow ? 1460 : 640), fn: function () { negOff(); cv.classList.remove("blank"); rdLive(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { negOff(); });
@@ -3286,6 +3317,7 @@ table.list.auto{table-layout:auto}
     tickClock();
     monFocus();
     if (rdEnter) rdEntrance();
+    if (M.host === "cold" && !SCENE) SCH.wait(1200, function () { if (!SCENE && !(DSP.seq && DSP.seq.live)) sceneCanvas(); }, $("wsp"));
   }
   function restoreMonitorWindow() {
     var wsp = $("wsp");
@@ -3837,7 +3869,7 @@ table.list.auto{table-layout:auto}
     if ($("rdclip")) $("rdclip").value = txt;
     save();
   });
-  if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('400 15px "RdCantarell"'), document.fonts.load('700 14px "RdCantarell"')]).then(function () { SCENE = null; FX.fmt = null; FX.fmtKey = ""; refreshSignal(); }, function () { return null; });
+  if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('400 15px "RdCantarell"'), document.fonts.load('700 14px "RdCantarell"')]).then(function () { SCENE = null; FX.fmt = null; FX.fmtKey = ""; FX.cb = null; FX.cbKey = ""; refreshSignal(); }, function () { return null; });
   document.addEventListener("touchmove", moveDrag, { passive: false });
   document.addEventListener("mouseup", endDrag);
   document.addEventListener("touchend", endDrag);

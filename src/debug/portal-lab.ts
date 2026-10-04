@@ -17,7 +17,7 @@ import dashboardPreview from "./dashboard-preview.html";
 
 type PortalLabSite = "portal" | "monitor" | "cipher";
 
-const PORTAL_LAB_REV = "r2 token";
+const PORTAL_LAB_REV = "r3 remote desktop";
 const PORTAL_LAB_DOMAIN = "remote-lab.pacificcare-health.org";
 const MONITOR_LAB_DOMAIN = "remote-desktop-lab.pacificcare-health.org";
 const CIPHER_LAB_DOMAIN = "cipher-lab.pacificcare-health.org";
@@ -39,6 +39,14 @@ const PORTAL_LAB_IPS: readonly string[] = [PORTAL_LAB_IP, MONITOR_LAB_IP, CIPHER
 
 const isPortalLabUp = (): boolean => Network.getSubnet(PORTAL_LAB_IP) !== null;
 
+const FONT_SLOTS: Readonly<Record<string, PortalLabSite>> = { "rdc-fonts": "monitor", "cipher-fonts": "cipher" };
+
+const stripFontSlot = (html: string, slot: string): string => {
+    const start = html.indexOf(`<style data-slot="${slot}">`);
+    const end = start < 0 ? -1 : html.indexOf("</style>", start);
+    return end < 0 ? html : html.slice(0, start) + html.slice(end + "</style>".length);
+};
+
 const renderLabPage = (site: PortalLabSite): string => {
     const config = JSON.stringify({
         site,
@@ -46,8 +54,11 @@ const renderLabPage = (site: PortalLabSite): string => {
         monitor: MONITOR_LAB_DOMAIN,
         cipher: CIPHER_LAB_DOMAIN,
     });
+    const page = Object.keys(FONT_SLOTS)
+        .filter((slot) => FONT_SLOTS[slot] !== site)
+        .reduce(stripFontSlot, dashboardPreview);
 
-    return dashboardPreview
+    return page
         .split(PREVIEW_ASSET_PREFIX)
         .join(LIVE_ASSET_PREFIX)
         .replace("<body>", `<body>\n<script>window.PC_CFG=${config};</script>`);
