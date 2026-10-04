@@ -677,7 +677,7 @@ table.list.auto{table-layout:auto}
 .rd-finale .rk-ico:nth-of-type(2){animation-delay:1.44s}
 .rd-finale .rk-ico:nth-of-type(3){animation-delay:1.53s}
 .rd-finale .rk-ico:nth-of-type(4){animation-delay:1.62s}
-.rd-finale .rk-win{animation:rkWin .36s 1.8s var(--rd-out) both}
+.rd-finale .rk-win{animation:rkWin .36s 1.25s var(--rd-out) both}
 @keyframes rkDrop{from{transform:translateY(-100%)}to{transform:none}}
 @keyframes rkPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes rkWin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
@@ -3215,7 +3215,7 @@ table.list.auto{table-layout:auto}
     steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; P.fitDue = false; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow); pull(); save(); } } });
     steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; DSP.loading = true; d.classList.add("rd-finale"); rkDeskRender(true); } });
     steps.push({ t: slow ? 560 : 140, fn: function () { rkWall(); } });
-    steps.push({ t: slow ? 2200 : 420, fn: function () { DSP.loading = false; drawDesk(); } });
+    steps.push({ t: slow ? 2200 : 420, fn: function () { var b = document.querySelector("#mbw .rk-body"); DSP.loading = false; if (b) b.innerHTML = rkBrowserHtml(); else drawDesk(); } });
     steps.push({ t: slow ? 2450 : 500, fn: function () { DSP.hold = false; rkPtrMode(); } });
     steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(true); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); pull(); save(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { d.classList.remove("rd-finale"); });

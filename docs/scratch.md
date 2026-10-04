@@ -2906,3 +2906,24 @@ SESSION MENU (slides in from the left edge of the screen, over it)
   fonts, `localStorage` sharing between the three lab iframes, pointer and drag inside the iframe, canvas speed on the
   owner's machine, frame callbacks while the game window is unfocused, Segoe UI and Cascadia Mono, which this Linux
   container does not have).
+
+### Independent review (V-6)
+
+A reviewer with fresh context (a subagent given only the brief, the diff against BASE and the harness output; read-only,
+no network) checked the diff against the requirement matrix in three passes.
+
+- **First pass:** 11 findings and one reduced-motion nit, all fixed in `c374c87`: the `cursor` symptom looked like `black`
+  until the mouse entered the screen; a skipped login left its marks undrawn and disabled the next attempt's animation;
+  "Copy result" during a run copied the previous result; no mouse cursor over the session menu; menu and dialog toggles
+  rebuilt the remote windows (scroll lost, focus dropped to the page); remote-desktop keys leaked to other sites; the A-3
+  sequences could be skipped only with Esc; the decrypt placeholder quoted the answer's ciphertext; the auto-fit was not
+  saved; buttons under 32 px and remote buttons without tooltips; long tasks on the first format frame at 4x CPU.
+- **Re-check 1:** 10 fixed, the pointer still missing in a window opened after a dock jump or reset; plus soft format
+  frames and the step-7 jump now fitting on load. All fixed in `2e19231`.
+- **Re-check 2 (last):** every item fixed, no regression. Still open in its words: "The archive window does not animate
+  during the attach finale (low, present since the first version)" — fixed afterwards in `bb60e3e` (the load step now
+  updates the browser's content in place; the window enters with its loading state), not re-checked by the reviewer;
+  "Performance on real hardware is unverified"; "The harness does not cover any of these fixes (still 911/893). The
+  evidence is my scripts in `scratchpad/review-check/`"; "Code-length nit (T-6 guideline is under 50 lines): `act` and the
+  scheduler block are each exactly 50 lines"; not checked at all: the rendered look (D-4 tells, contrast, layouts from
+  1280 down to 600 px), behaviour inside the game, and what lands on the OS clipboard after Ctrl+C.
