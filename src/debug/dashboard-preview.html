@@ -424,6 +424,7 @@ table.list.auto{table-layout:auto}
 .rd-card.busy .rd-skip{opacity:1}
 .rd-fine{width:min(724px,100%);margin:16px 0 0;color:var(--rd-dim);font-size:12.5px;text-align:center}
 .rd-ff,.rd-ff *{animation:none!important;transition:none!important}
+.rd-ff .rd-st[data-s=ok] .g-ok,.rd-ff .rd-st[data-s=bad] .g-no{stroke-dashoffset:0}
 @keyframes rdIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @keyframes rdSpin{to{transform:rotate(360deg)}}
 @keyframes rdDraw{to{stroke-dashoffset:0}}
@@ -473,7 +474,7 @@ table.list.auto{table-layout:auto}
 .rd-ws[data-s=on] i{border-color:var(--rd-live);background:var(--rd-live)}
 .rd-ws[data-s=on]{color:var(--rd-paper)}
 .rd-tb .sp{flex:1}
-.rd-ib{display:grid;place-items:center;flex:none;width:30px;height:28px;padding:0;border:0;border-radius:7px;background:none;color:var(--rd-fog)}
+.rd-ib{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:0;border-radius:7px;background:none;color:var(--rd-fog)}
 .rd-ib:hover,.rd-ib[aria-expanded=true]{background:var(--rd-rail);color:var(--rd-paper)}
 .rd-ib .ic{width:16px;height:16px}
 .rd-rz{position:absolute;right:0;bottom:0;z-index:6;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--rd-line2) 55% 62%,transparent 62% 74%,var(--rd-line2) 74% 81%,transparent 81%)}
@@ -529,7 +530,7 @@ table.list.auto{table-layout:auto}
 .rd-dl dd{margin:0;overflow-wrap:anywhere}
 .rd-dl .m{font:12.5px var(--rd-mono)}
 .rd-seg{display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:9px;background:var(--rd-deep);box-shadow:inset 0 0 0 1px var(--rd-line)}
-.rd-seg button{height:30px;padding:0 8px;border:0;border-radius:7px;background:none;color:var(--rd-fog);font:500 13px var(--rd-ui)}
+.rd-seg button{height:32px;padding:0 8px;border:0;border-radius:7px;background:none;color:var(--rd-fog);font:500 13px var(--rd-ui)}
 .rd-seg button[aria-checked=true]{background:var(--rd-rail);color:var(--rd-paper)}
 .rd-clip{display:block;width:100%;min-height:64px;padding:9px 11px;resize:vertical;border:1px solid var(--rd-line2);border-radius:9px;background:var(--rd-bench);color:var(--rd-paper);font:12.5px/1.5 var(--rd-mono)}
 .rd-clip:focus{outline:2px solid var(--rd-paper);outline-offset:1px}
@@ -569,8 +570,7 @@ table.list.auto{table-layout:auto}
 #msig.dim{opacity:.35}
 #msig.blank{opacity:0;transition:opacity .22s}
 #msig.lock{filter:brightness(1.35)}
-.rd-scr.live{cursor:none}
-.rd-scr.live *{cursor:none!important}
+.rd-scr.live .rd-pan,.rd-scr.live .rd-pan *{cursor:none!important}
 .rd-neg{position:absolute;left:50%;top:50%;z-index:8;display:flex;flex-direction:column;align-items:center;gap:12px;width:min(340px,70%);transform:translate(-50%,-50%);color:var(--rd-fog);font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none}
 .rd-neg.on{opacity:1}
 .rd-neg i{display:block;width:100%;height:2px;background:var(--rd-paper);transform:scaleX(0);transition:transform .6s var(--rd-out)}
@@ -685,6 +685,7 @@ table.list.auto{table-layout:auto}
 .rd-finale .rk-wall,.rd-finale .rk-panel,.rd-finale .rk-ico,.rd-finale .rk-win{animation:rdFade .3s both}
 .rd-neg i{transition:none}
 #msig{transition:none}
+#msig.lock{filter:none}
 .rd-ws[data-s=stall] i{animation:none}
 }
 </style>
@@ -2426,6 +2427,8 @@ table.list.auto{table-layout:auto}
   var DESK_H = 800;
   var FB_W = 1280;
   var FB_H = 800;
+  var FMT_W = FB_W / 2;
+  var FMT_H = FB_H / 2;
   var WIN_MIN = { term: [380, 260], scr: [420, 0] };
 
   var dskScale = 1;
@@ -2664,8 +2667,8 @@ table.list.auto{table-layout:auto}
   var WALL = null;
   var SCENE = null;
   var FX = { full: null, fmt: null, fmtKey: "", cb: null, cbKey: "", noise: null, loop: null, ni: 0 };
-  var DSP = { seq: null, desk: false, loading: false };
-  function mkCanvas() { var c = document.createElement("canvas"); c.width = FB_W; c.height = FB_H; return c; }
+  var DSP = { seq: null, desk: false, loading: false, hold: false };
+  function mkCanvas(w, h) { var c = document.createElement("canvas"); c.width = w || FB_W; c.height = h || FB_H; return c; }
   function ctx2(c) { try { return c && c.getContext ? c.getContext("2d") : null; } catch (e) { return null; } }
   function pathFill(g, d, fill, stroke, sw) {
     var p;
@@ -2801,22 +2804,22 @@ table.list.auto{table-layout:auto}
     return c;
   }
   function colorPass(g, swap, low, ghost) {
-    var im = g.getImageData(0, 0, FB_W, FB_H), d = im.data, u = new Uint32Array(d.buffer), src = ghost ? new Uint8ClampedArray(d) : null, q = [], x, y, i, row, r, b, t, v, n = FB_W * FB_H;
+    var W = g.canvas.width, H = g.canvas.height, im = g.getImageData(0, 0, W, H), u = new Uint32Array(im.data.buffer), s = ghost ? new Uint32Array(u) : null, o = Math.round(10 * W / FB_W), q = [], x, y, i, row, v, r, b, t, n = W * H;
     if (swap && !low && !ghost) {
       for (i = 0; i < n; i++) { v = u[i]; u[i] = (v & 0xff00ff00) | ((v & 0xff) << 16) | ((v >>> 16) & 0xff); }
       g.putImageData(im, 0, 0);
       return;
     }
-    for (i = 0; i < 256; i++) q.push(Math.round(i / 255 * 3) * 85);
-    for (y = 0; y < FB_H; y++) {
-      row = y * FB_W;
-      for (x = 0; x < FB_W; x++) {
-        i = (row + x) * 4;
-        r = ghost ? src[(row + (x + FB_W - 10) % FB_W) * 4] : d[i];
-        b = ghost ? src[(row + (x + 10) % FB_W) * 4 + 2] : d[i + 2];
+    for (i = 0; i < 256; i++) q.push(low ? Math.round(i / 255 * 3) * 85 : i);
+    for (y = 0; y < H; y++) {
+      row = y * W;
+      for (x = 0; x < W; x++) {
+        i = row + x;
+        v = u[i];
+        r = ghost ? s[row + (x + W - o) % W] & 255 : v & 255;
+        b = ghost ? (s[row + (x + o) % W] >>> 16) & 255 : (v >>> 16) & 255;
         if (swap) { t = r; r = b; b = t; }
-        if (low) { r = q[r]; d[i + 1] = q[d[i + 1]]; b = q[b]; }
-        d[i] = r; d[i + 2] = b;
+        u[i] = (v & 0xff000000) | (q[b] << 16) | (q[(v >>> 8) & 255] << 8) | q[r];
       }
     }
     g.putImageData(im, 0, 0);
@@ -2824,28 +2827,38 @@ table.list.auto{table-layout:auto}
   function colorBase(base, swap, low, ghost) {
     var key = [swap, low, ghost].join(), c, g;
     if (FX.cb && FX.cbKey === key) return FX.cb;
-    c = mkCanvas();
+    c = mkCanvas(FMT_W, FMT_H);
     try { g = c.getContext("2d", { willReadFrequently: true }); } catch (e) { g = null; }
     if (!g) return base;
-    g.drawImage(base, 0, 0);
+    g.drawImage(base, 0, 0, FMT_W, FMT_H);
     colorPass(g, swap, low, ghost);
     FX.cb = c;
     FX.cbKey = key;
     return c;
   }
+  function fmtSrc(base, fmt, c) {
+    var bpp = fmt.indexOf("bpp") >= 0, swap = fmt.indexOf("order") >= 0;
+    return swap || bpp ? colorBase(base, swap, bpp && c.bpp === 16, bpp && c.bpp !== 16) : base;
+  }
+  function rdPrep(k) {
+    var P = st.mon.pz, sym = curSym(), base = sceneCanvas();
+    if (!P || !P.shown || !sym || !base || sym.first !== "format") return;
+    if (k) fmtCanvas(base, sym.fmt, P.shown, getRun().truth);
+    else fmtSrc(base, sym.fmt, P.shown);
+  }
   function fmtCanvas(base, fmt, c, T) {
-    var key = fmt.join(",") + "|" + upSig(c) + "|" + T.w, out, g, kW, kH, skew = 0, tw, th, x, y, bpp = fmt.indexOf("bpp") >= 0, swap = fmt.indexOf("order") >= 0, src;
+    var key = fmt.join(",") + "|" + upSig(c) + "|" + T.w, out, g, kW, kH, skew = 0, tw, th, x, y, src;
     if (FX.fmt && FX.fmtKey === key) return FX.fmt;
-    out = mkCanvas(); g = ctx2(out);
+    out = mkCanvas(FMT_W, FMT_H); g = ctx2(out);
     if (!g) return base;
-    src = swap || bpp ? colorBase(base, swap, bpp && c.bpp === 16, bpp && c.bpp !== 16) : base;
+    src = fmtSrc(base, fmt, c);
     kW = fmt.indexOf("width") >= 0 ? c.width / T.w : 1;
     kH = fmt.indexOf("height") >= 0 ? c.height / T.h : 1;
     if (fmt.indexOf("stride") >= 0) { skew = clamp((c.stride - stride(T.w, T.bpp)) / (T.bpp / 8) * (640 / T.w) / 8, -3, 3); if (Math.abs(skew) < 0.6) skew = skew < 0 ? -0.6 : 0.6; }
-    tw = FB_W / kW; th = FB_H / kH;
-    g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H);
+    tw = FMT_W / kW; th = FMT_H / kH;
+    g.fillStyle = "#000"; g.fillRect(0, 0, FMT_W, FMT_H);
     g.setTransform(1, 0, -skew, 1, 0, 0);
-    for (y = 0; y < FB_H; y += th) for (x = -3 * FB_W; x < 4 * FB_W; x += tw) if (x + tw > -skew * y - FB_W && x < FB_W + Math.abs(skew) * FB_H) g.drawImage(src, x, y, tw, th);
+    for (y = 0; y < FMT_H; y += th) for (x = -3 * FMT_W; x < 4 * FMT_W; x += tw) if (x + tw > -skew * y - FMT_W && x < FMT_W + Math.abs(skew) * FMT_H) g.drawImage(src, x, y, tw, th);
     g.setTransform(1, 0, 0, 1, 0, 0);
     FX.fmt = out; FX.fmtKey = key;
     return out;
@@ -2874,7 +2887,7 @@ table.list.auto{table-layout:auto}
     if (sym.first === "black" || sym.first === "cursor") { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); return; }
     if (sym.first === "frozen") { g.drawImage(base, 0, 0); g.drawImage(base, 0, 480, FB_W, 96, 52, 480, FB_W, 96); g.fillStyle = "rgba(3,8,12,.52)"; g.fillRect(0, 0, FB_W, FB_H); return; }
     if (sym.first === "noise") { g.drawImage(base, 0, 0); nz = noiseTiles(); if (nz) { g.imageSmoothingEnabled = false; g.drawImage(nz[FX.ni % 3], 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; } return; }
-    if (sym.first === "format") { g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0); return; }
+    if (sym.first === "format") { g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0, FB_W, FB_H); return; }
     if (sym.first === "roll") {
       off = Math.floor(0.3 * FB_H);
       g.drawImage(base, 0, FB_H - off, FB_W, off, 0, 0, FB_W, off);
@@ -2930,17 +2943,20 @@ table.list.auto{table-layout:auto}
     if (!cv) return;
     SCH.settle(DSP.seq);
     stopLoop();
+    DSP.hold = true;
+    rkPtrMode();
     function negOn(txt) { if (!neg) return; $("rdnegt").textContent = txt; neg.classList.add("on"); }
     function negOff() { if (neg) neg.classList.remove("on"); }
     function black() { var g = ctx2(cv); cv.classList.remove("blank"); if (g) { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); } }
-    if (first) { rdWords("off", "no signal"); black(); }
-    else { cv.classList.add("blank"); }
+    if (first) rdWords("off", "no signal");
+    else cv.classList.add("blank");
     T0 = first ? (slow ? 250 : 80) : (slow ? 300 : 120);
-    steps.push({ t: T0, fn: function (fast) { black(); negOn(first ? "Negotiating the display" : "Re-synchronising"); if (!fast) sceneCanvas(); } });
+    steps.push({ t: T0, fn: function (fast) { if (!first) black(); negOn(first ? "Negotiating the display" : "Re-synchronising"); if (!fast) sceneCanvas(); } });
+    [0, 1].forEach(function (i) { steps.push({ t: T0 + (first ? (slow ? 250 : 70) : (slow ? 110 : 45)) * (i + 1), fn: function (fast) { if (!fast) rdPrep(i); } }); });
     steps.push({ t: first ? (slow ? 950 : 330) : (slow ? 640 : 260), fn: function () { var g; if (first) negOn("Waiting for the first frame"); FX.full = mkCanvas(); g = ctx2(FX.full); frameInto(g, 0); } });
     steps.push({ t: first ? (slow ? 1250 : 520) : (slow ? 900 : 420), fn: function () { negOff(); } });
     if (slow) for (k = 0; k < n; k++) (function (i) { steps.push({ t: (first ? 1300 : 940) + i * 55, fn: function (fast) { if (!fast) tilesStep(i, n); } }); })(k);
-    steps.push({ t: first ? (slow ? 1760 : 700) : (slow ? 1460 : 640), fn: function () { negOff(); cv.classList.remove("blank"); rdLive(); } });
+    steps.push({ t: first ? (slow ? 1760 : 700) : (slow ? 1460 : 640), fn: function () { negOff(); cv.classList.remove("blank"); DSP.hold = false; rdLive(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { negOff(); });
   }
   var RK_MENUS = {
@@ -2951,7 +2967,10 @@ table.list.auto{table-layout:auto}
   var RK_DIRS = { home: "/home/g.desouza", "/home/g.desouza": "/home/g.desouza", "/ir/2026-08-14": "/ir/2026-08-14", "/ir/tickets": "/ir/tickets" };
   var rkPop = "";
   var rkDlg = null;
+  var rkBack = null;
   var rkPtrShape = "";
+  var rkPtrXY = [FB_W / 2, FB_H / 2];
+  var RK_SCROLL = "#rkwins .rk-arv,#rkwins .rk-arl,#rkwins .rk-list,#rkwins .rk-side";
   function rkState() {
     var P = PZ();
     if (!P.rw) P.rw = {};
@@ -2973,7 +2992,7 @@ table.list.auto{table-layout:auto}
     }).join("");
   }
   function rkBrowserHtml() {
-    var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" data-cur="hand">' + ic("reload") + "</button>";
+    var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
     if (DSP.loading) return tool + '<span class="rk-addr"></span></div><div class="rk-page"><div class="rk-load"></div><div class="rk-ph"><b>Clinical Incident Archive</b></div><div class="rk-arb"><div class="rk-arl"><i class="rk-sk"></i><i class="rk-sk"></i><i class="rk-sk"></i></div><div class="rk-arv"><i class="rk-sk"></i><i class="rk-sk"></i></div></div></div>';
     return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/g.desouza</h6>" + rkFileRows("/home/g.desouza") +
       '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
@@ -2996,7 +3015,7 @@ table.list.auto{table-layout:auto}
   function rkWinHtml(id) {
     var W = rkW(id), P = PZ(), z = P.rz.indexOf(id), r = W.max ? { x: 0, y: 34, w: FB_W, h: FB_H - 34 } : W, t = rkTitle(id);
     return '<section class="rk-win' + (P.rf === id ? " focus" : "") + (W.min ? " mini" : "") + '" id="' + (id === "mb" ? "mbw" : "rkw-" + id) + '" data-rw="' + id + '" style="left:' + r.x + "px;top:" + r.y + "px;width:" + r.w + "px;height:" + r.h + "px;z-index:" + (6 + Math.max(0, z)) + '" role="dialog" aria-label="' + esc(t) + '">' +
-      '<div class="rk-tb" data-rwd="' + id + '">' + rkGlyph(id) + "<span>" + esc(t) + '</span><button class="rk-wb" data-act="rkmin" data-v="' + id + '" aria-label="Minimise" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button><button class="rk-wb" data-act="rkmax" data-v="' + id + '" aria-label="Maximise" data-cur="hand"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" rx="1.5"/></svg></button><button class="rk-wb x" data-act="rkclose" data-v="' + id + '" aria-label="Close" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button></div>' +
+      '<div class="rk-tb" data-rwd="' + id + '">' + rkGlyph(id) + "<span>" + esc(t) + '</span><button class="rk-wb" data-act="rkmin" data-v="' + id + '" aria-label="Minimise" title="Minimise" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button><button class="rk-wb" data-act="rkmax" data-v="' + id + '" aria-label="Maximise" title="Maximise" data-cur="hand"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" rx="1.5"/></svg></button><button class="rk-wb x" data-act="rkclose" data-v="' + id + '" aria-label="Close" title="Close" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button></div>' +
       '<div class="rk-body" tabindex="-1">' + (id === "mb" ? rkBrowserHtml() : id === "fl" ? rkFilesHtml() : rkViewerHtml()) + '</div><i class="rk-rz" data-rwr="' + id + '" data-cur="nwse"></i></section>';
   }
   function rkTasksHtml() { var P = PZ(); return rkOpenIds().map(function (id) { var W = rkW(id); return '<button class="rk-task' + (P.rf === id && !W.min ? " on" : "") + (W.min ? " min" : "") + '" data-act="rktask" data-v="' + id + '" data-cur="hand">' + (id === "mb" ? "Browser" : id === "fl" ? "Files" : "Text Viewer") + "</button>"; }).join(""); }
@@ -3015,25 +3034,49 @@ table.list.auto{table-layout:auto}
     return '<canvas class="rk-wall" id="rkwall" width="' + FB_W + '" height="' + FB_H + '"></canvas>' + rkPanelHtml() + RK_ICONS.map(function (d) { return '<button class="rk-ico" id="rki-' + d[0] + '" style="left:' + d[2] + "px;top:" + d[3] + 'px" data-act="rkicon" data-v="' + d[0] + '" data-dbl="1" data-cur="hand">' + artSvg(d[0]) + "<span>" + d[1] + "</span></button>"; }).join("") +
       '<div id="rkwins">' + rkOpenIds().map(rkWinHtml).join("") + '</div><div id="rkpop">' + rkPopHtml() + '</div><div id="rkdlg">' + rkDlgHtml() + "</div>";
   }
-  function rkFocusKey() { var a = document.activeElement; return a && $("dsk") && $("dsk").contains(a) ? [a.getAttribute("data-act"), a.getAttribute("data-v"), a.id] : null; }
+  function rkFocusKey() {
+    var a = document.activeElement, w;
+    if (!a || !$("dsk") || !$("dsk").contains(a)) return null;
+    w = a.closest("[data-rw]");
+    return [a.getAttribute("data-act"), a.getAttribute("data-v"), a.id, w ? w.getAttribute("data-rw") : "", a.classList[0] || ""];
+  }
   function rkRestoreFocus(k) {
     var el = null;
     if (k && k[0]) el = document.querySelector('#dsk [data-act="' + k[0] + '"]' + (k[1] ? '[data-v="' + k[1] + '"]' : ""));
     if (!el && k && k[2]) el = $(k[2]);
+    if (!el && k && k[3]) el = document.querySelector('#rkwins [data-rw="' + k[3] + '"] .' + (k[4] || "rk-body")) || document.querySelector('#rkwins [data-rw="' + k[3] + '"] .rk-body');
     if (el) el.focus({ preventScroll: true });
   }
+  function rkScrollKey(el) { return '#rkwins [data-rw="' + el.closest("[data-rw]").getAttribute("data-rw") + '"] .' + el.classList[0]; }
   function drawDesk() {
-    var d = $("dsk"), k, w = $("rkwins");
+    var d = $("dsk"), k, w = $("rkwins"), keep;
     if (!d || !DSP.desk) return;
     if (!w) { rkDeskRender(); return; }
     k = rkFocusKey();
+    keep = all(RK_SCROLL).map(function (el) { return [rkScrollKey(el), el.scrollTop, el.textContent]; });
     w.innerHTML = rkOpenIds().map(rkWinHtml).join("");
+    keep.forEach(function (x) { var el = document.querySelector(x[0]); if (el && x[1] && el.textContent === x[2]) el.scrollTop = x[1]; });
     $("rktasks").innerHTML = rkTasksHtml();
+    rkRestoreFocus(k);
+    rkUi();
+  }
+  function rkUi() {
+    if (!$("rkpop") || !DSP.desk) return;
     $("rkpop").innerHTML = rkPopHtml();
     $("rkdlg").innerHTML = rkDlgHtml();
     all("#dsk .rk-m").forEach(function (b) { b.setAttribute("aria-expanded", b.getAttribute("data-v") === rkPop ? "true" : "false"); });
-    rkRestoreFocus(k);
     if (rkDlg && $("rkdlg").querySelector("button")) $("rkdlg").querySelector("button").focus({ preventScroll: true });
+  }
+  function rkDlgOpen(t, x) { rkBack = rkFocusKey(); rkPop = ""; rkDlg = [t, x]; rkUi(); }
+  function rkDlgClose() {
+    var b;
+    rkDlg = null;
+    rkUi();
+    rkRestoreFocus(rkBack);
+    rkBack = null;
+    if ($("dsk") && $("dsk").contains(document.activeElement)) return;
+    b = document.querySelector('#rkwins [data-rw="' + PZ().rf + '"] .rk-body') || $("rkm-apps");
+    if (b) b.focus({ preventScroll: true });
   }
   function rkDeskRender() {
     var d = $("dsk"), g;
@@ -3054,8 +3097,8 @@ table.list.auto{table-layout:auto}
   }
   function rkOpen(id) { rkFocus(id); rkPop = ""; drawDesk(); var b = document.querySelector('#dsk [data-rw="' + id + '"] .rk-body'); if (b) b.focus({ preventScroll: true }); }
   function rkLoc(loc) { var W = rkW("fl"); W.loc = loc; W.sel = ""; rkOpen("fl"); }
-  function rkNa(n) { rkPop = ""; rkDlg = ["Not available", n + " is not available on this host."]; drawDesk(); }
-  function rkRo() { rkPop = ""; rkDlg = ["Read-only session", "Files on this computer cannot be changed in this session."]; drawDesk(); }
+  function rkNa(n) { rkDlgOpen("Not available", n + " is not available on this host."); }
+  function rkRo() { rkDlgOpen("Read-only session", "Files on this computer cannot be changed in this session."); }
   function rkItem(v, n) { if (v === "na") rkNa(n); else if (v.indexOf("open:") === 0) rkOpen(v.slice(5)); else if (v.indexOf("loc:") === 0) rkLoc(v.slice(4)); }
   function rkIcon(id, open) {
     all("#dsk .rk-ico").forEach(function (b) { b.classList.toggle("sel", b.getAttribute("data-v") === id); });
@@ -3078,10 +3121,11 @@ table.list.auto{table-layout:auto}
     drawDesk();
   }
   function rkTask(id) { var W = rkW(id), P = PZ(); if (P.rf === id && !W.min) { rkWinBtn("rkmin", id); return; } rkOpen(id); }
-  function rkMenuBtn(k) { rkPop = rkPop === k ? "" : k; drawDesk(); var f = document.querySelector("#rkpop .rk-mi"); if (f && rkPop) f.focus({ preventScroll: true }); }
+  function rkMenuBtn(k) { rkPop = rkPop === k ? "" : k; rkUi(); var f = document.querySelector("#rkpop .rk-mi"); if (f && rkPop) f.focus({ preventScroll: true }); }
   function rkKey(e) {
-    var t = e.target, list, i, W, rows;
-    if (e.key === "Escape" && (rkDlg || rkPop)) { e.preventDefault(); var back = rkPop; rkDlg = null; rkPop = ""; drawDesk(); if (back && $("rkm-" + back)) $("rkm-" + back).focus(); return true; }
+    var t = e.target, list, i, W, rows, back = rkPop;
+    if (e.key === "Escape" && rkDlg) { e.preventDefault(); rkDlgClose(); return true; }
+    if (e.key === "Escape" && rkPop) { e.preventDefault(); rkPop = ""; rkUi(); if ($("rkm-" + back)) $("rkm-" + back).focus(); return true; }
     if (rkPop && /^Arrow(Up|Down|Left|Right)$/.test(e.key)) {
       e.preventDefault();
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") { list = ["apps", "places", "system"]; i = (list.indexOf(rkPop) + (e.key === "ArrowLeft" ? 2 : 1)) % 3; rkMenuBtn(list[i]); return true; }
@@ -3100,24 +3144,28 @@ table.list.auto{table-layout:auto}
     return false;
   }
   function rkPtrMode() {
-    var mv = $("mv"), P = st.mon.pz, sym = curSym(), on = !!(P && (P.attached ? DSP.desk : sym && sym.first === "cursor"));
+    var mv = $("mv"), ptr = $("rdptr"), P = st.mon.pz, sym = curSym(), on = !!(P && !DSP.hold && (P.attached ? DSP.desk : sym && sym.first === "cursor"));
     if (mv) mv.classList.toggle("live", on);
-    if (!on && $("rdptr")) $("rdptr").classList.remove("on");
+    if (ptr && !on) ptr.classList.remove("on");
+    if (ptr && on && !ptr.classList.contains("on")) rkPtrAt(rkPtrXY[0], rkPtrXY[1], "arrow");
     return on;
   }
+  function rkPtrAt(x, y, k) {
+    var ptr = $("rdptr"), p = RK_PTR[k] || RK_PTR.arrow;
+    if (!ptr) return;
+    if (k !== rkPtrShape) { ptr.innerHTML = ptrSvg(k); rkPtrShape = k; }
+    rkPtrXY = [x, y];
+    ptr.style.transform = "translate(" + Math.round(x - p[1]) + "px," + Math.round(y - p[2]) + "px)";
+    ptr.classList.add("on");
+  }
   function rkPtrMove(e) {
-    var fb = $("rdfb"), ptr = $("rdptr"), r, x, y, cur, k, p;
-    if (!fb || !ptr || !e.target.closest || !e.target.closest("#mv") || e.target.closest("#rdmenu") || !rkPtrMode()) { if (ptr) ptr.classList.remove("on"); return; }
+    var fb = $("rdfb"), r, cur, k;
+    if (!fb || !e.target.closest || !e.target.closest("#rdpan") || !rkPtrMode()) return;
     r = fb.getBoundingClientRect();
-    x = (e.clientX - r.left) / (dskScale || 1);
-    y = (e.clientY - r.top) / (dskScale || 1);
     cur = st.mon.pz.attached ? e.target.closest("[data-cur]") : null;
     k = cur ? cur.getAttribute("data-cur") : "arrow";
     if (dragSt && dragSt.rk) k = dragSt.mode === "size" ? "nwse" : "arrow";
-    if (k !== rkPtrShape) { ptr.innerHTML = ptrSvg(k); rkPtrShape = k; }
-    p = RK_PTR[k] || RK_PTR.arrow;
-    ptr.style.transform = "translate(" + Math.round(x - p[1]) + "px," + Math.round(y - p[2]) + "px)";
-    ptr.classList.add("on");
+    rkPtrAt(clamp((e.clientX - r.left) / (dskScale || 1), 0, FB_W), clamp((e.clientY - r.top) / (dskScale || 1), 0, FB_H), k);
   }
   function rkFocusDom(id) {
     var P = PZ();
@@ -3162,13 +3210,21 @@ table.list.auto{table-layout:auto}
     rkState();
     rkW("mb").open = true;
     rkFocus("mb");
+    DSP.hold = true;
     steps.push({ t: 0, fn: function () { cv.classList.remove("off", "blank"); paintFrame(0); cv.classList.add("lock"); rdWords("on", "attached"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); } });
-    steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow); } } });
+    steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow); pull(); save(); } } });
     steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; DSP.loading = true; d.classList.add("rd-finale"); rkDeskRender(); fitDesk(); } });
     steps.push({ t: slow ? 2200 : 420, fn: function () { DSP.loading = false; drawDesk(); } });
-    steps.push({ t: slow ? 2450 : 500, fn: function () { rkPtrMode(); } });
-    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); } });
+    steps.push({ t: slow ? 2450 : 500, fn: function () { DSP.hold = false; rkPtrMode(); } });
+    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); pull(); save(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { d.classList.remove("rd-finale"); });
+  }
+  function rdAutoFit() {
+    var P = PZ();
+    if (P.fit) return;
+    P.fit = true;
+    if ($("w-scr") && !st.mon.win.scr.max) winMax("scr");
+    save();
   }
   function rdFit(instant) {
     var el = $("w-scr"), a, b;
@@ -3186,9 +3242,13 @@ table.list.auto{table-layout:auto}
     var P = st.mon.pz;
     DSP.desk = false;
     DSP.loading = false;
+    DSP.hold = false;
     rkPtrShape = "";
+    rkPop = "";
+    rkDlg = null;
+    rkBack = null;
     fitDesk();
-    if (P && P.attached) { rdDeskOn(); return; }
+    if (P && P.attached) { rdDeskOn(); rdAutoFit(); return; }
     if (P && P.shown) rdLive();
     else { rdWords("off", "no signal"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); }
   }
@@ -3296,8 +3356,8 @@ table.list.auto{table-layout:auto}
   function openMonitorWindow() {
     var wsp = $("wsp");
     if (!wsp || $("w-scr")) return;
-    wsp.insertAdjacentHTML("beforeend", monWinHtml());
     ensureWin();
+    wsp.insertAdjacentHTML("beforeend", monWinHtml());
     placeWin("scr");
     front("scr");
     DSP.desk = false;
@@ -3439,6 +3499,7 @@ table.list.auto{table-layout:auto}
     r = tokenCheck(box ? box.value : "");
     rdResetRoute();
     rdBusyUi(true);
+    if ($("rdcard")) $("rdcard").classList.remove("rd-ff");
     rdSeq = SCH.run($("rdcard"), rdLoginSteps(r), function () { var c = $("rdcard"); if (c) c.classList.add("rd-ff"); });
   }
   function rdEntrance() {
@@ -3556,7 +3617,7 @@ table.list.auto{table-layout:auto}
     var C = st.ci, enc = C.mode === "encrypt";
     return '<div class="cdk"><header class="cd-top"><div class="cd-word">' + CD_MARK + 'Cipher Desk</div><span class="cd-sub">Encrypt and decrypt text with a passphrase</span><span class="sp"></span><div class="cd-seg" role="group" aria-label="Mode"><button class="' + (enc ? "on" : "") + '" data-act="cphmode" data-v="encrypt" aria-pressed="' + enc + '">Encrypt</button><button class="' + (enc ? "" : "on") + '" data-act="cphmode" data-v="decrypt" aria-pressed="' + !enc + '">Decrypt</button></div></header>' +
       '<main class="cd-main"><p class="cd-lede">Everything runs in this page. The same passphrase decrypts what it encrypted.</p><div class="cd-hd"><label for="cphi">' + (enc ? "Text to encrypt" : "Text to decrypt") + '</label><span class="sp"></span><span class="cd-count" id="cdcount" aria-live="polite"></span></div>' +
-      '<textarea id="cphi" class="cd-area" name="input" spellcheck="false" data-f="cin" aria-describedby="cdhint" placeholder="' + (enc ? "Type or paste the text to encrypt" : "Paste the encrypted text, for example 2b0356…") + '">' + esc(C.inp) + '</textarea><p class="cd-hint" id="cdhint" aria-live="polite"></p>' +
+      '<textarea id="cphi" class="cd-area" name="input" spellcheck="false" data-f="cin" aria-describedby="cdhint" placeholder="' + (enc ? "Type or paste the text to encrypt" : "Paste the encrypted text, for example 38035c…") + '">' + esc(C.inp) + '</textarea><p class="cd-hint" id="cdhint" aria-live="polite"></p>' +
       '<div class="cd-key"><label for="cphp">Passphrase</label><input id="cphp" class="cd-pass" name="passphrase" type="text" autocomplete="off" spellcheck="false" data-f="cpass" placeholder="The passphrase used to encrypt" value="' + esc(C.pass) + '"><button class="cd-go" data-act="cphgo">' + (enc ? "Encrypt" : "Decrypt") + "</button></div>" +
       '<section class="cd-band" id="cdband" data-act="ciskip" aria-label="Bytes of the input, the passphrase and the result"><div class="cd-rows" aria-hidden="true"><span><i></i><b>Input</b></span><span><i></i><b>Passphrase</b></span><span><i></i><b>Result</b></span></div><div class="cd-view" id="cdview"><div class="cd-tracks" id="cdtracks"></div><i class="cd-head" id="cdhead"></i></div><div class="cd-lens" id="cdlens" aria-hidden="true"></div><span class="cd-skip">Press Esc to skip</span></section>' +
       '<div class="cd-hd"><h2 id="cdrl">Result</h2><span class="sp"></span><div class="cd-acts"><button class="cd-btn" data-act="cphswap">Use result as input</button><button class="cd-btn" data-act="cphcopy">Copy result</button></div></div>' +
@@ -3771,14 +3832,14 @@ table.list.auto{table-layout:auto}
     if (a === "rkloc") { rkLoc(d.v); return; }
     if (a === "rkfsel") { rkFile(d.v, false); return; }
     if (a === "rkro") { rkRo(); return; }
-    if (a === "rkok") { rkDlg = null; drawDesk(); return; }
+    if (a === "rkok") { rkDlgClose(); return; }
     if (a === "rkreload") { drawDesk(); return; }
     if (a === "adoc") { openDoc(d.v); return; }
     if (a === "cphmode") { SCH.settle(ciSeq); st.ci.mode = d.v; st.ci.out = ""; st.ci.note = ""; st.ci.ok = false; drawCipher(); if ($("cphi")) $("cphi").focus(); return; }
     if (a === "cphgo") { cipherRun(); return; }
     if (a === "cphswap") { SCH.settle(ciSeq); st.ci.inp = st.ci.out; st.ci.out = ""; st.ci.note = ""; st.ci.ok = false; drawCipher(); if ($("cphi")) $("cphi").focus(); return; }
     if (a === "ciskip") { SCH.settle(ciSeq); return; }
-    if (a === "cphcopy") { cipherCopy(); return; }
+    if (a === "cphcopy") { SCH.settle(ciSeq); cipherCopy(); return; }
     if (a === "jump") { jump(+$("jmp").value); return; }
     if (a === "reset") { reset(); return; }
     if (a === "toastx") { dismissToast(d.el.closest(".toast")); return; }
@@ -3787,7 +3848,8 @@ table.list.auto{table-layout:auto}
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]");
     if (rdMenuOpen() && !e.target.closest('#rdmenu,[data-act="rdmenu"]')) rdMenu(false);
-    if (rkPop && !e.target.closest("#rkpop,.rk-m")) { rkPop = ""; drawDesk(); }
+    if (rkPop && !e.target.closest("#rkpop,.rk-m")) { rkPop = ""; rkUi(); }
+    if (DSP.seq && DSP.seq.live && e.target.closest("#rdpan,#rdneg")) { SCH.settle(DSP.seq); save(); return; }
     if (!b) {
       if (e.target.closest("#mscroll") && !String(window.getSelection()).length) monFocus();
       return;
@@ -3819,7 +3881,7 @@ table.list.auto{table-layout:auto}
     if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
     if (e.key === "Escape" && rdMenuOpen()) { e.preventDefault(); rdMenu(false); return; }
     if (e.ctrlKey && e.altKey && e.shiftKey && /^(Control|Alt|Shift)$/.test(e.key) && $("rdmenu")) { e.preventDefault(); rdMenu(); return; }
-    if (st.mon.pz && st.mon.pz.attached && rkKey(e)) { save(); return; }
+    if (st.mon.pz && st.mon.pz.attached && e.target.closest && e.target.closest("#dsk") && rkKey(e)) { save(); return; }
     if (id === "mcmd") { pull(); monKey(e); save(); return; }
     if (e.key === "Enter" && (id === "lu" || id === "lp")) { doLogin(); save(); return; }
     if (e.key === "Enter" && !e.shiftKey && id === "mtok") { e.preventDefault(); pull(); monLogin(); save(); return; }
