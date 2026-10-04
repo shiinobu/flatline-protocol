@@ -15,6 +15,8 @@ import {
     M05_EDGE_LAN_IP,
     M05_FIREWALL_IP,
     M05_FIREWALL_LAN_IP,
+    M05_FIREWALL_PASSWORD,
+    M05_FIREWALL_USERNAME,
     M05_GRETA_PASSWORD,
     M05_GRETA_USERNAME,
     M05_HTTP_PORT,
@@ -40,59 +42,18 @@ import {
     M05_SSH_PORT,
 } from "./network.js";
 import {
-    M05_ACKNOWLEDGEMENT_CONTENT,
-    M05_ACKNOWLEDGEMENT_FILE_NAME,
-    M05_ASSET_REGISTER_CONTENT,
-    M05_ASSET_REGISTER_FILE_NAME,
-    M05_DECISION_MEMO_CONTENT,
-    M05_DECISION_MEMO_FILE_NAME,
     M05_DECOY_BILLING_CONTENT,
     M05_DECOY_PACS_CONTENT,
-    M05_FINDING_DRAFT_CONTENT,
-    M05_FINDING_DRAFT_FILE_NAME,
-    M05_FINDING_FINAL_CONTENT,
-    M05_FINDING_FINAL_FILE_NAME,
     M05_FOUND_NOTE_CONTENT,
     M05_FOUND_NOTE_FILE_NAME,
-    M05_GRETA_NOTES_CONTENT,
-    M05_GRETA_NOTES_FILE_NAME,
-    M05_IR_DATE_FOLDER,
-    M05_IR_FOLDER,
-    M05_IR_TICKETS_FOLDER,
     M05_LOG,
     M05_TXT,
     M05_USB_HISTORY_CONTENT,
     M05_USB_HISTORY_FILE_NAME,
-    M05_USB_TICKET_CONTENT,
-    M05_USB_TICKET_FILE_NAME,
-    M05_VAR_FOLDER,
 } from "./server-files.js";
 import { M05_STORY_DAY } from "./quest.js";
 
-const folder = (name: string, children: NetworkFileMap[]): NetworkFileMap => ({
-    name,
-    isFolder: true,
-    children,
-});
-
 const txt = (name: string, data: string): NetworkFileMap => ({ name, extension: M05_TXT, data });
-
-const buildColdChartFiles = (): NetworkFileMap[] => [
-    folder(M05_VAR_FOLDER, [
-        folder(M05_IR_FOLDER, [
-            folder(M05_IR_DATE_FOLDER, [
-                txt(M05_DECISION_MEMO_FILE_NAME, M05_DECISION_MEMO_CONTENT()),
-                txt(M05_FINDING_DRAFT_FILE_NAME, M05_FINDING_DRAFT_CONTENT()),
-                txt(M05_FINDING_FINAL_FILE_NAME, M05_FINDING_FINAL_CONTENT()),
-                txt(M05_ACKNOWLEDGEMENT_FILE_NAME, M05_ACKNOWLEDGEMENT_CONTENT()),
-            ]),
-            folder(M05_IR_TICKETS_FOLDER, [
-                txt(M05_USB_TICKET_FILE_NAME, M05_USB_TICKET_CONTENT()),
-                txt(M05_ASSET_REGISTER_FILE_NAME, M05_ASSET_REGISTER_CONTENT()),
-            ]),
-        ]),
-    ]),
-];
 
 const buildHospitalDevices = (): DeviceSpec[] => [
     {
@@ -100,7 +61,7 @@ const buildHospitalDevices = (): DeviceSpec[] => [
         ip: M05_FIREWALL_IP,
         lanIp: M05_FIREWALL_LAN_IP,
         isIpHidden: true,
-        users: [{ username: M05_GRETA_USERNAME, password: M05_GRETA_PASSWORD }],
+        users: [{ username: M05_FIREWALL_USERNAME, password: M05_FIREWALL_PASSWORD }],
         ports: [{ external: M05_HTTP_PORT, internal: M05_HTTP_PORT, active: true, service: "http" }],
         rules: [
             { allowed: false, port: M05_SSH_PORT, destination: M05_COLD_CHART_LAN_IP },
@@ -113,15 +74,10 @@ const buildHospitalDevices = (): DeviceSpec[] => [
         lanIp: M05_COLD_CHART_LAN_IP,
         name: M05_COLD_CHART_CODENAME,
         users: [
-            {
-                username: M05_GRETA_USERNAME,
-                password: M05_GRETA_PASSWORD,
-                files: [txt(M05_GRETA_NOTES_FILE_NAME, M05_GRETA_NOTES_CONTENT())],
-            },
+            { username: M05_GRETA_USERNAME, password: M05_GRETA_PASSWORD },
             { username: "root" },
         ],
         ports: [{ external: M05_SSH_PORT, internal: M05_SSH_PORT, active: false, service: "ssh" }],
-        rootFiles: buildColdChartFiles(),
     },
     {
         kind: "device",

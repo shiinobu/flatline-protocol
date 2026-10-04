@@ -1,4 +1,4 @@
-import { M05_HOSPITAL_MAIL_DOMAIN, M05_SNAPSHOT_2025, M05_SNAPSHOT_2026 } from "./network.js";
+import { M05_HOSPITAL_MAIL_DOMAIN, M05_SNAPSHOT_2025, M05_TEAM_PATH } from "./network.js";
 
 export interface StaffRow {
     readonly name: string;
@@ -19,12 +19,14 @@ export const M05_STAFF_2025: readonly StaffRow[] = [
     row("Ruben Wong", "network", "r.wong"),
 ];
 
-export const M05_STAFF_2026: readonly StaffRow[] = [
+export const M05_LIVE_STAFF: readonly StaffRow[] = [
     row("Tara Nair", "servicedesk", "t.nair"),
     row("Ruben Wong", "network", "r.wong"),
 ];
 
-export const M05_SNAPSHOTS = [
-    { path: "/s/8fq2/", date: M05_SNAPSHOT_2025, staff: M05_STAFF_2025 },
-    { path: "/s/8fq7/", date: M05_SNAPSHOT_2026, staff: M05_STAFF_2026 },
-] as const;
+export const M05_ECHOLINE_CAPTURE = {
+    path: "/s/8fq2/",
+    date: M05_SNAPSHOT_2025,
+    page: `${M05_HOSPITAL_MAIL_DOMAIN}${M05_TEAM_PATH}`,
+    staff: M05_STAFF_2025,
+} as const;

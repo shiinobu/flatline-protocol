@@ -1,0 +1,97 @@
+import { openSealed } from "../../components/text-seal.js";
+
+export interface RdcTarget {
+    readonly code: number;
+    readonly name: string;
+    readonly tag: string;
+    readonly lanIp: string;
+    readonly change: string;
+    readonly os: string;
+    readonly hasDisplay: boolean;
+}
+
+export interface RdcArchiveDoc {
+    readonly name: string;
+    readonly dir: string;
+    readonly gate: number;
+    readonly label?: string;
+    readonly text: string;
+}
+
+export interface RdcProfile {
+    readonly id: string;
+    readonly mission: string;
+    readonly key: string;
+    readonly user: string;
+    readonly password: string;
+    readonly advanceCode: number;
+    readonly targets: readonly RdcTarget[];
+    readonly docs: readonly RdcArchiveDoc[];
+}
+
+export interface RdcLoginResult {
+    readonly ok: boolean;
+    readonly msg: string;
+    readonly host?: RdcTarget;
+}
+
+export const RDC_LOGIN_EVENT = "flatline.rdc.login";
+export const RDC_ATTACHED_EVENT = "flatline.rdc.attached";
+export const RDC_READ_EVENT = "flatline.rdc.read";
+
+export interface RdcLoginPayload {
+    readonly mission: string;
+    readonly code: number;
+}
+
+export interface RdcAttachedPayload {
+    readonly mission: string;
+}
+
+export interface RdcReadPayload {
+    readonly mission: string;
+    readonly gate: number;
+}
+
+export const RDC_MESSAGES = {
+    unreadable: "Token unreadable.",
+    format: "Token format not recognised.",
+    signin: "Sign-in failed.",
+    address: "Address is not on the monitoring network.",
+    tag: "Address and device tag do not match.",
+    approval: "Approval does not cover this address.",
+} as const;
+
+let active: RdcProfile | null = null;
+
+export const setRdcProfile = (profile: RdcProfile): void => {
+    active = profile;
+};
+
+export const clearRdcProfile = (mission: string): void => {
+    if (active?.mission === mission) active = null;
+};
+
+export const getRdcProfile = (): RdcProfile | null => active;
+
+export const gatedDocCount = (profile: RdcProfile): number =>
+    profile.docs.filter((doc) => doc.gate > 0).length;
+
+export const checkRdcToken = (hex: string, profile: RdcProfile | null): RdcLoginResult => {
+    if (!profile) return { ok: false, msg: RDC_MESSAGES.unreadable };
+
+    const plain = openSealed(hex, profile.key);
+    if (plain === null) return { ok: false, msg: RDC_MESSAGES.unreadable };
+
+    const parts = plain.split(":");
+    if (parts.length !== 5) return { ok: false, msg: RDC_MESSAGES.format };
+
+    if (parts[0] !== profile.user || parts[1] !== profile.password) return { ok: false, msg: RDC_MESSAGES.signin };
+
+    const byAddress = profile.targets.find((target) => target.lanIp === parts[2]);
+    if (!byAddress) return { ok: false, msg: RDC_MESSAGES.address };
+    if (byAddress.tag !== parts[4]) return { ok: false, msg: RDC_MESSAGES.tag };
+    if (byAddress.change !== parts[3]) return { ok: false, msg: RDC_MESSAGES.approval };
+
+    return { ok: true, msg: "", host: byAddress };
+};

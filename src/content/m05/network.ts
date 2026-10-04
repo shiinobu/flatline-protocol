@@ -1,6 +1,27 @@
 import type { DomainSpec } from "../../core/types.js";
 
-export const M05_EDGE_DOMAIN = "remote.pacificcare-health.org";
+export const M05_HOSPITAL_MAIL_DOMAIN = "pacificcare-health.org";
+
+export const M05_HOSPITAL_HOME_DOMAIN = M05_HOSPITAL_MAIL_DOMAIN;
+export const M05_NEWS_DOMAIN = `news.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_CAREERS_DOMAIN = `careers.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_STATUS_DOMAIN = `status.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_PATIENT_DOMAIN = `patientportal.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_WEBMAIL_DOMAIN = `mail.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_GATEWAY_DOMAIN = `gateway.${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_REMOTE_DOMAIN = `remote.${M05_HOSPITAL_MAIL_DOMAIN}`;
+
+export const M05_HOSPITAL_HOME_IP = "160.153.44.12";
+export const M05_NEWS_IP = "160.153.44.37";
+export const M05_CAREERS_IP = "160.153.44.58";
+export const M05_STATUS_IP = "160.153.44.91";
+export const M05_PATIENT_IP = "160.153.44.120";
+export const M05_WEBMAIL_IP = "160.153.44.173";
+export const M05_GATEWAY_IP = "160.153.44.204";
+
+export const M05_TEAM_PATH = "/it/team";
+
+export const M05_EDGE_DOMAIN = M05_REMOTE_DOMAIN;
 export const M05_EDGE_IP = "198.244.91.37";
 export const M05_EDGE_LAN_IP = "192.168.1.1";
 
@@ -9,26 +30,35 @@ export const M05_SPLITTER_LAN_IP = "192.168.1.2";
 
 export const M05_FIREWALL_IP = "193.29.57.184";
 export const M05_FIREWALL_LAN_IP = "192.168.1.3";
+export const M05_FIREWALL_USERNAME = "r.wong";
+export const M05_FIREWALL_PASSWORD = "Pangolin-Vellum-3182";
 
 export const M05_COLD_CHART_IP = "141.98.252.76";
 export const M05_COLD_CHART_LAN_IP = "192.168.1.4";
 export const M05_COLD_CHART_CODENAME = "Cold-Chart";
+export const M05_COLD_CHART_TAG = "arc-ir-01";
+export const M05_COLD_CHART_CHANGE = "CHG-2608-014";
 
 export const M05_BEDSIDE_IP = "80.94.92.118";
 export const M05_BEDSIDE_LAN_IP = "192.168.1.5";
 export const M05_BEDSIDE_CODENAME = "Bedside-17";
 export const M05_BEDSIDE_ASSET_TAG = "PC-IT-017";
+export const M05_BEDSIDE_CHANGE = "CHG-2608-009";
 export const M05_BEDSIDE_RDP_VERSION = "FreeRDP 6.0.4";
 export const M05_BEDSIDE_USERNAME = "it.station";
 
 export const M05_LEAD_APRON_IP = "45.142.193.29";
 export const M05_LEAD_APRON_LAN_IP = "192.168.1.6";
 export const M05_LEAD_APRON_CODENAME = "Lead-Apron";
+export const M05_LEAD_APRON_TAG = "arc-img-02";
+export const M05_LEAD_APRON_CHANGE = "CHG-2608-016";
 export const M05_LEAD_APRON_USERNAME = "pacs";
 
 export const M05_PAY_STATION_IP = "176.113.115.84";
 export const M05_PAY_STATION_LAN_IP = "192.168.1.7";
 export const M05_PAY_STATION_CODENAME = "Pay-Station";
+export const M05_PAY_STATION_TAG = "bill-01";
+export const M05_PAY_STATION_CHANGE = "CHG-2608-016";
 export const M05_PAY_STATION_USERNAME = "billing";
 
 export const M05_PRINTER_IP = "195.133.40.17";
@@ -37,6 +67,7 @@ export const M05_PRINTER_USERNAME = "admin";
 
 export const M05_GRETA_USERNAME = "g.desouza";
 export const M05_GRETA_PASSWORD = "Marigold2019";
+export const M05_GARETH_USERNAME = "g.lim";
 export const M05_PAY_STATION_PASSWORD = "billing-desk-04";
 export const M05_LEAD_APRON_PASSWORD = "radiology2021";
 export const M05_PRINTER_PASSWORD = "printroom01";
@@ -46,18 +77,24 @@ export const M05_PAY_STATION_HASH = "2d13ee924661ff4007228f5c4d199484";
 export const M05_LEAD_APRON_HASH = "89373ed2fcad2cf734d0e7b792800909";
 export const M05_PRINTER_HASH = "f19ee082c990c2f01f0d1879b0b5cdfa";
 
-export const M05_HOSPITAL_MAIL_DOMAIN = "pacificcare-health.org";
 export const M05_GRETA_WORK_EMAIL = `${M05_GRETA_USERNAME}@${M05_HOSPITAL_MAIL_DOMAIN}`;
+
+export const M05_FOOTHOLD_SOURCE_IP = "194.36.108.20";
+export const M05_FOOTHOLD_FIRST_SEEN = "2026-08-11 00:41";
+export const M05_HOLD_MATTER = "L-2608-03";
 
 export const M05_ECHOLINE_DOMAIN = "echoline.net";
 export const M05_ECHOLINE_IP = "185.31.164.22";
 export const M05_LEAKINDEX_DOMAIN = "leakindex.net";
 export const M05_LEAKINDEX_IP = "91.229.23.105";
+export const M05_RDC_DOMAIN = "rdcdesk.io";
+export const M05_RDC_IP = "185.199.52.14";
+export const M05_CIPHER_DOMAIN = "cipherdesk.io";
+export const M05_CIPHER_IP = "45.61.136.9";
 
 export const M05_SNAPSHOT_2025 = "2025-11-03";
-export const M05_SNAPSHOT_2026 = "2026-09-02";
+export const M05_TEAM_UPDATED = "2026-09-02";
 export const M05_ECHOLINE_M05_2025_PATH = "/s/8fq2/";
-export const M05_ECHOLINE_M05_2026_PATH = "/s/8fq7/";
 
 export const M05_SSH_PORT = 22;
 export const M05_RDP_PORT = 3389;
@@ -67,7 +104,14 @@ export const M05_PRINTER_PORT = 9100;
 
 export const M05_ROUTER_IPS: readonly string[] = [M05_EDGE_IP];
 
-export const M05_DOMAIN_RECORDS: readonly DomainSpec[] = [];
-export const M05_EDGE_DOMAIN_RECORDS: readonly DomainSpec[] = [
-    { name: M05_EDGE_DOMAIN, ip: M05_EDGE_IP, needsSubnet: false },
+export const M05_HOSPITAL_WEB_DOMAIN_RECORDS: readonly DomainSpec[] = [
+    { name: M05_HOSPITAL_HOME_DOMAIN, ip: M05_HOSPITAL_HOME_IP, needsSubnet: true },
+    { name: M05_NEWS_DOMAIN, ip: M05_NEWS_IP, needsSubnet: true },
+    { name: M05_CAREERS_DOMAIN, ip: M05_CAREERS_IP, needsSubnet: true },
+    { name: M05_STATUS_DOMAIN, ip: M05_STATUS_IP, needsSubnet: true },
+    { name: M05_PATIENT_DOMAIN, ip: M05_PATIENT_IP, needsSubnet: true },
+    { name: M05_WEBMAIL_DOMAIN, ip: M05_WEBMAIL_IP, needsSubnet: true },
+    { name: M05_GATEWAY_DOMAIN, ip: M05_GATEWAY_IP, needsSubnet: true },
 ];
+
+export const M05_DOMAIN_RECORDS: readonly DomainSpec[] = M05_HOSPITAL_WEB_DOMAIN_RECORDS;
