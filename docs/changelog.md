@@ -27,6 +27,10 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-04
 
+- [design] M5 debug lab: the Monitor site is renamed Remote Desktop Connection and rebuilt as an interactive remote
+  desktop on one framebuffer, Cipher Desk is redesigned, and login, encrypt/decrypt and display assembly get real
+  animation; puzzle logic and player text are unchanged, not yet tested in-game — see scratch.md (2026-10-04 Remote
+  Desktop Connection and Cipher Desk redesign), font-licenses.md
 - **[milestone] BACKTRACE passed the owner's live test and is FINAL LOCK.** Declared by the owner on 2026-10-04 after testing the
   post-lock batch in game (`docs/world-building/README.md` #56, now LOCKED): the Personal Log filled at COMPLETE, the source
   captions, the pinned header and hidden scrollbar of the log sheet, and `backtrace-log`. It also answers the live test that #55

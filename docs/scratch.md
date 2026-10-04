@@ -2844,3 +2844,39 @@ SESSION MENU (slides in from the left edge of the screen, over it)
   A-1 and A-2 decide at submit time and commit when the sequence resolves (AN-2).
 - **Toast timers** stay as they are (F-8, untouched). The new scheduler owns every timer and frame callback of the two
   redesigned sites, including the old 1 s clock and the display loop.
+
+### Decisions taken while building
+
+- **Remote resolution 1280x800** (16:10, up from 1024x640). The DOM desktop after attach and the canvas framebuffer before
+  it share one set of metrics (`RK_DEF`, `RK_ICONS`, panel height) and one face (Cantarell), and the screen is scaled with
+  `transform` on `#rdfb`, so the frames before attach line up with the desktop the player then uses.
+- **One framebuffer (R-4).** `sceneCanvas()` paints the wallpaper, panel, icons and the browser window with the archive
+  still loading, the same scene `rkDeskHtml()` renders as live DOM after attach. Every symptom is a pass over that one frame
+  in `frameInto()`: black; the pointer only; a stale frame dimmed and displaced with a stalled marker; static tiles at about
+  12 fps; repeated columns or rows for width and height; banding for bpp; swapped channels for order; a skew for stride;
+  their combinations; a vertical roll. The roll runs on a compositor layer (`#rdroll`, a CSS transform animation) instead
+  of a per-frame repaint, which removed the long tasks the repaint caused at 4x CPU throttling.
+- **One scheduler (AN-5, AN-6).** `SCH` owns every timer and frame callback of the two sites: `wait`, `every`, `frame` and
+  `run` (a timeline with skip). Each callback has an owner element; `sweep()` on every clock tick drops callbacks whose
+  owner left the document, `every` skips while the page is hidden and the frame loop stops. Sequences resolve on timeouts,
+  so throttled frame callbacks only delay painting, never a commit. The old 1 s clock and `sigLoop` moved into it.
+- **Commit points.** A-1: `tokenCheck` runs at submit; the seven stages present the result and `rdFailCommit` or
+  `rdOkCommit` commit it at the end with the same statements and order as BASE's `monLogin`. A-2: `cipherCompute` (the
+  frozen logic) runs at submit; `ciPlay` animates the actual bytes (12 in detail, then fast-forward) and `cipherCommit`
+  writes `st.ci` at the end. A-3: the terminal commits at once (F-5); `afterCmd` compares the shown symptom and the attach
+  state before and after the command and plays the bring-up (first apply), a re-sync (later applies) or the finale
+  (attach). A reload mid-sequence therefore loses nothing that was committed and commits nothing that was not.
+- **Reduced motion (AN-4).** The blanket rule now skips `.rdc` and `.cdk`; both sites have calm variants (short, no large
+  movement, no flashing) measured at or under about 1 s.
+- **`PC_CFG.instant`** completes every sequence synchronously. Only the harness sets it.
+- **Interactive desktop (R-3).** Menus, icons, windows (focus, drag, resize, minimise, maximise, close, window list),
+  remote pointer layer with arrow, hand, text and resize shapes, a ticking remote clock, Files windows for Home and
+  Computer listing the seven archive files in their three folders, a Text Viewer. Every document open goes through
+  `openDoc` (`rkDocOpen` sets the viewer document and calls it), so the gates and events behave as in BASE. Delete,
+  typing in the viewer and the entries that do not exist open the remote machine's own dialogs ("Read-only session",
+  "<name> is not available on this host."). The Applications menu entry for a process viewer is named "Processes".
+- **Fonts.** Cantarell for the remote machine's interface; Martian Mono and Schibsted Grotesk 400 for Cipher Desk
+  (Schibsted 700 dropped to stay under 80 KB per site). Each site's fonts sit in their own `<style data-slot>` block and
+  `portal-lab.ts` strips the blocks of the other sites from each lab page.
+- **Hosts** are single constants: `MONITOR_LAB_DOMAIN` in `portal-lab.ts` (`remote-desktop-lab.pacificcare-health.org`)
+  and the `MON_HOST` default in the HTML (`remotedesktopconnection.io`).
