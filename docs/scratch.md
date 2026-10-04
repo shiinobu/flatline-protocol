@@ -2855,7 +2855,9 @@ SESSION MENU (slides in from the left edge of the screen, over it)
   in `frameInto()`: black; the pointer only; a stale frame dimmed and displaced with a stalled marker; static tiles at about
   12 fps; repeated columns or rows for width and height; banding for bpp; swapped channels for order; a skew for stride;
   their combinations; a vertical roll. The roll runs on a compositor layer (`#rdroll`, a CSS transform animation) instead
-  of a per-frame repaint, which removed the long tasks the repaint caused at 4x CPU throttling.
+  of a per-frame repaint, which removed the long tasks the repaint caused at 4x CPU throttling. Format frames are composed
+  at 640x400, the size of BASE's whole canvas, and scaled up without smoothing: the picture stays as hard to read as at
+  BASE, stays crisp, and the colour passes cost a quarter of the full-size work.
 - **One scheduler (AN-5, AN-6).** `SCH` owns every timer and frame callback of the two sites: `wait`, `every`, `frame` and
   `run` (a timeline with skip). Each callback has an owner element; `sweep()` on every clock tick drops callbacks whose
   owner left the document, `every` skips while the page is hidden and the frame loop stops. Sequences resolve on timeouts,
@@ -2890,11 +2892,12 @@ SESSION MENU (slides in from the left edge of the screen, over it)
 - **Code rules**: `tsc --noEmit` exit 0; no comments, no `console.`, no `eval`/`new Function`/`document.write`, no
   `<form>`; one `<body>`, one `</script>`; CSS braces balance; the script parses.
 - **Performance** (CPU throttling through the DevTools protocol, software rendering, so pessimistic): no long task during
-  any sequence at 1x and 2x; at 4x the format bring-up (bpp 16, order and stride wrong) went from 77/54/108 ms tasks to
-  none after the format path moved to half resolution (the size of BASE's whole canvas) and split into two invisible
-  steps during the negotiation; the attach finale showed one 65 ms task in one of three 4x runs. Re-sync and the cipher
-  run: none at 1x, 2x or 4x. Page load at 4x: tasks of 99 and 84 ms (BASE: one of 87 ms). A 298 ms task seen once at 2x
-  did not come back in clean runs; it happened while another browser job was running in parallel.
+  any sequence at 1x and 2x (page load, login, bring-up on every format path, re-sync, attach finale, cipher run). At 4x
+  the format bring-up had tasks of 77, 54 and 108 ms; after the format path moved to half resolution (the size of BASE's
+  whole canvas, scaled up without smoothing) and was split into two invisible steps during the negotiation, most runs show
+  none and some show one task of 55 to 71 ms. The attach finale shows at most one task of 50 to 60 ms in some 4x runs, when
+  the remote desktop's DOM appears. Re-sync and the cipher run: none. Page load at 4x: tasks of 99 and 84 ms (BASE: one of
+  87 ms). A 298 ms task seen once at 2x did not come back in clean runs; another browser job was running in parallel.
 - **Screenshots**: before and after at 1600x900, 1280x720, 1100x800 and 800x900 for 23 states, in the session scratchpad
   (not committed).
 - **Not verified in the game**: everything above ran in desktop Chromium, not in HackHub's Electron iframe (data-URI
