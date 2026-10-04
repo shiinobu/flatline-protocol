@@ -2638,3 +2638,209 @@ still unverifiable from here: whether a `Firewall` nested in a `Splitter`
 protects its siblings (`docs/bugs.md` #45) and whether a `{realMs}` Scheduler job
 survives a live Meterpreter session (#46). Both are live-test questions, both are
 written up, and both have a fallback recorded in their own entry.
+
+---
+
+## 2026-10-04 — Remote Desktop Connection and Cipher Desk redesign (M5 debug lab)
+
+Scope: `src/debug/dashboard-preview.html` (the Monitor and Cipher sites only) and `src/debug/portal-lab.ts`. The portal,
+the dock and the puzzle logic do not change. Brief: the owner's words B-1 to B-8 (redesign Monitor and Cipher, model the
+Guacamole VNC screenshot, modern and not "AI slop", a real remote desktop, rename Monitor to Remote Desktop Connection, real
+animation at login, encrypt/decrypt and display assembly). This section holds the references, the two-pass plan and the
+"why" notes that cannot live in `src/` (zero comments rule).
+
+### Process notes
+
+- **frontend-design skill: not available here.** It is not in the session's skill list and the skill search finds nothing.
+  The plan below applies its principles as the brief restates them (D-3 two-pass plan, D-4 tells).
+- **The reference image could not be opened.** `guacamole.apache.org` (and `novnc.com`, `learn.microsoft.com`) are blocked
+  by this environment's egress policy, both for `curl` and for the fetch tool. The model below is taken from the brief's own
+  description of the screenshot (R-2). Web search worked, so the other references are from search results.
+- **Harness first.** A jsdom harness outside the repo (golden values, every refusal, the lock, the whole puzzle solved from
+  console output with three seeds, a 179-command transcript compared line by line against BASE, windows, reload, lab mode,
+  portal and dock text snapshots, BASE save fixtures) was green on the unmodified file: 748 checks.
+
+### References — Remote Desktop Connection
+
+1. **Apache Guacamole** (the owner's 0.8.3 VNC screenshot, as described; the 1.5/1.6 user guide). Took: the page is the
+   remote screen edge to edge; the connection is named `host:display (user)`; a client menu that stays hidden until asked
+   for (a control, or Ctrl+Alt+Shift) and holds the clipboard box, the zoom and Disconnect. Did not take: the GNOME 2 desktop,
+   the Debian logo and wallpaper, the menu's dated styling.
+2. **noVNC and the Proxmox VE console.** Took: two scaling modes in plain words (no scaling with scrollbars, or local scaling
+   to fit) and a clipboard box that shows what the remote copied. Did not take: the edge handle and toolbar look, and
+   "remote resizing" (the remote resolution is fixed here).
+3. **Windows Remote Desktop Connection, while it connects** ("Initiating remote connection", "Securing remote connection",
+   "Configuring remote session", "Estimating connection quality"). Motion reference only: one present-tense step at a time,
+   in a fixed order. Did not take: its words or its dialog.
+4. **Azure Bastion, the Windows App web client, Chrome Remote Desktop.** Took: a session menu that slides over the screen
+   from an edge and gets out of the way, a clipboard text area as the go-between, "scale to fit" as the default. Did not take:
+   Fluent materials or any Microsoft iconography.
+5. **Modern Linux shells for the remote screen**: COSMIC (one top panel of applets, a coherent set of native apps), KDE
+   Plasma 6 (windows drag from the header only), MATE (the Applications / Places / System menu bar). Debian 12 ships GNOME 43,
+   whose UI font is Cantarell. Took: a slim top panel with the three menus, a window list, host, user and a clock;
+   header-only dragging; Cantarell for the remote machine. Did not take: any shell's icons, logo, panel art or wallpaper.
+
+### References — Cipher Desk
+
+1. **CyberChef.** Took: input above output, live counters in the field headers. Did not take: the four-pane IDE density.
+2. **Cryptii.** Took: the transformation is a visible stage between what goes in and what comes out. Did not take: the brick
+   cards and the light theme.
+3. **ImHex and Hex Fiend.** Took: bytes shown as pairs with a wider gap every eight bytes, and an inspector that shows one
+   byte as bits. Did not take: offset columns and the ASCII side pane.
+4. **Kaitai Struct Web IDE.** Took: pointing at a byte highlights where it came from (result byte to input byte and
+   passphrase byte). Did not take: the object tree.
+5. **Martian Mono** (Evil Martians' specimen): a wide grotesque monospace made for interfaces and data.
+
+### Plan — Remote Desktop Connection, pass 1
+
+- **Palette (chrome).** Workbench `#121418` (workspace backdrop), Frame `#1b1d22` (windows, top bar), Rail `#262930`
+  (title bars, inputs, pipeline cells), Paper `#edeff2` (text and the primary button), Live `#6fdc8c` (connected, OK),
+  Fault `#ff6f6f` (refusals, HELD). Secondary text Fog `#a3a8b2`. The remote machine brings its own colour: a night sky
+  `#0e1733` to cobalt `#1b2f63` with a rose horizon `#e9849a`, its own accent Rose `#f08a9c`.
+- **Type.** Chrome: Segoe UI Variable (Text for UI, Display for the view titles), tabular numerals for timers. Data: Cascadia
+  Mono (fallback Consolas) for the token, host chips, console and status strip values. Remote machine: Cantarell 400/700,
+  embedded (OFL, Latin subset), so the remote screen reads as another operating system.
+- **Layout.** A quiet graphite workbench whose only bright thing is the remote machine: the login is one connect card with a
+  live route panel, the workspace floats the two windows, and the Remote Desktop Connection window shows the remote screen
+  edge to edge.
+
+```text
+LOGIN (idle)
++--------------------------------------------------------------------------+
+| [mark] Remote Desktop Connection                                         |
+|                                                                          |
+|      +---------------------------------------+------------------------+  |
+|      | Connect to a workstation              |  (o) This browser      |  |
+|      | Paste the access token issued for ... |    :                   |  |
+|      |                                       |    :  (route, dashed)  |  |
+|      | Access token                          |    :                   |  |
+|      | +-----------------------------------+ |    :                   |  |
+|      | | 2b0356534357584a52...             | |    :                   |  |
+|      | +-----------------------------------+ |  ( ) Remote host       |  |
+|      | error line (aria-live)    [ Connect ] |      Not connected     |  |
+|      +---------------------------------------+------------------------+  |
+|      Each token is issued for one host. Sessions are recorded ...         |
++--------------------------------------------------------------------------+
+
+LOGIN (connecting; stages appear only when reached)
+      | field read-only          [Connecting] |  (*) This browser      |
+      |                                       |   |-(v) Reading the token
+      |                                       |   |-(v) Checking the format
+      |                                       |   |-(~) Signing in       <- active
+      |                                       |   :                     |
+      |                                       |  ( ) Remote host        |
+      | failure: message, card nudges, field editable, focus back      |
+
+WORKSPACE
++--------------------------------------------------------------------------+
+| [mark] Remote Desktop Connection | Cold-Chart arc-ir-01 192.168.1.3 | 04:12 [Disconnect] |
+| +- Agent console ---------------+  +- Remote Desktop Connection  arc-ir-01:1 (g.desouza)  * signal received  [menu][fit] -+
+| | lease -- source -- link -- format -- sync |  |  remote screen, edge to edge (16:10)                |
+| | scrollback                    |  |                                                       |
+| | (agent)-[/] _                 |  |                                                       |
+| | hint line                     |  +-------------------------------------------------------+
+| +-------------------------------+  | arc-ir-01  link relay-a/raw  fps 24     1440x900 32bpp rgb |
+|                                    +-------------------------------------------------------+
++--------------------------------------------------------------------------+
+
+REMOTE SCREEN AFTER ATTACH (1280 x 800, scaled to fit)
++--------------------------------------------------------------------------+
+| (o) Applications  Places  System | Browser  Files        arc-ir-01  g.desouza  14:09 |
+| [PC] Computer      +- Clinical Incident Archive ---------------- _ [] x -+            |
+|                    | <  >  https://arc-ir-01.pacificcare-health.org/ir/archive |      |
+| [~]  g.desouza's   | Clinical Incident Archive        Legal hold L-2608-03 ... |      |
+|      Home          | /ir/2026-08-14   | decision record text ...               |      |
+| [x]  Trash         |   decision_memo  |                                        |      |
+| [@]  Browser       +------------------------------------------------------------+      |
+|                                                        ^ remote pointer               |
++--------------------------------------------------------------------------+
+SESSION MENU (slides in from the left edge of the screen, over it)
+| Connection: host, address, account, display, status | Scaling: Fit to window / Actual size |
+| Clipboard: text area | [Disconnect] |
+```
+
+- **Principles.** (1) The remote screen is the hero, the chrome recedes: neutral, thin, exact. (2) Everything that moves
+  reports real state: route stages are the six real checks, the first frame paints in tiles because frames arrive that
+  way, pipeline cells are `compStates`. (3) Two machines, two voices: Windows-native chrome, a Linux remote in Cantarell.
+  (4) Dense where the work is (console, status strip), airy where the decision is (login). (5) Nothing diagnoses before the
+  first frame: the bring-up is the same for every outcome.
+- **The memorable thing.** The first frame arrives: tiles paint across the black screen and reveal the remote desktop
+  through whatever is still broken in the pipeline; at attach, the frozen picture comes alive layer by layer.
+
+### Plan — Cipher Desk, pass 1
+
+- **Palette.** Ink `#0f1631` (page), Well `#0a1026` (the byte band), Slate `#18214a` (fields), Bone `#f3eee5` (text, primary
+  button, input bytes), Lime `#c4f06a` (passphrase bytes, focus), Ice `#8ed8ff` (hex bytes). Secondary text Haze `#aeb7d3`;
+  errors `#ff8f88` with an icon.
+- **Type.** Martian Mono 400/600 (wordmark, bytes, hex, counters) and Schibsted Grotesk 400/700 (labels, text, buttons),
+  both embedded (OFL, Latin subset). Different pairing, palette family and density from Remote Desktop Connection.
+- **Layout.** One column that reads top to bottom like the transformation itself: what you have, the passphrase, the band
+  that combines them byte by byte, and what you get.
+
+```text
++--------------------------------------------------------------------------+
+| Cipher Desk                                           ( Decrypt | Encrypt ) |
+| Everything runs in this page. The same passphrase decrypts what it encrypted.|
+|                                                                          |
+| Text to decrypt                                        57 bytes          |
+| +----------------------------------------------------------------------+ |
+| | 2b0356534357584a5276...                                              | |
+| +----------------------------------------------------------------------+ |
+| inline hint (odd digits, letters that are not hex)                       |
+| Passphrase  [ L-2608-03                                ]     [ Decrypt ] |
+|                                                                          |
+| +-- band ---------------------------------------------------------------+ |
+| | input  | 2b  03  56  53  43  57  58  4a  52 ...                       | |
+| | phrase |  L   -   2   6   0   8   -   0   3   L ...   [bit lens]     | |
+| | result |  g   .   d   e   s   o   u   z   a ...                       | |
+| +-----------------------------------------------------------------------+ |
+| Result                              [ Use result as input ] [ Copy result ] |
+| +----------------------------------------------------------------------+ |
+| | g.desouza:Marigold2019:...    (hex shown in byte pairs when encrypted)| |
+| +----------------------------------------------------------------------+ |
+| note (aria-live, space reserved)                                         |
++--------------------------------------------------------------------------+
+```
+
+- **Principles.** (1) Colour is provenance: Bone for your text, Lime for the passphrase, Ice for hex. (2) The page is the
+  tool: no card around a card. (3) Large targets, plain labels, errors that say what to fix. (4) Copy is exact: what you
+  select or copy is the plain lowercase hex, however it is drawn.
+- **The memorable thing.** The byte band: your own characters become byte cells, the passphrase cycles underneath, each
+  pair fuses into the result byte, and pointing at a result byte shows where it came from.
+
+### Pass 2 — the plans read against the brief and the D-4 tells (what changed and why)
+
+1. RDC accent: pass 1 had an azure accent for focus and the route. Blue on graphite is the default dark-SaaS look, and
+   Cipher Desk is already blue-based. Changed: the chrome is monochrome (Paper primary, Paper focus ring) and the colour comes
+   from the remote screen and from the two status colours.
+2. RDC login backdrop: a blurred crop of the remote wallpaper behind a frosted card was considered. It is decoration and the
+   glass-card cliché. Changed: flat Workbench, no image.
+3. Route panel: listing all seven stages before an attempt would show the order of the checks before the player has tried
+   anything. Changed: a stage row appears only when the sequence reaches it, so a failure shows exactly the stages reached.
+4. Pipeline chips: five identical rounded pills is the identical-cards tell. Changed: one strip of five joined cells, state
+   shown by a glyph plus the exact word, so colour is never the only signal.
+5. Window titles: "Remote Desktop Connection — arc-ir-01:1" is the "WORD — fragment" shape. Changed: separate elements
+   (name, connection in mono, a status dot with the status words), no dash or middle dot.
+6. Mono everywhere: pass 1 set small labels in mono on both sites. Changed: mono only for data (token, bytes, hex, console,
+   values); labels in the sans.
+7. Cipher "Lime": pass 1 made Lime the primary button colour. Lime on a dark page as the one accent is the acid-green tell.
+   Changed: the primary button is Bone; Lime is only the passphrase colour and the focus ring.
+8. Cipher card: pass 1 kept the tool in a rounded card with a shadow. Changed: fields sit on the page, separated by tone and
+   spacing; the band is the only inset surface.
+9. Cipher lead copy: the old headline described what the controls already show. Changed: wordmark plus one sentence that
+   says something the controls do not (it runs locally; the same passphrase reverses it).
+10. Remote desktop before attach: drawing the archive file list into the first frames would show file names earlier than
+    today (R-8). Changed: before attach the remote browser shows the archive page still loading (skeleton rows); the listing
+    loads at attach, which is when `archiveAccessed` fires.
+
+### Readings of ambiguous items (also in the final report)
+
+- **"Merangkai monitor"** is read literally as the display assembly (A-3): lease, signal set, the first apply and every
+  re-sync, calibrate, and attach. Building the token is animated on Cipher Desk (A-2).
+- **Branch.** The session's designated branch is `clouds-modify`, which the brief says never to push. The work goes to a new
+  branch derived from it, `claude/rdc-cipher-redesign`.
+- **A-3 commit timing.** The terminal commands are frozen (F-5): `agent lease clear`, `signal apply` and `agent attach` print
+  and commit at once, as today. Their animations present what was already committed; skipping or reloading changes nothing.
+  A-1 and A-2 decide at submit time and commit when the sequence resolves (AN-2).
+- **Toast timers** stay as they are (F-8, untouched). The new scheduler owns every timer and frame callback of the two
+  redesigned sites, including the old 1 s clock and the display loop.
