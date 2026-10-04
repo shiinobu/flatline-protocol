@@ -339,33 +339,9 @@ table.list.auto{table-layout:auto}
 .mlogo i .ic{width:20px;height:20px}
 .mlogo b{display:block;font:600 17px/1.15 var(--disp)}
 .mlogo span{display:block;color:var(--mute);font-size:13px}
-.mlogin{flex:1;min-height:0;display:grid;grid-template-columns:minmax(380px,540px) minmax(0,1fr);overflow:hidden;background:radial-gradient(800px 460px at 70% 8%,rgba(92,200,240,.1),transparent 62%),linear-gradient(rgba(92,200,240,.05) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(90deg,rgba(92,200,240,.05) 1px,transparent 1px) 0 0/44px 44px,var(--mbg)}
-.mlg-l{display:flex;flex-direction:column;justify-content:center;gap:26px;min-width:0;padding:40px 56px}
-.mlg-l .mlogo{margin:0 0 4px}
-.mlg-f{width:100%;max-width:420px;padding:34px 34px 28px;background:rgba(11,23,32,.92);border:1px solid var(--mline2);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
-.mlg-f h2{font-size:24px}
-.mlg-f .lead{margin:6px 0 24px}
-.mlg-f .btn{width:100%;height:46px;font-size:16px}
-.mlg-f small{display:block;margin-top:18px;color:var(--mute);font-size:13px}
-.mlg-r{display:flex;flex-direction:column;justify-content:center;gap:18px;min-width:0;padding:40px 48px 40px 0}
-.mlg-r p{margin:0;max-width:34em;color:var(--mute)}
-.wall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:780px}
-.scr{position:relative;aspect-ratio:16/10;border:1px solid var(--mline2);border-radius:10px;background:#03080c;overflow:hidden}
-.scr i{position:absolute;left:9%;height:3px;border-radius:2px;background:rgba(127,240,192,.45)}
-.scr i:nth-child(1){top:20%;width:44%}
-.scr i:nth-child(2){top:34%;width:64%;background:rgba(92,200,240,.4)}
-.scr i:nth-child(3){top:48%;width:34%}
-.scr i:nth-child(4){top:62%;width:52%;background:rgba(92,200,240,.4)}
-.scr.off,.scr.held{background:repeating-linear-gradient(135deg,#050b10 0 9px,#07121a 9px 18px)}
-.scr.off i,.scr.held i{display:none}
-.scr.held{border-style:dashed}
 
 .rs-k{display:inline-flex;align-items:center;gap:8px;color:var(--mute);font-size:13px}
 .hostchip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--mline2);border-radius:8px;background:var(--mpanel);color:var(--mute);font-size:13px;white-space:nowrap}
-.mtok{display:block;width:100%;min-height:104px;padding:12px 14px;resize:none;background:var(--bg);border:1px solid var(--line2);border-radius:10px;color:var(--ink);font:14px/1.5 var(--mono);word-break:break-all}
-.mtok:focus{outline:0;border-color:var(--spo);box-shadow:0 0 0 3px var(--spo-t)}
-.mlg-f .fldl{display:block;margin:0 0 8px;color:var(--mute);font-size:13px;font-weight:500}
-.mlg-f .err{margin:10px 0}
 
 .wsp{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(900px 500px at 82% 0,rgba(92,200,240,.09),transparent 62%),linear-gradient(rgba(92,200,240,.045) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,rgba(92,200,240,.045) 1px,transparent 1px) 0 0/40px 40px,var(--mbg)}
 .win{position:absolute;display:flex;flex-direction:column;min-width:300px;min-height:160px;border:1px solid var(--mline2);border-radius:12px;background:#03080c;box-shadow:0 30px 70px -24px #000;overflow:hidden}
@@ -493,9 +469,6 @@ table.list.auto{table-layout:auto}
 .lg-l{padding:24px 24px 0}
 .lg-copy{display:none}
 .lg-r{padding:24px}
-.mlogin{grid-template-columns:minmax(0,1fr)}
-.mlg-r{display:none}
-.mlg-l{padding:24px}
 .mtop{padding:0 16px;gap:10px}
 .hostchip{display:none}
 .wsp{display:flex;flex-direction:column;gap:12px;padding:12px;overflow:auto}
@@ -511,7 +484,94 @@ table.list.auto{table-layout:auto}
 .cpt{padding:0 16px}
 .cpm h1{font-size:26px}
 }
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*:not(.rdc,.rdc *,.cdk,.cdk *),*:not(.rdc,.rdc *,.cdk,.cdk *)::before,*:not(.rdc,.rdc *,.cdk,.cdk *)::after{animation:none!important;transition:none!important}}
+</style>
+<style data-site="rdc">
+.rdc{--rd-bench:#121418;--rd-frame:#1b1d22;--rd-rail:#262930;--rd-deep:#16181c;--rd-line:#33373f;--rd-line2:#454a54;--rd-paper:#edeff2;--rd-fog:#a3a8b2;--rd-dim:#878d99;--rd-live:#6fdc8c;--rd-fault:#ff6f6f;--rd-ink:#15171b;--rd-ui:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;--rd-disp:"Segoe UI Variable Display","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;--rd-mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,monospace;--rd-out:cubic-bezier(.16,.84,.24,1);display:flex;flex-direction:column;flex:1;min-height:0;background:var(--rd-bench);color:var(--rd-paper);font:400 14px/1.45 var(--rd-ui);color-scheme:dark}
+.rdc :focus-visible{outline:2px solid var(--rd-paper);outline-offset:2px}
+.rd-top{display:flex;align-items:center;gap:14px;flex:none;height:56px;padding:0 24px;border-bottom:1px solid var(--rd-line);background:var(--rd-frame)}
+.rd-brand{display:flex;align-items:center;gap:11px;min-width:0;font:600 15px/1.2 var(--rd-disp);white-space:nowrap}
+.rd-mark{width:26px;height:26px;flex:none;color:var(--rd-paper)}
+.rd-lg{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 32px}
+.rd-card{display:grid;grid-template-columns:minmax(0,1fr) 244px;width:min(724px,100%);border:1px solid var(--rd-line);border-radius:14px;background:var(--rd-frame);overflow:hidden}
+.rd-card.nudge{animation:rdNudge .34s var(--rd-out)}
+.rd-form{min-width:0;padding:30px 30px 24px}
+.rd-form h1{margin:0 0 6px;font:600 25px/1.2 var(--rd-disp);letter-spacing:-.005em}
+.rd-lead{margin:0 0 22px;color:var(--rd-fog)}
+.rd-lab{display:block;margin:0 0 8px;font-size:13px;font-weight:600}
+.rd-tok{display:block;width:100%;min-height:118px;padding:12px 14px;resize:none;border:1px solid var(--rd-line2);border-radius:10px;background:var(--rd-bench);color:var(--rd-paper);font:13.5px/1.6 var(--rd-mono);word-break:break-all;transition:border-color .15s,color .15s}
+.rd-tok::placeholder{color:var(--rd-dim)}
+.rd-tok:hover{border-color:#5d636e}
+.rd-tok:focus{outline:2px solid var(--rd-paper);outline-offset:2px}
+.rd-tok[readonly]{color:var(--rd-fog);border-style:dashed}
+.rd-tok.bad{border-color:var(--rd-fault)}
+.rd-act{display:flex;align-items:flex-start;gap:18px;margin-top:14px}
+.rd-err{flex:1;min-width:0;min-height:40px;margin:0;padding-top:10px;color:var(--rd-fault);font-size:13.5px;line-height:1.4}
+.rd-btn{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:136px;height:40px;padding:0 20px;border:0;border-radius:10px;background:var(--rd-paper);color:var(--rd-ink);font:600 14px/1 var(--rd-ui);overflow:hidden;transition:background .15s,transform .1s}
+.rd-btn:hover:not(:disabled){background:#fff}
+.rd-btn:active:not(:disabled){transform:translateY(1px)}
+.rd-btn:disabled{opacity:.42;cursor:not-allowed}
+.rd-btn.busy{cursor:progress}
+.rd-bar{position:absolute;left:0;bottom:0;width:100%;height:3px;background:var(--rd-ink);transform:scaleX(0);transform-origin:left;transition:transform .42s var(--rd-out)}
+.rd-btn:not(.busy) .rd-bar{transition:none}
+.rd-route{position:relative;display:flex;flex-direction:column;min-width:0;padding:28px 22px 18px 24px;border-left:1px solid var(--rd-line);background:var(--rd-deep)}
+.rd-card.busy .rd-route{cursor:pointer}
+.rd-pt{position:relative;z-index:1;display:flex;gap:12px;align-items:flex-start}
+.rd-pt b{display:block;font-size:13.5px;font-weight:600;line-height:1.3}
+.rd-pt span{display:block;color:var(--rd-fog);font-size:12.5px;line-height:1.35}
+.rd-pt .rd-id{font:12.5px/1.35 var(--rd-mono);color:var(--rd-paper)}
+.rd-dot{position:relative;flex:none;width:14px;height:14px;margin-top:2px;border-radius:50%;border:2px solid var(--rd-paper);background:var(--rd-deep)}
+.rd-end .rd-dot{border:2px dashed var(--rd-line2)}
+.rd-end.on .rd-dot{border:2px solid var(--rd-live);background:var(--rd-live)}
+.rd-end.on .rd-dot::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--rd-live);animation:rdPing .8s var(--rd-out) both}
+.rd-track{position:relative;flex:1;min-height:224px;margin:6px 0}
+.rd-track::before,.rd-fill{content:"";position:absolute;left:6px;top:-10px;bottom:-10px;width:2px}
+.rd-track::before{background:repeating-linear-gradient(var(--rd-line2) 0 4px,transparent 4px 8px)}
+.rd-fill{background:var(--rd-paper);transform:scaleY(0);transform-origin:top;transition:transform .42s var(--rd-out)}
+.rd-fill.live{background:var(--rd-live)}
+.rd-steps{position:relative;margin:0;padding:6px 0 0;list-style:none}
+.rd-st{display:flex;align-items:center;gap:12px;height:31px;font-size:13px;animation:rdIn .26s var(--rd-out) both}
+.rd-g{position:relative;z-index:1;flex:none;width:14px;height:14px;overflow:visible}
+.rd-g circle{fill:var(--rd-deep);stroke:var(--rd-line2);stroke-width:2}
+.rd-g path{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rd-g .g-arc{stroke:var(--rd-paper);transform-box:view-box;transform-origin:7px 7px;animation:rdSpin .75s linear infinite}
+.rd-g .g-ok,.rd-g .g-no{stroke:var(--rd-ink);stroke-dasharray:12;stroke-dashoffset:12;opacity:0}
+.rd-st[data-s=ok]{color:var(--rd-fog)}
+.rd-st[data-s=ok] circle{fill:var(--rd-paper);stroke:var(--rd-paper)}
+.rd-st[data-s=bad]{color:var(--rd-fault);font-weight:600}
+.rd-st[data-s=bad] circle{fill:var(--rd-fault);stroke:var(--rd-fault)}
+.rd-st:not([data-s=on]) .g-arc{display:none}
+.rd-st[data-s=ok] .g-ok,.rd-st[data-s=bad] .g-no{opacity:1;animation:rdDraw .26s .04s var(--rd-out) forwards}
+.rd-skip{margin:10px 0 0;color:var(--rd-dim);font-size:12px;opacity:0;transition:opacity .2s}
+.rd-card.busy .rd-skip{opacity:1}
+.rd-fine{width:min(724px,100%);margin:16px 0 0;color:var(--rd-dim);font-size:12.5px;text-align:center}
+.rd-ff,.rd-ff *{animation:none!important;transition:none!important}
+@keyframes rdIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes rdSpin{to{transform:rotate(360deg)}}
+@keyframes rdDraw{to{stroke-dashoffset:0}}
+@keyframes rdPing{from{transform:scale(1);opacity:.6}to{transform:scale(2.6);opacity:0}}
+@keyframes rdNudge{0%,100%{transform:none}18%{transform:translateX(-8px)}38%{transform:translateX(7px)}58%{transform:translateX(-4px)}78%{transform:translateX(2px)}}
+@keyframes rdFade{from{opacity:0}to{opacity:1}}
+@keyframes rdRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rd-enter .mtop{animation:rdFade .32s var(--rd-out) both}
+.rd-enter .win{animation:rdRise .5s .1s var(--rd-out) both}
+@container stage (max-width:900px){
+.rd-card{grid-template-columns:minmax(0,1fr)}
+.rd-route{border-left:0;border-top:1px solid var(--rd-line)}
+.rd-track{min-height:0}
+.rd-lg{justify-content:flex-start;padding:20px 16px 24px}
+.rd-form{padding:24px 20px 20px}
+.rd-top{padding:0 16px}
+}
+@media (prefers-reduced-motion:reduce){
+.rd-st{animation:rdFade .12s both}
+.rd-g .g-arc{animation:none;stroke-dasharray:3 3}
+.rd-st[data-s=ok] .g-ok,.rd-st[data-s=bad] .g-no{animation:none;stroke-dashoffset:0}
+.rd-card.nudge{animation:none}
+.rd-fill,.rd-bar{transition-duration:.1s}
+.rd-end.on .rd-dot::after{animation:none;opacity:0}
+.rd-enter .mtop,.rd-enter .win{animation:rdFade .18s both}
+}
 </style>
 </head>
 <body>
@@ -585,6 +645,58 @@ table.list.auto{table-layout:auto}
     for (i = 0; i < s.length; i++) { c = s.charCodeAt(i); if (c < 32 || c > 126) return false; }
     return s.length > 0;
   }
+  var INSTANT = !!CFG.instant;
+  function calm() { try { return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) { return false; } }
+  var SCH = (function () {
+    var jobs = [];
+    function drop(j) { var i = jobs.indexOf(j); if (i >= 0) jobs.splice(i, 1); j.live = false; }
+    function gone(j) { return !!(j.owner && j.owner.nodeType && !j.owner.isConnected); }
+    function mk(owner, kill) { var j = { owner: owner || null, live: true, h: 0 }; j.kill = function () { kill(j); drop(j); }; jobs.push(j); return j; }
+    function wait(ms, fn, owner) {
+      var j = mk(owner, function (x) { clearTimeout(x.h); });
+      j.h = setTimeout(function () { drop(j); if (!gone(j)) fn(); }, ms);
+      return j;
+    }
+    function every(ms, fn, owner) {
+      var j = mk(owner, function (x) { clearInterval(x.h); });
+      j.h = setInterval(function () { if (gone(j)) { j.kill(); return; } if (!document.hidden) fn(); }, ms);
+      return j;
+    }
+    function frame(fn, owner) {
+      var j = mk(owner, function (x) { cancelAnimationFrame(x.h); });
+      function tick(t) { if (!j.live) return; if (gone(j) || fn(t) === false) { drop(j); return; } j.h = requestAnimationFrame(tick); }
+      j.h = requestAnimationFrame(tick);
+      return j;
+    }
+    function run(owner, steps, onSkip) {
+      var j = mk(owner, function (x) { clearTimeout(x.h); }), list = steps.slice().sort(function (a, b) { return a.t - b.t; }), t0 = Date.now(), i = 0;
+      function step(fast) { var s = list[i++]; s.fn(fast); }
+      function next() {
+        if (!j.live) return;
+        if (i >= list.length) { drop(j); return; }
+        j.h = setTimeout(function () { j.h = 0; if (!j.live) return; if (gone(j)) { j.skip(); return; } step(false); next(); }, Math.max(0, t0 + list[i].t - Date.now()));
+      }
+      j.seq = true;
+      j.skip = function () {
+        if (!j.live || j.ff) return;
+        j.ff = true;
+        clearTimeout(j.h);
+        if (onSkip) onSkip();
+        while (i < list.length) step(true);
+        drop(j);
+      };
+      if (INSTANT) j.skip(); else next();
+      return j;
+    }
+    function settle(only) {
+      var hit = false;
+      jobs.slice().forEach(function (j) { if (j.seq && j.live && (!only || j === only)) { hit = true; j.skip(); } });
+      return hit;
+    }
+    function sweep() { jobs.slice().forEach(function (j) { if (gone(j)) { if (j.seq) j.skip(); else j.kill(); } }); }
+    function busy() { return jobs.some(function (j) { return j.seq && j.live; }); }
+    return { wait: wait, every: every, frame: frame, run: run, settle: settle, sweep: sweep, busy: busy };
+  })();
 
   var KEYS = {
     foothold: { label: "Foothold", val: "The first sign-in with her credentials from outside came from 194.36.108.20 on 2026-08-11 at 00:41 UTC." },
@@ -2557,6 +2669,7 @@ table.list.auto{table-layout:auto}
     if (P && P.applied) restoreMonitorWindow();
     tickClock();
     monFocus();
+    if (rdEnter) rdEntrance();
   }
   function restoreMonitorWindow() {
     var wsp = $("wsp");
@@ -2569,11 +2682,6 @@ table.list.auto{table-layout:auto}
     if (st.mon.pz.attached) showDesktop();
   }
 
-  function monLoginHtml() {
-    var M = st.mon, locked = M.lock > Date.now();
-    return '<div class="mlogin"><section class="mlg-l"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Remote Desktop Connection</b><span>Remote display and agent console</span></div></div><div class="mlg-f"><h2>Connect to a workstation</h2><p class="lead">Paste the access token issued for the host you want to open.</p><label class="fldl" for="mtok">Access token</label><textarea id="mtok" class="mtok" name="token" autocomplete="off" spellcheck="false" placeholder="Token" aria-label="Access token"></textarea><div class="err" id="mlerr">' + esc(locked ? lockText() : M.err) + '</div><button class="btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '>Connect</button><small>Each token is issued for one host. Sessions are recorded and reviewed by IT Operations.</small></div></section>' +
-      '<section class="mlg-r"><div class="wall" aria-hidden="true">' + ["on", "on", "off", "on", "held", "on"].map(function (k) { return '<div class="scr ' + k + '"><i></i><i></i><i></i><i></i></div>'; }).join("") + "</div><p>Open a read only console on a workstation or server, and bring up its screen without leaving this page.</p></section></div>";
-  }
   function lockText() {
     var s = Math.max(1, Math.ceil((st.mon.lock - Date.now()) / 1000));
     return "Too many attempts. Try again in " + s + " s.";
@@ -2584,18 +2692,113 @@ table.list.auto{table-layout:auto}
     if (M.view === "work") { drawWork(); return; }
     $("stage").innerHTML = monLoginHtml();
   }
-  function monLogin() {
-    var M = st.mon, now = Date.now(), r, box = $("mtok");
-    if (M.lock > now) return;
-    r = tokenCheck(box ? box.value : "");
-    if (r.host) { startSession(r.host); return; }
+  var RD_STEPS = ["Reading the token", "Checking the format", "Signing in", "Locating the host", "Matching the device", "Confirming the approval", "Opening the session"];
+  var RD_FAILS = ["Token unreadable.", "Token format not recognised.", "Sign-in failed.", "Address is not on the monitoring network.", "Address and device tag do not match.", "Approval does not cover this address."];
+  var RD_MARK = '<svg class="rd-mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="1.8" y="2.8" width="15.4" height="11.4" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="9" width="16.2" height="12.6" rx="3" fill="currentColor"/><path d="M13.2 12.6v6.2l1.7-1.6 1.2 2.6 1.4-.6-1.2-2.6 2.3-.1z" fill="#1b1d22"/></svg>';
+  var RD_GLYPH = '<svg class="rd-g" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path class="g-arc" d="M7 1a6 6 0 0 1 6 6"/><path class="g-ok" d="M4.1 7.3l2 2 3.9-4.2"/><path class="g-no" d="M4.8 4.8l4.4 4.4M9.2 4.8l-4.4 4.4"/></svg>';
+  var rdSeq = null;
+  var rdEnter = false;
+
+  function rdTop(right) { return '<header class="rd-top"><div class="rd-brand">' + RD_MARK + '<span>Remote Desktop Connection</span></div>' + (right || "") + "</header>"; }
+  function rdRouteHtml() {
+    return '<aside class="rd-route" id="rdroute" data-act="rdskip" aria-hidden="true"><div class="rd-pt"><i class="rd-dot"></i><div><b>This browser</b><span>Ready</span></div></div><div class="rd-track"><i class="rd-fill" id="rdfill"></i><ol class="rd-steps" id="rdsteps"></ol></div>' +
+      '<div class="rd-pt rd-end" id="rdhost"><i class="rd-dot"></i><div><b id="rdhn">Remote host</b><span id="rdhs">Not connected</span></div></div><p class="rd-skip">Press Esc to skip</p></aside>';
+  }
+  function monLoginHtml() {
+    var M = st.mon, locked = M.lock > Date.now();
+    return '<div class="rdc rd-login">' + rdTop("") + '<main class="rd-lg"><section class="rd-card" id="rdcard"><div class="rd-form"><h1>Connect to a workstation</h1><p class="rd-lead">Paste the access token issued for the host you want to open.</p><label class="rd-lab" for="mtok">Access token</label>' +
+      '<textarea id="mtok" class="rd-tok" name="token" rows="4" autocomplete="off" spellcheck="false" placeholder="Paste the token here" aria-describedby="mlerr"></textarea><div class="rd-act"><p class="rd-err" id="mlerr" aria-live="polite">' + esc(locked ? lockText() : M.err) + '</p>' +
+      '<button class="rd-btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '><span class="rd-bl">Connect</span><i class="rd-bar" id="rdbar"></i></button></div></div>' + rdRouteHtml() + '</section><p class="rd-fine">Each token is issued for one host. Sessions are recorded and reviewed by IT Operations.</p></main></div>';
+  }
+  function rdBusy() { return !!(rdSeq && rdSeq.live); }
+  function rdBusyUi(on) {
+    var b = $("mbtn"), t = $("mtok"), c = $("rdcard");
+    if (c) c.classList.toggle("busy", on);
+    if (t) t.readOnly = on;
+    if (!b) return;
+    b.classList.toggle("busy", on);
+    b.setAttribute("aria-busy", on ? "true" : "false");
+    b.querySelector(".rd-bl").textContent = on ? "Connecting" : "Connect";
+    b.disabled = !on && st.mon.lock > Date.now();
+    if (!on) $("rdbar").style.transform = "";
+  }
+  function rdStep(k, state) {
+    var ol = $("rdsteps"), li, f = $("rdfill"), bar = $("rdbar");
+    if (!ol) return;
+    li = ol.children[k - 1];
+    if (!li) { ol.insertAdjacentHTML("beforeend", '<li class="rd-st">' + RD_GLYPH + "<span>" + RD_STEPS[k - 1] + "</span></li>"); li = ol.children[k - 1]; }
+    li.setAttribute("data-s", state);
+    if (f) f.style.transform = "scaleY(" + ((state === "on" ? k - 0.5 : k) / 7).toFixed(3) + ")";
+    if (bar) bar.style.transform = "scaleX(" + ((state === "on" ? k - 0.5 : k) / 7).toFixed(3) + ")";
+  }
+  function rdResetRoute() {
+    var ol = $("rdsteps"), h = $("rdhost");
+    if (ol) ol.innerHTML = "";
+    if ($("rdfill")) { $("rdfill").style.transform = ""; $("rdfill").classList.remove("live"); }
+    if (h) h.classList.remove("on");
+    if ($("rdhn")) $("rdhn").textContent = "Remote host";
+    if ($("rdhs")) { $("rdhs").textContent = "Not connected"; $("rdhs").className = ""; }
+    if ($("mtok")) $("mtok").classList.remove("bad");
+  }
+  function rdHostReveal(h) {
+    var el = $("rdhost");
+    if (!el) return;
+    el.classList.add("on");
+    $("rdhn").textContent = h.name;
+    $("rdhs").textContent = h.tag;
+    $("rdhs").className = "rd-id";
+    $("rdfill").classList.add("live");
+  }
+  function rdTiming() { return calm() ? { a: 30, gap: 105, res: 75, host: 110, rej: 160 } : { a: 120, gap: 440, res: 330, host: 280, rej: 380 }; }
+  function rdFailCommit(r) {
+    var M = st.mon, now;
+    pull();
+    now = Date.now();
     M.fails++;
     if (M.fails >= LOCK_AFTER) { M.lock = now + LOCK_SECONDS * 1000; M.fails = 0; }
     M.err = r.msg;
-    $("mlerr").textContent = M.lock > now ? lockText() : M.err;
+    if ($("mlerr")) $("mlerr").textContent = M.lock > now ? lockText() : M.err;
     if ($("mbtn")) $("mbtn").disabled = M.lock > now;
-    ev('Exports.flatlineMonitorLogin(0) rejected: ' + r.msg);
+    ev("Exports.flatlineMonitorLogin(0) rejected: " + r.msg);
     drawDock();
+    save();
+  }
+  function rdOkCommit(h) {
+    pull();
+    rdEnter = true;
+    startSession(h);
+    save();
+  }
+  function rdLoginSteps(r) {
+    var n = r.host ? 7 : Math.max(1, RD_FAILS.indexOf(r.msg) + 1), T = rdTiming(), out = [], k, end = T.a + (n - 1) * T.gap + T.res;
+    for (k = 1; k <= n; k++) (function (i) {
+      var at = T.a + (i - 1) * T.gap;
+      out.push({ t: at, fn: function () { rdStep(i, "on"); } });
+      out.push({ t: at + T.res, fn: function () { rdStep(i, i === n && !r.host ? "bad" : "ok"); if (i === n && !r.host) rdFailCommit(r); } });
+    })(k);
+    if (r.host) {
+      out.push({ t: end + 10, fn: function () { rdHostReveal(r.host); } });
+      out.push({ t: end + T.host, fn: function () { rdOkCommit(r.host); } });
+      return out;
+    }
+    out.push({ t: end + 5, fn: function (fast) { var c = $("rdcard"), t = $("mtok"); if (t) t.classList.add("bad"); if (c && !fast && !calm()) { c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); } } });
+    out.push({ t: end + T.rej, fn: function () { var t = $("mtok"); rdBusyUi(false); if ($("rdcard")) $("rdcard").classList.remove("nudge"); if (t) t.focus(); } });
+    return out;
+  }
+  function monLogin() {
+    var M = st.mon, box = $("mtok"), r;
+    if (M.lock > Date.now() || rdBusy()) return;
+    r = tokenCheck(box ? box.value : "");
+    rdResetRoute();
+    rdBusyUi(true);
+    rdSeq = SCH.run($("rdcard"), rdLoginSteps(r), function () { var c = $("rdcard"); if (c) c.classList.add("rd-ff"); });
+  }
+  function rdEntrance() {
+    var root = document.querySelector("#stage > .mon");
+    rdEnter = false;
+    if (!root || INSTANT) return;
+    root.classList.add("rd-enter");
+    SCH.wait(900, function () { root.classList.remove("rd-enter"); }, root);
   }
   function startSession(h) {
     var M = st.mon, Sx;
@@ -2618,6 +2821,7 @@ table.list.auto{table-layout:auto}
   }
   function monOut() {
     var M = st.mon;
+    SCH.settle();
     M.view = "login";
     M.err = "";
     drawMonitor();
@@ -2640,6 +2844,7 @@ table.list.auto{table-layout:auto}
     }
     if (d) d.textContent = fakeClock();
     if (M.view === "login") lockTick();
+    SCH.sweep();
   }
 
   function cipherHtml() {
@@ -2685,6 +2890,7 @@ table.list.auto{table-layout:auto}
   }
 
   function setSite(id) {
+    SCH.settle();
     st.site = id;
     st.sheet = "";
     $("sheetHost").innerHTML = "";
@@ -2696,6 +2902,7 @@ table.list.auto{table-layout:auto}
   }
   function jump(n) {
     var M, P, R, c;
+    SCH.settle();
     st = freshState();
     st.view = "portal";
     st.user = "g.desouza";
@@ -2739,6 +2946,7 @@ table.list.auto{table-layout:auto}
   }
 
   function reset() {
+    SCH.settle();
     st = freshState();
     $("sheetHost").innerHTML = "";
     $("toasts").innerHTML = "";
@@ -2775,6 +2983,7 @@ table.list.auto{table-layout:auto}
     if (a === "answers") { ui.answers = !ui.answers; keepScroll(drawMain); drawDock(); return; }
     if (a === "site") { setSite(d.v); return; }
     if (a === "monlogin") { monLogin(); return; }
+    if (a === "rdskip") { SCH.settle(rdSeq); return; }
     if (a === "monout") { monOut(); return; }
     if (a === "winmax") { winMax("scr"); return; }
     if (a === "dico") { toast("Not available", "This Remote Desktop Connection session is read only."); return; }
@@ -2817,6 +3026,7 @@ table.list.auto{table-layout:auto}
   });
   document.addEventListener("keydown", function (e) {
     var id = e.target.id;
+    if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
     if (id === "mcmd") { pull(); monKey(e); save(); return; }
     if (e.key === "Enter" && (id === "lu" || id === "lp")) { doLogin(); save(); return; }
     if (e.key === "Enter" && !e.shiftKey && id === "mtok") { e.preventDefault(); pull(); monLogin(); save(); return; }
@@ -2830,8 +3040,8 @@ table.list.auto{table-layout:auto}
   }
   window.addEventListener("focus", function () { if (LOCK_SITE) syncView(); });
   window.addEventListener("storage", function (e) { if (LOCK_SITE && e.key === STORE) syncView(); });
-  setInterval(tickClock, 1000);
-  setInterval(sigLoop, 120);
+  SCH.every(1000, tickClock);
+  SCH.every(120, sigLoop);
 
   function dragStart(e) {
     var w = e.target.closest ? e.target.closest(".win") : null, bar, rz;
