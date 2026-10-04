@@ -257,6 +257,11 @@ table.list.auto{table-layout:auto}
 .sheet dl{display:grid;grid-template-columns:132px minmax(0,1fr);gap:12px 14px;margin:24px 0 0}
 .sheet dt{color:var(--mute)}
 .sheet dd{margin:0}
+.att{margin:24px 0 0;padding:16px 18px;border:1px solid var(--line2);border-radius:12px;background:var(--raise)}
+.att-h{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.att-h .ic{width:18px;height:18px;flex:none;color:var(--amber)}
+.att-x{margin:0;overflow-wrap:anywhere;user-select:all;color:var(--mute);font-size:13px;line-height:1.55}
+.att-n{margin:10px 0 0;color:var(--mute);font-size:13px}
 .toasts{position:absolute;top:76px;right:20px;z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none}
 .toast{position:relative;overflow:hidden;pointer-events:auto;display:grid;grid-template-columns:32px minmax(0,1fr) 28px;gap:12px;align-items:start;width:min(380px,calc(100vw - 40px));padding:14px 10px 17px 14px;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 40px -16px #000;animation:toastIn .42s cubic-bezier(.16,.84,.3,1)}
 .toast.out{opacity:0;transform:translateX(calc(100% + 28px));transition:opacity .22s ease-in,transform .22s ease-in}
@@ -837,9 +842,12 @@ table.list.auto{table-layout:auto}
   var MON_HOST = CFG.monitor || "rdcdesk.io";
   var CIPHER_HOST = CFG.cipher || "cipherdesk.io";
   var TOKEN_KEY = "L-2608-03";
-  var TOKEN_PLAIN = "g.desouza:Marigold2019:192.168.1.3:CHG-2608-014:arc-ir-01";
-  var SAMPLE_PLAIN = "t.nair:Kestrel-Lantern-77:192.168.1.4:CHG-2608-009:PC-IT-017";
+  var TOKEN_PLAIN = "g.desouza:Marigold2019:192.168.1.4:CHG-2608-014:arc-ir-01";
+  var SAMPLE_PLAIN = "t.nair:Kestrel-Lantern-77:192.168.1.5:CHG-2608-009:PC-IT-017";
   var SAMPLE_HEX = sealText(SAMPLE_PLAIN, TOKEN_KEY);
+  var ROLLBACK_KEY = "CHG-2606-022";
+  var ROLLBACK_PLAIN = "Rollback plan CHG-2606-022. Re-enable directory sync and restore removable-media enforcement by 2026-07-15. While this window is open, manual account closures are held (see HR-7).";
+  var ROLLBACK_HEX = sealText(ROLLBACK_PLAIN, ROLLBACK_KEY);
   var LOCK_AFTER = 3;
   var LOCK_SECONDS = 15;
   var HOME = "/root";
@@ -949,7 +957,7 @@ table.list.auto{table-layout:auto}
   var STEPS = [
     "Sign-ins: temukan sesi yang bukan miliknya",
     "Tickets: kenapa akunnya tetap terbuka",
-    "Config: apa yang berubah pada 30 Juni",
+    "Config: apa yang berubah pada 30 Juni, dan lampiran tersegelnya",
     "Config: siapa yang mengunci arsip",
     "Systems: temukan alamat PC dan jalan ke Remote Desktop Connection",
     "Token: rangkai, enkripsi, login Remote Desktop Connection",
@@ -984,19 +992,19 @@ table.list.auto{table-layout:auto}
   ];
 
   var SYSTEMS = [
-    { h: "fw-edge", tag: "fw-edge", role: "Perimeter firewall (pfSense)", lan: "192.168.1.2", pub: FW_IP, own: "Network", stt: "Administrators only" },
-    { h: "Cold-Chart", tag: "arc-ir-01", role: "Clinical incident archive (IR)", lan: "192.168.1.3", pub: COLD_IP, own: "Legal / IR", stt: "Held (IR-22)" },
-    { h: "Bedside-17", tag: "PC-IT-017", role: "IT admin workstation", lan: "192.168.1.4", pub: "80.94.92.118", own: "IT", stt: "Isolated (IR-3389)" },
-    { h: "Lead-Apron", tag: "arc-img-02", role: "Imaging archive (PACS)", lan: "192.168.1.5", pub: "45.142.193.29", own: "Radiology", stt: "Local console only" },
-    { h: "Pay-Station", tag: "bill-01", role: "Billing and claims staging", lan: "192.168.1.6", pub: "176.113.115.84", own: "Finance", stt: "Local console only" },
-    { h: "prn-03", tag: "prn-03", role: "Ward printer", lan: "192.168.1.7", pub: "195.133.40.17", own: "Facilities", stt: "Operational" }
+    { h: "fw-edge", tag: "fw-edge", role: "Perimeter firewall (pfSense)", lan: "192.168.1.3", pub: FW_IP, own: "Network", stt: "Administrators only" },
+    { h: "Cold-Chart", tag: "arc-ir-01", role: "Clinical incident archive (IR)", lan: "192.168.1.4", pub: COLD_IP, own: "Legal / IR", stt: "Held (IR-22)" },
+    { h: "Bedside-17", tag: "PC-IT-017", role: "IT admin workstation", lan: "192.168.1.5", pub: "80.94.92.118", own: "IT", stt: "Isolated (IR-3389)" },
+    { h: "Lead-Apron", tag: "arc-img-02", role: "Imaging archive (PACS)", lan: "192.168.1.6", pub: "45.142.193.29", own: "Radiology", stt: "Local console only" },
+    { h: "Pay-Station", tag: "bill-01", role: "Billing and claims staging", lan: "192.168.1.7", pub: "176.113.115.84", own: "Finance", stt: "Local console only" },
+    { h: "prn-03", tag: "prn-03", role: "Ward printer", lan: "192.168.1.8", pub: "195.133.40.17", own: "Facilities", stt: "Operational" }
   ];
 
   var RULES = [
-    { id: "IR-3389", port: 3389, dst: "192.168.1.4", at: "2026-08-14 02:58", why: "Containment: isolate PC-IT-017", due: "2026-08-21" },
-    { id: "IR-22", port: 22, dst: "192.168.1.3", at: "2026-08-14 05:20", why: "Legal hold, matter L-2608-03", due: "2026-08-21" },
-    { id: "VND-22", port: 22, dst: "192.168.1.5", at: "2026-08-15 11:05", why: "Vendor lockdown: imaging archive", due: "2026-08-22" },
-    { id: "VND-23", port: 22, dst: "192.168.1.6", at: "2026-08-15 11:05", why: "Vendor lockdown: billing", due: "2026-08-22" }
+    { id: "IR-3389", port: 3389, dst: "192.168.1.5", at: "2026-08-14 02:58", why: "Containment: isolate PC-IT-017", due: "2026-08-21" },
+    { id: "IR-22", port: 22, dst: "192.168.1.4", at: "2026-08-14 05:20", why: "Legal hold, matter L-2608-03", due: "2026-08-21" },
+    { id: "VND-22", port: 22, dst: "192.168.1.6", at: "2026-08-15 11:05", why: "Vendor lockdown: imaging archive", due: "2026-08-22" },
+    { id: "VND-23", port: 22, dst: "192.168.1.7", at: "2026-08-15 11:05", why: "Vendor lockdown: billing", due: "2026-08-22" }
   ];
 
   var CHG = [
@@ -1006,7 +1014,7 @@ table.list.auto{table-layout:auto}
     { id: "CHG-2604-009", at: "2026-04-12 03:30", sec: "dns", by: "r.wong", appr: "CAB-14", why: "Resolver change.", lines: [["-", "dns.forwarders = 8.8.8.8, 8.8.4.4"], ["+", "dns.forwarders = 1.1.1.1, 9.9.9.9"]] },
     { id: "CHG-2605-003", at: "2026-05-03 03:10", sec: "vendor", by: "it.ops", appr: "CAB-16", why: "VendorCare support access (nightly sync).", lines: [["+", "vendor.allow_source = 203.0.113.77/32"], ["+", "vendor.gateway = enabled"]] },
     { id: "CHG-2605-014", at: "2026-05-31 03:02", sec: "vpn", by: "r.wong", appr: "CAB-18", why: "Idle timeout complaints.", lines: [["-", "vpn.idle_timeout = 30m"], ["+", "vpn.idle_timeout = 60m"]] },
-    { id: "CHG-2606-022", at: "2026-06-30 03:00", sec: "directory / endpoint", by: "it.ops", appr: "Office of the CRO", why: "Identity migration window: pause directory sync and relax endpoint enforcement to avoid lockouts during cutover.", rev: "2026-07-15", state: "NOT REVERTED", tix: "HD-4417", key: "controls", lines: [["-", "directory.sync = enabled"], ["+", "directory.sync = paused  ; identity migration"], ["-", "endpoint.removable_media = enforce"], ["+", "endpoint.removable_media = log-only"], ["+", "endpoint.revert_due = 2026-07-15"]] },
+    { id: "CHG-2606-022", at: "2026-06-30 03:00", sec: "directory / endpoint", by: "it.ops", appr: "Office of the CRO", why: "Identity migration window: pause directory sync and relax endpoint enforcement to avoid lockouts during cutover.", rev: "2026-07-15", state: "NOT REVERTED", tix: "HD-4417", key: "controls", att: "rollback_plan", lines: [["-", "directory.sync = enabled"], ["+", "directory.sync = paused  ; identity migration"], ["-", "endpoint.removable_media = enforce"], ["+", "endpoint.removable_media = log-only"], ["+", "endpoint.revert_due = 2026-07-15"]] },
     { id: "CHG-2607-008", at: "2026-07-26 03:15", sec: "logging", by: "it.ops", appr: "CAB-21", why: "Disk pressure on the log host.", lines: [["-", "log.retention_days = 90"], ["+", "log.retention_days = 60"]] },
     { id: "CHG-2608-009", at: "2026-08-14 02:58", sec: "firewall", by: "r.wong", appr: "t.nair (on call)", why: "Containment: isolate PC-IT-017.", rev: "2026-08-21", state: "NOT REVIEWED", key: null, lines: [["+", "fw.rule IR-3389 deny tcp/3389 -> PC-IT-017"]] },
     { id: "CHG-2608-014", at: "2026-08-14 05:20", sec: "firewall", by: "r.wong", appr: "v.orchid (Chief Risk Officer)", why: "Legal hold, matter L-2608-03 (Office of the CRO). Restrict remote shell access to the clinical incident archive.", rev: "2026-08-21", state: "NOT REVIEWED", key: "hold", lines: [["+", "fw.rule IR-22 deny tcp/22 -> arc-ir-01"]] },
@@ -1067,7 +1075,7 @@ table.list.auto{table-layout:auto}
     return {
       site: LOCK_SITE || "portal",
       view: "login", tab: "overview", step: 0, user: "", loginErr: "",
-      traced: {}, held: {}, notes: {}, events: [], flagged: {}, fresh: {}, pulse: {},
+      traced: {}, held: {}, notes: {}, events: [], flagged: {}, fresh: {}, pulse: {}, seen: {}, opened: {},
       si: blankSi("list"), srcQ: "", srcSort: { k: "n", d: -1 },
       cf: { a: "2026-08-30", b: "2026-09-20" },
       tk: "", sheet: "", drawn: false,
@@ -1076,7 +1084,7 @@ table.list.auto{table-layout:auto}
   }
   var ui = { dock: "bt", dockOpen: true, answers: false };
   var STORE = "pc-remote-preview-v2";
-  var SHARED = ["step", "traced", "held", "notes", "events", "flagged", "fresh"];
+  var SHARED = ["step", "traced", "held", "notes", "events", "flagged", "fresh", "seen", "opened"];
   var PORTAL_LOCAL = ["view", "user", "tab", "loginErr", "si", "srcQ", "srcSort", "cf", "tk", "sheet", "drawn"];
 
   function stored() {
@@ -1276,6 +1284,13 @@ table.list.auto{table-layout:auto}
       st.held[key] = true;
       ev("held: " + key + " (needs step " + (REQ[key] - 1) + ", now " + st.step + ")");
     }
+  }
+  function controlsReady() { return !!(st.seen.controlsCard && st.opened.rollbackPlan); }
+  function observeControls() { if (controlsReady()) gate("controls"); }
+  function controlsWaiting() {
+    if (st.seen.controlsCard && !st.opened.rollbackPlan) return "kartu dibuka, lampiran belum didekripsi";
+    if (st.opened.rollbackPlan && !st.seen.controlsCard) return "lampiran didekripsi, kartu belum dibuka";
+    return "";
   }
   function drainHeld() {
     ORDER.forEach(function (k) {
@@ -1626,7 +1641,8 @@ table.list.auto{table-layout:auto}
     var c = CHG.filter(function (x) { return x.id === st.sheet; })[0];
     if (!c) { host.innerHTML = ""; return; }
     host.innerHTML = '<div class="scrim" data-act="close"></div><aside class="sheet" role="dialog" aria-label="Change record"><div class="sh-h"><h2 class="mono">' + c.id + '</h2><button class="btn ghost sm" data-act="close">' + ic("x") + 'Close</button></div><dl><dt>Applied (UTC)</dt><dd class="mono">' + c.at + "</dd><dt>Applied by</dt><dd>" + esc(c.by) + "</dd><dt>Approved by</dt><dd>" + esc(c.appr) + "</dd><dt>Section</dt><dd>" + esc(c.sec) + "</dd><dt>Reason</dt><dd>" + esc(c.why) + "</dd>" +
-      (c.rev ? '<dt>Revert or review due</dt><dd><span class="mono">' + c.rev + '</span> <span class="pill bad">' + esc(c.state === "NOT REVERTED" ? "Not reverted" : "Not reviewed") + "</span></dd>" : "") + (c.tix ? '<dt>Linked ticket</dt><dd class="mono">' + c.tix + "</dd>" : "") + "</dl></aside>";
+      (c.rev ? '<dt>Revert or review due</dt><dd><span class="mono">' + c.rev + '</span> <span class="pill bad">' + esc(c.state === "NOT REVERTED" ? "Not reverted" : "Not reviewed") + "</span></dd>" : "") + (c.tix ? '<dt>Linked ticket</dt><dd class="mono">' + c.tix + "</dd>" : "") + "</dl>" +
+      (c.att ? '<div class="att"><div class="att-h">' + ic("lock") + "<b>Attachment: " + esc(c.att) + ' (sealed)</b></div><p class="mono att-x">' + ROLLBACK_HEX + '</p><p class="att-n">Sealed with the change ID</p></div>' : "") + "</aside>";
   }
 
   function showChange(id) {
@@ -1635,7 +1651,13 @@ table.list.auto{table-layout:auto}
     ev('Exports.flatlineOpenChange("' + id + '")');
     st.sheet = id;
     drawSheet();
-    if (c.key) gate(c.key);
+    if (c.key === "controls") {
+      if (!st.seen.controlsCard) {
+        st.seen.controlsCard = true;
+        ev("observed: change record " + id + (st.opened.rollbackPlan ? "" : " (attachment still sealed)"));
+      }
+      observeControls();
+    } else if (c.key) gate(c.key);
     drawDock();
   }
 
@@ -1708,13 +1730,13 @@ table.list.auto{table-layout:auto}
     $("pbt").innerHTML = "<h5>Rantai wajib (tiruan objective)</h5><ul class=\"chainl\">" + STEPS.map(function (s, i) { return '<li class="' + (st.step > i ? "done" : st.step === i ? "cur" : "") + '">' + esc(s) + "</li>"; }).join("") + "</ul>" +
       "<h5>Jejak M5 baru: " + n + " dari 4</h5>" + ORDER.map(function (k) {
         var on = st.traced[k];
-        return '<div class="key ' + (on ? "on" : "") + '"><b>' + KEYS[k].label + "</b><span>" + (on ? esc(KEYS[k].val) : st.held[k] ? "diamati, ditahan sampai gilirannya" : "belum dijejak") + "</span></div>";
+        return '<div class="key ' + (on ? "on" : "") + '"><b>' + KEYS[k].label + "</b><span>" + (on ? esc(KEYS[k].val) : st.held[k] ? "diamati, ditahan sampai gilirannya" : k === "controls" && controlsWaiting() ? controlsWaiting() : "belum dijejak") + "</span></div>";
       }).join("") +
       "<h5 style=\"margin-top:14px\">Kunci arsip: " + docCount() + " dari " + DOC_GATES + "</h5>" + DOCS.filter(function (d) { return d.gate; }).map(function (d) {
         var on = P && P.docs[d.name];
         return '<div class="key ' + (on ? "on" : "") + '"><b>' + d.key + "</b><span>" + (on ? "dibaca di Remote Desktop Connection" : st.step >= 7 ? "belum dibaca" : "belum terbuka") + "</span></div>";
       }).join("") +
-      "<h5 style=\"margin-top:14px\">Catatan</h5><div class=\"evl\">" + (st.notes.usb ? "NOTE: she asked about the USB and nobody answered." : "belum ada") + (heldKeys.length ? "<br>Ditahan: " + heldKeys.join(", ") : "") + "</div>";
+      "<h5 style=\"margin-top:14px\">Catatan</h5><div class=\"evl\">" + (st.notes.usb ? "NOTE: she asked about the USB and nobody answered." : "belum ada") + (st.opened.rollbackPlan ? "<br>Cipher: rollback_plan dibuka" : "") + (st.opened.sampleToken ? "<br>Cipher: token contoh HD-4496 dibuka" : "") + (heldKeys.length ? "<br>Ditahan: " + heldKeys.join(", ") : "") + "</div>";
     drawEvents();
     drawGuide();
   }
@@ -1722,7 +1744,8 @@ table.list.auto{table-layout:auto}
   function drawGuide() {
     var P = st.mon.pz, R = P ? getRun() : null, sol = R ? solved(R) : null, answers = "";
     if (ui.answers) {
-      answers = '<div class="q"><p><b>Jawaban token.</b> Teks polos <span class="mono">' + esc(TOKEN_PLAIN) + "</span><br>Passphrase <span class=\"mono\">" + TOKEN_KEY + "</span><br>Hasil Encrypt <span class=\"mono\" style=\"word-break:break-all\">" + sealText(TOKEN_PLAIN, TOKEN_KEY) + "</span></p></div>";
+      answers = '<div class="q"><p><b>Jawaban lampiran.</b> Passphrase <span class="mono">' + ROLLBACK_KEY + '</span> (ID perubahan). Hasil Decrypt: <span class="mono">' + esc(ROLLBACK_PLAIN) + "</span></p></div>";
+      answers += '<div class="q"><p><b>Jawaban token.</b> Teks polos <span class="mono">' + esc(TOKEN_PLAIN) + "</span><br>Passphrase <span class=\"mono\">" + TOKEN_KEY + "</span><br>Hasil Encrypt <span class=\"mono\" style=\"word-break:break-all\">" + sealText(TOKEN_PLAIN, TOKEN_KEY) + "</span></p></div>";
       if (sol) answers += '<div class="q"><p><b>Jawaban terminal (run ini).</b> Lease: <span class="mono">agent lease clear ' + R.deadPid + "</span> (pid " + R.livePid + " hidup, jangan). source <span class=\"mono\">" + sol.source + "</span>, relay <span class=\"mono\">" + sol.relay + "</span>, framing <span class=\"mono\">" + sol.framing + "</span>, " + sol.width + "x" + sol.height + ", bpp " + sol.bpp + ", order " + sol.order + ", stride " + sol.stride + ", rate " + sol.rate + ". Lalu <span class=\"mono\">signal calibrate</span>, <span class=\"mono\">signal apply</span>, <span class=\"mono\">agent attach</span>.</p></div>";
     }
     $("pgd").innerHTML = "<h5>Panduan prototipe</h5>" +
@@ -1731,19 +1754,19 @@ table.list.auto{table-layout:auto}
       '<p>Login portal: <span class="mono">g.desouza</span> / <span class="mono">Marigold2019</span>. Umpan: <span class="mono">g.lim</span> / <span class="mono">printroom01</span> (profil kontraktor, tidak memajukan apa pun).</p>' +
       '<div class="q"><p><b>1. Sign-ins.</b> Overview menandai alarm pertama dan tombolnya membuka Sign-ins. Di sana buka tab By source: tiap alamat tampil satu kali dengan jumlah sign-in, gagal, dan akun (header bisa diurutkan). Cari alamat berlokasi "Unresolved" yang tidak pernah gagal dan hanya dipakai satu akun, bukan kantor, rumah, hotel, atau vendor. Tekan View sign-ins, lalu Flag pada salah satu barisnya. Umpan: svc-vendor tiap 01:50, g.lim setelah kontrak, hotel Tara, badai gagal 07-09. Murni baca web. Hasil: kunci foothold, menu Directory dan Tickets muncul.</p></div>' +
       '<div class="q"><p><b>2. Tickets.</b> Cari tiket tentang G. de Souza (HD-4503). Catatannya menunjuk HD-4417 dan 30 Juni. Hasil: kunci separation, menu Config muncul. HD-4481 (USB) hanya log NOTE, bukan gerbang. Tiket HD-4496 (14 Agu) memuat string hex yang belum dipahami; simpan untuk langkah 6.</p></div>' +
-      '<div class="q"><p><b>3. Config, 30 Juni.</b> Pilih dua snapshot di sekitar 30 Juni, tekan Compare snapshots, lalu buka View change record pada CHG-2606-022. Hasil: kunci controls.</p></div>' +
+      '<div class="q"><p><b>3. Config, 30 Juni.</b> Pilih dua snapshot di sekitar 30 Juni, tekan Compare snapshots, lalu buka View change record pada CHG-2606-022. Kartu itu memuat lampiran tersegel rollback_plan dan kalimat "Sealed with the change ID". Salin hex-nya, buka Cipher Desk, mode Decrypt, passphrase = ID perubahan (<span class="mono">' + ROLLBACK_KEY + '</span>). Kunci controls baru terhitung setelah kartu dibuka dan lampirannya didekripsi; urutannya bebas, dan pengamatan yang datang lebih dulu ditahan sampai gilirannya. Isinya menjelaskan HD-4503: selama jendela migrasi terbuka, penutupan akun manual ditahan.</p></div>' +
       '<div class="q"><p><b>4. Config, arsip dikunci.</b> Bandingkan snapshot di sekitar tanggal foothold (08-09 sampai 08-16), buka CHG-2608-014. Hasil: kunci hold, menu Systems dan Network muncul. Bila dibuka sebelum controls, pengamatan ditahan dan baru dihitung saat gilirannya, jadi tidak ada langkah yang macet.</p></div>' +
-      '<div class="q"><p><b>5. Systems.</b> Catatan perubahan menyebut alias host (arc-ir-01), bukan alamat. Systems: arc-ir-01 adalah Cold-Chart, 192.168.1.3 (jangan tertukar dengan arc-img-02). Catatan di halaman itu menyebut Remote Desktop Connection di <span class="mono">' + MON_HOST + '</span> dan access token. Membuka Systems memajukan langkah. Remote Desktop Connection dan Cipher Desk dibuka lewat bilah Browser di dock (di game: daftar Popular Goagle).</p></div>' +
+      '<div class="q"><p><b>5. Systems.</b> Catatan perubahan menyebut alias host (arc-ir-01), bukan alamat. Systems: arc-ir-01 adalah Cold-Chart, 192.168.1.4 (jangan tertukar dengan arc-img-02). Catatan di halaman itu menyebut Remote Desktop Connection di <span class="mono">' + MON_HOST + '</span> dan access token. Membuka Systems memajukan langkah. Remote Desktop Connection dan Cipher Desk dibuka lewat bilah Browser di dock (di game: daftar Popular Goagle).</p></div>' +
       '<div class="q"><p><b>6. Token.</b> Di tiket HD-4496 ada string hex: token t.nair untuk Bedside-17. Buka Cipher Desk, mode Decrypt, passphrase = nomor perkara hold (<span class="mono">L-2608-03</span>, ada di kartu perubahan dan aturan Network). Hasilnya lima keping <span class="mono">user:password:alamat:perubahan:tag</span>. Pola: alamat LAN host, perubahan yang memasang aturan pada host itu, tag host. Rangkai milik Cold-Chart (alamat dari Systems, CHG yang memuat IR-22, tag arc-ir-01), mode Encrypt dengan passphrase yang sama, tempel di Remote Desktop Connection. Pesan tolak menyebut bagian yang salah; tiga kali salah menahan 15 detik. Pasangan lain (Bedside-17, Lead-Apron, Pay-Station) membuka konsol umpan tanpa modul display.</p></div>' +
       '<div class="q"><p><b>7. Terminal.</b> Konsol agent di Cold-Chart bebas dijelajahi (hanya /var/ir yang disegel). Pipeline sinyal berurutan: lease, source, link, format, sync. Mulai dari <span class="mono">agent diag</span>. Jendela Remote Desktop Connection muncul pada <span class="mono">signal apply</span> pertama dan menampilkan tahap pertama yang gagal; log agent mencatat sebabnya. Stride dihitung (lebar x bpp/8, naik ke kelipatan 64). Sync dikalibrasi paling akhir; mengubah tahap sebelumnya membuatnya STALE. Selesai dengan <span class="mono">agent attach</span>. Kedua jendela bisa digeser lewat judulnya dan diubah ukurannya lewat sudut kanan bawah; tombol di judul Remote Desktop Connection memenuhi layar.</p></div>' +
       '<div class="q"><p><b>8. Arsip.</b> Setelah attach, desktop Remote Desktop Connection membuka browser mini berisi arsip. Baca tiga dokumen: acknowledgement_gdesouza, decision_memo, usb_ticket_PC-IT-017 (empat file lain pengecoh). Semuanya terbaca: objective selesai.</p></div>' + answers;
   }
 
   var TARGETS = [
-    { id: "cold", code: 1, name: "Cold-Chart", tag: "arc-ir-01", lan: "192.168.1.3", chg: "CHG-2608-014", os: "Debian 12" },
-    { id: "bed", code: 2, name: "Bedside-17", tag: "PC-IT-017", lan: "192.168.1.4", chg: "CHG-2608-009", os: "Windows 11" },
-    { id: "img", code: 3, name: "Lead-Apron", tag: "arc-img-02", lan: "192.168.1.5", chg: "CHG-2608-016", os: "Ubuntu 22.04" },
-    { id: "bill", code: 4, name: "Pay-Station", tag: "bill-01", lan: "192.168.1.6", chg: "CHG-2608-016", os: "Ubuntu 22.04" }
+    { id: "cold", code: 1, name: "Cold-Chart", tag: "arc-ir-01", lan: "192.168.1.4", chg: "CHG-2608-014", os: "Debian 12" },
+    { id: "bed", code: 2, name: "Bedside-17", tag: "PC-IT-017", lan: "192.168.1.5", chg: "CHG-2608-009", os: "Windows 11" },
+    { id: "img", code: 3, name: "Lead-Apron", tag: "arc-img-02", lan: "192.168.1.6", chg: "CHG-2608-016", os: "Ubuntu 22.04" },
+    { id: "bill", code: 4, name: "Pay-Station", tag: "bill-01", lan: "192.168.1.7", chg: "CHG-2608-016", os: "Ubuntu 22.04" }
   ];
   function targetById(id) { return TARGETS.filter(function (t) { return t.id === id; })[0]; }
   function targetByLan(ip) { return TARGETS.filter(function (t) { return t.lan === ip; })[0]; }
@@ -1926,7 +1949,7 @@ table.list.auto{table-layout:auto}
     function file(p, c, own, at) { T[p] = { t: "f", own: own || "root", at: at || "Aug  9 06:00", mod: "-rw-r--r--", c: c }; }
     file("/etc/hostname", "arc-ir-01\n");
     file("/etc/os-release", 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\n');
-    file("/etc/hosts", "127.0.0.1 localhost\n192.168.1.3 arc-ir-01\n192.168.1.2 fw-edge\n");
+    file("/etc/hosts", "127.0.0.1 localhost\n192.168.1.4 arc-ir-01\n192.168.1.3 fw-edge\n");
     file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\nsvc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Ruben Wong:/home/rwong:/bin/bash\n");
     file("/etc/agent/agent.conf", "[agent]\nhost = arc-ir-01\nconsole = enabled\ndisplay = stopped\ndisplay_module = installed\nprofile = /etc/agent/profile.bak\nlease_dir = /run/agent\nlog = /var/log/agent/agent.log\n", "root", "Aug 14 02:58");
     file("/etc/agent/policy.conf", "[policy]\ndisplay.attach = operator\ndisplay.record = on\ndisplay.read_only = true\nlog.retention_days = 60\n");
@@ -3688,8 +3711,21 @@ table.list.auto{table-layout:auto}
     F = slow ? Math.min(1000, Math.max(300, R * 20)) : 600;
     K = Math.max(1, Math.ceil(R / 12));
     for (i = D; i < n; i += K) (function (a, b, at) { steps.push({ t: at, fn: function (fast) { ciFillTo(m, outB, a, b, !fast); } }); })(i, Math.min(n, i + K), t + Math.round((i - D) / Math.max(1, R) * F));
-    steps.push({ t: t + F + (slow ? 220 : 80), fn: function () { ciLock(false); cipherCommit(pass, inp, res); if ($("cphr")) $("cphr").focus(); } });
+    steps.push({ t: t + F + (slow ? 220 : 80), fn: function () { ciLock(false); pull(); cipherCommit(pass, inp, res); cipherObserve(st.ci.mode, pass, inp); if ($("cphr")) $("cphr").focus(); } });
     ciSeq = SCH.run($("cdband"), steps, function () { var b = $("cdband"); if (b) b.classList.add("rd-ff"); SCH.wait(30, function () { if ($("cdband")) $("cdband").classList.remove("rd-ff"); }, b); });
+  }
+  function cipherObserve(mode, pass, inp) {
+    var hx = String(inp).replace(/\s+/g, "").toLowerCase(), id = "";
+    ev('Exports.flatlineCipherRun("' + mode + '", ' + (mode === "decrypt" ? hx.length + " hex digits" : String(inp).length + " characters") + ", passphrase)");
+    if (mode === "decrypt" && hx === ROLLBACK_HEX && pass === ROLLBACK_KEY) id = "rollbackPlan";
+    else if (mode === "decrypt" && hx === SAMPLE_HEX && pass === TOKEN_KEY) id = "sampleToken";
+    if (id && !st.opened[id]) {
+      st.opened[id] = true;
+      ev("flatline.cipher.opened { id: " + id + " }");
+      if (id === "rollbackPlan") observeControls();
+    }
+    drawDock();
+    save();
   }
   function cipherRun() {
     var C = st.ci, pass, inp, res;
@@ -3744,6 +3780,7 @@ table.list.auto{table-layout:auto}
     st.user = "g.desouza";
     st.step = n;
     ORDER.forEach(function (k) { if (REQ[k] <= n) st.traced[k] = true; });
+    if (n >= 3) { st.seen.controlsCard = true; st.opened.rollbackPlan = true; }
     M = st.mon;
     if (n >= 6) {
       M.seed = 1 + Math.floor(Math.random() * 2000000000);
