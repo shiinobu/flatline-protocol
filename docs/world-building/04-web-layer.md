@@ -1,8 +1,9 @@
 # 04 — Lapisan web (situs alat di browser)
 
-Status: diizinkan (DECIDED 2026-10-02). Fitur Tier 2 (JS halaman memanggil `HackhubSDK`, situs
-permanen, `Popular`) belum dibuktikan di game, jadi `weblab` (bagian G) wajib lulus sebelum dipakai.
-M4 sampai M7 memakai situs misi Tier 1 dan **tidak menunggu** `weblab`.
+Status: diizinkan (DECIDED 2026-10-02). `weblab` (bagian G) lulus live test pemilik pada 2026-10-04
+untuk `Popular`, kata kunci `search`, halaman `seo` yang tertutup, dan `Exports` situs (hasil di
+bagian G, `README` #57). Yang masih belum dibuktikan di game: JS halaman yang memanggil `HackhubSDK`
+(butir C3 dan C4). M4 sampai M7 memakai situs misi Tier 1 dan **tidak menunggu** `weblab`.
 
 ## A. Tujuan dan prinsip
 
@@ -45,19 +46,21 @@ dengan offset karakter yang tepat ada di `docs/app-asar-reference.md`. SDK 0.25.
 | 2 | iframe situs bersandbox `allow-scripts allow-same-origin`, tanpa `allow-forms`. Pencarian harus lewat JS, bukan `<form>` | engine ~20530904 | Terbaca di kode |
 | 3 | JS halaman mendapat `HackhubSDK` (Files, Network, Http, Time, Scheduler, Events, Mail, Bank, UI, Storage, Variables, SaveStorage, SharedStorage, SharedVariables, Shell, Twotter, Kisscord, WeeChat, Random, Theme, Desktop, Menu, ContextMenu, Handbook, Localization, ModSettings). Tiap panggilan memasang konteks mod (`setCtx`). Daftar yang sama ada di jembatan situs (`Qwc`, ~20467723 dan seterusnya) dan jembatan app/widget (~20461200) | engine ~20461200-20472000 | Terbaca. Di app BACKTRACE sudah live (`src/applications/backtrace.html:696`). Di situs belum diuji |
 | 4 | `HackhubSDK.Browser.navigate(url)` dan `.push(url)` ada di jembatan situs. Klik `<a href>` diarahkan ke dalam game | engine ~20467723-20472000 (jembatan situs `Qwc`) | Terbaca. Belum diuji |
-| 5 | `Website.Popular = true` memasukkan situs ke daftar "Popular websites" di beranda Goagle (`https://goagle.com`) | engine ~9995464-9998999; `index.d.ts` `Website.Popular` | Terbaca. Belum diuji |
-| 6 | Halaman punya `search?: string[]` (`WebsitePageDefinition`). Cara Goagle memakainya belum dibaca | `index.d.ts` ~138-145 | OPEN |
+| 5 | `Website.Popular = true` memasukkan situs ke grid "Goagle apps" di beranda Goagle (`https://goagle.com`). Grid menggambar `Icon` situs; `Icon` kosong menjadi globe abu-abu pucat. `Popular` statis (dibaca sekali saat kelas situs dibuat) | engine ~9995446-9996400; `app-asar-reference.md` E-15; `docs/bugs.md` #64 | Live 2026-10-04 (`weblab`) |
+| 6 | Kata kunci `search` Goagle hanya bekerja pada halaman **statis**. Halaman dinamis dan halaman bergerbang ditemukan lewat judul atau `SiteName` (kueri yang memuat sebagian judul cocok) | `app-asar-reference.md` E-13; `docs/bugs.md` #62 | Live 2026-10-04 (`weblab`) |
 | 7 | `metadata()` tidak punya konteks mod. `SaveStorage` dan `Variables` di sana namespace lain, dan `Localization.t()` mengembalikan kunci mentah. Pola benar: tulis di konteks mod, cermin ke `SharedVariables`, baca cermin itu | `docs/bugs.md` #20, #22, #36 | RESOLVED, live 2026-10-01 |
 | 8 | `Terminal.DnsHistory` hanya terpancar di multiplayer | `index.d.ts` ~1154-1160 | Tidak dipakai |
 | 9 | Situs misi ditutup bila misinya tidak aktif (`gateMissionPages`). LedgerVault dan BLACKLEDGER sengaja dikecualikan | `src/websites/global/page-guards.ts`; `docs/changelog.md` 2026-10-01 | Terkode, belum live |
 | 10 | Tidak ada API untuk menerbitkan artikel BCC News. Hanya event `BCC.News.Opened` yang bisa didengar | `index.d.ts` ~1389-1392, ~1535 | Tidak dipakai |
+| 11 | Halaman `seo` yang tertutup dan mengembalikan `notFoundMetadata()` (objek) tetap muncul di Goagle lewat `SiteName` atau judul "404 Not Found"; hanya `null` yang menyembunyikannya. Pola yang lulus: `context.searchStr === undefined ? notFoundMetadata() : null` (hanya Goagle yang mengisi `searchStr`; kunjungan lewat alamat tidak). `gateMissionPages` belum memakainya | `app-asar-reference.md` E-14; `docs/bugs.md` #63; `src/debug/seo-lab.ts` | Live 2026-10-04 (`weblab`) |
+| 12 | `Exports` situs: argumen string dan angka (angka tetap angka, juga di payload `Events.emit`) sampai ke mod, nilai balik (string, angka, boolean, objek biasa, `undefined`) sampai ke halaman, `SharedVariables.set` jalan di dalam `Exports` dan di listener event, dan `metadata()` membaca cermin itu setelah muat ulang. `metadata()` berjalan dua kali per navigasi | `app-asar-reference.md` E-16; `docs/bugs.md` #65; `src/debug/exports-lab.ts` | Live 2026-10-04 (`weblab`) |
 
 ## D. Tier mekanik
 
 | Tier | Isi |
 |---|---|
-| **1** (riset selesai, bug RESOLVED, live) | `nmap -sV`, `lynx`, `nslookup`, `whois`, `mxlookup`, `geoip`, `dirhunter`, `subfinder` (workaround #18), `nuclei`; `ssh` ke `Device` (#5, #17); panel pfSense dan TP-Link `Network.PortChanges` (#31); `hydra` (#25); `sqlmap` (#12); `openssl`; skrip `python3`; Metasploit `exploit` biasa (#29); IRC WeeChat (#7); persona Twotter; mail laporan dengan balasan "belum waktunya"; situs dinamis dengan cermin `SharedVariables` (#36); BACKTRACE; kit rival-hacker di `src/debug/` (live 2026-10-01 sebagai prototipe) |
-| **2** (ada di SDK/asar, belum dipakai misi atau belum live) | JS halaman situs memanggil `HackhubSDK` (butir C3 dan C4), `Popular` (C5), Kisscord (DM NPC), event `Twotter.Post/PostSeen/ProfileSeen`, `Bank.Transfer`, `Terminal.Ping/Dig/Ifconfig`, `Time`, `RegisterPhoneApp`, `Database.DataUpdate`, `Files.Open/Deleted`, `Network.UserActivity`. Wajib lab dan live test dulu |
+| **1** (riset selesai, bug RESOLVED, live) | `nmap -sV`, `lynx`, `nslookup`, `whois`, `mxlookup`, `geoip`, `dirhunter`, `subfinder` (workaround #18), `nuclei`; `ssh` ke `Device` (#5, #17); panel pfSense dan TP-Link `Network.PortChanges` (#31); `hydra` (#25); `sqlmap` (#12); `openssl`; skrip `python3`; Metasploit `exploit` biasa (#29); IRC WeeChat (#7); persona Twotter; mail laporan dengan balasan "belum waktunya"; situs dinamis dengan cermin `SharedVariables` (#36); `Popular` dengan `Icon` yang diisi, kata kunci `search` pada halaman statis, pola `searchStr` untuk halaman `seo` yang tertutup, dan `Exports` situs dengan angka, nilai balik, dan penulisan cermin (C5, C6, C11, C12; live 2026-10-04); BACKTRACE; kit rival-hacker di `src/debug/` (live 2026-10-01 sebagai prototipe) |
+| **2** (ada di SDK/asar, belum dipakai misi atau belum live) | JS halaman situs memanggil `HackhubSDK` (butir C3 dan C4), Kisscord (DM NPC), event `Twotter.Post/PostSeen/ProfileSeen`, `Bank.Transfer`, `Terminal.Ping/Dig/Ifconfig`, `Time`, `RegisterPhoneApp`, `Database.DataUpdate`, `Files.Open/Deleted`, `Network.UserActivity`. Wajib lab dan live test dulu |
 | **3** (jangan dipakai) | `ftp` native (#4 OPEN), Wireshark dan `Http.Intercepted` (#8, #9), `bettercap`/`fern`, `Meterpreter.Download`, reverse-TCP (dibuang), `Quest.Rewards` untuk uang, `Terminal.DnsHistory` (multiplayer), Suspicion dan Netrun bawaan (tidak terjangkau SDK), modul Metasploit baru (katalog tertutup) |
 
 ## E. Katalog situs (nama dan pemakaian M5-M7 DECIDED; Claims tracker dan Hackhub feed OPEN)
@@ -111,6 +114,23 @@ Butir yang harus lulus, dicatat di log `[FP][WEBLAB]`:
 
 Temuan masuk `docs/bugs.md` sebagai entri baru. Bila butir 3 atau 4 gagal, cadangannya
 Tier 1: dataset di HTML, `metadata()`, dan cermin `SharedVariables`.
+
+**Hasil (live test pemilik, 2026-10-04; `src/debug/portal-lab.ts`, `seo-lab.ts`, `exports-lab.ts`).**
+Butir 5 lulus. Butir 1, 2, 3, 4, 6 dan 7 di atas **belum dijalankan**: tiga situs lab tidak memanggil
+`HackhubSDK` dari JS halaman, dan jalur mod ke halaman lewat `Exports` yang dibuktikan di bawah menggantikan
+kebutuhan butir 4 untuk M5. Probe yang dijalankan sebagai gantinya:
+
+| Probe | Pertanyaan | Hasil |
+|---|---|---|
+| L-1 | `Popular` muncul di "Goagle apps" dan bisa dibuka | Lulus. `Icon` kosong tampil globe pucat; ikon `data:` tampil (#64) |
+| L-2 | Kata kunci `search` dan kueri yang memuatnya | Hanya pada halaman statis. Halaman dinamis cocok lewat judul atau `SiteName` (#62) |
+| L-3 | Halaman `seo` tertutup: `notFoundMetadata()` atau `null` | Objek 404 tetap terdaftar di Goagle; `null` menyembunyikan; pola `searchStr` menyembunyikan di Goagle dan memberi 404 lewat alamat (#63) |
+| L-4 | `Exports`: string, angka, nilai balik | Semua lulus; angka tetap angka, nilai balik sampai ke halaman (#65) |
+| L-5 | Login dua string, cermin `SharedVariables`, muat ulang | Lulus, di dalam `Exports` maupun lewat event (#65) |
+| L-6 | Situs ditemukan lewat judul tanpa kata kunci | Lulus: kueri yang memuat sebagian judul atau `SiteName` cocok (#62) |
+
+Cadangan Tier 1 untuk L-2 sampai L-5 tidak diperlukan. Catatan: `metadata()` berjalan dua kali per navigasi dan
+sekali per kueri Goagle, jadi render tidak boleh menulis apa pun.
 
 ## H. Risiko
 

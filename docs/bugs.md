@@ -2392,3 +2392,75 @@ incident log names both addresses ("from 141.77.202.84 ... nat gateway 193.164.2
 **Also found in the M4-M7 run (filtered from the scratch notes).** A Scheduler job once awaited `import(...)`
 inside its handler (`controller/m04/breach.ts`, first draft): an async boundary in the middle of a handler is exactly
 how mod context is lost (#19). It is a static import now and `grep -rn "await import" src` is empty.
+
+## 62. Goagle `search` keywords work only on static pages; a dynamic or gated page is found through its title or site name
+
+**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; `docs/app-asar-reference.md` E-13).**
+Found: weblab (`src/debug/portal-lab.ts`), 2026-10-04. The two Popular lab sites carried `search` keywords inside
+`metadata()`. On Goagle only "endpoint monitor" found a site (the query is part of its title); "encrypt" and
+"workstation console" found nothing.
+
+The matcher reads `search` from the page object, and only a static page (`WebsitePageDefinition`) carries it there. A
+dynamic page (`metadata()`) puts `search` on the object it returns, which the matcher never reads, so such a page can
+match only through its title or the site's `SiteName`. After the lab pages became static every keyword worked, and a
+partial query ("seoprob") still found a site through its `SiteName`.
+
+**Consequences.** Every mission site goes through `gateMissionPages` and is therefore dynamic, so a `search` list on it
+does nothing. A site that must be found by a phrase needs the phrase in its title or `SiteName`, or must be `Popular`
+(#64). A static page cannot be gated (`docs/rules.md` §6), so the choice is per site. `docs/draft.md` §6.6 (the
+Echoline keywords) is corrected accordingly.
+
+## 63. A closed `seo` page still shows in Goagle when its closed branch returns `notFoundMetadata()`; return `null` for Goagle and the 404 object for a visit by address
+
+**Status: WORKAROUND (the pattern passed a live test in `src/debug/seo-lab.ts`; not yet applied to `gateMissionPages`).**
+Found: weblab, 2026-10-04 (`docs/app-asar-reference.md` E-14).
+
+Goagle calls `metadata()` of every `seo` page for every query and drops a page only when the result is falsy.
+`notFoundMetadata()` is an object, so a page that is closed that way is still listed, through its `SiteName` or the title
+"404 Not Found". Returning `null` hides it, but then a visit by address shows nothing useful. Only Goagle sets
+`context.searchStr`; a visit by address leaves it `undefined`. The rule that passed:
+
+```ts
+metadata: (context) => (isClosed() ? (context.searchStr === undefined ? notFoundMetadata() : null) : openPage())
+```
+
+Live results (site "Seoprobe Lab", page title "Seo Probe"): open, `seoprob` and `seo probe` found it; 404 object,
+`seoprobe`, `404` and `not found` found it and `seo probe` did not; `null`, nothing found it; the rule above, nothing found
+it on Goagle and the address showed the 404 page.
+
+**Consequences.** `gateMissionPages` (`src/websites/global/page-guards.ts`) still returns `notFoundMetadata()` when a mission
+is closed. No mission page sets `seo` today, so nothing leaks yet. The M5 foundation (`docs/draft.md` §3 and §6.6: the
+hospital home page, Echoline) will, and then the closed branch must follow the rule above. `metadata()` also runs for every
+Goagle query and twice per navigation (the cause was not read), so the closed check must be a pure read (#36).
+
+## 64. An empty `Icon` shows a pale default globe that is almost invisible in the "Goagle apps" grid
+
+**Status: RESOLVED for the lab sites; OPEN for the mission sites (every one sets `Icon = ""`).**
+Found: weblab, 2026-10-04 (the owner: the Popular lab sites had no icon). `docs/app-asar-reference.md` E-15.
+
+The grid lists every `Popular` site as a 32 px `<img src={Icon}>`. A falsy `Icon` is replaced by the engine's default, a
+32 x 32 gray globe. The resolver accepts `http(s)://`, `data:` and `mod-asset://` URLs, and turns `./assets/x.png` into
+`mod-asset://<mod>/assets/x.png`. The lab now sets `data:image/svg+xml` icons built in code, and the grid showed them. The
+browser's bookmark list draws the same field (read in the engine, not seen live).
+
+**Consequences.** A site that becomes `Popular` needs a real icon, a `data:` URI or a file under `public/assets/` (BACKTRACE
+does the second for its app). LeakIndex (planned as a global Popular site, `docs/draft.md` §3.5) is the first mission case.
+`Popular` is read once when the site class is built, so a site cannot become Popular at a step.
+
+## 65. Website `Exports` carry numbers and return values, and a `SharedVariables` write inside one works, so a login needs no fallback
+
+**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; `docs/app-asar-reference.md` E-16).**
+Found: weblab (`src/debug/exports-lab.ts`), 2026-10-04. It closes the doubts recorded in `docs/m05-playtest.md` §15
+(a numeric argument) and `docs/draft.md` R3 (a return value to the page).
+
+Seen live: a string argument, a number argument (it arrives as a number) and a number inside an `Events.emit` payload (still a
+number) reach the mod; the page receives the return value unchanged (string, number `43`, boolean, a plain object, and
+`undefined` from a void function); `SharedVariables.set` works directly inside an `Exports` function and inside an
+`Events.on` listener, and a terminal command reads the value; after a reload, `metadata()` reads the mirror and the page
+shows it.
+
+**Consequences.** A portal login can pass two strings, get a boolean back, write the mirror in the same call, and switch
+view from the result or on reload. The "Continue" fallback of `docs/draft.md` §6.2 is not needed, and numeric ids
+(`flatlineOpenLeakRecord(1)`, `flatlineMonitorLogin(1)`) can stay numbers. Not shown: whether code after an `await` inside an
+`Exports` function still has the mod context (the engine pops it when the synchronous call returns, so assume not, #6 and
+#19), and why a page's `metadata()` runs twice per navigation; a render must stay free of writes.

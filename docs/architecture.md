@@ -233,7 +233,10 @@ src/
                  reset/exist checks, used by `components/topology.ts` and
                  the not-yet-migrated missions).
   debug/       — live-test tooling (`msf-lab`, the `msflab` sandbox
-                 command); every registration and trace is gated on
+                 command; the weblab of 2026-10-04: `portal-lab` with the
+                 `portallab` command and the mock `dashboard-preview.html`,
+                 `seo-lab` with `seolab`, `exports-lab` with `exportslab`);
+                 every registration and trace is gated on
                  `isDebug` through `debug/debug-gate.ts`. The M4 lab
                  prototypes (rival-hacker lab, quiet-start) were removed on
                  2026-10-03 and live on in git history.
@@ -634,7 +637,7 @@ move into per-mission subfolders; the `src/` restructure is in progress
 src/index.ts
   imports (side-effect registration, decorator-driven):
     main/index.js     (-> global.js, m01.js .. m04.js)
-    debug/index.js    (-> msf-lab)
+    debug/index.js    (-> msf-lab, portal-lab, seo-lab, exports-lab)
   ↓
   @RegisterModPackage class extends Bootstrap
     OnModPackageLoaded()   -> logs that the package loaded

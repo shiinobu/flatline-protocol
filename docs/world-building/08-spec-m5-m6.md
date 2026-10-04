@@ -223,7 +223,8 @@ dihubungkan), 2026-08-14 (insiden dan pembayaran), 2026-08-15 (draf), 2026-08-18
 02:41 -> 09:02 = 6 jam 21 menit, nilai yang diminta laporan.
 
 **Penyimpangan.** (1) LeakIndex memakai `Exports` sebagai gerbang dan mengirim
-**angka**, bukan string seperti M01; belum diuji live, dicatat di
+**angka**, bukan string seperti M01; angka lewat `Exports` terbukti live oleh
+`weblab` (2026-10-04, `app-asar-reference.md` E-16), pemakaian di M5 sendiri dicatat di
 `docs/m05-playtest.md` §15. (2) Kait M01 dibaca lewat
 `src/content/global/vault-hook.ts` yang **menyalin ulang** nama event dan id
 folder `q3`, bukan mengimpor konten M01 yang terkunci — aturan tanpa impor

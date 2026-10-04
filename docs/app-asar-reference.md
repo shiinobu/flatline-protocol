@@ -10,8 +10,9 @@ Read it together with `docs/bugs.md` (live-test findings), `docs/mechanics.md` (
 - Source file: `.reverse/extracted-1.3.13/index.js`, extracted from the game's `app.asar` (`.reverse/app.asar` is a link to the Steam install). 22,048,466 bytes, SHA-256 `5fc130d9f0d9049c01169ca8a456afbe453dd95662a3794b91ec0eedf5193045`.
 - Offsets are JavaScript character offsets (`String.prototype.indexOf`) into that file. `docs/world-building/04-web-layer.md` §C quotes approximate byte offsets for the same file.
 - Excerpts are verbatim from the minified source, with runs of whitespace collapsed to one space; `[...]` marks a cut. Minified identifiers (`ht`, `vt`, `Fr`, `Ji`, ...) are specific to this build: search for the string literals instead. Each excerpt lists the exact needle it was found with.
-- Status: **VERIFIED 2026-10-02** means the code was read in this pass. **CARRIED OVER** means another doc states it and it was not re-read here.
-- Scope: static reading only. What happens in the running game is recorded in `docs/bugs.md`.
+- Status: **VERIFIED 2026-10-02** means the code was read in this pass. **VERIFIED 2026-10-04, live** means the code was read and the behavior was then seen in the running game, with the weblab probes in `src/debug/` (`portal-lab.ts`, `seo-lab.ts`, `exports-lab.ts`). **CARRIED OVER** means another doc states it and it was not re-read here.
+- Scope: static reading, except E-13 to E-16, which were also checked live. Other findings from the running game are recorded in `docs/bugs.md`.
+- Do not take excerpts from `.reverse/extracted/index.js`. It is a different extraction (21,795,069 bytes, SHA-256 `dcf559f40b3839be0972453b9d743e70d3416a80dfb146f2dcd6a9e28a6f0c4a`) with other minified identifiers and other offsets. The logic read there for E-13 to E-16 is the same, but every excerpt in this file comes from `.reverse/extracted-1.3.13/index.js`.
 - After a game update: re-extract `app.asar`, search the needles listed under each excerpt, then refresh the offsets, excerpts, hash and date, and re-check each claim.
 
 ## Index
@@ -28,6 +29,10 @@ Read it together with `docs/bugs.md` (live-test findings), `docs/mechanics.md` (
 - **E-10** Which iframes are sandboxed how
 - **E-11** Metasploit RDP module (bluekeep): what the target port and the session must look like
 - **E-12** `geoip` and `nmap` and LAN addresses
+- **E-13** Goagle matches `search` keywords only on static pages
+- **E-14** A closed `seo` page is skipped by Goagle only when `metadata()` returns `null`
+- **E-15** A site's `Icon` and the `Popular` grid: an empty `Icon` shows a pale default globe
+- **E-16** Website `Exports`: arguments, return values and the mod context
 - **Other engine facts** and the **UNVERIFIED** list at the end.
 
 ## E-1 `Network.registerDomain` and `Network.setVulnerabilities` do nothing without a subnet
@@ -356,6 +361,135 @@ Exec(n,i){if(!Jq(n))return[];let s=gd.GetCommand({command:"nmap",input:n});if(!s
 
 **Used by.** `docs/bugs.md` #27, implementation prompt §8.
 
+## E-13 Goagle matches `search` keywords only on static pages
+
+Status: VERIFIED 2026-10-04, live.
+
+**Claim.**
+
+Goagle lists a site when at least one of its pages has `seo` not `false`, and keeps a page only when its `metadata()` does not return `null`. A lowercased query `u` then matches a page in any one of three ways: a keyword in the page object's `search` equals `u`; `u` contains a keyword; or `u` is a substring of the metadata title or of the site's `SiteName`. The score only ranks the result: +120 when a keyword equals `u`, else +90 when a keyword contains `u`; +100 when the title equals `u`, +80 when it starts with `u`, +60 when it contains `u`; +30 when the description contains `u`; +20 when the `SiteName` contains `u`.
+
+The page object carries `search` only for a static page (`WebsitePageDefinition`): the engine helper `C2c` copies `search:t.search`. A dynamic page (`DynamicWebsitePageDefinition`, helper `N2c`) has no `search` on the page object. Its `search` exists only on the object that `metadata()` returns (`search:v.search`), and the matcher never reads that object's `search`. `seo` defaults to `false` for both kinds.
+
+Live, 2026-10-04 (`src/debug/portal-lab.ts`): with dynamic pages and `search` inside `metadata()`, only `endpoint monitor` found the monitor site (a title match); `encrypt` and `workstation console` found nothing. After the pages became static, every keyword found its site. A partial query such as `seoprob` found "Seoprobe Lab" through its `SiteName`.
+
+**Excerpts.** Needles: `.Pages.find(he=>he.seo!==!1))`, `return He.includes(u)?he+=120:`, `for(const Ie of y)for(const Me of Ie.Pages){if(Me.seo===!1)continue;`, `function C2c(t,e,n,i,s){return{path:t.path,seo:t.seo??!1,search:t.search,`, `function N2c(t,e,n,i,s){return{path:t.path,seo:t.seo??!1,metadata:`.
+
+```js
+// offset 10000337 (the sites Goagle looks at)
+o7e().filter(se=>se.Pages.find(he=>he.seo!==!1))
+// offset 10001093 (score; the cut starts at He)
+He=(((Kn=se==null?void 0:se.page)==null?void 0:Kn.search)??[]).map(Rn=>Rn.toLowerCase());return He.includes(u)?he+=120:He.some(Rn=>Rn.includes(u))&&(he+=90),Se===u?he+=100:Se.startsWith(u)?he+=80:Se.includes(u)&&(he+=60),Ie.includes(u)&&(he+=30),Me.includes(u)&&(he+=20),he
+// offset 10001321 (which pages match)
+for(const Ie of y)for(const Me of Ie.Pages){if(Me.seo===!1)continue;const He=Me.metadata({...t,searchStr:u,data:Ie.Data});if(!He)continue;const an=Me.search&&Me.search.some(rn=>rn.toLowerCase()===u),Sn=He.title.toLowerCase().includes(u)||((Se=Ie.SiteName)==null?void 0:Se.toLowerCase().includes(u)),Ce=Me.search&&Me.search.some(rn=>u.includes(rn.toLowerCase()));if(!an&&!Sn&&!Ce)continue;[...]
+// offset 20529896 (static page)
+function C2c(t,e,n,i,s){return{path:t.path,seo:t.seo??!1,search:t.search,metadata:l=>({title:t.title,description:t.description,url:t.path,component:u=>{[...]
+// offset 20530231 (dynamic page)
+function N2c(t,e,n,i,s){return{path:t.path,seo:t.seo??!1,metadata:l=>{var C;const u=((C=l.meta)==null?void 0:C.pathname)??l.url??t.path,h=I2c(t.path,u)??{},_=k2c(l.url??""),E={url:l.url??"",params:h,query:_,searchStr:l.searchStr},v=t.metadata(E);if(!v)return null;const y=`${n}_dyn_${u}`;return v.exports&&zon(y,jot(v.exports,e)),{title:v.title,description:v.description,url:u,search:v.search,component:w=>{[...]
+```
+
+**Consequences for the mod.**
+
+- A keyword in `search` works only on a static page. A site whose pages go through `gateMissionPages` (dynamic) is found by words in the page title or the `SiteName`, or through `Popular` (E-15).
+- A `seo: true` page without `search` is found when the query is part of its title or `SiteName`, so a partial query works.
+- A static page has no `metadata()` hook and cannot be gated (`docs/rules.md` §6). Per site, choose between keywords and gating.
+- A keyword is matched in one direction only: the query must equal it or contain it. A query shorter than the keyword does not match by keyword.
+
+**Used by.** `docs/draft.md` §6.6, `docs/bugs.md` #62, `src/debug/portal-lab.ts`.
+
+## E-14 A closed `seo` page is skipped by Goagle only when `metadata()` returns `null`
+
+Status: VERIFIED 2026-10-04, live.
+
+**Claim.**
+
+For every query Goagle calls `metadata()` of every `seo` page, and drops the page only when the result is falsy (`if(!He)continue`). `notFoundMetadata()` returns an object, so a page that is closed that way is not dropped: the site is still listed when the query is part of its `SiteName` or of the title "404 Not Found". For a dynamic page the wrapper `N2c` forwards the caller's `searchStr` into the context and returns `null` when the mod's `metadata()` returns a falsy value. Only Goagle sets `searchStr` (the query). A visit by address calls the same function without it, so it is `undefined` there (seen live, not read in the code).
+
+Live, 2026-10-04 (`src/debug/seo-lab.ts`, a site named "Seoprobe Lab" whose page is titled "Seo Probe"):
+
+- mode `open`: `seoprob` and `seo probe` found it; `not found` and `404` did not.
+- mode `404` (`notFoundMetadata()`): `seoprobe`, `404` and `not found` found it, titled "404 Not Found"; `seo probe` did not.
+- mode `null`: no query found it.
+- mode `gate` (`searchStr === undefined ? notFoundMetadata() : null`): no Goagle query found it, and opening the address showed the 404 page.
+- Every navigation to the address called `metadata()` twice, and every Goagle query called it once. The cause of the double call was not read.
+
+**Excerpts.** The same two excerpts as E-13: the matcher at offset 10001321 (`const He=Me.metadata({...t,searchStr:u,data:Ie.Data});if(!He)continue;`) and the wrapper at offset 20530231 (`E={url:l.url??"",params:h,query:_,searchStr:l.searchStr},v=t.metadata(E);if(!v)return null;`).
+
+**Consequences for the mod.**
+
+- The closed-page rule for a `seo` page is `context.searchStr === undefined ? notFoundMetadata() : null`: hidden from Goagle, a 404 by address. `gateMissionPages` (`src/websites/global/page-guards.ts`) does not use it yet; its closed branch returns `notFoundMetadata()`. No mission page sets `seo` today, so nothing leaks yet. The M5 foundation (hospital home, Echoline) will.
+- `metadata()` runs for every Goagle query and twice per navigation, so a render must not write (`docs/bugs.md` #36).
+
+**Used by.** `docs/draft.md` §6.6 and §8 (R2), `docs/bugs.md` #63, `src/debug/seo-lab.ts`.
+
+## E-15 A site's `Icon` and the `Popular` grid: an empty `Icon` shows a pale default globe
+
+Status: VERIFIED 2026-10-04, live.
+
+**Claim.**
+
+`Popular` is read once, when the site class is built (`n.Popular??!1`), so it cannot change per step. The "Goagle apps" grid lists `o7e().filter(h=>h.Popular)` and draws each site as `<img src={Icon}>` at 32 px with the `SiteName` under it. A falsy `Icon` is replaced by the engine's default, a 32 x 32 PNG of a pale gray globe (1,032 bytes), which is almost invisible on the white grid. Any other value goes through the resolver `sEe`: `http(s)://`, `mod-asset://` and `data:` URLs are used as they are; `./x` or `x` becomes `mod-asset://<modId>/x`.
+
+Live, 2026-10-04: the three lab sites had `Icon = ""` and their Popular entries looked icon-less. With `data:image/svg+xml` icons built in code (`src/debug/portal-lab.ts`) the icons appeared in the grid.
+
+**Excerpts.** Needles: `Ne(this,"Icon",n.Icon?sEe(n.Icon,e):P9e)`, `function sEe(t,e){if(!t||t.startsWith(`, `const P9e="data:image/png;base64,`, `o7e().filter(h=>h.Popular)`, `M("img",{src:_.Icon,alt:_.SiteName,className:"w-8 h-8 object-contain"})`.
+
+```js
+// offset 20529710 (site class, cut)
+Ne(this,"Icon",n.Icon?sEe(n.Icon,e):P9e);Ne(this,"Url",n.Host);Ne(this,"Popular",n.Popular??!1);[...]
+// offset 20459881 (icon resolver)
+function sEe(t,e){if(!t||t.startsWith("http://")||t.startsWith("https://")||t.startsWith("mod-asset://")||t.startsWith("data:"))return t;const n=t.startsWith("./")?t.slice(2):t;return`mod-asset://${e}/${n}`}
+// offset 9237183 (default icon, cut)
+const P9e="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADuklEQVR4nK1XTWhdRRS+adUuWhW0xVIrXUgFlUpLK6VQ[...]
+// offset 9995446 (the grid's list)
+o7e().filter(h=>h.Popular)
+// offset 9996251 (one grid cell, cut)
+M("img",{src:_.Icon,alt:_.SiteName,className:"w-8 h-8 object-contain"})
+```
+
+**Consequences for the mod.**
+
+- Every mission site in `src/websites/` sets `Icon = ""`, so it would show the default globe. A `Popular` site (LeakIndex, planned as a global site) needs a real icon: a `data:` URI, or a file under `public/assets/` referenced as `./assets/<scope>/<file>` (BACKTRACE does this for its app icon).
+- `Popular` is static (see the Claim). A site cannot become `Popular` at a step.
+
+**Used by.** `docs/draft.md` §3.5 and §6.6, `docs/bugs.md` #64, `src/debug/portal-lab.ts`.
+
+## E-16 Website `Exports`: arguments, return values and the mod context
+
+Status: VERIFIED 2026-10-04, live. The call chain was also read in the code; the way the mod context ends was only read, not tried.
+
+**Claim.**
+
+A website's `Exports` object is wrapped by `jot`/`xLr` and registered on `window.__hhModGlobals__` under `__mod_exports_<modId>_<host>__` (`zon`). The page reads that table through `hhModGlobals()`, which returns the parent window's table. Each function is replaced by a wrapper that takes `...h`, passes it unchanged to `u.apply(this,h)` and returns the result, so arguments of any type and the return value reach their destination as they are. Around the call the wrapper pushes the mod id with `qne(e)` (and sets it on three internal modules) and pops it in `finally{Yne()}`; the permission check names the current mod (`Mod "${$Fe}" tried to use ...`). A page's own `metadata().exports` is registered the same way (`N2c`: `v.exports&&zon(y,jot(v.exports,e))`).
+
+Live, 2026-10-04 (`src/debug/exports-lab.ts`):
+
+- a string argument, a number argument (it arrives as a number) and a number inside an `Events.emit` payload (still a number) all reached the mod;
+- the page received the return values unchanged: a string, a number (`43`), a boolean, an object (`{"received":21,"doubled":42}`), and `undefined` from a void function;
+- `SharedVariables.set` worked directly inside an `Exports` function and inside an `Events.on` listener, and the terminal side (a command) read the value;
+- after a page reload, `metadata()` read the mirror (`SharedVariables.get`) and the page showed it.
+
+**Excerpts.** Needles: `n.Exports&&zon(i,jot(n.Exports,e))`, `function xLr(t,e,n){const i=n.get(t);if(i)return i;`, `function qne(t){qkn.push(t)`, `const BLr=`.
+
+```js
+// offset 20529583 (website registration, cut)
+O2c(t,e){const n=Jon(t,e),i=`__mod_exports_${e}_${n.Host}__`,s=`__mod_browser_${e}__`;n.Exports&&zon(i,jot(n.Exports,e));[...]
+// offset 20459481 (the wrapper)
+function xLr(t,e,n){const i=n.get(t);if(i)return i;const s={};n.set(t,s);for(const l of Object.keys(t)){const u=t[l];typeof u=="function"?s[l]=function(...h){var _,E,v;qne(e),(_=jF.__setCurrentModId__)==null||_.call(jF,e),(E=GF.__setCurrentModId__)==null||E.call(GF,e),(v=$ne.__setCurrentModId__)==null||v.call($ne,e);try{return u.apply(this,h)}finally{Yne()}}:$wc(u)?s[l]=xLr(u,e,n):s[l]=u}return s}
+// offset 20456802 (the mod context stack)
+function qne(t){qkn.push(t),$Fe=t}function Yne(){qkn.pop(),$Fe=qkn.length?qkn[qkn.length-1]:null}
+// offset 20460199 (what the page sees)
+const BLr=`var hhModGlobals = function() { return g.parent.${Iqn} || {}; };`;
+```
+
+**Consequences for the mod.**
+
+- A login can be two strings in and a boolean out: the page calls an `Exports` function, the mod checks the pair, writes the `SharedVariables` mirror inside the function, and the page switches view from the returned value or by reloading (`metadata()` reads the mirror). The "Continue" fallback of `docs/draft.md` §6.2 is not needed.
+- Numeric ids can be passed as numbers, so `flatlineOpenLeakRecord(id: number)` and the numeric codes of the mock (`flatlineMonitorLogin(1)`) work.
+- The mod context ends when the synchronous call returns (`Yne()`), so code after an `await` inside an `Exports` function runs outside it. That is read in the code, not tried; it matches `docs/bugs.md` #6 and #19. Do the work that needs the mod before the first `await`, or hand it to a listener with `Events.emit`.
+
+**Used by.** `docs/draft.md` §6.1, §6.2 and §8 (R3), `src/debug/exports-lab.ts`, `src/websites/m01/ledgervault/index.ts`.
+
 ## Other engine facts
 
 Facts about the engine that are documented elsewhere and not repeated here:
@@ -370,7 +504,7 @@ Facts about the engine that are documented elsewhere and not repeated here:
 | `destroyNetwork` replies overwrite the whole store; destroy sequentially | `docs/bugs.md` #32, #35 |
 | Mod mail after `mods.reset` | `docs/bugs.md` #37 |
 | `john` cracks only hashes the engine itself generated | `docs/bugs.md` #13 |
-| Website engine table (page context, `HackhubSDK` bridge, `Browser.navigate`, `Popular`, `BCC` news) | `docs/world-building/04-web-layer.md` §C (**CARRIED OVER**: items #3, #4, #5, #6, #8 and #10 were not re-read on 2026-10-02) |
+| Website engine table (page context, `HackhubSDK` bridge, `Browser.navigate`, `Popular`, `BCC` news) | `docs/world-building/04-web-layer.md` §C (**CARRIED OVER**: items #3, #4, #5, #6, #8 and #10 were not re-read on 2026-10-02; `Popular` and the `Exports` bridge are now E-15 and E-16) |
 
 ## UNVERIFIED
 
@@ -378,4 +512,6 @@ Facts about the engine that are documented elsewhere and not repeated here:
 - Whether any UI surface other than `ls` shows file dates or sizes (E-6); none was found.
 - Whether the M6 zero-network mission can be completed end to end with no subnet at all (E-3 says `dirhunter` needs none); the M6 walking skeleton tests it live.
 - The relation between the in-game clock (`Time`) and the 2026 story dates (`docs/world-building/06-pertanyaan.md` T-b is OPEN).
+- Whether code after an `await` inside a website `Exports` function has lost the mod context. E-16 shows the wrapper popping the mod id in `finally` when the synchronous call returns; this was read, not tried (compare `docs/bugs.md` #6 and #19).
+- Why a website page's `metadata()` runs twice per navigation (seen live in `seo-lab` and `exports-lab`). The cause was not read, so a render must stay free of writes (`docs/bugs.md` #36).
 

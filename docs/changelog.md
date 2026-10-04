@@ -27,6 +27,27 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-04
 
+- **[milestone] The weblab passed its live test: all six probes behave as the M5 foundation needs.** Run by the owner on
+  2026-10-04 with three debug sites in `src/debug/`: `portallab` (the three lab sites, the Popular grid and Goagle
+  search), `seolab` (a closed `seo` page in four modes) and `exportslab` (website `Exports`). Proven in the running game:
+  `Popular` lists a site in "Goagle apps"; `search` keywords match only on static pages, and a gated page is found through
+  its title or site name; a closed `seo` page can be hidden from Goagle and still answer a visit by address with the 404
+  page (`searchStr` pattern); `Exports` carry strings and numbers to the mod, return values to the page, and let a
+  `SharedVariables` mirror be written and read back after a reload. Not covered: page JS calling `HackhubSDK` (`04-web-layer.md`
+  §C3 and §C4). This is a test result, not a decision to use the features: the M5 foundation of `docs/draft.md` (K1-K9)
+  still waits for the owner. See `docs/bugs.md` #62-#65, `docs/app-asar-reference.md` E-13 to E-16 and
+  `docs/world-building/README.md` #57.
+- **[bug] The lab sites ignored their Goagle keywords and showed no icon.** `portal-lab.ts` registered dynamic pages with
+  `search` inside `metadata()`, which Goagle never reads (only "endpoint monitor" matched, through the title), and left
+  `Icon` empty, so the Popular grid drew the pale default globe. The pages are static now and the three sites carry
+  `data:` SVG icons (`docs/bugs.md` #62 and #64). The lab also logs the subnet state of its three addresses on every
+  `portallab` run, because an `up` after an older build refused with "already up" while the third address had no subnet.
+- **[doc] Engine facts E-13 to E-16 and bugs #62-#65 written down; stale "untested" notes updated.** The excerpts were taken
+  from `.reverse/extracted-1.3.13/index.js` and checked against it (14 excerpt lines verbatim, 13 offsets). Updated:
+  `docs/world-building/04-web-layer.md` (§C rows 5 and 6, new rows 11-13, tiers, §G results), `08-spec-m5-m6.md` (the numeric
+  `Exports` deviation), `docs/m05-playtest.md` §15, `docs/architecture.md` (the `debug/` list) and `docs/draft.md` (§3.5,
+  §4.2, §4.4, §6.1, §6.2, §6.6, §7.3, §8, §10).
+
 - **[milestone] BACKTRACE passed the owner's live test and is FINAL LOCK.** Declared by the owner on 2026-10-04 after testing the
   post-lock batch in game (`docs/world-building/README.md` #56, now LOCKED): the Personal Log filled at COMPLETE, the source
   captions, the pinned header and hidden scrollbar of the log sheet, and `backtrace-log`. It also answers the live test that #55

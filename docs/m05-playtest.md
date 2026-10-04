@@ -354,9 +354,11 @@ through. Addresses, usernames, hashes, asset tags and dates stay as they are.
 ## 15. Known follow-ups (not fixed / not yet live-tested)
 
 - **`Exports` as a gate on a mod site** is proven in M01 for a single call with
-  a string argument; M05 passes a **number**. If `flatlineOpenLeakRecord` never
-  reaches the mod, the fallback is the same shape as M01's: pass the id as a
-  string. Untested live.
+  a string argument; M05 passes a **number**. A number reaching the mod through
+  `Exports` and through an `Events.emit` payload was proven live by the weblab on
+  2026-10-04 (`docs/app-asar-reference.md` E-16), so the string fallback should not
+  be needed. M05's own `flatlineOpenLeakRecord` is still to be seen in the M05 live
+  test.
 - **`John.DecryptHash` payload shape** (`{hash, password}`) is taken from M01's
   working listener; M05 is the first to check both fields.
 - **`Terminal.Lynx.Search`** carries the resolved subject as a bare string and
