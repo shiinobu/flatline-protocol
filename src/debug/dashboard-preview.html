@@ -2488,8 +2488,9 @@ table.list.auto{table-layout:auto}
   function cellHtml(r) { return '<span class="rd-cell" data-k="' + r[0] + '" data-s="' + r[1] + '"><svg class="rd-cg" viewBox="0 0 16 16" aria-hidden="true">' + CELL_G[r[1]] + "</svg><span class=\"rd-ck\">" + r[0] + "</span><em>" + r[1] + "</em></span>"; }
   function cellRows() { return st.mon.host !== "cold" ? [["display", "NONE"]] : compStates(PZ()); }
   function cellAnim(c, cls) {
+    var again = c.classList.contains(cls);
     c.classList.remove("chg", "unlock", "lockin");
-    void c.offsetWidth;
+    if (again) void c.offsetWidth;
     c.classList.add(cls);
     SCH.wait(650, function () { c.classList.remove(cls); }, c);
   }
@@ -2554,8 +2555,8 @@ table.list.auto{table-layout:auto}
     if (P && P.applied && !$("w-scr")) openMonitorWindow();
     else if (P && prev && P.shown !== prev.shown) rdBring(false);
     refreshTerm();
-    if (P && P.attached && prev && !prev.attached && $("w-scr")) rdFinale();
-    else refreshSignal();
+    if (P && P.attached && prev && !prev.attached && $("w-scr")) { P.fitDue = true; rdFinale(); }
+    else { refreshSignal(); if (P && P.attached) rdAutoFit(true); }
     settle();
     drawDock();
   }
@@ -2816,8 +2817,8 @@ table.list.auto{table-layout:auto}
       for (x = 0; x < W; x++) {
         i = row + x;
         v = u[i];
-        r = ghost ? s[row + (x + W - o) % W] & 255 : v & 255;
-        b = ghost ? (s[row + (x + o) % W] >>> 16) & 255 : (v >>> 16) & 255;
+        r = ghost ? s[x < o ? i + W - o : i - o] & 255 : v & 255;
+        b = ghost ? (s[x + o < W ? i + o : i + o - W] >>> 16) & 255 : (v >>> 16) & 255;
         if (swap) { t = r; r = b; b = t; }
         u[i] = (v & 0xff000000) | (q[b] << 16) | (q[(v >>> 8) & 255] << 8) | q[r];
       }
@@ -2887,7 +2888,7 @@ table.list.auto{table-layout:auto}
     if (sym.first === "black" || sym.first === "cursor") { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); return; }
     if (sym.first === "frozen") { g.drawImage(base, 0, 0); g.drawImage(base, 0, 480, FB_W, 96, 52, 480, FB_W, 96); g.fillStyle = "rgba(3,8,12,.52)"; g.fillRect(0, 0, FB_W, FB_H); return; }
     if (sym.first === "noise") { g.drawImage(base, 0, 0); nz = noiseTiles(); if (nz) { g.imageSmoothingEnabled = false; g.drawImage(nz[FX.ni % 3], 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; } return; }
-    if (sym.first === "format") { g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0, FB_W, FB_H); return; }
+    if (sym.first === "format") { g.imageSmoothingEnabled = false; g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; return; }
     if (sym.first === "roll") {
       off = Math.floor(0.3 * FB_H);
       g.drawImage(base, 0, FB_H - off, FB_W, off, 0, 0, FB_W, off);
@@ -2968,7 +2969,6 @@ table.list.auto{table-layout:auto}
   var rkPop = "";
   var rkDlg = null;
   var rkBack = null;
-  var rkPtrShape = "";
   var rkPtrXY = [FB_W / 2, FB_H / 2];
   var RK_SCROLL = "#rkwins .rk-arv,#rkwins .rk-arl,#rkwins .rk-list,#rkwins .rk-side";
   function rkState() {
@@ -3078,15 +3078,15 @@ table.list.auto{table-layout:auto}
     b = document.querySelector('#rkwins [data-rw="' + PZ().rf + '"] .rk-body') || $("rkm-apps");
     if (b) b.focus({ preventScroll: true });
   }
-  function rkDeskRender() {
-    var d = $("dsk"), g;
+  function rkDeskRender(lazy) {
+    var d = $("dsk");
     if (!d) return;
     d.setAttribute("data-on", "1");
     d.classList.remove("hide");
     d.innerHTML = rkDeskHtml();
-    g = ctx2($("rkwall"));
-    if (g && wallCanvas()) g.drawImage(wallCanvas(), 0, 0);
+    if (!lazy) rkWall();
   }
+  function rkWall() { var g = ctx2($("rkwall")); if (g && wallCanvas()) g.drawImage(wallCanvas(), 0, 0); }
   function rkFocus(id) {
     var P = PZ(), W = rkW(id);
     P.rz = P.rz.filter(function (k) { return k !== id; }).concat([id]);
@@ -3153,7 +3153,7 @@ table.list.auto{table-layout:auto}
   function rkPtrAt(x, y, k) {
     var ptr = $("rdptr"), p = RK_PTR[k] || RK_PTR.arrow;
     if (!ptr) return;
-    if (k !== rkPtrShape) { ptr.innerHTML = ptrSvg(k); rkPtrShape = k; }
+    if (ptr.getAttribute("data-k") !== k) { ptr.innerHTML = ptrSvg(k); ptr.setAttribute("data-k", k); }
     rkPtrXY = [x, y];
     ptr.style.transform = "translate(" + Math.round(x - p[1]) + "px," + Math.round(y - p[2]) + "px)";
     ptr.classList.add("on");
@@ -3187,13 +3187,13 @@ table.list.auto{table-layout:auto}
     if (d.rk === "mb") PZ().mbp = { x: W.x, y: W.y, w: W.w, h: W.h };
     if (el) { el.style.left = W.x + "px"; el.style.top = W.y + "px"; el.style.width = W.w + "px"; el.style.height = W.h + "px"; }
   }
-  function rdDeskOn() {
+  function rdDeskOn(keep) {
     var cv = $("msig");
     DSP.desk = true;
     DSP.loading = false;
     rkState();
     if (!PZ().rf && rkW("mb").open) rkFocus("mb");
-    rkDeskRender();
+    if (!keep || !$("rkwins")) rkDeskRender();
     if (cv) { cv.classList.add("off"); cv.classList.remove("dim", "lock"); }
     stopLoop();
     rkPtrMode();
@@ -3212,17 +3212,19 @@ table.list.auto{table-layout:auto}
     rkFocus("mb");
     DSP.hold = true;
     steps.push({ t: 0, fn: function () { cv.classList.remove("off", "blank"); paintFrame(0); cv.classList.add("lock"); rdWords("on", "attached"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); } });
-    steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow); pull(); save(); } } });
-    steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; DSP.loading = true; d.classList.add("rd-finale"); rkDeskRender(); fitDesk(); } });
+    steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; P.fitDue = false; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow); pull(); save(); } } });
+    steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; DSP.loading = true; d.classList.add("rd-finale"); rkDeskRender(true); } });
+    steps.push({ t: slow ? 560 : 140, fn: function () { rkWall(); } });
     steps.push({ t: slow ? 2200 : 420, fn: function () { DSP.loading = false; drawDesk(); } });
     steps.push({ t: slow ? 2450 : 500, fn: function () { DSP.hold = false; rkPtrMode(); } });
-    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); pull(); save(); } });
+    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(true); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); pull(); save(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { d.classList.remove("rd-finale"); });
   }
-  function rdAutoFit() {
+  function rdAutoFit(now) {
     var P = PZ();
-    if (P.fit) return;
+    if (P.fit || !(now || P.fitDue)) return;
     P.fit = true;
+    P.fitDue = false;
     if ($("w-scr") && !st.mon.win.scr.max) winMax("scr");
     save();
   }
@@ -3243,12 +3245,11 @@ table.list.auto{table-layout:auto}
     DSP.desk = false;
     DSP.loading = false;
     DSP.hold = false;
-    rkPtrShape = "";
     rkPop = "";
     rkDlg = null;
     rkBack = null;
     fitDesk();
-    if (P && P.attached) { rdDeskOn(); rdAutoFit(); return; }
+    if (P && P.attached) { rdDeskOn(); rdAutoFit(false); return; }
     if (P && P.shown) rdLive();
     else { rdWords("off", "no signal"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); }
   }
