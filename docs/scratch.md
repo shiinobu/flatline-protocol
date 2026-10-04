@@ -2880,3 +2880,24 @@ SESSION MENU (slides in from the left edge of the screen, over it)
   `portal-lab.ts` strips the blocks of the other sites from each lab page.
 - **Hosts** are single constants: `MONITOR_LAB_DOMAIN` in `portal-lab.ts` (`remote-desktop-lab.pacificcare-health.org`)
   and the `MON_HOST` default in the HTML (`remotedesktopconnection.io`).
+
+### Verification (2026-10-04, this container: headless Chromium 150 via Playwright, jsdom harness)
+
+- **Harness** (outside the repo): 748 checks green on BASE; 911 checks green in instant mode and 893 in timed mode on the
+  final file (golden values, every refusal and the lock, events and steps, the puzzle solved from console output with three
+  seeds, a 179-command transcript against BASE with only the renamed strings changed, windows, reload, lab mode and
+  cross-site storage, portal and dock text, A-1/A-2/A-3 timing and commit points, reduced motion, skip).
+- **Code rules**: `tsc --noEmit` exit 0; no comments, no `console.`, no `eval`/`new Function`/`document.write`, no
+  `<form>`; one `<body>`, one `</script>`; CSS braces balance; the script parses.
+- **Performance** (CPU throttling through the DevTools protocol, software rendering, so pessimistic): no long task during
+  any sequence at 1x and 2x; at 4x the format bring-up (bpp 16, order and stride wrong) went from 77/54/108 ms tasks to
+  none after the format path moved to half resolution (the size of BASE's whole canvas) and split into two invisible
+  steps during the negotiation; the attach finale showed one 65 ms task in one of three 4x runs. Re-sync and the cipher
+  run: none at 1x, 2x or 4x. Page load at 4x: tasks of 99 and 84 ms (BASE: one of 87 ms). A 298 ms task seen once at 2x
+  did not come back in clean runs; it happened while another browser job was running in parallel.
+- **Screenshots**: before and after at 1600x900, 1280x720, 1100x800 and 800x900 for 23 states, in the session scratchpad
+  (not committed).
+- **Not verified in the game**: everything above ran in desktop Chromium, not in HackHub's Electron iframe (data-URI
+  fonts, `localStorage` sharing between the three lab iframes, pointer and drag inside the iframe, canvas speed on the
+  owner's machine, frame callbacks while the game window is unfocused, Segoe UI and Cascadia Mono, which this Linux
+  container does not have).
