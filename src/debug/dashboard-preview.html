@@ -332,60 +332,6 @@ table.list.auto{table-layout:auto}
 .dsite .addr{flex:1 1 160px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-size:12px}
 .dock select{height:30px;padding:0 28px 0 8px;background-color:#06090b;border:1px solid #1f2a30;border-radius:4px;color:#e5f1ef;font-size:13px}
 
-.mon{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--mbg)}
-.mtop{display:flex;align-items:center;gap:16px;flex:none;height:64px;padding:0 28px;border-bottom:1px solid var(--mline);background:rgba(6,13,19,.92)}
-.mlogo{display:flex;align-items:center;gap:12px}
-.mlogo i{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--spo-t);color:var(--spo)}
-.mlogo i .ic{width:20px;height:20px}
-.mlogo b{display:block;font:600 17px/1.15 var(--disp)}
-.mlogo span{display:block;color:var(--mute);font-size:13px}
-
-.rs-k{display:inline-flex;align-items:center;gap:8px;color:var(--mute);font-size:13px}
-.hostchip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--mline2);border-radius:8px;background:var(--mpanel);color:var(--mute);font-size:13px;white-space:nowrap}
-
-.wsp{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(900px 500px at 82% 0,rgba(92,200,240,.09),transparent 62%),linear-gradient(rgba(92,200,240,.045) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,rgba(92,200,240,.045) 1px,transparent 1px) 0 0/40px 40px,var(--mbg)}
-.win{position:absolute;display:flex;flex-direction:column;min-width:300px;min-height:160px;border:1px solid var(--mline2);border-radius:12px;background:#03080c;box-shadow:0 30px 70px -24px #000;overflow:hidden}
-.win.front{border-color:rgba(92,200,240,.6);box-shadow:0 30px 70px -24px #000,0 0 0 1px rgba(92,200,240,.18)}
-.win.pop{animation:wpop .3s cubic-bezier(.16,.84,.3,1)}
-@keyframes wpop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
-.wbar{display:flex;align-items:center;gap:10px;flex:none;height:38px;padding:0 8px 0 14px;border-bottom:1px solid var(--mline);background:linear-gradient(#11222d,#0b1720);cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
-.win.drag .wbar{cursor:grabbing}
-.wd{flex:none;width:9px;height:9px;border-radius:50%;background:var(--faint)}
-.wd.on{background:var(--leaf);box-shadow:0 0 0 3px var(--leaf-t)}
-.wt{font:600 14px var(--disp)}
-.wh{margin-left:auto;overflow:hidden;color:var(--faint);font:12px var(--mono);white-space:nowrap;text-overflow:ellipsis}
-.wb{display:grid;place-items:center;flex:none;width:28px;height:26px;padding:0;border:0;border-radius:6px;background:none;color:var(--mute)}
-.wb:hover{background:rgba(255,255,255,.08);color:var(--ink)}
-.wb .ic{width:15px;height:15px}
-.wrz{position:absolute;right:0;bottom:0;z-index:3;width:20px;height:20px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--mline2) 52% 60%,transparent 60% 72%,var(--mline2) 72% 80%,transparent 80%)}
-
-.tw{display:flex;flex-direction:column;flex:1;min-height:0}
-.tstat{display:flex;flex-wrap:wrap;gap:6px;flex:none;padding:8px 12px;border-bottom:1px solid var(--mline);background:#050c12}
-.tchip{display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 9px;border:1px solid var(--mline2);border-radius:6px;color:var(--mute);font:12px var(--mono)}
-.tchip b{font-weight:600}
-.tchip.s-HELD,.tchip.s-STALE,.tchip.s-PARTIAL{border-color:rgba(242,184,75,.45)}
-.tchip.s-HELD b,.tchip.s-STALE b,.tchip.s-PARTIAL b{color:var(--amber)}
-.tchip.s-UNSET b{color:var(--faint)}
-.tchip.s-SET,.tchip.s-LOCKED,.tchip.s-CLEAR,.tchip.s-OK{border-color:rgba(56,200,142,.45)}
-.tchip.s-SET b,.tchip.s-LOCKED b,.tchip.s-CLEAR b,.tchip.s-OK b{color:var(--leaf)}
-#mscroll{flex:1;min-height:0;overflow:auto;padding:12px 16px 8px;font:13px/1.55 var(--mono);color:#cfe4dc;cursor:text}
-.ml,.mo{white-space:pre-wrap;word-break:break-word}
-.mo.bx{white-space:pre;word-break:normal}
-.ml .pr,.mprompt .pr{color:#7ff0c0}
-.mo{color:#b9cccd}
-.mo .td{color:#7bc4f0;font-weight:600}
-.mprompt{display:flex;align-items:center;gap:8px}
-.mprompt .pr{flex:none;white-space:pre}
-.mprompt input{flex:1;min-width:0;height:24px;padding:0;background:none;border:0;border-radius:0;color:#eaf5f1;font:13px var(--mono);caret-color:#7ff0c0}
-.mprompt input:focus{outline:0;border:0;box-shadow:none}
-.tcand{flex:none;height:26px;padding:5px 16px 0;overflow:hidden;color:var(--spo);font:12.5px var(--mono);white-space:nowrap;text-overflow:ellipsis}
-.thint{flex:none;padding:7px 16px 9px;border-top:1px solid var(--mline);background:#050c12;color:var(--faint);font:12.5px var(--mono)}
-
-.mv{position:relative;flex:none;width:100%;aspect-ratio:1024/640;overflow:hidden;background:#000}
-.mv canvas{position:absolute;left:0;top:0;width:100%;height:100%;transition:opacity .7s}
-.mv canvas.off{opacity:0;pointer-events:none}
-.mhud{display:flex;align-items:center;gap:16px;flex:none;height:26px;padding:0 12px;border-top:1px solid var(--mline);background:#050c12;color:var(--faint);font:12px var(--mono);white-space:nowrap}
-.mhud b{color:var(--mute);font-weight:500}
 .dsk{position:absolute;left:0;top:0;width:1024px;height:640px;transform-origin:0 0;overflow:hidden;background:radial-gradient(520px 340px at 70% 18%,rgba(92,200,240,.2),transparent 60%),radial-gradient(420px 300px at 10% 100%,rgba(56,200,142,.14),transparent 62%),linear-gradient(160deg,#0d2230,#0a1722 55%,#08111a);font:16px/1.4 var(--ui);color:var(--ink);animation:deskin .9s ease-out}
 @keyframes deskin{from{opacity:0}to{opacity:1}}
 .dpanel{display:flex;align-items:center;gap:22px;height:34px;padding:0 16px;border-bottom:1px solid var(--mline2);background:rgba(5,12,18,.9);color:var(--mute);font-size:15px}
@@ -469,14 +415,6 @@ table.list.auto{table-layout:auto}
 .lg-l{padding:24px 24px 0}
 .lg-copy{display:none}
 .lg-r{padding:24px}
-.mtop{padding:0 16px;gap:10px}
-.hostchip{display:none}
-.wsp{display:flex;flex-direction:column;gap:12px;padding:12px;overflow:auto}
-.win{position:relative!important;left:auto!important;top:auto!important;width:auto!important;z-index:auto!important}
-#w-term{height:440px!important}
-#w-scr{height:auto!important}
-.wbar{cursor:default}
-.wrz,.wb{display:none}
 .arb{grid-template-columns:minmax(0,1fr)}
 .arl{max-height:130px;border-right:0;border-bottom:1px solid var(--mline)}
 .cpg{grid-template-columns:minmax(0,1fr)}
@@ -553,8 +491,6 @@ table.list.auto{table-layout:auto}
 @keyframes rdNudge{0%,100%{transform:none}18%{transform:translateX(-8px)}38%{transform:translateX(7px)}58%{transform:translateX(-4px)}78%{transform:translateX(2px)}}
 @keyframes rdFade{from{opacity:0}to{opacity:1}}
 @keyframes rdRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.rd-enter .mtop{animation:rdFade .32s var(--rd-out) both}
-.rd-enter .win{animation:rdRise .5s .1s var(--rd-out) both}
 @container stage (max-width:900px){
 .rd-card{grid-template-columns:minmax(0,1fr)}
 .rd-route{border-left:0;border-top:1px solid var(--rd-line)}
@@ -570,8 +506,121 @@ table.list.auto{table-layout:auto}
 .rd-card.nudge{animation:none}
 .rd-fill,.rd-bar{transition-duration:.1s}
 .rd-end.on .rd-dot::after{animation:none;opacity:0}
-.rd-enter .mtop,.rd-enter .win{animation:rdFade .18s both}
 }
+.rd-sess{display:flex;align-items:center;gap:10px;min-width:0;margin-left:10px;padding-left:16px;border-left:1px solid var(--rd-line);color:var(--rd-fog);font-size:13px;white-space:nowrap}
+.rd-live{flex:none;width:8px;height:8px;border-radius:50%;background:var(--rd-live)}
+.rd-sess b{color:var(--rd-paper);font-weight:600}
+.rd-sess .rd-mn{font:12.5px var(--rd-mono)}
+.rd-clk{margin-left:auto;color:var(--rd-fog);font:12.5px var(--rd-mono)}
+.rd-ghost{display:inline-flex;align-items:center;gap:8px;flex:none;height:34px;padding:0 14px;border:1px solid var(--rd-line2);border-radius:9px;background:transparent;color:var(--rd-paper);font:500 13.5px var(--rd-ui);white-space:nowrap}
+.rd-ghost:hover{background:var(--rd-rail)}
+.rd-ghost .ic{width:16px;height:16px}
+.rd-wsp{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--rd-bench)}
+.rdc .win{position:absolute;display:flex;flex-direction:column;min-width:300px;min-height:160px;border:1px solid var(--rd-line);border-radius:10px;background:var(--rd-frame);box-shadow:0 22px 48px -22px rgba(0,0,0,.75);overflow:hidden}
+.rdc .win.front{border-color:#4b505b}
+.rdc .win.drag{box-shadow:0 30px 60px -20px rgba(0,0,0,.85)}
+.rd-tb{display:flex;align-items:center;gap:10px;flex:none;height:38px;padding:0 6px 0 12px;border-bottom:1px solid var(--rd-line);background:#202227;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
+.rdc .win.drag .rd-tb{cursor:grabbing}
+.rd-tb .ic,.rd-tb .rd-mark{width:16px;height:16px;flex:none;color:var(--rd-fog)}
+.rd-wt{flex:none;font:600 13.5px/1 var(--rd-ui)}
+.rd-wh{min-width:0;overflow:hidden;color:var(--rd-fog);font:12px/1 var(--rd-mono);white-space:nowrap;text-overflow:ellipsis}
+.rd-conn{min-width:0;overflow:hidden;color:var(--rd-paper);font:12.5px/1 var(--rd-mono);white-space:nowrap;text-overflow:ellipsis}
+.rd-ws{display:inline-flex;align-items:center;gap:7px;flex:none;color:var(--rd-fog);font-size:12.5px;white-space:nowrap}
+.rd-ws i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--rd-dim)}
+.rd-ws[data-s=rx] i{border-color:var(--rd-paper);background:var(--rd-paper)}
+.rd-ws[data-s=on] i{border-color:var(--rd-live);background:var(--rd-live)}
+.rd-ws[data-s=on]{color:var(--rd-paper)}
+.rd-tb .sp{flex:1}
+.rd-ib{display:grid;place-items:center;flex:none;width:30px;height:28px;padding:0;border:0;border-radius:7px;background:none;color:var(--rd-fog)}
+.rd-ib:hover,.rd-ib[aria-expanded=true]{background:var(--rd-rail);color:var(--rd-paper)}
+.rd-ib .ic{width:16px;height:16px}
+.rd-rz{position:absolute;right:0;bottom:0;z-index:6;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--rd-line2) 55% 62%,transparent 62% 74%,var(--rd-line2) 74% 81%,transparent 81%)}
+.rd-pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;gap:10px;flex:none;height:46px;padding:0 12px;border-bottom:1px solid var(--rd-line);background:var(--rd-deep);overflow:hidden}
+.rd-cell{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:7px;align-items:center;min-width:0;height:34px;padding:0 8px;border-radius:7px;color:var(--rd-fog);white-space:nowrap}
+.rd-cell .rd-cg{grid-row:1/3}
+.rd-cell+.rd-cell::before{content:"";position:absolute;left:-11px;top:50%;width:10px;height:1px;background:var(--rd-line2)}
+.rd-ck{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;line-height:1.15}
+.rd-cell em{min-width:0;overflow:hidden;font:600 11.5px/1.2 var(--rd-mono);font-style:normal;color:var(--rd-paper)}
+.rd-cg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rd-cell[data-s=HELD]{background:rgba(255,111,111,.12);color:var(--rd-fault)}
+.rd-cell[data-s=HELD] em{color:var(--rd-fault)}
+.rd-cell[data-s=CLEAR],.rd-cell[data-s=SET]{background:var(--rd-rail);color:var(--rd-paper)}
+.rd-cell[data-s=STALE] em,.rd-cell[data-s=UNSET] em,.rd-cell[data-s=NONE] em{color:var(--rd-fog)}
+.rd-cell[data-s=STALE]{box-shadow:inset 0 0 0 1px var(--rd-line2)}
+.rd-cell[data-s=PARTIAL]{box-shadow:inset 0 0 0 1px var(--rd-line2);color:var(--rd-paper)}
+.rd-cell[data-s=LOCKED],.rd-cell[data-s=OK]{background:rgba(111,220,140,.12);color:var(--rd-live)}
+.rd-cell[data-s=LOCKED] em,.rd-cell[data-s=OK] em{color:var(--rd-live)}
+.rd-cell.chg{animation:rdCell .45s var(--rd-out)}
+.rd-cell.chg .rd-cg{animation:rdPop .45s var(--rd-out)}
+.rd-cell.unlock .rd-cg .sh{animation:rdShackle .55s var(--rd-out) both}
+.rd-cell.lockin .rd-cg{animation:rdLockIn .5s var(--rd-out)}
+@keyframes rdCell{from{background:rgba(237,239,242,.22)}}
+@keyframes rdPop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.18);opacity:1}100%{transform:none}}
+@keyframes rdShackle{0%{transform:translateY(2.2px)}55%{transform:translateY(-1.6px) rotate(-8deg)}100%{transform:none}}
+@keyframes rdLockIn{0%{transform:rotate(-90deg) scale(.6);opacity:.2}100%{transform:none;opacity:1}}
+.rd-tw{display:flex;flex-direction:column;flex:1;min-height:0;background:#0f1114}
+#mscroll{flex:1;min-height:0;overflow:auto;padding:12px 16px 8px;font:13px/1.58 var(--rd-mono);color:#d7dbe2;cursor:text}
+.ml,.mo{white-space:pre-wrap;word-break:break-word}
+.mo.bx{white-space:pre;word-break:normal}
+.ml .pr,.mprompt .pr{color:#9fe3b0}
+.mo{color:#c3c8d1}
+.mo .td{color:#8cc4ff;font-weight:600}
+.mprompt{display:flex;align-items:center;gap:8px}
+.mprompt .pr{flex:none;white-space:pre}
+.mprompt input{flex:1;min-width:0;height:24px;padding:0;background:none;border:0;border-radius:0;color:#f1f3f6;font:13px var(--rd-mono);caret-color:#9fe3b0}
+.mprompt input:focus{outline:0;border:0;box-shadow:none}
+.rd-cand{flex:none;height:26px;padding:5px 16px 0;overflow:hidden;background:#0f1114;color:#8cc4ff;font:12.5px var(--rd-mono);white-space:nowrap;text-overflow:ellipsis}
+.rd-hint{display:flex;align-items:center;gap:9px;flex:none;min-height:34px;padding:7px 16px;border-top:1px solid var(--rd-line);background:var(--rd-deep);color:var(--rd-fog);font-size:12.5px}
+.rd-hint::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--rd-fog)}
+.rd-scr{position:relative;flex:none;width:100%;aspect-ratio:16/10;overflow:hidden;background:#000}
+.rd-strip{display:flex;align-items:center;gap:14px;flex:none;height:26px;padding:0 12px;border-top:1px solid var(--rd-line);background:var(--rd-deep);color:var(--rd-dim);font:11.5px/1 var(--rd-mono);white-space:nowrap;overflow:hidden}
+.rd-strip b{color:var(--rd-paper);font-weight:500}
+.rd-strip .sp{flex:1}
+.rd-menu{position:absolute;left:0;top:0;bottom:0;z-index:30;display:flex;flex-direction:column;width:min(300px,86%);border-right:1px solid var(--rd-line2);background:var(--rd-frame);color:var(--rd-paper);font:13.5px/1.45 var(--rd-ui);box-shadow:20px 0 40px -24px #000;transform:translateX(-102%);visibility:hidden;transition:transform .24s var(--rd-out),visibility 0s .24s}
+.rd-menu.open{transform:none;visibility:visible;transition:transform .24s var(--rd-out)}
+.rd-mh{display:flex;align-items:center;justify-content:space-between;flex:none;height:44px;padding:0 8px 0 16px;border-bottom:1px solid var(--rd-line)}
+.rd-mh b{font:600 14px var(--rd-disp)}
+.rd-mb{flex:1;min-height:0;overflow:auto;padding:4px 16px 12px}
+.rd-mb h3{margin:12px 0 6px;color:var(--rd-fog);font-size:12.5px;font-weight:600}
+.rd-dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 14px;margin:0}
+.rd-dl dt{color:var(--rd-fog)}
+.rd-dl dd{margin:0;overflow-wrap:anywhere}
+.rd-dl .m{font:12.5px var(--rd-mono)}
+.rd-seg{display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:9px;background:var(--rd-deep);box-shadow:inset 0 0 0 1px var(--rd-line)}
+.rd-seg button{height:30px;padding:0 8px;border:0;border-radius:7px;background:none;color:var(--rd-fog);font:500 13px var(--rd-ui)}
+.rd-seg button[aria-checked=true]{background:var(--rd-rail);color:var(--rd-paper)}
+.rd-clip{display:block;width:100%;min-height:64px;padding:9px 11px;resize:vertical;border:1px solid var(--rd-line2);border-radius:9px;background:var(--rd-bench);color:var(--rd-paper);font:12.5px/1.5 var(--rd-mono)}
+.rd-clip:focus{outline:2px solid var(--rd-paper);outline-offset:1px}
+.rd-note{margin:6px 0 0;color:var(--rd-fog);font-size:12.5px}
+.rd-mf{display:flex;justify-content:flex-end;flex:none;padding:12px 16px;border-top:1px solid var(--rd-line)}
+.rd-enter .rd-top{animation:rdFade .32s var(--rd-out) both}
+.rd-enter .win{animation:rdRise .52s var(--rd-out) both}
+.rd-enter .win+.win{animation-delay:.08s}
+.rd-enter .rd-cell{animation:rdFade .3s var(--rd-out) both}
+.rd-enter .rd-cell:nth-child(2){animation-delay:.18s}
+.rd-enter .rd-cell:nth-child(3){animation-delay:.24s}
+.rd-enter .rd-cell:nth-child(4){animation-delay:.3s}
+.rd-enter .rd-cell:nth-child(5){animation-delay:.36s}
+@container stage (max-width:900px){
+.rd-sess .rd-mn,.rd-clk{display:none}
+.rd-wsp{display:flex;flex-direction:column;gap:12px;padding:12px;overflow:auto}
+.rdc .win{position:relative!important;left:auto!important;top:auto!important;width:auto!important;z-index:auto!important;flex:none}
+#w-term{height:440px!important}
+#w-scr{height:auto!important}
+.rd-tb{cursor:default}
+.rd-rz,[data-act=winmax]{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+.rd-cell.chg,.rd-cell.chg .rd-cg,.rd-cell.unlock .rd-cg .sh,.rd-cell.lockin .rd-cg{animation:rdFade .2s both}
+.rd-menu,.rd-menu.open{transition:none}
+.rd-enter .rd-top,.rd-enter .win,.rd-enter .rd-cell{animation:rdFade .18s both}
+}
+.rd-pan{position:absolute;inset:0;overflow:hidden}
+.rd-scr.one .rd-pan{overflow:auto}
+.rd-pan canvas{position:absolute;left:0;top:0;width:100%;height:100%;transition:opacity .7s}
+.rd-pan canvas.off{opacity:0;pointer-events:none}
+.rd-scr.one #msig{width:1024px;height:640px}
+.rdc .win.pop{animation:rdRise .4s var(--rd-out) both}
 </style>
 </head>
 <body>
@@ -822,7 +871,8 @@ table.list.auto{table-layout:auto}
     max: '<path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/>',
     key: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3"/><path d="M16 7l3 3"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/>',
-    monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/>'
+    monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/>',
+    menu: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>'
   };
   var LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28C3 14 12 4 29 3c1 16-7 26-21 26z" fill="#35c68c"/><path d="M7 25c4-8 9-12 17-16" fill="none" stroke="#06231b" stroke-width="2" stroke-linecap="round"/></svg>';
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -2243,14 +2293,78 @@ table.list.auto{table-layout:auto}
     if (sym.first === "clear") return "The signal is clean. Attach the display.";
     return "Remote Desktop Connection shows the earliest failing stage. Read it, then the agent log.";
   }
-  function chipsHtml() {
-    var M = st.mon;
-    if (M.host !== "cold") return '<span class="tchip s-UNSET">display <b>NONE</b></span>';
-    return compStates(PZ()).map(function (r) { return '<span class="tchip s-' + r[1] + '">' + r[0] + " <b>" + r[1] + "</b></span>"; }).join("");
+  var CELL_G = {
+    HELD: '<rect x="3" y="7.2" width="10" height="6.8" rx="1.6"/><path class="sh" d="M5.4 7.2V5.3a2.6 2.6 0 0 1 5.2 0v1.9"/>',
+    CLEAR: '<rect x="3" y="7.2" width="10" height="6.8" rx="1.6"/><path class="sh" d="M5.4 7.2V5.3a2.6 2.6 0 0 1 5-.9"/>',
+    STALE: '<circle cx="8" cy="8" r="5.4" stroke-dasharray="2.1 2.1"/>',
+    PARTIAL: '<circle cx="8" cy="8" r="5.4"/><path d="M8 2.6a5.4 5.4 0 0 1 0 10.8z" fill="currentColor" stroke="none"/>',
+    SET: '<circle cx="8" cy="8" r="5.4"/><path d="M5.6 8.2l1.7 1.7 3.2-3.5"/>',
+    UNSET: '<circle cx="8" cy="8" r="5.4" opacity=".65"/>',
+    LOCKED: '<circle cx="8" cy="8" r="5.4"/><circle cx="8" cy="8" r="2.1" fill="currentColor" stroke="none"/>',
+    OK: '<path d="M3.6 8.4l2.8 2.8 5.9-6.2"/>',
+    NONE: '<path d="M4.5 8h7"/>'
+  };
+  function cellHtml(r) { return '<span class="rd-cell" data-k="' + r[0] + '" data-s="' + r[1] + '"><svg class="rd-cg" viewBox="0 0 16 16" aria-hidden="true">' + CELL_G[r[1]] + "</svg><span class=\"rd-ck\">" + r[0] + "</span><em>" + r[1] + "</em></span>"; }
+  function cellRows() { return st.mon.host !== "cold" ? [["display", "NONE"]] : compStates(PZ()); }
+  function cellAnim(c, cls) {
+    c.classList.remove("chg", "unlock", "lockin");
+    void c.offsetWidth;
+    c.classList.add(cls);
+    SCH.wait(650, function () { c.classList.remove(cls); }, c);
+  }
+  function chipsSync() {
+    var box = $("tstat"), rows = cellRows(), cur;
+    if (!box) return;
+    cur = Array.prototype.slice.call(box.children);
+    if (cur.length !== rows.length || cur.some(function (c, i) { return c.getAttribute("data-k") !== rows[i][0]; })) { box.innerHTML = rows.map(cellHtml).join(""); return; }
+    rows.forEach(function (r, i) {
+      var c = cur[i], was = c.getAttribute("data-s");
+      if (was === r[1]) return;
+      c.setAttribute("data-s", r[1]);
+      c.querySelector("em").textContent = r[1];
+      c.querySelector(".rd-cg").innerHTML = CELL_G[r[1]];
+      cellAnim(c, was === "HELD" && r[1] === "CLEAR" ? "unlock" : r[1] === "LOCKED" ? "lockin" : "chg");
+    });
   }
   function refreshTerm() {
-    if ($("tstat")) $("tstat").innerHTML = chipsHtml();
+    chipsSync();
     if ($("thint")) $("thint").textContent = hintText();
+  }
+  function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (g.desouza)"; }
+  function rdStatus() { var P = st.mon.pz; return !P || !P.shown ? ["off", "no signal"] : P.attached ? ["on", "attached"] : ["rx", "signal received"]; }
+  function rdMenuHtml() {
+    var M = st.mon, t = targetById(M.host), fit = M.scale !== "one";
+    return '<aside class="rd-menu" id="rdmenu" aria-label="Session menu" aria-hidden="true"><div class="rd-mh"><b>Session</b><button class="rd-ib" data-act="rdmenu" aria-label="Close the session menu" title="Close">' + ic("x") + "</button></div>" +
+      '<div class="rd-mb"><h3>Connection</h3><dl class="rd-dl"><dt>Connection</dt><dd class="m">' + esc(rdConnName()) + "</dd><dt>Host</dt><dd>" + esc(t.name) + '</dd><dt>Address</dt><dd class="m">' + esc(t.lan) + '</dd><dt>Status</dt><dd id="rdms">' + rdStatus()[1] + "</dd></dl>" +
+      '<h3 id="rdsh">Scaling</h3><div class="rd-seg" role="radiogroup" aria-labelledby="rdsh"><button role="radio" data-act="rdscale" data-v="fit" aria-checked="' + fit + '">Fit to window</button><button role="radio" data-act="rdscale" data-v="one" aria-checked="' + !fit + '">Actual size</button></div>' +
+      '<h3><label for="rdclip">Clipboard</label></h3><textarea id="rdclip" class="rd-clip" data-f="rdclip" spellcheck="false" aria-describedby="rdcn">' + esc(M.clip || "") + '</textarea><p class="rd-note" id="rdcn">Text copied on the remote computer appears here.</p></div>' +
+      '<div class="rd-mf"><button class="rd-ghost" data-act="monout">' + ic("out") + "Disconnect</button></div></aside>";
+  }
+  function rdMenuOpen() { var m = $("rdmenu"); return !!(m && m.classList.contains("open")); }
+  function rdMenu(open) {
+    var m = $("rdmenu"), b = document.querySelector('#w-scr [data-act="rdmenu"]');
+    if (!m) return;
+    if (open === undefined) open = !rdMenuOpen();
+    m.classList.toggle("open", open);
+    m.setAttribute("aria-hidden", open ? "false" : "true");
+    if (b) b.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { var f = m.querySelector('[aria-checked="true"]'); if (f) f.focus(); } else if (b && m.contains(document.activeElement)) b.focus();
+  }
+  function rdScale(v) {
+    st.mon.scale = v === "one" ? "one" : "fit";
+    all('#rdmenu [data-act="rdscale"]').forEach(function (b) { b.setAttribute("aria-checked", b.getAttribute("data-v") === st.mon.scale ? "true" : "false"); });
+    if ($("mv")) $("mv").classList.toggle("one", st.mon.scale === "one");
+    fitDesk();
+    refreshSignal();
+  }
+  function termWinHtml(t) {
+    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term">' + ic("term") + '<span class="rd-wt">Agent console</span><span class="rd-wh">' + esc(t.tag + " " + t.lan) + '</span></div><div class="rd-pipe" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint"></div><i class="rd-rz" data-rz="term"></i></section>';
+  }
+  function monWinHtml() {
+    var s = rdStatus();
+    return '<section class="win pop" id="w-scr" data-id="scr" aria-label="Remote Desktop Connection"><div class="rd-tb" data-win="scr">' + RD_MARK + '<span class="rd-wt">Remote Desktop Connection</span><span class="rd-conn">' + esc(rdConnName()) + '</span><span class="rd-ws" id="mws" data-s="' + s[0] + '"><i></i><span id="mwh">' + s[1] + '</span></span><span class="sp"></span>' +
+      '<button class="rd-ib" data-act="rdmenu" aria-label="Session menu" aria-expanded="false" title="Session menu (Ctrl+Alt+Shift)">' + ic("menu") + '</button><button class="rd-ib" data-act="winmax" aria-label="Fit to workspace" title="Fit to workspace">' + ic("max") + "</button></div>" +
+      '<div class="rd-scr' + (st.mon.scale === "one" ? " one" : "") + '" id="mv"><div class="rd-pan" id="rdpan"><canvas id="msig" width="' + CW + '" height="' + CH + '"></canvas><div class="dsk hide" id="dsk"></div></div>' + rdMenuHtml() + '</div><div class="rd-strip" id="mhud"></div><i class="rd-rz" data-rz="scr"></i></section>';
   }
   function clearCand() { if ($("tcand")) $("tcand").textContent = ""; }
 
@@ -2442,18 +2556,25 @@ table.list.auto{table-layout:auto}
   }
   function hudHtml() {
     var P = st.mon.pz, sym = curSym(), c, fps;
-    if (!P || !P.shown) return '<span>no signal</span>';
+    if (!P || !P.shown) return '<span>no signal</span><span class="sp"></span>' + rdScaleLabel();
     c = P.shown;
-    if (P.attached) return "<span>arc-ir-01</span><span>fps <b>30</b></span><span>attached</span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp</span>";
+    if (P.attached) return "<span>arc-ir-01</span><span>fps <b>30</b></span><span>attached</span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp</span>" + rdScaleLabel();
     fps = sym.first === "black" || sym.first === "cursor" || sym.first === "frozen" ? 0 : 24;
-    return "<span>arc-ir-01</span><span>link <b>" + esc(c.relay) + "/" + esc(c.framing) + "</b></span><span>fps <b>" + fps + "</b></span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp " + c.order + "</span>";
+    return "<span>arc-ir-01</span><span>link <b>" + esc(c.relay) + "/" + esc(c.framing) + "</b></span><span>fps <b>" + fps + "</b></span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp " + c.order + "</span>" + rdScaleLabel();
+  }
+  function rdScaleLabel() { return "<span>" + (st.mon.scale === "one" ? "100%" : "fit " + Math.round(dskScale * 100) + "%") + "</span>"; }
+  function rdStatusSync() {
+    var s = rdStatus();
+    if ($("mwh")) $("mwh").textContent = s[1];
+    if ($("mws")) $("mws").setAttribute("data-s", s[0]);
+    if ($("rdms")) $("rdms").textContent = s[1];
   }
   function refreshSignal() {
     var P = st.mon.pz;
     if (!P || !$("msig")) return;
     paintFrame();
     if ($("mhud")) $("mhud").innerHTML = hudHtml();
-    if ($("mwh")) $("mwh").textContent = P.attached ? "attached" : P.shown ? "signal received" : "no signal";
+    rdStatusSync();
   }
   function sigLoop() {
     var sym;
@@ -2494,7 +2615,7 @@ table.list.auto{table-layout:auto}
   function fitDesk() {
     var mv = $("mv"), d = $("dsk");
     if (!mv || !d) return;
-    dskScale = (mv.clientWidth || DESK_W * 0.62) / DESK_W;
+    dskScale = st.mon.scale === "one" ? 1 : (mv.clientWidth || DESK_W * 0.62) / DESK_W;
     d.style.transform = "scale(" + dskScale + ")";
   }
   function showDesktop() {
@@ -2641,12 +2762,6 @@ table.list.auto{table-layout:auto}
     fitDesk();
   }
 
-  function termWinHtml(t) {
-    return '<section class="win" id="w-term" data-id="term"><div class="wbar" data-win="term"><i class="wd on"></i><span class="wt">Agent console</span><span class="wh">' + esc(t.tag + " " + t.lan) + '</span></div><div class="tw"><div class="tstat" id="tstat"></div><div id="mscroll"></div><div class="tcand" id="tcand"></div><div class="thint" id="thint"></div></div><i class="wrz" data-rz="term"></i></section>';
-  }
-  function monWinHtml() {
-    return '<section class="win pop" id="w-scr" data-id="scr"><div class="wbar" data-win="scr"><i class="wd on"></i><span class="wt">Remote Desktop Connection</span><span class="wh" id="mwh"></span><button class="wb" data-act="winmax" aria-label="Fit to workspace">' + ic("max") + '</button></div><div class="mv" id="mv"><canvas id="msig" width="' + CW + '" height="' + CH + '"></canvas><div class="dsk hide" id="dsk"></div></div><div class="mhud" id="mhud"></div><i class="wrz" data-rz="scr"></i></section>';
-  }
   function openMonitorWindow() {
     var wsp = $("wsp"), P = PZ();
     if (!wsp || $("w-scr")) return;
@@ -2660,7 +2775,7 @@ table.list.auto{table-layout:auto}
   }
   function drawWork() {
     var M = st.mon, t = targetById(M.host), P = M.host === "cold" ? PZ() : null;
-    $("stage").innerHTML = '<div class="mon"><header class="mtop"><div class="mlogo"><i>' + ic("pulse") + '</i><div><b>Remote Desktop Connection</b><span>Remote display and agent console</span></div></div><div class="sp"></div><span class="hostchip mono">' + esc(t.name + "  " + t.tag + "  " + t.lan) + '</span><span class="rs-k mono" id="mclk">00:00</span><button class="btn ghost sm" data-act="monout">' + ic("out") + 'Disconnect</button></header><div class="wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
+    $("stage").innerHTML = '<div class="rdc rd-work">' + rdTop('<div class="rd-sess"><i class="rd-live"></i><b>' + esc(t.name) + '</b><span class="rd-mn">' + esc(t.tag + "  " + t.lan) + '</span></div><span class="rd-clk" id="mclk">00:00</span><button class="rd-ghost" data-act="monout">' + ic("out") + "Disconnect</button>") + '<div class="rd-wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
     ensureWin();
     placeWin("term");
     front(M.top || "term");
@@ -2794,7 +2909,7 @@ table.list.auto{table-layout:auto}
     rdSeq = SCH.run($("rdcard"), rdLoginSteps(r), function () { var c = $("rdcard"); if (c) c.classList.add("rd-ff"); });
   }
   function rdEntrance() {
-    var root = document.querySelector("#stage > .mon");
+    var root = document.querySelector("#stage > .rd-work");
     rdEnter = false;
     if (!root || INSTANT) return;
     root.classList.add("rd-enter");
@@ -2984,6 +3099,8 @@ table.list.auto{table-layout:auto}
     if (a === "site") { setSite(d.v); return; }
     if (a === "monlogin") { monLogin(); return; }
     if (a === "rdskip") { SCH.settle(rdSeq); return; }
+    if (a === "rdmenu") { rdMenu(); return; }
+    if (a === "rdscale") { rdScale(d.v); return; }
     if (a === "monout") { monOut(); return; }
     if (a === "winmax") { winMax("scr"); return; }
     if (a === "dico") { toast("Not available", "This Remote Desktop Connection session is read only."); return; }
@@ -3000,6 +3117,7 @@ table.list.auto{table-layout:auto}
 
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-act]");
+    if (rdMenuOpen() && !e.target.closest('#rdmenu,[data-act="rdmenu"]')) rdMenu(false);
     if (!b) {
       if (e.target.closest("#mscroll") && !String(window.getSelection()).length) monFocus();
       return;
@@ -3022,11 +3140,14 @@ table.list.auto{table-layout:auto}
     if (f === "sq") { st.srcQ = e.target.value; drawSrcOut(); }
     if (f === "cpass") st.ci.pass = e.target.value;
     if (f === "cin") st.ci.inp = e.target.value;
+    if (f === "rdclip") st.mon.clip = e.target.value;
     save();
   });
   document.addEventListener("keydown", function (e) {
     var id = e.target.id;
     if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
+    if (e.key === "Escape" && rdMenuOpen()) { e.preventDefault(); rdMenu(false); return; }
+    if (e.ctrlKey && e.altKey && e.shiftKey && /^(Control|Alt|Shift)$/.test(e.key) && $("rdmenu")) { e.preventDefault(); rdMenu(); return; }
     if (id === "mcmd") { pull(); monKey(e); save(); return; }
     if (e.key === "Enter" && (id === "lu" || id === "lp")) { doLogin(); save(); return; }
     if (e.key === "Enter" && !e.shiftKey && id === "mtok") { e.preventDefault(); pull(); monLogin(); save(); return; }
