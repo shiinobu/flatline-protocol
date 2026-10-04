@@ -2881,8 +2881,8 @@ SESSION MENU (slides in from the left edge of the screen, over it)
   (Schibsted 700 dropped to stay under 80 KB per site). Each site's fonts sit in their own `<style data-slot>` block and
   `portal-lab.ts` strips the blocks of the other sites from each lab page.
 - **Hosts** are single constants: `MONITOR_LAB_DOMAIN` and `CIPHER_LAB_DOMAIN` in `portal-lab.ts`
-  (`remotedesktopconnection-lab.io`, `cipherdesk-lab.io`) and the `MON_HOST` and `CIPHER_HOST` defaults in the HTML
-  (`remotedesktopconnection.io`, `cipherdesk.io`). Both are third-party sites and not part of the hospital's web, so
+  (`rdcdesk-lab.io`, `cipherdesk-lab.io`) and the `MON_HOST` and `CIPHER_HOST` defaults in the HTML
+  (`rdcdesk.io`, `cipherdesk.io`). Both are third-party sites and not part of the hospital's web, so
   neither host sits under `pacificcare-health.org` (changed after the cloud run, 2026-10-04).
 
 ### Verification (2026-10-04, this container: headless Chromium 150 via Playwright, jsdom harness)

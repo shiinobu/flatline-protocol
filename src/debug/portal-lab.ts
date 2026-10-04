@@ -18,7 +18,7 @@ type PortalLabSite = "portal" | "monitor" | "cipher";
 
 const PORTAL_LAB_REV = "r5 vendor sites";
 const PORTAL_LAB_DOMAIN = "remote-lab.pacificcare-health.org";
-const MONITOR_LAB_DOMAIN = "remotedesktopconnection-lab.io";
+const MONITOR_LAB_DOMAIN = "rdcdesk-lab.io";
 const CIPHER_LAB_DOMAIN = "cipherdesk-lab.io";
 const PORTAL_LAB_IP = "198.18.1.2";
 const MONITOR_LAB_IP = "198.18.1.3";
