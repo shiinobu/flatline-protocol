@@ -1,0 +1,210 @@
+var st = { ci: blankCi() };
+function blankCi() { return { mode: "decrypt", pass: "", inp: "", out: "", note: "", ok: false }; }
+var STORE = "flatline.cipherdesk.v1";
+function save() { try { localStorage.setItem(STORE, JSON.stringify(st.ci)); } catch (e) { return; } }
+function pull() { return; }
+var CD_MARK = '<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="7" height="7" rx="2" fill="#f3eee5"/><rect x="9.5" y="1" width="7" height="7" rx="2" fill="none" stroke="#f3eee5" stroke-width="1.5"/><rect x="18" y="1" width="7" height="7" rx="2" fill="#f3eee5"/><rect x="1" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/><rect x="9.5" y="9.5" width="7" height="7" rx="2" fill="#c4f06a"/><rect x="18" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/><rect x="1" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/><rect x="9.5" y="18" width="7" height="7" rx="2" fill="none" stroke="#8ed8ff" stroke-width="1.5"/><rect x="18" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/></svg>';
+var CI_MAX = 64;
+var ciSeq = null;
+var ciDone = null;
+function hex2(v) { return (v < 16 ? "0" : "") + v.toString(16); }
+function ciChars(s) {
+    var out = [], i, ch, n;
+    for (i = 0; i < s.length; i++) {
+      ch = s.charAt(i);
+      if (/[\ud800-\udbff]/.test(ch) && i + 1 < s.length) ch += s.charAt(++i);
+      n = utf8Bytes(ch).length;
+      out.push(ch);
+      while (--n > 0) out.push("");
+    }
+    return out;
+  }
+function ciShow(ch) { return !ch || ch === " " || /[\x00-\x1f\x7f]/.test(ch) ? "·" : ch; }
+function ciModel() {
+    var C = st.ci, enc = C.mode === "encrypt", hx = C.inp.replace(/\s+/g, ""), inB;
+    inB = enc ? utf8Bytes(C.inp) : /^[0-9a-fA-F]*$/.test(hx) && hx.length % 2 === 0 ? (hx.match(/../g) || []).map(function (x) { return parseInt(x, 16); }) : [];
+    return { enc: enc, inB: inB, inC: enc ? ciChars(C.inp) : null, kB: utf8Bytes(C.pass), kC: ciChars(C.pass) };
+  }
+function ciCell(top, hx, big) { return '<span class="cd-c">' + (top ? "<b>" + esc(top) + "</b>" + hx : big ? "<b>" + hx + "</b>" : hx) + "</span>"; }
+function ciOutCell(m, v) { return m.enc ? ciCell("", hex2(v), true) : ciCell(v >= 32 && v <= 126 ? String.fromCharCode(v) : "�", hex2(v)); }
+function ciTracksHtml(m, outB, upto) {
+    var n = Math.min(m.inB.length, CI_MAX), k = m.kB.length, i, r0 = "", r1 = "", r2 = "", more, e = '<span class="cd-c e">··</span>';
+    if (!n) { for (i = 0; i < 12; i++) { r0 += e; r1 += k ? ciCell(ciShow(m.kC[i % k]), hex2(m.kB[i % k])) : e; r2 += e; } }
+    for (i = 0; i < n; i++) {
+      r0 += m.enc ? ciCell(ciShow(m.inC[i]), hex2(m.inB[i])) : ciCell("", hex2(m.inB[i]), true);
+      r1 += k ? ciCell(ciShow(m.kC[i % k]), hex2(m.kB[i % k])) : e;
+      r2 += i < upto ? ciOutCell(m, outB[i]) : e;
+    }
+    if (m.inB.length > CI_MAX) { more = '<span class="cd-c more">+' + (m.inB.length - CI_MAX) + "</span>"; r0 += more; r1 += more; r2 += more; }
+    return '<div class="cd-tr t0">' + r0 + '</div><div class="cd-tr t1">' + r1 + '</div><div class="cd-tr t2">' + r2 + "</div>";
+  }
+function ciLens(a, b, c) {
+    function row(v, cls) { var s = '<div class="cd-bits ' + cls + '">', j; for (j = 7; j >= 0; j--) s += "<i" + (v >= 0 && (v >> j) & 1 ? ' class="on"' : "") + "></i>"; return s + "<em>" + (v >= 0 ? hex2(v) : "··") + "</em></div>"; }
+    return row(a, "b0") + row(b, "b1") + row(c, "b2");
+  }
+function ciOutB(m) { return m.kB.length ? m.inB.map(function (v, j) { return v ^ m.kB[j % m.kB.length]; }) : []; }
+function ciLive() {
+    var C = st.ci, m = ciModel(), hx = C.inp.replace(/\s+/g, ""), bad = "", cnt = $("cdcount"), hint = $("cdhint"), same = ciDone && ciDone.mode === C.mode && ciDone.pass === C.pass && ciDone.inp === C.inp && C.out;
+    if (!$("cdtracks")) return;
+    if (cnt) cnt.textContent = m.enc ? m.inB.length + (m.inB.length === 1 ? " byte" : " bytes") : hx.length + " hex digits" + (hx.length % 2 || /[^0-9a-fA-F]/.test(hx) ? "" : ", " + hx.length / 2 + " bytes");
+    if (!m.enc && /[^0-9a-fA-F]/.test(hx)) bad = "Encrypted text uses only the digits 0 to 9 and the letters a to f.";
+    else if (!m.enc && hx.length % 2) bad = "One digit is missing: every byte is two hex digits.";
+    if (hint) { hint.textContent = bad; hint.classList.toggle("warn", !!bad); }
+    $("cdtracks").innerHTML = ciTracksHtml(m, ciOutB(m), same ? m.inB.length : 0);
+    $("cdtracks").style.transform = "";
+    $("cdlens").innerHTML = ciLens(-1, -1, -1);
+  }
+function ciResult(out, hex) {
+    var r = $("cphr");
+    if (!r) return;
+    r.classList.toggle("hex", !!(hex && out));
+    r.innerHTML = out ? (hex ? out.match(/../g).map(function (b) { return "<span>" + b + "</span>"; }).join("") : esc(out)) : '<span class="cd-ph">The result appears here.</span>';
+  }
+function cipherHtml() {
+    var C = st.ci, enc = C.mode === "encrypt";
+    return '<div class="cdk"><header class="cd-top"><div class="cd-word">' + CD_MARK + 'Cipher Desk</div><span class="cd-sub">Encrypt and decrypt text with a passphrase</span><span class="sp"></span><div class="cd-seg" role="group" aria-label="Mode"><button class="' + (enc ? "on" : "") + '" data-act="cphmode" data-v="encrypt" aria-pressed="' + enc + '">Encrypt</button><button class="' + (enc ? "" : "on") + '" data-act="cphmode" data-v="decrypt" aria-pressed="' + !enc + '">Decrypt</button></div></header>' +
+      '<main class="cd-main"><p class="cd-lede">Everything runs in this page. The same passphrase decrypts what it encrypted.</p><div class="cd-hd"><label for="cphi">' + (enc ? "Text to encrypt" : "Text to decrypt") + '</label><span class="sp"></span><span class="cd-count" id="cdcount" aria-live="polite"></span></div>' +
+      '<textarea id="cphi" class="cd-area" name="input" spellcheck="false" data-f="cin" aria-describedby="cdhint" placeholder="' + (enc ? "Type or paste the text to encrypt" : "Paste the encrypted text, for example 38035c…") + '">' + esc(C.inp) + '</textarea><p class="cd-hint" id="cdhint" aria-live="polite"></p>' +
+      '<div class="cd-key"><label for="cphp">Passphrase</label><input id="cphp" class="cd-pass" name="passphrase" type="text" autocomplete="off" spellcheck="false" data-f="cpass" placeholder="The passphrase used to encrypt" value="' + esc(C.pass) + '"><button class="cd-go" data-act="cphgo">' + (enc ? "Encrypt" : "Decrypt") + "</button></div>" +
+      '<section class="cd-band" id="cdband" data-act="ciskip" aria-label="Bytes of the input, the passphrase and the result"><div class="cd-rows" aria-hidden="true"><span><i></i><b>Input</b></span><span><i></i><b>Passphrase</b></span><span><i></i><b>Result</b></span></div><div class="cd-view" id="cdview"><div class="cd-tracks" id="cdtracks"></div><i class="cd-head" id="cdhead"></i></div><div class="cd-lens" id="cdlens" aria-hidden="true"></div><span class="cd-skip">Press Esc to skip</span></section>' +
+      '<div class="cd-hd"><h2 id="cdrl">Result</h2><span class="sp"></span><div class="cd-acts"><button class="cd-btn" data-act="cphswap">Use result as input</button><button class="cd-btn" data-act="cphcopy">Copy result</button></div></div>' +
+      '<div class="cd-out"><div class="cd-res" id="cphr" tabindex="0" role="textbox" aria-readonly="true" aria-multiline="true" aria-labelledby="cdrl"></div><textarea id="cpho" class="cd-cp" name="result" readonly spellcheck="false" tabindex="-1" aria-label="Result, plain text"></textarea></div>' +
+      '<p class="cd-note' + (C.ok ? " ok" : "") + '" id="cphn" aria-live="polite">' + esc(C.note) + '</p><p class="cd-fine">Encrypted output is hexadecimal. Keep the passphrase, it cannot be recovered.</p></main></div>';
+  }
+function drawCipher() {
+    $("stage").innerHTML = cipherHtml();
+    if ($("cpho")) $("cpho").value = st.ci.out;
+    ciResult(st.ci.out, st.ci.mode === "encrypt" && st.ci.ok);
+    ciLive();
+  }
+function cipherCompute(mode, pass, inp) {
+    var out = "", note = "", ok = false, i, s;
+    if (!pass) note = "Enter a passphrase.";
+    else if (!inp.trim()) note = "Enter some text first.";
+    else if (mode === "encrypt") { out = sealText(inp, pass); ok = true; note = "Encrypted, " + out.length / 2 + " bytes."; }
+    else {
+      out = openText(inp, pass);
+      if (out === null) { out = ""; note = "That is not valid ciphertext. Expected hexadecimal text."; }
+      else if (!printable(out)) {
+        s = "";
+        for (i = 0; i < out.length; i++) s += out.charCodeAt(i) >= 32 && out.charCodeAt(i) <= 126 ? out.charAt(i) : "�";
+        out = s;
+        note = "The result is not readable text. Check the passphrase.";
+      } else { ok = true; note = "Decrypted."; }
+    }
+    return { out: out, note: note, ok: ok };
+  }
+function cipherCommit(pass, inp, res) {
+    var C = st.ci;
+    C.pass = pass;
+    C.inp = inp;
+    C.out = res.out;
+    C.note = res.note;
+    C.ok = res.ok;
+    if ($("cpho")) $("cpho").value = res.out;
+    ciResult(res.out, C.mode === "encrypt" && res.ok);
+    if ($("cphn")) { $("cphn").textContent = res.note; $("cphn").classList.toggle("ok", res.ok); }
+    ciDone = { mode: C.mode, pass: pass, inp: inp };
+    save();
+  }
+function ciCue(el) { if (!el) return; el.classList.remove("cd-cue"); void el.offsetWidth; el.classList.add("cd-cue"); SCH.wait(420, function () { el.classList.remove("cd-cue"); }, el); el.focus(); }
+function ciLock(on) { ["cphp", "cphi"].forEach(function (k) { if ($(k)) $(k).readOnly = on; }); if ($("cdband")) $("cdband").classList.toggle("run", on); }
+function ciHead(i, m) {
+    var v = $("cdview"), tr = $("cdtracks"), h = $("cdhead"), x = 12 + i * 46, w = v ? v.clientWidth : 0, off = w && x > w - 90 ? Math.min(x - w + 140, 12 + Math.min(m.inB.length, CI_MAX) * 46 - w + 12) : 0;
+    if (tr) tr.style.transform = off > 0 ? "translateX(" + -off + "px)" : "";
+    if (h) h.style.transform = "translateX(" + (x - 2 - Math.max(0, off)) + "px)";
+  }
+function ciFillTo(m, outB, from, to, partial) {
+    var r2 = document.querySelector("#cdtracks .t2"), r = $("cphr"), i, html = "";
+    for (i = from; i < to; i++) {
+      if (r2 && i < CI_MAX && r2.children[i]) { r2.children[i].outerHTML = ciOutCell(m, outB[i]).replace('class="cd-c"', 'class="cd-c land"'); }
+      html += m.enc ? "<span>" + hex2(outB[i]) + "</span>" : esc(outB[i] >= 32 && outB[i] <= 126 ? String.fromCharCode(outB[i]) : "�");
+    }
+    if (r) { if (!from) { r.innerHTML = ""; r.classList.toggle("hex", m.enc); } r.insertAdjacentHTML("beforeend", html); }
+    if (to > 0 && $("cdlens")) $("cdlens").innerHTML = ciLens(m.inB[to - 1], m.kB[(to - 1) % m.kB.length], outB[to - 1]);
+    if (partial) ciHead(to - 1, m);
+  }
+function ciPlay(pass, inp, res) {
+    var m = ciModel(), outB = ciOutB(m), n = outB.length, slow = !calm(), steps = [], D = slow ? Math.min(n, 12) : 0, R = n - D, F, K, t, i;
+    ciLock(true);
+    if ($("cdtracks")) { $("cdtracks").innerHTML = ciTracksHtml(m, outB, 0); $("cdtracks").style.transform = ""; }
+    steps.push({ t: 0, fn: function () { ciResult("", false); if ($("cphn")) $("cphn").textContent = ""; ciHead(0, m); } });
+    for (i = 0; i < D; i++) (function (k) { steps.push({ t: 160 + k * 110, fn: function (fast) { ciFillTo(m, outB, k, k + 1, !fast); } }); })(i);
+    t = slow ? 160 + D * 110 : 60;
+    F = slow ? Math.min(1000, Math.max(300, R * 20)) : 600;
+    K = Math.max(1, Math.ceil(R / 12));
+    for (i = D; i < n; i += K) (function (a, b, at) { steps.push({ t: at, fn: function (fast) { ciFillTo(m, outB, a, b, !fast); } }); })(i, Math.min(n, i + K), t + Math.round((i - D) / Math.max(1, R) * F));
+    steps.push({ t: t + F + (slow ? 220 : 80), fn: function () { ciLock(false); pull(); cipherCommit(pass, inp, res); cipherObserve(st.ci.mode, pass, inp); if ($("cphr")) $("cphr").focus(); } });
+    ciSeq = SCH.run($("cdband"), steps, function () { var b = $("cdband"); if (b) b.classList.add("rd-ff"); SCH.wait(30, function () { if ($("cdband")) $("cdband").classList.remove("rd-ff"); }, b); });
+  }
+function cipherObserve(mode, pass, inp) { try { if (typeof flatlineCipherRun === "function") flatlineCipherRun(mode, inp, pass); } catch (e) { return; } save(); }
+function cipherRun() {
+    var C = st.ci, pass, inp, res;
+    SCH.settle(ciSeq);
+    pass = $("cphp") ? $("cphp").value : C.pass;
+    inp = $("cphi") ? $("cphi").value : C.inp;
+    C.pass = pass;
+    C.inp = inp;
+    res = cipherCompute(C.mode, pass, inp);
+    if (/^(Encrypted|Decrypted|The result)/.test(res.note) && $("cdband")) { ciPlay(pass, inp, res); return; }
+    cipherCommit(pass, inp, res);
+    ciLive();
+    ciCue(!pass ? $("cphp") : $("cphi"));
+  }
+function ciSelect() { var o = $("cpho"); if (!o) return; o.classList.add("on"); o.focus(); o.select(); }
+function cipherCopy() {
+    var o = $("cpho"), done = function () { toast("Copied", "The result is on the clipboard."); }, manual = function () { ciSelect(); toast("Select and copy", "Press Ctrl+C to copy the selected result."); };
+    if (!o || !o.value) { toast("Nothing to copy", "Run Encrypt or Decrypt first."); return; }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(o.value).then(done, manual); return; }
+    } catch (e) { manual(); return; }
+    manual();
+  }
+function ciHover(e) {
+    var c = e.target.closest ? e.target.closest("#cdtracks .cd-c") : null, i, rows, m, outB;
+    all("#cdtracks .cd-c.hot").forEach(function (x) { x.classList.remove("hot"); });
+    if (!c || c.classList.contains("more") || (ciSeq && ciSeq.live)) return;
+    i = Array.prototype.indexOf.call(c.parentNode.children, c);
+    rows = all("#cdtracks .cd-tr");
+    rows.forEach(function (r) { if (r.children[i]) r.children[i].classList.add("hot"); });
+    m = ciModel();
+    if (i >= m.inB.length) return;
+    outB = rows[2] && rows[2].children[i] && !rows[2].children[i].classList.contains("e") ? ciOutB(m) : [];
+    if ($("cdlens")) $("cdlens").innerHTML = ciLens(m.inB[i], m.kB.length ? m.kB[i % m.kB.length] : -1, outB.length ? outB[i] : -1);
+  }
+function act(a, d) {
+  if (a === "cphmode") { SCH.settle(ciSeq); st.ci.mode = d.v; st.ci.out = ""; st.ci.note = ""; st.ci.ok = false; drawCipher(); if ($("cphi")) $("cphi").focus(); return; }
+  if (a === "cphgo") { cipherRun(); return; }
+  if (a === "cphswap") { SCH.settle(ciSeq); st.ci.inp = st.ci.out; st.ci.out = ""; st.ci.note = ""; st.ci.ok = false; drawCipher(); if ($("cphi")) $("cphi").focus(); return; }
+  if (a === "ciskip") { SCH.settle(ciSeq); return; }
+  if (a === "cphcopy") { SCH.settle(ciSeq); cipherCopy(); return; }
+  if (a === "toastx") { dismissToast(d.el.closest(".toast")); return; }
+}
+function restore() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE) || "null");
+    if (raw) st.ci = Object.assign(blankCi(), raw);
+  } catch (e) { return; }
+}
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-act]");
+  if (!b) return;
+  act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), el: b });
+  save();
+});
+document.addEventListener("input", function (e) {
+  var f = e.target.getAttribute("data-f");
+  if (f === "cpass") st.ci.pass = e.target.value;
+  if (f === "cin") st.ci.inp = e.target.value;
+  if (f === "cpass" || f === "cin") ciLive();
+  save();
+});
+document.addEventListener("keydown", function (e) {
+  var id = e.target.id;
+  if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
+  if (e.key === "Enter" && id === "cphp") { cipherRun(); save(); }
+});
+document.addEventListener("mouseover", ciHover);
+document.addEventListener("focusout", function (e) { if (e.target.id === "cpho") e.target.classList.remove("on"); });
+restore();
+drawCipher();

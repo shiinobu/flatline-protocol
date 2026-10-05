@@ -38,12 +38,18 @@ export const notFoundPage = (path: string): DynamicWebsitePageDefinition => ({
     metadata: notFoundMetadata,
 });
 
+const closedSearchableMetadata = (context: PageContext): PageMetadata | null =>
+    context.searchStr === undefined ? notFoundMetadata() : null;
+
 export const gateMissionPages = (
     mission: QuestId,
     pages: readonly DynamicWebsitePageDefinition[],
 ): DynamicWebsitePageDefinition[] =>
     pages.map((definition) => ({
         ...definition,
-        metadata: (context: PageContext): PageMetadata | null =>
-            areMissionSitesOpen(mission) ? definition.metadata(context) : notFoundMetadata(),
+        metadata: (context: PageContext): PageMetadata | null => {
+            if (areMissionSitesOpen(mission)) return definition.metadata(context);
+
+            return definition.seo ? closedSearchableMetadata(context) : notFoundMetadata();
+        },
     }));
