@@ -1,6 +1,10 @@
 import { Events } from "@hotbunny/hackhub-content-sdk";
 
-import { M05_GRETA_PASSWORD, M05_PRINTER_PASSWORD } from "../../../content/m05/network.js";
+import {
+    M05_GRETA_LEGACY_PASSWORD,
+    M05_GRETA_PASSWORD,
+    M05_PRINTER_PASSWORD,
+} from "../../../content/m05/network.js";
 import {
     M05_LOGIN_EVENT,
     M05_PORTAL_CONTRACTOR_USER,
@@ -15,7 +19,7 @@ import type { PortalView } from "./render.js";
 
 const MAX_FIELD_LENGTH = 128;
 
-export type PortalLoginResult = PortalView | "denied";
+export type PortalLoginResult = PortalView | "denied" | "retired";
 
 export interface PortalState {
     readonly user: string;
@@ -40,6 +44,11 @@ export const portalLogin = (user: unknown, password: unknown): PortalLoginResult
 
     if (name === M05_PORTAL_LOGIN_USER && secret === M05_GRETA_PASSWORD) return signIn(name, "portal");
     if (name === M05_PORTAL_CONTRACTOR_USER && secret === M05_PRINTER_PASSWORD) return signIn(name, "contractor");
+
+    if (name === M05_PORTAL_LOGIN_USER && secret === M05_GRETA_LEGACY_PASSWORD) {
+        trace("M05", "portal:login retired");
+        return "retired";
+    }
 
     return "denied";
 };

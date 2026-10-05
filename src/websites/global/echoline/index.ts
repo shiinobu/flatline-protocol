@@ -6,9 +6,27 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M05_ECHOLINE_CAPTURE, type StaffRow } from "../../../content/m05/echoline.js";
+import {
+    M05_ECHOLINE_CAPTURES,
+    M05_ECHOLINE_CHANGE_CAPTURE_REF,
+    M05_ECHOLINE_SHARED_MAILBOXES,
+    M05_ECHOLINE_SUBJECT,
+    m05CaptureDelta,
+    m05CaptureRef,
+    m05CaptureView,
+    type CaptureDelta,
+    type CaptureView,
+    type StaffRow,
+} from "../../../content/m05/echoline.js";
 import { M05_STAFF_ROLE_KEYS } from "../../../content/m05/hospital.js";
-import { M05_ECHOLINE_DOMAIN, M05_REMOTE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
+import {
+    M05_CHANGE_ID,
+    M05_ECHOLINE_DOMAIN,
+    M05_HOSPITAL_HOME_DOMAIN,
+    M05_REMOTE_DOMAIN,
+    M05_SEARCH_PATH,
+    M05_TEAM_PATH,
+} from "../../../content/m05/network.js";
 import {
     M06_ARCHIVE_AGENT_NAME,
     M06_ARCHIVE_CONTACT,
@@ -19,7 +37,7 @@ import {
 import { M06_AGENT_NUMBER } from "../../../content/m06/records.js";
 import { M06_REGISTRY_JURISDICTION } from "../../../content/m06/network.js";
 import { areMissionSitesOpen } from "../../../context/global/site-access.js";
-import { isM05ArchiveOpen } from "../../../context/m05/progress.js";
+import { isM05ArchiveOpen, isM05TeamOpen } from "../../../context/m05/progress.js";
 import { M06_STAGE, isM06ShellStruckOff, isM06StageOpen } from "../../../context/m06/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M05_SITE_KEY } from "../../../i18n/m05/site.js";
@@ -31,10 +49,20 @@ import indexPage from "./index-page.html";
 import snapshotPage from "./snapshot.html";
 import snapshotRecordPage from "./snapshot-record.html";
 
+interface CaptureEntry {
+    readonly path: string;
+    readonly date: string;
+    readonly number: number;
+    readonly delta: CaptureDelta | null;
+    readonly search: string;
+}
+
 interface CaptureGroup {
     readonly subject: string;
-    readonly captures: readonly { readonly path: string; readonly date: string }[];
+    readonly captures: readonly CaptureEntry[];
 }
+
+const MINUS = "−";
 
 const escape = (value: string): string =>
     value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -43,67 +71,181 @@ const m05CapturesOpen = (): boolean => areMissionSitesOpen("m05") && isM05Archiv
 
 const m06CapturesOpen = (): boolean => areMissionSitesOpen("m06") && isM06StageOpen(M06_STAGE.archive);
 
-const renderStaffRows = (staff: readonly StaffRow[]): string =>
-    staff
-        .map(
-            (entry) =>
-                `<tr><td>${escape(entry.name)}</td><td>${escape(siteT(M05_STAFF_ROLE_KEYS[entry.roleKey]))}</td><td class="c">${escape(entry.account)}</td></tr>`,
-        )
-        .join("");
+const searchText = (parts: readonly string[]): string => parts.join(" ").toLowerCase();
+
+const m05Entries = (): readonly CaptureEntry[] =>
+    M05_ECHOLINE_CAPTURES.map((capture, index) => ({
+        path: capture.path,
+        date: capture.date,
+        number: index + 1,
+        delta: m05CaptureDelta(index),
+        search: searchText([
+            M05_ECHOLINE_SUBJECT,
+            capture.date,
+            capture.path,
+            m05CaptureRef(capture.path),
+            ...capture.staff.map((entry) => entry.account),
+        ]),
+    })).reverse();
 
 const groups = (): readonly CaptureGroup[] => {
     const open: CaptureGroup[] = [];
 
     if (m05CapturesOpen()) {
-        open.push({
-            subject: `${M05_HOSPITAL_MAIL_DOMAIN}/it/team`,
-            captures: [{ path: M05_ECHOLINE_CAPTURE.path, date: M05_ECHOLINE_CAPTURE.date }],
-        });
+        open.push({ subject: M05_ECHOLINE_SUBJECT, captures: m05Entries() });
     }
 
     if (m06CapturesOpen()) {
+        const subject = `pcr-registry.org/entity/${M06_AGENT_NUMBER.toLowerCase()}`;
+
         open.push({
-            subject: `pcr-registry.org/entity/${M06_AGENT_NUMBER.toLowerCase()}`,
-            captures: [{ path: M06_ARCHIVE_PATH, date: M06_ARCHIVE_DATE }],
+            subject,
+            captures: [
+                {
+                    path: M06_ARCHIVE_PATH,
+                    date: M06_ARCHIVE_DATE,
+                    number: 1,
+                    delta: null,
+                    search: searchText([subject, M06_ARCHIVE_DATE, M06_ARCHIVE_PATH, m05CaptureRef(M06_ARCHIVE_PATH)]),
+                },
+            ],
         });
     }
 
     return open;
 };
 
-const renderGroups = (): string => {
-    const open = groups();
+const renderChips = (delta: CaptureDelta | null): string =>
+    delta
+        ? `<span class="chip add" title="${escape(siteT(M05_SITE_KEY.EL_CHIP_ADDED))}">+${delta.added}</span><span class="chip del" title="${escape(siteT(M05_SITE_KEY.EL_CHIP_REMOVED))}">${MINUS}${delta.removed}</span>`
+        : "";
+
+const renderCapture = (subject: string, capture: CaptureEntry): string =>
+    [
+        `<li class="capture" data-search="${escape(capture.search)}">`,
+        `<div class="capture-index">${String(capture.number).padStart(2, "0")}</div>`,
+        '<div class="capture-body">',
+        `<p class="record-label">${escape(siteT(M05_SITE_KEY.EL_REF, { ref: m05CaptureRef(capture.path) }))}</p>`,
+        `<a class="capture-link" href="${escape(capture.path)}">${escape(subject)}<span aria-hidden="true">↗</span></a>`,
+        `<div class="cap-meta"><span>${escape(siteT(M05_SITE_KEY.EL_CAPTURED))}</span><time datetime="${escape(capture.date)}">${escape(capture.date)}</time>${renderChips(capture.delta)}</div>`,
+        "</div>",
+        `<a class="open-record" href="${escape(capture.path)}">${escape(siteT(M05_SITE_KEY.EL_VIEW))}</a>`,
+        "</li>",
+    ].join("");
+
+const renderGroups = (open: readonly CaptureGroup[] = groups()): string => {
     if (open.length === 0) return `<p class="empty">${escape(siteT(M05_SITE_KEY.EL_EMPTY))}</p>`;
 
     return open
-        .map((group) => {
-            const items = group.captures
-                .map((capture) =>
-                    [
-                        "<li>",
-                        `<div class="cap-date"><a href="${escape(capture.path)}">${escape(siteT(M05_SITE_KEY.EL_VIEW))}</a></div>`,
-                        `<div class="cap-meta">${escape(siteT(M05_SITE_KEY.EL_CAPTURED))} ${escape(capture.date)}</div>`,
-                        "</li>",
-                    ].join(""),
-                )
-                .join("");
-
-            return [
-                `<p class="sect">${escape(siteT(M05_SITE_KEY.EL_SNAPSHOTS_OF))} — ${escape(group.subject)}</p>`,
-                `<ol>${items}</ol>`,
-            ].join("");
-        })
+        .map((group) =>
+            [
+                '<section class="archive-group">',
+                `<div class="group-head"><p class="sect">${escape(siteT(M05_SITE_KEY.EL_SNAPSHOTS_OF))}</p><span class="group-subject">${escape(group.subject)}</span></div>`,
+                `<ol>${group.captures.map((capture) => renderCapture(group.subject, capture)).join("")}</ol>`,
+                "</section>",
+            ].join(""),
+        )
         .join("");
 };
 
 const renderIndex = (): string => fillMarkers(localizeHtml(indexPage), { EL_GROUPS: renderGroups() });
 
-const renderStaffSnapshot = (date: string, staff: readonly StaffRow[]): string =>
-    fillMarkers(localizeHtml(snapshotPage), {
-        EL_BANNER: escape(siteT(M05_SITE_KEY.EL_BANNER, { date })),
-        EL_ROWS: renderStaffRows(staff),
+const staffRow = (entry: StaffRow, status: string, statusClass: string, date: string, struck: boolean): string => {
+    const wrap = (value: string): string => (struck ? `<s>${escape(value)}</s>` : escape(value));
+
+    return `<tr><td>${wrap(entry.name)}</td><td>${wrap(siteT(M05_STAFF_ROLE_KEYS[entry.roleKey]))}</td><td class="c">${wrap(entry.account)}</td><td><span class="status ${statusClass}">${escape(status)}</span></td><td class="d">${escape(date)}</td></tr>`;
+};
+
+const firstCaptured = (date: string): string => siteT(M05_SITE_KEY.EL_FIRST_CAPTURED, { date });
+
+const renderStaffRows = (view: CaptureView): string => {
+    const listed = siteT(M05_SITE_KEY.EL_STATUS_LISTED);
+    const joined = siteT(M05_SITE_KEY.EL_STATUS_JOINED);
+    const baseline = M05_ECHOLINE_CAPTURES[0].date;
+
+    const shared = M05_ECHOLINE_SHARED_MAILBOXES.map((entry) =>
+        staffRow(entry, listed, "listed", firstCaptured(baseline), false),
+    );
+    const people = view.rows.map((item) =>
+        item.status === "joined"
+            ? staffRow(item.entry, joined, "joined", firstCaptured(item.firstCaptured), false)
+            : staffRow(item.entry, listed, "listed", firstCaptured(item.firstCaptured), false),
+    );
+
+    return [...shared, ...people].join("");
+};
+
+const renderLeftBlock = (view: CaptureView): string => {
+    if (view.left.length === 0) return "";
+
+    const rows = view.left
+        .map((item) =>
+            staffRow(
+                item.entry,
+                siteT(M05_SITE_KEY.EL_STATUS_LEFT),
+                "left",
+                `${siteT(M05_SITE_KEY.EL_LAST_CAPTURED, { date: item.lastCaptured })} · ${siteT(M05_SITE_KEY.EL_NOT_LISTED_ON, { date: view.capture.date })}`,
+                true,
+            ),
+        )
+        .join("");
+
+    return `<section class="left-block"><p class="left-head">${escape(siteT(M05_SITE_KEY.EL_LEFT_HEAD))}</p><div class="table-wrap"><table><tbody>${rows}</tbody></table></div></section>`;
+};
+
+const navLink = (label: string, capture: { readonly path: string } | null, before: string, after: string): string => {
+    const text = `${before}${escape(label)}${after}`;
+
+    return capture ? `<a class="nav" href="${escape(capture.path)}">${text}</a>` : `<span class="nav off">${text}</span>`;
+};
+
+const renderCaptureBar = (view: CaptureView): string => {
+    const ref = m05CaptureRef(view.capture.path);
+    const parts = [
+        navLink(siteT(M05_SITE_KEY.EL_PREVIOUS), view.previous, "← ", ""),
+        `<span class="pos">${escape(siteT(M05_SITE_KEY.EL_POSITION, { n: String(view.position), total: String(view.total) }))}</span>`,
+        `<span class="ref">${escape(siteT(M05_SITE_KEY.EL_REF, { ref }))}</span>`,
+        navLink(siteT(M05_SITE_KEY.EL_NEXT), view.next, "", " →"),
+    ];
+
+    if (isM05TeamOpen()) {
+        parts.push(
+            `<a class="live" href="https://${escape(M05_HOSPITAL_HOME_DOMAIN)}${escape(M05_TEAM_PATH)}">${escape(siteT(M05_SITE_KEY.EL_OPEN_LIVE))}</a>`,
+        );
+    }
+
+    if (ref === M05_ECHOLINE_CHANGE_CAPTURE_REF) {
+        parts.push(`<span class="cited">${escape(siteT(M05_SITE_KEY.EL_CITED_BY, { id: M05_CHANGE_ID }))}</span>`);
+    }
+
+    return parts.join("");
+};
+
+const renderStamp = (view: CaptureView): string =>
+    escape(
+        view.capture.lastUpdated
+            ? siteT(M05_SITE_KEY.EL_STAMP, { date: view.capture.lastUpdated })
+            : siteT(M05_SITE_KEY.EL_NO_STAMP),
+    );
+
+const renderNotes = (view: CaptureView): string =>
+    [siteT(M05_SITE_KEY.EL_ARCHIVIST_NOTE), ...(view.isLatest ? [siteT(M05_SITE_KEY.EL_LATE_NOTE)] : [])]
+        .map(escape)
+        .join("<br>");
+
+const renderStaffSnapshot = (index: number): string => {
+    const view = m05CaptureView(index);
+
+    return fillMarkers(localizeHtml(snapshotPage), {
+        EL_BANNER: escape(siteT(M05_SITE_KEY.EL_BANNER, { date: view.capture.date })),
+        EL_BAR: renderCaptureBar(view),
+        EL_STAMP: renderStamp(view),
+        EL_ROWS: renderStaffRows(view),
+        EL_LEFT: renderLeftBlock(view),
+        EL_NOTES: renderNotes(view),
         EL_REMOTE: escape(siteT(M05_SITE_KEY.EL_REMOTE_NOTE, { host: M05_REMOTE_DOMAIN })),
     });
+};
 
 const archiveContact = (): string => {
     const base = M06_ARCHIVE_CONTACT;
@@ -169,9 +311,10 @@ export class EcholineArchiveWebsite extends Website {
 
     Pages: DynamicWebsitePageDefinition[] = [
         indexPageDefinition(),
+        { ...indexPageDefinition(), path: M05_SEARCH_PATH, seo: false },
         ...gateMissionPages("m05", [
-            gated(M05_ECHOLINE_CAPTURE.path, "Archived capture", isM05ArchiveOpen, () =>
-                renderStaffSnapshot(M05_ECHOLINE_CAPTURE.date, M05_ECHOLINE_CAPTURE.staff),
+            ...M05_ECHOLINE_CAPTURES.map((capture, index) =>
+                gated(capture.path, "Archived capture", isM05ArchiveOpen, () => renderStaffSnapshot(index)),
             ),
         ]),
         ...gateMissionPages("m06", [

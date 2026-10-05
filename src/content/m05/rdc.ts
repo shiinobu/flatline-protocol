@@ -27,13 +27,13 @@ import {
 export const M05_MISSION = "m05";
 export const M05_RDC_ADVANCE_CODE = 1;
 
-export const M05_ARCHIVE_STATEMENT = "acknowledgement_gdesouza.txt";
+export const M05_ARCHIVE_STATEMENT = "acknowledgement_rnatnaree.txt";
 export const M05_ARCHIVE_MEMO = "decision_memo.txt";
 export const M05_ARCHIVE_TICKET = `usb_ticket_${M05_BEDSIDE_ASSET_TAG}.txt`;
 
 const IR_DIR = "/ir/2026-08-14";
 const TICKET_DIR = "/ir/tickets";
-const HOME_DIR = "/home/g.desouza";
+const HOME_DIR = "/home/rnatnaree";
 
 const caseRef = RANSOM_BATCH_HOSPITAL.caseRef;
 const amount = formatUsd(RANSOM_BATCH_HOSPITAL.gross);
@@ -156,7 +156,7 @@ const ASSET_REGISTER = [
     "IT ASSET REGISTER — extract",
     "",
     `${M05_BEDSIDE_ASSET_TAG}   assigned   ${GRETA_SHORT_NAME}   Systems Administrator`,
-    "PC-IT-014   assigned   G. Lim   IT Contractor (contract ended 2026-07-31)",
+    "PC-IT-014   assigned   G. Teoh   IT Contractor (contract ended 2026-07-31)",
     "PC-IT-021   spare      -",
 ].join("\n");
 

@@ -8,10 +8,15 @@ import {
 
 import {
     M05_CAREERS_DOMAIN,
+    M05_CHANGE_ID,
+    M05_CHANGE_PATTERN,
     M05_GATEWAY_DOMAIN,
     M05_HOSPITAL_HOME_DOMAIN,
     M05_NEWS_DOMAIN,
     M05_PATIENT_DOMAIN,
+    M05_POLICY_ID,
+    M05_POLICY_PATTERN,
+    M05_SEARCH_PATH,
     M05_STATUS_DOMAIN,
     M05_TEAM_PATH,
     M05_WEBMAIL_DOMAIN,
@@ -21,10 +26,12 @@ import { toolIcon } from "../../global/tool-page.js";
 import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
 import {
     renderCareers,
+    renderChange,
     renderGateway,
     renderHome,
     renderNews,
     renderPatient,
+    renderPolicy,
     renderStatus,
     renderTeam,
     renderWebmail,
@@ -43,6 +50,7 @@ interface PageSpec {
     readonly description: string;
     readonly seo?: boolean;
     readonly open?: () => boolean;
+    readonly match?: (context: PageContext) => boolean;
     readonly render: () => string;
 }
 
@@ -56,10 +64,16 @@ const page = (spec: PageSpec): DynamicWebsitePageDefinition => ({
         }
 
         if (spec.open && !spec.open()) return notFoundMetadata();
+        if (spec.match && !spec.match(context)) return notFoundMetadata();
 
         return { title: spec.title, description: spec.description, html: spec.render() };
     },
 });
+
+const withSearchAlias = (spec: PageSpec): DynamicWebsitePageDefinition[] => [
+    page(spec),
+    page({ ...spec, path: M05_SEARCH_PATH, seo: false }),
+];
 
 @RegisterWebsite
 export class PacificCareHomeWebsite extends Website {
@@ -68,7 +82,7 @@ export class PacificCareHomeWebsite extends Website {
     Icon = HOSPITAL_ICON;
 
     Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
-        page({
+        ...withSearchAlias({
             path: "/",
             title: "PacificCare Health",
             description: "Regional hospital network, SEA.",
@@ -82,6 +96,22 @@ export class PacificCareHomeWebsite extends Website {
             open: isM05TeamOpen,
             render: renderTeam,
         }),
+        page({
+            path: M05_CHANGE_PATTERN,
+            title: `IT Change Record — ${M05_CHANGE_ID}`,
+            description: "Staff access and role transition record.",
+            open: isM05TeamOpen,
+            match: (context) => context.params.id === M05_CHANGE_ID,
+            render: renderChange,
+        }),
+        page({
+            path: M05_POLICY_PATTERN,
+            title: `${M05_POLICY_ID} — Remote Access and Legacy Accounts`,
+            description: "Remote access policy for staff and legacy accounts.",
+            open: isM05TeamOpen,
+            match: (context) => context.params.id === M05_POLICY_ID,
+            render: renderPolicy,
+        }),
     ]);
 }
 
@@ -92,7 +122,7 @@ export class PacificCareNewsWebsite extends Website {
     Icon = HOSPITAL_ICON;
 
     Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
-        page({
+        ...withSearchAlias({
             path: "/",
             title: "PacificCare Newsroom",
             description: "Official statements from PacificCare Health.",
@@ -109,7 +139,7 @@ export class PacificCareCareersWebsite extends Website {
     Icon = HOSPITAL_ICON;
 
     Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
-        page({
+        ...withSearchAlias({
             path: "/",
             title: "PacificCare Careers",
             description: "Open positions at PacificCare Health.",
@@ -126,7 +156,7 @@ export class PacificCareStatusWebsite extends Website {
     Icon = HOSPITAL_ICON;
 
     Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
-        page({
+        ...withSearchAlias({
             path: "/",
             title: "PacificCare Service Status",
             description: "Current status and incident history.",
@@ -143,7 +173,7 @@ export class PacificCarePatientWebsite extends Website {
     Icon = HOSPITAL_ICON;
 
     Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m05", [
-        page({
+        ...withSearchAlias({
             path: "/",
             title: "PacificCare Patient Portal",
             description: "Appointments, results and billing.",

@@ -19,7 +19,14 @@ export const M05_PATIENT_IP = "160.153.44.120";
 export const M05_WEBMAIL_IP = "160.153.44.173";
 export const M05_GATEWAY_IP = "160.153.44.204";
 
-export const M05_TEAM_PATH = "/it/team";
+export const M05_TEAM_PATH = "/it";
+export const M05_CHANGE_ID = "SA-0826";
+export const M05_POLICY_ID = "IT-DEPT-77";
+export const M05_CHANGE_PATTERN = "/it/change/:id";
+export const M05_POLICY_PATTERN = "/it/policy/:id";
+export const M05_CHANGE_PATH = `/it/change/${M05_CHANGE_ID}`;
+export const M05_POLICY_PATH = `/it/policy/${M05_POLICY_ID}`;
+export const M05_SEARCH_PATH = "/search";
 
 export const M05_EDGE_DOMAIN = M05_REMOTE_DOMAIN;
 export const M05_EDGE_IP = "198.244.91.37";
@@ -30,7 +37,7 @@ export const M05_SPLITTER_LAN_IP = "192.168.1.2";
 
 export const M05_FIREWALL_IP = "193.29.57.184";
 export const M05_FIREWALL_LAN_IP = "192.168.1.3";
-export const M05_FIREWALL_USERNAME = "r.wong";
+export const M05_FIREWALL_USERNAME = "rafael.bautista";
 export const M05_FIREWALL_PASSWORD = "Pangolin-Vellum-3182";
 
 export const M05_COLD_CHART_IP = "141.98.252.76";
@@ -65,9 +72,12 @@ export const M05_PRINTER_IP = "195.133.40.17";
 export const M05_PRINTER_LAN_IP = "192.168.1.8";
 export const M05_PRINTER_USERNAME = "admin";
 
-export const M05_GRETA_USERNAME = "g.desouza";
-export const M05_GRETA_PASSWORD = "Marigold2019";
-export const M05_GARETH_USERNAME = "g.lim";
+export const M05_GRETA_USERNAME = "rnatnaree";
+export const M05_SYSTEM_CODE = "OT3";
+export const M05_INCIDENT_DATE = "2026-08-14";
+export const M05_GRETA_LEGACY_PASSWORD = "Marigold2019";
+export const M05_GRETA_PASSWORD = `${M05_GRETA_USERNAME}-${M05_SYSTEM_CODE}-${M05_INCIDENT_DATE}`;
+export const M05_GARETH_USERNAME = "gteoh";
 export const M05_PAY_STATION_PASSWORD = "billing-desk-04";
 export const M05_LEAD_APRON_PASSWORD = "radiology2021";
 export const M05_PRINTER_PASSWORD = "printroom01";

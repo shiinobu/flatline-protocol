@@ -450,7 +450,7 @@ function doLogin() {
     if (view === "portal") syncMin();
     return;
   }
-  st.loginErr = "Sign-in failed. Check your username and password.";
+  st.loginErr = view === "retired" ? "This password was retired during recovery." : "Sign-in failed. Check your username and password.";
   $("lerr").textContent = Z(st.loginErr);
 }
 function setTab(id) {

@@ -19,14 +19,14 @@ export interface LeakRecord {
 export const M05_LEAK_RECORDS: readonly LeakRecord[] = [
     { id: 1, email: M05_GRETA_WORK_EMAIL, source: "medvendor", year: "2025", hash: M05_GRETA_HASH },
     { id: 2, email: GRETA_PRIVATE_EMAIL, source: "foodforum", year: "2022", hash: M05_PAY_STATION_HASH },
-    { id: 3, email: `gdesouza@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
-    { id: 4, email: `g.lim@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
-    { id: 5, email: `t.nair@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PAY_STATION_HASH },
-    { id: 6, email: `r.wong@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
-    { id: 7, email: `s.ibrahim@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
-    { id: 8, email: `a.pereira@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PAY_STATION_HASH },
-    { id: 9, email: `l.chen@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
-    { id: 10, email: `m.santos@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
+    { id: 3, email: `r.natnaree@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
+    { id: 4, email: `gteoh@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
+    { id: 5, email: `valerie.dizon@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PAY_STATION_HASH },
+    { id: 6, email: `rafael.bautista@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
+    { id: 7, email: `skrishnan@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
+    { id: 8, email: `anastasia.santiago@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PAY_STATION_HASH },
+    { id: 9, email: `lchaiyasit@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
+    { id: 10, email: `kieran.pradipta@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
 ];
 
 export const M05_LEAK_HASH_ALGO = "MD5";

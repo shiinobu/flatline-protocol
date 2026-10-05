@@ -266,7 +266,7 @@ export const M05_PORTAL_ZH: Readonly<Record<string, string>> = {
     "vendor / firewall": "供应商 / 防火墙",
     "directory / endpoint": "目录 / 终端",
     "Office of the CRO": "首席风险官办公室",
-    "t.nair (on call)": "t.nair（值班）",
+    "valerie.dizon (on call)": "valerie.dizon（值班）",
     "v.orchid (Chief Risk Officer)": "v.orchid（首席风险官）",
     "Use the hospital time source.": "改用医院的时间源。",
     "Banner wording.": "横幅措辞。",
@@ -285,12 +285,12 @@ export const M05_PORTAL_ZH: Readonly<Record<string, string>> = {
     "Ward 4 printer offline": "4 号病房打印机离线",
     "Directory sync job failed (03:00)": "目录同步任务失败（03:00）",
     "Badge reader, loading dock": "装卸区门禁读卡器",
-    "Disable accounts: G. Lim (contract ended)": "停用账号：G. Lim（合同期满）",
+    "Disable accounts: G. Teoh (contract ended)": "停用账号：G. Teoh（合同期满）",
     "VPN token for visiting consultant": "访问顾问的 VPN 令牌",
     "Unknown USB on my desk, whose is it?": "我桌上有个不明 USB，是谁的？",
     "Theatre 2 scheduling display flicker": "手术室 2 排班显示屏闪烁",
     "IR review access to PC-IT-017 (isolated)": "事件响应复核访问 PC-IT-017（已隔离）",
-    "Account closure: G. de Souza (separation effective today)": "账号关闭：G. de Souza（今日起离职生效）",
+    "Account closure: R. Natnaree (separation effective today)": "账号关闭：R. Natnaree（今日起离职生效）",
 
     "Power supply replaced.": "已更换电源。",
     "Job exits non-zero after the identity migration change. Needs the migration owner.":

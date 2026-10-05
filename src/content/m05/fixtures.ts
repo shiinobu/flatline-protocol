@@ -32,6 +32,7 @@ import {
     M05_GARETH_HANDLE,
     M05_GRETA_FULL_NAME,
     M05_GRETA_HANDLE,
+    M05_GRETA_TWOTTER_USERNAME,
 } from "./twotter.js";
 
 const lynx = (input: string, handle: string, lines: readonly string[]): FixtureEntry => ({
@@ -89,6 +90,7 @@ export const buildM05TeamPageFixtures = (): FixtureEntry[] => {
 
     return [
         lynx(M05_GRETA_HANDLE, M05_GRETA_HANDLE, gretaLines),
+        lynx(M05_GRETA_TWOTTER_USERNAME, M05_GRETA_HANDLE, gretaLines),
         lynx(M05_GRETA_FULL_NAME, M05_GRETA_HANDLE, gretaLines),
         lynx(M05_GARETH_HANDLE, M05_GARETH_HANDLE, garethLines),
         lynx(M05_GARETH_FULL_NAME, M05_GARETH_HANDLE, garethLines),

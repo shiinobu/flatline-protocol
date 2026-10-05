@@ -18,6 +18,8 @@ export const M05_TWOTTER_KEY = {
     GRETA_POST_14: "M05.TWOTTER.GRETA.POST_14",
     GRETA_POST_15: "M05.TWOTTER.GRETA.POST_15",
     GRETA_POST_16: "M05.TWOTTER.GRETA.POST_16",
+    GRETA_POST_17: "M05.TWOTTER.GRETA.POST_17",
+    GRETA_POST_18: "M05.TWOTTER.GRETA.POST_18",
     GARETH_BIO: "M05.TWOTTER.GARETH.BIO",
     GARETH_POST_1: "M05.TWOTTER.GARETH.POST_1",
     GARETH_POST_2: "M05.TWOTTER.GARETH.POST_2",
@@ -34,7 +36,7 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_2]:
             "whoever keeps leaving the printer room door open, the ghost in there is now MY problem apparently",
         [M05_TWOTTER_KEY.GRETA_POST_3]: "night shift and the drinks machine is out of everything except hot water",
-        [M05_TWOTTER_KEY.GRETA_POST_4]: "team page got refreshed. four of us, one contractor. that's the whole department",
+        [M05_TWOTTER_KEY.GRETA_POST_4]: "OT3 again. third theatre, same old headache.",
         [M05_TWOTTER_KEY.GRETA_POST_SEALED]: "Notes to self. Sealed, like everything I care about.",
         [M05_TWOTTER_KEY.GRETA_POST_6]: "patch tuesday is less a day and more a lifestyle at this point",
         [M05_TWOTTER_KEY.GRETA_POST_7]: "the 90-day password policy. me, with the same password since 2019: haha",
@@ -44,13 +46,16 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_10]: "it is forty degrees in the server room and the AC ticket is from june",
         [M05_TWOTTER_KEY.GRETA_POST_11]:
             "found a usb stick on my desk this morning with {{label}} written on the side in marker. anyone know what that is? it looks like one of our project codes",
-        [M05_TWOTTER_KEY.GRETA_POST_12]: "closed a ticket that just said 'it's doing the thing again'. love this job",
+        [M05_TWOTTER_KEY.GRETA_POST_12]: "some legacy recovery procedures are older than the systems they protect.",
         [M05_TWOTTER_KEY.GRETA_POST_13]:
             "can't get into anything. all hands. i'm in the room and i don't know either",
         [M05_TWOTTER_KEY.GRETA_POST_14]:
             "slept three hours. they're calling it a network issue. i run the network",
         [M05_TWOTTER_KEY.GRETA_POST_15]: "they took my laptop 'for review' this morning",
         [M05_TWOTTER_KEY.GRETA_POST_16]: "they want me to sign something",
+        [M05_TWOTTER_KEY.GRETA_POST_17]: "0814 was the night nobody in IT will forget.",
+        [M05_TWOTTER_KEY.GRETA_POST_18]:
+            "everyone thinks a migration means the old access disappears. that's not always how it works.",
         [M05_TWOTTER_KEY.GARETH_BIO]: "IT contractor. short-term by definition",
         [M05_TWOTTER_KEY.GARETH_POST_1]: "two months into the hospital contract and i still can't find parking",
         [M05_TWOTTER_KEY.GARETH_POST_2]: "the one permanent sysadmin here does the work of four people, respect",
@@ -64,16 +69,14 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_1]: "今天注册了 MedVendor 门户。用了工作邮箱，还有，是的，老密码。我知道，我知道",
         [M05_TWOTTER_KEY.GRETA_POST_2]: "是谁老是把打印机房的门开着，里面那个“鬼”现在成了我的问题",
         [M05_TWOTTER_KEY.GRETA_POST_3]: "值夜班，自动贩卖机除了热水什么都没了",
-        [M05_TWOTTER_KEY.GRETA_POST_4]: "团队页面刷新了。我们四个人，一个外包。这就是整个部门",
         [M05_TWOTTER_KEY.GRETA_POST_SEALED]: "写给自己的笔记。封好了，就像我在乎的一切。",
         [M05_TWOTTER_KEY.GRETA_POST_6]: "补丁星期二到了这个份上，已经不是一天，而是一种生活方式",
         [M05_TWOTTER_KEY.GRETA_POST_7]: "90 天改密码政策。而我，从 2019 年起一直用同一个密码：哈哈",
         [M05_TWOTTER_KEY.GRETA_POST_8]: "目录同步又在凌晨三点挂了。工单开了，工单被无视了。老样子",
-        [M05_TWOTTER_KEY.GRETA_POST_9]: "Gareth 的最后一天。门禁卡中午失效了。账号还“在排队”",
+        [M05_TWOTTER_KEY.GRETA_POST_9]: "Gideon 的最后一天。门禁卡中午失效了。账号还“在排队”",
         [M05_TWOTTER_KEY.GRETA_POST_10]: "服务器机房四十度，而空调工单还是六月开的",
         [M05_TWOTTER_KEY.GRETA_POST_11]:
             "今早在桌上发现一个 U 盘，侧面用马克笔写着 {{label}}。有人知道那是什么吗？看着像我们的某个项目代号",
-        [M05_TWOTTER_KEY.GRETA_POST_12]: "关掉了一张只写着“它又那样了”的工单。爱死这份工作了",
         [M05_TWOTTER_KEY.GRETA_POST_13]: "什么都进不去。全员上。我就在现场，我也不知道怎么回事",
         [M05_TWOTTER_KEY.GRETA_POST_14]: "睡了三个小时。他们管这叫网络故障。网络是我在管",
         [M05_TWOTTER_KEY.GRETA_POST_15]: "今早他们把我的笔记本“拿去审查”了",

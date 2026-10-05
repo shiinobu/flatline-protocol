@@ -186,9 +186,9 @@ function buildDecoyFs(hostId) {
     file("/etc/hostname", h.tag + "\n");
     file("/etc/agent/agent.conf", "[agent]\nhost = " + h.tag + "\nconsole = enabled\ndisplay = stopped\ndisplay_module = absent\n");
     file("/root/README", "Agent console\n\nThe display module is not installed on this host.\n");
-    file("/var/log/agent/agent.log", "2026-08-15 11:03:12 agent: display module removed by rwong (CHG-2608-016)\n2026-08-15 11:03:12 agent: console ready\n", "root", "Aug 15 11:03");
-    file("/home/rwong/todo.txt", "- retire the vendor agent on bill-01 and arc-img-02 (done)\n- check the new firewall rules next week\n- ask Legal when the hold on the archive can be lifted\n", "rwong", "Aug 15 11:03");
-    file("/home/rwong/.bash_history", "cd /opt/vendorcare\nsudo systemctl disable --now vendorcare-agent\nsudo vi /etc/vendorcare/gateway.conf\nexit\n", "rwong", "Aug 15 11:04");
+    file("/var/log/agent/agent.log", "2026-08-15 11:03:12 agent: display module removed by rbautista (CHG-2608-016)\n2026-08-15 11:03:12 agent: console ready\n", "root", "Aug 15 11:03");
+    file("/home/rbautista/todo.txt", "- retire the vendor agent on bill-01 and arc-img-02 (done)\n- check the new firewall rules next week\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
+    file("/home/rbautista/.bash_history", "cd /opt/vendorcare\nsudo systemctl disable --now vendorcare-agent\nsudo vi /etc/vendorcare/gateway.conf\nexit\n", "rbautista", "Aug 15 11:04");
     ensureDirs(T);
     return T;
   }
@@ -199,7 +199,7 @@ function buildColdFs() {
     file("/etc/hostname", "arc-ir-01\n");
     file("/etc/os-release", 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\n');
     file("/etc/hosts", "127.0.0.1 localhost\n192.168.1.4 arc-ir-01\n192.168.1.3 fw-edge\n");
-    file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\nsvc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Ruben Wong:/home/rwong:/bin/bash\n");
+    file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\nsvc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Rafael Surya Bautista:/home/rbautista:/bin/bash\n");
     file("/etc/agent/agent.conf", "[agent]\nhost = arc-ir-01\nconsole = enabled\ndisplay = stopped\ndisplay_module = installed\nprofile = /etc/agent/profile.bak\nlease_dir = /run/agent\nlog = /var/log/agent/agent.log\n", "root", "Aug 14 02:58");
     file("/etc/agent/policy.conf", "[policy]\ndisplay.attach = operator\ndisplay.record = on\ndisplay.read_only = true\nlog.retention_days = 60\n");
     file("/etc/agent/profile.bak", "# agent 4.2.1 profile, written 2026-08-14 02:12\n[display]\ncapture = " + blk + "\nrelay = " + R.relayOf.expired + "\nframing = " + R.fo + "\nwidth = " + od.w + "\nheight = " + od.h + "\nbpp = " + od.bpp + "\norder = " + od.order + "\nrate = " + od.rate + "\n", "root", "Aug 14 02:12");
@@ -221,7 +221,7 @@ function buildColdFs() {
     file("/var/log/kern.log", "2026-08-09 06:00:11 arc-ir-01 kernel: Linux version 6.1.0-23-amd64\n2026-08-09 06:00:13 arc-ir-01 kernel: " + blk + ": registered, vesafb\n2026-08-09 06:00:13 arc-ir-01 kernel: " + act + ": registered, i915drmfb\n2026-08-09 06:00:14 arc-ir-01 kernel: " + cur + ": cursor plane registered\n2026-08-14 02:58:03 arc-ir-01 kernel: nf_conntrack: containment rule IR-3389 loaded\n2026-08-15 03:02:11 arc-ir-01 kernel: " + act + ": mode change " + od.w + "x" + od.h + " -> " + tr.w + "x" + tr.h + " (" + tr.bpp + "bpp, " + pixFmt(tr) + ", " + tr.rate + " Hz)\n2026-08-15 03:02:11 arc-ir-01 kernel: " + blk + ": dpms off\n2026-09-01 00:00:02 arc-ir-01 kernel: random: crng reseeded\n", "root", "Sep  1 00:00");
     file("/var/log/Xorg.0.log", "[    12.401] (II) Module drm: vendor=\"X.Org Foundation\"\n[    12.552] (II) " + act + ": depth " + tr.bpp + ", " + pixFmt(tr) + ", " + tr.w + "x" + tr.h + "@" + tr.rate + "\n[    12.553] (II) " + blk + ": no output connected\n[    12.560] (WW) " + cur + ": cursor plane only, skipping\n[    12.610] (==) Using config directory: \"/etc/X11/xorg.conf.d\"\n", "root", "Sep 27 06:00");
     file("/var/log/syslog", "Sep 27 06:00:01 arc-ir-01 systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 arc-ir-01 CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 arc-ir-01 CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 arc-ir-01 systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: console session opened by Remote Desktop Connection relay\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: display lease check: held by " + R.deadPid + "\n", "root", "Sep 27 14:03");
-    file("/var/log/auth.log", "Jul  9 03:20:11 arc-ir-01 sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 arc-ir-01 sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 arc-ir-01 sshd[2301]: Accepted publickey for rwong from 10.8.0.14 port 51422\nAug 14 02:57:40 arc-ir-01 sudo: rwong : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 arc-ir-01 sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 arc-ir-01 sshd[2480]: Accepted publickey for rwong from 10.8.0.14 port 51500\nAug 15 11:04:02 arc-ir-01 sshd[2480]: Received disconnect from 10.8.0.14\n", "root", "Aug 15 11:04");
+    file("/var/log/auth.log", "Jul  9 03:20:11 arc-ir-01 sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 arc-ir-01 sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 arc-ir-01 sshd[2301]: Accepted publickey for rbautista from 10.8.0.14 port 51422\nAug 14 02:57:40 arc-ir-01 sudo: rbautista : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 arc-ir-01 sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 arc-ir-01 sshd[2480]: Accepted publickey for rbautista from 10.8.0.14 port 51500\nAug 15 11:04:02 arc-ir-01 sshd[2480]: Received disconnect from 10.8.0.14\n", "root", "Aug 15 11:04");
     HEADS.forEach(function (h) {
       var role = R.heads[h], base = "/sys/class/graphics/" + h + "/", md = role === "active" ? tr : od;
       if (role === "cursor") {
@@ -241,8 +241,8 @@ function buildColdFs() {
       }
     });
     file("/root/README", "Agent console for arc-ir-01\n\nType help for the commands. The console reads the host; the display is\nchanged only through the agent and signal commands.\n", "root", "Sep 27 14:03");
-    file("/home/rwong/todo.txt", "- arc-ir-01: display stopped by IR-3389, the lease is still held. Find out who owns the pid before clearing it\n- profile.bak is from before the mode change on the 15th, do not reuse it as is\n- ask Legal when the hold on the archive can be lifted\n", "rwong", "Aug 15 11:03");
-    file("/home/rwong/.bash_history", "cd /etc/agent\nless profile.bak\nsudo systemctl stop agent-display\nls /run/agent\nexit\n", "rwong", "Aug 15 11:04");
+    file("/home/rbautista/todo.txt", "- arc-ir-01: display stopped by IR-3389, the lease is still held. Find out who owns the pid before clearing it\n- profile.bak is from before the mode change on the 15th, do not reuse it as is\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
+    file("/home/rbautista/.bash_history", "cd /etc/agent\nless profile.bak\nsudo systemctl stop agent-display\nls /run/agent\nexit\n", "rbautista", "Aug 15 11:04");
     dir("/var/ir", "svc-ir", "Aug 14 05:21", "drwx------", true);
     dir("/tmp");
     ensureDirs(T);
@@ -679,11 +679,11 @@ function execLine(line) {
 var DOCS = [
     { name: "decision_memo.txt", dir: "/ir/2026-08-14", gate: 2, key: "Decision memo", text: ["CONFIDENTIAL — OFFICE OF THE CHIEF RISK OFFICER", "Incident CASE-A7X-0417 — decision record", "Prepared by Vivien Orchid, CRO", "", "Timeline (UTC, 2026-08-14):", "  02:41  systems locked", "  02:55  theatre scheduling and records offline", "  03:20  crisis team convened", "  03:58  insurer notified", "  04:35  appointed negotiator engaged (Brightwater Resolutions)", "  05:12  Clinical incident logged, Operating Theatre 3. Escalated to Legal.", "         Excluded from external statement.", "  06:10  demand confirmed at $2,850,000", "  07:30  insurer agreed to settle", "  08:40  CRO authorised payment", "  09:02  payment released", "", "Decision: the incident is to be classified as employee negligence.", "Rationale: a classification of external attack leaves the policy's", "cyber endorsement open to dispute. A negligence classification keeps", "the claim inside cover and closes the matter within the quarter.", "", "Attachment A (finding draft v1) is superseded. Do not circulate it."].join("\n") },
     { name: "finding_draft_v1.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — DRAFT v1 — 2026-08-15", "Incident CASE-A7X-0417", "", "Probable cause: a third-party remote support tool with a standing", "connection into the records network.", "Classification: external attack.", "", "Note: no evidence of staff action has been identified at this time.", "", "STATUS: SUPERSEDED. See the decision record."].join("\n") },
-    { name: "finding_final.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — FINAL — 2026-08-19", "Incident CASE-A7X-0417", "", "Cause: unauthorised USB media introduced to PC-IT-017 by G. de Souza,", "contrary to IT policy 7.2.", "Classification: employee negligence. Retained risk.", "", "Personnel: G. de Souza separated from the organisation 2026-08-19.", "Investigation closed 2026-08-24."].join("\n") },
-    { name: "acknowledgement_gdesouza.txt", dir: "/ir/2026-08-14", gate: 1, key: "Acknowledgement", text: ["ACKNOWLEDGEMENT — 2026-08-18", "", "I acknowledge that on 2026-08-11 I connected personal USB media to", "PC-IT-017, contrary to IT policy 7.2, and that this is recorded as the", "cause of incident CASE-A7X-0417.", "", "Signed: G. de Souza", "Drafted by: Office of the Chief Risk Officer"].join("\n") },
-    { name: "usb_ticket_PC-IT-017.txt", dir: "/ir/tickets", gate: 3, key: "USB ticket", text: ["TICKET IR-PC-IT-017 — opened 2026-08-18", "", "Asset: PC-IT-017", "Reported by: Office of the Chief Risk Officer", "", "Removable media connected 2026-08-11 00:12 UTC by account g.desouza.", "Device label as recorded by the user: Q3-2026-SEA", "An unsigned binary on the device executed on connection.", "", "Resolution: recorded as cause. No technical remediation requested."].join("\n") },
-    { name: "asset_register.txt", dir: "/ir/tickets", gate: 0, text: ["IT ASSET REGISTER — extract", "", "PC-IT-017   assigned   G. de Souza   Systems Administrator", "PC-IT-014   assigned   G. Lim   IT Contractor (contract ended 2026-07-31)", "PC-IT-021   spare      -"].join("\n") },
-    { name: "notes.txt", dir: "/home/g.desouza", gate: 0, text: ["I keep writing this out and deleting it.", "", "It was on my desk. It said Q3-2026-SEA on the side in marker, which looked like", "one of our project codes, and I wanted to know what it was. That is the whole", "reason. I plugged it into my own machine to read the label properly.", "", "I told them exactly that. What came back written down says I introduced", "unauthorised media, which is true, and leaves out why, which is the only part", "that was mine.", "", "They keep saying the systems came back. Theatre 3 is not a system."].join("\n") }
+    { name: "finding_final.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — FINAL — 2026-08-19", "Incident CASE-A7X-0417", "", "Cause: unauthorised USB media introduced to PC-IT-017 by R. Natnaree,", "contrary to IT policy 7.2.", "Classification: employee negligence. Retained risk.", "", "Personnel: R. Natnaree separated from the organisation 2026-08-19.", "Investigation closed 2026-08-24."].join("\n") },
+    { name: "acknowledgement_rnatnaree.txt", dir: "/ir/2026-08-14", gate: 1, key: "Acknowledgement", text: ["ACKNOWLEDGEMENT — 2026-08-18", "", "I acknowledge that on 2026-08-11 I connected personal USB media to", "PC-IT-017, contrary to IT policy 7.2, and that this is recorded as the", "cause of incident CASE-A7X-0417.", "", "Signed: R. Natnaree", "Drafted by: Office of the Chief Risk Officer"].join("\n") },
+    { name: "usb_ticket_PC-IT-017.txt", dir: "/ir/tickets", gate: 3, key: "USB ticket", text: ["TICKET IR-PC-IT-017 — opened 2026-08-18", "", "Asset: PC-IT-017", "Reported by: Office of the Chief Risk Officer", "", "Removable media connected 2026-08-11 00:12 UTC by account rnatnaree.", "Device label as recorded by the user: Q3-2026-SEA", "An unsigned binary on the device executed on connection.", "", "Resolution: recorded as cause. No technical remediation requested."].join("\n") },
+    { name: "asset_register.txt", dir: "/ir/tickets", gate: 0, text: ["IT ASSET REGISTER — extract", "", "PC-IT-017   assigned   R. Natnaree   Systems Administrator", "PC-IT-014   assigned   G. Teoh   IT Contractor (contract ended 2026-07-31)", "PC-IT-021   spare      -"].join("\n") },
+    { name: "notes.txt", dir: "/home/rnatnaree", gate: 0, text: ["I keep writing this out and deleting it.", "", "It was on my desk. It said Q3-2026-SEA on the side in marker, which looked like", "one of our project codes, and I wanted to know what it was. That is the whole", "reason. I plugged it into my own machine to read the label properly.", "", "I told them exactly that. What came back written down says I introduced", "unauthorised media, which is true, and leaves out why, which is the only part", "that was mine.", "", "They keep saying the systems came back. Theatre 3 is not a system."].join("\n") }
   ];
 var DESK_W = 1280;
 var DESK_H = 800;
@@ -767,7 +767,7 @@ function refreshTerm() {
     chipsSync();
     if ($("thint")) $("thint").textContent = hintText();
   }
-function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (g.desouza)"; }
+function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (rnatnaree)"; }
 function rdStatus() { var P = st.mon.pz; return !P || !P.shown ? ["off", "no signal"] : P.attached ? ["on", "attached"] : ["rx", "signal received"]; }
 function rdMenuHtml() {
     var M = st.mon, t = targetById(M.host), fit = M.scale !== "one";
@@ -996,7 +996,7 @@ function paintPanel(g) {
     g.textAlign = "right"; g.fillStyle = "#e2e6ef";
     g.fillText(fakeClock(), right, 17); right -= textW(g, fakeClock()) + 16;
     g.fillText("arc-ir-01", right, 17); right -= textW(g, "arc-ir-01") + 16;
-    g.font = "700 14px " + RK_SANS; g.fillText("g.desouza", right, 17);
+    g.font = "700 14px " + RK_SANS; g.fillText("rnatnaree", right, 17);
     g.textAlign = "left";
   }
 function paintIcon(g, d) {
@@ -1211,7 +1211,7 @@ var RK_MENUS = {
     places: ["Places", [["Home", "loc:home", "folder"], ["Computer", "loc:computer", "monitor"], 0, ["2026-08-14", "loc:/ir/2026-08-14", "folder"], ["tickets", "loc:/ir/tickets", "folder"], 0, ["Trash", "loc:trash", "trash"]]],
     system: ["System", [["About this computer", "loc:computer", "monitor"], ["Settings", "na", "config"], 0, ["Lock screen", "na", "lock"], ["Log out", "na", "out"]]]
   };
-var RK_DIRS = { home: "/home/g.desouza", "/home/g.desouza": "/home/g.desouza", "/ir/2026-08-14": "/ir/2026-08-14", "/ir/tickets": "/ir/tickets" };
+var RK_DIRS = { home: "/home/rnatnaree", "/home/rnatnaree": "/home/rnatnaree", "/ir/2026-08-14": "/ir/2026-08-14", "/ir/tickets": "/ir/tickets" };
 var rkPop = "";
 var rkDlg = null;
 var rkBack = null;
@@ -1227,7 +1227,7 @@ function rkState() {
 function rkW(id) { var R = rkState(); if (!R[id]) R[id] = Object.assign({ open: false, min: false, max: false }, RK_DEF[id]); return R[id]; }
 function rkOpenIds() { var R = rkState(), P = PZ(); return P.rz.concat(Object.keys(R).filter(function (k) { return P.rz.indexOf(k) < 0; })).filter(function (k) { return R[k].open; }); }
 function rkTitle(id) { var W = rkW(id); return id === "mb" ? "Clinical Incident Archive" : id === "tv" ? (W.doc || "Text Viewer") : rkLocName(W.loc || "home"); }
-function rkLocName(loc) { return loc === "home" || loc === "/home/g.desouza" ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
+function rkLocName(loc) { return loc === "home" || loc === "/home/rnatnaree" ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
 function rkGlyph(id) { return ic(id === "mb" ? "globe" : id === "tv" ? "file" : "folder"); }
 function rkSize(n) { return n < 1000 ? n + " bytes" : (n / 1000).toFixed(1) + " kB"; }
 function rkFileRows(dir) {
@@ -1240,7 +1240,7 @@ function rkFileRows(dir) {
 function rkBrowserHtml() {
     var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
     if (DSP.loading) return tool + '<span class="rk-addr"></span></div><div class="rk-page"><div class="rk-load"></div><div class="rk-ph"><b>Clinical Incident Archive</b></div><div class="rk-arb"><div class="rk-arl"><i class="rk-sk"></i><i class="rk-sk"></i><i class="rk-sk"></i></div><div class="rk-arv"><i class="rk-sk"></i><i class="rk-sk"></i></div></div></div>';
-    return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/g.desouza</h6>" + rkFileRows("/home/g.desouza") +
+    return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/rnatnaree</h6>" + rkFileRows("/home/rnatnaree") +
       '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
   }
 function rkRows(loc) {
@@ -1248,7 +1248,7 @@ function rkRows(loc) {
     if (loc === "trash") return '<div class="rk-empty"><b>Trash is empty</b></div>';
     if (loc === "computer") {
       var t = targetById("cold");
-      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + ["/ir/2026-08-14", "/ir/tickets", "/home/g.desouza"].map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
+      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + ["/ir/2026-08-14", "/ir/tickets", "/home/rnatnaree"].map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
     }
     return DOCS.filter(function (d) { return d.dir === dir; }).map(function (d) { return '<button class="rk-row' + (W.sel === d.name ? " sel" : "") + '" data-act="rkfsel" data-v="' + d.name + '" data-dbl="1" data-cur="hand">' + ic("file") + "<span>" + d.name + "</span><small>" + rkSize(d.text.length) + "</small><small>Text document</small></button>"; }).join("");
   }
@@ -1268,7 +1268,7 @@ function rkTasksHtml() { var P = PZ(); return rkOpenIds().map(function (id) { va
 function rkPanelHtml() {
     return '<nav class="rk-panel" aria-label="Remote panel"><svg class="rk-logo" viewBox="0 0 18 18" aria-hidden="true">' + RK_LOGO.map(function (p) { return '<path d="' + p[0] + '" fill="' + p[1] + '"/>'; }).join("") + "</svg>" +
       ["apps", "places", "system"].map(function (k) { return '<button class="rk-m" id="rkm-' + k + '" data-act="rkmenu" data-v="' + k + '" aria-haspopup="menu" aria-expanded="' + (rkPop === k) + '" data-cur="hand">' + RK_MENUS[k][0] + "</button>"; }).join("") +
-      '<div class="rk-tasks" id="rktasks">' + rkTasksHtml() + '</div><div class="rk-right"><b>g.desouza</b><span>arc-ir-01</span><span id="dclk">' + fakeClock() + "</span></div></nav>";
+      '<div class="rk-tasks" id="rktasks">' + rkTasksHtml() + '</div><div class="rk-right"><b>rnatnaree</b><span>arc-ir-01</span><span id="dclk">' + fakeClock() + "</span></div></nav>";
   }
 function rkPopHtml() {
     var m = RK_MENUS[rkPop], b = $("rkm-" + rkPop);

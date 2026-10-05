@@ -28,7 +28,6 @@ import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
 import { advanceStep, firstUnmetStep, reachedUnlocks } from "../../middleware/gate.js";
 import { bindM05Access } from "./access.js";
 import { bindM05Cipher } from "./cipher.js";
-import { bindM05Crack } from "./crack.js";
 import { bindM05Portal } from "./portal.js";
 import { bindM05Rdc } from "./rdc.js";
 import { bindM05Recon } from "./recon.js";
@@ -60,7 +59,7 @@ const portalMinOf = (data: M05QuestData): number => {
 
 const restoreMirrors = (data: M05QuestData): void => {
     setM05TeamOpen(data.vaultRevisited);
-    setM05ArchiveOpen(data.teamPageSeen);
+    setM05ArchiveOpen(data.changeRecordRead);
     setM05PortalUser(data.portalLoggedIn ? M05_PORTAL_LOGIN_USER : "");
     setM05PortalMin(portalMinOf(data));
     setM05RdcState({
@@ -100,7 +99,6 @@ export const onObjectivesStartM05 = (quest: M05Quest): void => {
     registerReportTemplate(M05_REPORT_SPEC);
 
     bindM05Recon(quest);
-    bindM05Crack(quest);
     bindM05Portal(quest);
     bindM05Cipher(quest);
     bindM05Rdc(quest);

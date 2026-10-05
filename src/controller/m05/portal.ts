@@ -21,6 +21,7 @@ import type { M05QuestData } from "../../content/m05/state.js";
 import { getM05PortalUser, setM05PortalMin, setM05PortalUser } from "../../context/m05/progress.js";
 import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
+import { settleEvidence } from "./evidence.js";
 import type { M05Quest } from "./types.js";
 
 const MIN_FLAGS: Readonly<Record<M05PortalKind, keyof M05QuestData>> = {
@@ -69,6 +70,7 @@ const retryPortalLogin = (quest: M05Quest): void => {
 };
 
 export const settleM05 = (quest: M05Quest): void => {
+    settleEvidence(quest);
     retryPortalLogin(quest);
 
     let advanced = true;

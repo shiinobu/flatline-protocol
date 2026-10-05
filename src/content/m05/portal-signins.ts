@@ -27,7 +27,7 @@ const SCANNER_ADDRESSES: readonly string[] = [
     "62.204.41.16",
 ];
 
-const STORM_ACCOUNTS: readonly string[] = ["g.desouza", "admin", "administrator", "t.nair", "r.wong"];
+const STORM_ACCOUNTS: readonly string[] = ["rnatnaree", "admin", "administrator", "valerie.dizon", "rafael.bautista"];
 
 const FOOTHOLD_SESSIONS: readonly (readonly [string, number, number])[] = [
     ["2026-08-11", 0, 41],
@@ -82,7 +82,7 @@ export const buildPortalSignins = (): readonly PortalSignin[] => {
         if (weekday > 0 && weekday < 6) {
             for (const account of M05_PORTAL_ACCOUNTS) {
                 if (account.svc || day < (account.from ?? "") || day > (account.to ?? "")) continue;
-                if (account.a === "g.desouza" && day === "2026-08-19") continue;
+                if (account.a === "rnatnaree" && day === "2026-08-19") continue;
                 if (next() > (account.p ?? 0)) continue;
 
                 const home = next() > 0.74;
@@ -94,9 +94,9 @@ export const buildPortalSignins = (): readonly PortalSignin[] => {
         if (weekday === 0) add(day, 3, 10, "svc-backup", HQ_ADDRESS, HQ_PLACE, true);
     }
 
-    add("2026-08-19", 7, 55, "g.desouza", HQ_ADDRESS, HQ_PLACE, true);
-    add("2026-08-02", 11, 14, "g.lim", "60.54.118.9", "Residential, Petaling Jaya", true);
-    add("2026-07-18", 7, 41, "t.nair", "118.201.54.77", "Hotel, Kuala Lumpur", true);
+    add("2026-08-19", 7, 55, "rnatnaree", HQ_ADDRESS, HQ_PLACE, true);
+    add("2026-08-02", 11, 14, "gteoh", "60.54.118.9", "Residential, Petaling Jaya", true);
+    add("2026-07-18", 7, 41, "valerie.dizon", "118.201.54.77", "Hotel, Kuala Lumpur", true);
 
     for (let attempt = 0; attempt < STORM_ATTEMPTS; attempt++) {
         const source = SCANNER_ADDRESSES[Math.floor(next() * SCANNER_ADDRESSES.length)];
@@ -104,7 +104,7 @@ export const buildPortalSignins = (): readonly PortalSignin[] => {
     }
 
     for (const [day, hour, minute] of FOOTHOLD_SESSIONS) {
-        add(day, hour, minute, "g.desouza", M05_FOOTHOLD_SOURCE_IP, UNRESOLVED_PLACE, true);
+        add(day, hour, minute, "rnatnaree", M05_FOOTHOLD_SOURCE_IP, UNRESOLVED_PLACE, true);
     }
 
     rows.sort((left, right) => (left.t < right.t ? -1 : left.t > right.t ? 1 : 0));

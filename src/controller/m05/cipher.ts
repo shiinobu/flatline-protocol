@@ -1,7 +1,9 @@
 import { appendBacktraceLogs } from "../../applications/backtrace-state.js";
 import { SEALED_OPENED_EVENT, type SealedOpenedPayload } from "../../content/global/sealed.js";
 import {
+    M05_ARTIFACT_FORMAT,
     M05_ARTIFACT_GRETA_NOTE,
+    M05_ARTIFACT_HANDOVER,
     M05_ARTIFACT_ROLLBACK,
     M05_ARTIFACT_SAMPLE,
 } from "../../content/m05/sealed.js";
@@ -16,6 +18,18 @@ export const bindM05Cipher = (quest: M05Quest): void => {
         if (data.mission !== M05_MISSION) return;
 
         trace("M05", `probe:cipher-opened id=${data.id}`);
+
+        if (data.id === M05_ARTIFACT_HANDOVER && !quest.Data.handoverDecrypted) {
+            quest.SetData("handoverDecrypted", true);
+            settleM05(quest);
+            return;
+        }
+
+        if (data.id === M05_ARTIFACT_FORMAT && !quest.Data.formatDecrypted) {
+            quest.SetData("formatDecrypted", true);
+            settleM05(quest);
+            return;
+        }
 
         if (data.id === M05_ARTIFACT_ROLLBACK && !quest.Data.rollbackOpened) {
             quest.SetData("rollbackOpened", true);

@@ -12,8 +12,10 @@ export const M05_I18N_KEY = {
     MAIL_PREMATURE_OUTRO: "M05.MAIL.PREMATURE.OUTRO",
     MAIL_PREMATURE_HINT_VAULT: "M05.MAIL.PREMATURE.HINT_VAULT",
     MAIL_PREMATURE_HINT_TEAM: "M05.MAIL.PREMATURE.HINT_TEAM",
+    MAIL_PREMATURE_HINT_CHANGE: "M05.MAIL.PREMATURE.HINT_CHANGE",
     MAIL_PREMATURE_HINT_ARCHIVE: "M05.MAIL.PREMATURE.HINT_ARCHIVE",
     MAIL_PREMATURE_HINT_IDENTITY: "M05.MAIL.PREMATURE.HINT_IDENTITY",
+    MAIL_PREMATURE_HINT_HANDOVER: "M05.MAIL.PREMATURE.HINT_HANDOVER",
     MAIL_PREMATURE_HINT_CREDENTIAL: "M05.MAIL.PREMATURE.HINT_CREDENTIAL",
     MAIL_PREMATURE_HINT_PORTAL: "M05.MAIL.PREMATURE.HINT_PORTAL",
     MAIL_PREMATURE_HINT_FOOTHOLD: "M05.MAIL.PREMATURE.HINT_FOOTHOLD",
@@ -73,9 +75,9 @@ Localization.registerAll({
         [M05_I18N_KEY.MAIL_TIP_SUBJECT]: "the note in the vault",
         [M05_I18N_KEY.MAIL_TIP_CONTENT]: [
             "Go back to the vault and open the hospital project again.",
-            "There is a scan in there of a sticky note somebody wrote by hand, signed with one letter.",
+            "There is a scan in there of a sticky note somebody wrote by hand, signed with three initials.",
             "",
-            "That letter is a person. They still have a name, a job title, and a reason they are no longer listed anywhere.",
+            "Those initials are a person. They still have a name, a job title, and a reason they are no longer listed anywhere.",
             "Find out who they are, and find out who decided they were the cause.",
         ].join("\n"),
 
@@ -88,9 +90,14 @@ Localization.registerAll({
             "A hospital lists the people who run its systems. Find that page.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_ARCHIVE]:
             "Look at who is missing, not at who is there. Pages change; find what this one used to say.",
-        [M05_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY]: "There is more than one G on that staff page.",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_CHANGE]:
+            "The page that lists the team also points at a vacancy. A vacancy has a reference, and a reference has a record.",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY]:
+            "Match the initials to the former names. Only one of them held the seat that is now a vacancy.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_CREDENTIAL]:
-            "People leave the same habits in other people's breaches.",
+            "A recovery format is sealed too. It was filed under the reference that closed the role.",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_HANDOVER]:
+            "A note was sealed for whoever held the seat. A cipher desk opens it for the right account name.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_PORTAL]:
             "The page that lists the team also tells staff where to sign in from outside.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_FOOTHOLD]:
@@ -125,7 +132,7 @@ Localization.registerAll({
             "Records pulled from: {{archive}}",
         ].join("\n"),
 
-        [M05_I18N_KEY.DOC_FOUND_NOTE]: "{{label}} -- what does it mean? -- G",
+        [M05_I18N_KEY.DOC_FOUND_NOTE]: "{{label}} -- what does it mean? -- R.a.N",
         [M05_I18N_KEY.DOC_USB_HISTORY]: [
             "{{usbDate}} {{usbTime}} UTC  mass storage attached  label={{label}}",
             "{{usbDate}} {{usbTime}} UTC  autorun handler invoked",
@@ -146,10 +153,10 @@ Localization.registerAll({
         [M05_I18N_KEY.OSINT_WHOIS_HOSPITAL_CONTACT]: "PacificCare Health — Network Operations",
 
         [M05_I18N_KEY.LOG_DISMISSED_1]:
-            "Two names left that staff page between the snapshot and the live page. Only one of them was pushed.",
+            "Roxanne Anindita Natnaree held the Systems Administrator seat on 30 June and was gone by 18 August. SA-0826 reopens that exact seat.",
         [M05_I18N_KEY.LOG_GRETA_1]:
-            "Greta de Souza, systems administrator. Her last post is August 17th: they want her to sign something.",
-        [M05_I18N_KEY.LOG_GRETA_2]: "After that the account goes quiet. People rarely stop posting by choice.",
+            "Her public posts keep coming back to OT3, to the night of 0814, and to old access that outlives a migration.",
+        [M05_I18N_KEY.LOG_GRETA_2]: "None of it is a password. It tells you which of the hospital's own records to read again.",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "The first sign-in with her credentials from outside came from 194.36.108.20 on 2026-08-11 at 00:41 UTC.",
         [M05_I18N_KEY.LOG_SEPARATION_1]:
@@ -189,9 +196,9 @@ Localization.registerAll({
         [M05_I18N_KEY.MAIL_TIP_SUBJECT]: "保险库里的那张便条",
         [M05_I18N_KEY.MAIL_TIP_CONTENT]: [
             "回到保险库，再打开那个医院项目。",
-            "里面有一张扫描件，是某人手写的便条，签名只有一个字母。",
+            "里面有一张扫描件，是某人手写的便条，签名是三个首字母。",
             "",
-            "那个字母是一个人。她仍然有名字、有职位，也有一个再也不出现在任何名单上的原因。",
+            "那几个首字母是一个人。她仍然有名字、有职位，也有一个再也不出现在任何名单上的原因。",
             "查出她是谁，再查出是谁认定她就是原因。",
         ].join("\n"),
 
@@ -201,8 +208,6 @@ Localization.registerAll({
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_VAULT]: "从保险库开始。那张便条已经在你的证据里了。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_TEAM]: "医院会列出负责系统的人。找到那张页面。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_ARCHIVE]: "看谁不见了，而不是看谁还在。页面会改，去找它以前写的是什么。",
-        [M05_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY]: "那张员工名单上，姓 G 的不只一个。",
-        [M05_I18N_KEY.MAIL_PREMATURE_HINT_CREDENTIAL]: "人总会把同样的习惯留在别人的泄露数据里。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_PORTAL]: "列出团队的那张页面，也告诉员工从外部在哪里登录。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_FOOTHOLD]: "登录日志会显示谁从哪里来。有一个来源不属于这里的任何人。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_SEPARATION]: "一个已经离开的人，会留下一张工单。",
@@ -234,7 +239,7 @@ Localization.registerAll({
             "记录来源：{{archive}}",
         ].join("\n"),
 
-        [M05_I18N_KEY.DOC_FOUND_NOTE]: "{{label}} —— 这是什么意思？—— G",
+        [M05_I18N_KEY.DOC_FOUND_NOTE]: "{{label}} —— 这是什么意思？—— R.a.N",
         [M05_I18N_KEY.DOC_USB_HISTORY]: [
             "{{usbDate}} {{usbTime}} UTC  已接入大容量存储  label={{label}}",
             "{{usbDate}} {{usbTime}} UTC  已调用自动运行处理程序",
@@ -249,9 +254,6 @@ Localization.registerAll({
         [M05_I18N_KEY.OSINT_LYNX_GARETH_2]: "之后再没发过。他的门禁卡在这些事发生之前就已经失效了。",
         [M05_I18N_KEY.OSINT_WHOIS_HOSPITAL_CONTACT]: "PacificCare 医院 — 网络运维",
 
-        [M05_I18N_KEY.LOG_DISMISSED_1]: "两个名字在快照和实时页面之间从那张员工页上消失了。只有一个是被推下去的。",
-        [M05_I18N_KEY.LOG_GRETA_1]: "Greta de Souza，系统管理员。她最后一条动态是 8 月 17 日：他们要她签点东西。",
-        [M05_I18N_KEY.LOG_GRETA_2]: "那之后账号就安静了。人很少会自己选择不再发帖。",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "用她的凭据从外部的第一次登录来自 194.36.108.20，时间是 2026-08-11 00:41 UTC。",
         [M05_I18N_KEY.LOG_SEPARATION_1]: "她的账号注销请求在 2026-08-19 提出，却从未执行。",

@@ -4,8 +4,9 @@ export interface M05QuestData {
     readonly teamPageSeen: boolean;
     readonly staffArchiveCompared: boolean;
     readonly gretaProfiled: boolean;
-    readonly credentialFound: boolean;
-    readonly passwordCracked: boolean;
+    readonly changeRecordRead: boolean;
+    readonly handoverOpened: boolean;
+    readonly policyRead: boolean;
     readonly portalLoggedIn: boolean;
     readonly footholdFlagged: boolean;
     readonly separationFound: boolean;
@@ -19,6 +20,12 @@ export interface M05QuestData {
     readonly memoRead: boolean;
     readonly ticketRead: boolean;
     readonly reportSent: boolean;
+    readonly changeSeen: boolean;
+    readonly captureEarlySeen: boolean;
+    readonly captureLateSeen: boolean;
+    readonly gretaSeen: boolean;
+    readonly handoverDecrypted: boolean;
+    readonly formatDecrypted: boolean;
     readonly footholdSeen: boolean;
     readonly separationSeen: boolean;
     readonly controlsSeen: boolean;
@@ -38,8 +45,9 @@ export const createM05Data = (): M05QuestData => ({
     teamPageSeen: false,
     staffArchiveCompared: false,
     gretaProfiled: false,
-    credentialFound: false,
-    passwordCracked: false,
+    changeRecordRead: false,
+    handoverOpened: false,
+    policyRead: false,
     portalLoggedIn: false,
     footholdFlagged: false,
     separationFound: false,
@@ -53,6 +61,12 @@ export const createM05Data = (): M05QuestData => ({
     memoRead: false,
     ticketRead: false,
     reportSent: false,
+    changeSeen: false,
+    captureEarlySeen: false,
+    captureLateSeen: false,
+    gretaSeen: false,
+    handoverDecrypted: false,
+    formatDecrypted: false,
     footholdSeen: false,
     separationSeen: false,
     controlsSeen: false,

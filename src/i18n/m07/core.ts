@@ -198,7 +198,7 @@ Localization.registerAll({
             "",
             "Thank you anyway. I don't think you did it for me, and I'm grateful either way.",
             "",
-            "-- G.",
+            "-- R.a.N",
         ].join("\n"),
         [M07_I18N_KEY.MAIL_GRETA_HANDOFF]: [
             "You don't know me. I was the name in the incident report.",
@@ -211,7 +211,7 @@ Localization.registerAll({
             "",
             "I am not clear yet. But somebody official has my statement, and it is the one I actually made.",
             "",
-            "-- G.",
+            "-- R.a.N",
         ].join("\n"),
 
         [M07_I18N_KEY.MAIL_TRACE_SUBJECT]: "SYSTEM ALERT — read attempt logged",
@@ -383,7 +383,7 @@ Localization.registerAll({
             "",
             "还是谢谢你。我想你并不是为我才做这件事的，但不管怎样我都感谢。",
             "",
-            "—— G.",
+            "—— R.a.N",
         ].join("\n"),
         [M07_I18N_KEY.MAIL_GRETA_HANDOFF]: [
             "你并不认识我。我就是事件报告里的那个名字。",
@@ -396,7 +396,7 @@ Localization.registerAll({
             "",
             "我还没有被洗清。但总算有个正式的人手里有我的陈述，而且是我真正说过的那一份。",
             "",
-            "—— G.",
+            "—— R.a.N",
         ].join("\n"),
 
         [M07_I18N_KEY.MAIL_TRACE_SUBJECT]: "系统告警 — 已记录读取尝试",

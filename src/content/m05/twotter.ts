@@ -5,21 +5,25 @@ import { sealText } from "../../components/text-seal.js";
 import { M05_TWOTTER_KEY } from "../../i18n/m05/twotter.js";
 import { M01_LEDGERVAULT_PROJECT_LABEL } from "../global/case.js";
 import { M05_GRETA_NOTE_PLAINTEXT } from "./sealed.js";
-import { M05_GRETA_PASSWORD } from "./network.js";
+import { M05_GRETA_LEGACY_PASSWORD } from "./network.js";
 
-export const M05_GRETA_HANDLE = "@g.desouza";
-export const M05_GARETH_HANDLE = "@g.lim";
-export const M05_GRETA_FIRST_NAME = "Greta";
-export const M05_GRETA_LAST_NAME = "de Souza";
-export const M05_GARETH_FIRST_NAME = "Gareth";
-export const M05_GARETH_LAST_NAME = "Lim";
+export const M05_GRETA_HANDLE = "@rnatnaree";
+export const M05_GARETH_HANDLE = "@gteoh";
+export const M05_GRETA_FIRST_NAME = "Roxanne";
+export const M05_GRETA_LAST_NAME = "Anindita Natnaree";
+export const M05_GARETH_FIRST_NAME = "Gideon";
+export const M05_GARETH_LAST_NAME = "Bayu Teoh";
 export const M05_GRETA_FULL_NAME = `${M05_GRETA_FIRST_NAME} ${M05_GRETA_LAST_NAME}`;
 export const M05_GARETH_FULL_NAME = `${M05_GARETH_FIRST_NAME} ${M05_GARETH_LAST_NAME}`;
-export const M05_GRETA_TWOTTER_USERNAME = "g.desouza";
-export const M05_GARETH_TWOTTER_USERNAME = "g.lim";
-export const M05_GRETA_LYNX_INPUTS: readonly string[] = [M05_GRETA_HANDLE, M05_GRETA_FULL_NAME];
+export const M05_GRETA_TWOTTER_USERNAME = "rnatnaree";
+export const M05_GARETH_TWOTTER_USERNAME = "gteoh";
+export const M05_GRETA_LYNX_INPUTS: readonly string[] = [
+    M05_GRETA_HANDLE,
+    M05_GRETA_TWOTTER_USERNAME,
+    M05_GRETA_FULL_NAME,
+];
 
-export const M05_GRETA_SEALED_HEX = sealText(M05_GRETA_NOTE_PLAINTEXT, M05_GRETA_PASSWORD);
+export const M05_GRETA_SEALED_HEX = sealText(M05_GRETA_NOTE_PLAINTEXT, M05_GRETA_LEGACY_PASSWORD);
 
 const post = (key: string, likes: number, vars?: Record<string, string>): PersonaPost => ({
     content: Localization.t(key, vars),
@@ -47,12 +51,14 @@ export const buildM05GretaPersona = (): PersonaSpec => ({
         post(M05_TWOTTER_KEY.GRETA_POST_6, 5),
         post(M05_TWOTTER_KEY.GRETA_POST_7, 12),
         post(M05_TWOTTER_KEY.GRETA_POST_8, 8),
+        post(M05_TWOTTER_KEY.GRETA_POST_18, 7),
         post(M05_TWOTTER_KEY.GRETA_POST_9, 7),
         post(M05_TWOTTER_KEY.GRETA_POST_10, 3),
         post(M05_TWOTTER_KEY.GRETA_POST_11, 11, { label: M01_LEDGERVAULT_PROJECT_LABEL }),
         post(M05_TWOTTER_KEY.GRETA_POST_12, 4),
         post(M05_TWOTTER_KEY.GRETA_POST_13, 14),
         post(M05_TWOTTER_KEY.GRETA_POST_14, 21),
+        post(M05_TWOTTER_KEY.GRETA_POST_17, 17),
         post(M05_TWOTTER_KEY.GRETA_POST_15, 10),
         post(M05_TWOTTER_KEY.GRETA_POST_16, 5),
     ],

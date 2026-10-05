@@ -19,12 +19,12 @@ const EXPORTS_LAB_HOST = "exports-lab.pacificcare-health.org";
 const EXPORTS_LAB_SESSION_KEY = "flatline.exportsLab.session";
 const EXPORTS_LAB_LOGIN_EVENT = "flatline.exportsLab.login";
 const EXPORTS_LAB_NUMBER_EVENT = "flatline.exportsLab.number";
-const EXPORTS_LAB_USER = "g.desouza";
+const EXPORTS_LAB_USER = "rnatnaree";
 const EXPORTS_LAB_PASSWORD = "Marigold2019";
 const EXPORTS_LAB_TOKEN_KEY = "L-2608-03";
 const EXPORTS_LAB_TOKEN_HEX =
     "2b0356534357584a5276605344595f425c577e1d030f0a0914021d7d1b0a180116190a70046a1f040608151d037d190857425b005941611d03";
-const EXPORTS_LAB_TOKEN_PLAIN = "g.desouza:Marigold2019:192.168.1.4:CHG-2608-014:arc-ir-01";
+const EXPORTS_LAB_TOKEN_PLAIN = "rnatnaree:Marigold2019:192.168.1.4:CHG-2608-014:arc-ir-01";
 const EXPORTS_LAB_PLAN_KEY = "CHG-2606-022";
 const EXPORTS_LAB_PLAN_HEX =
     "11272b415057535d0d405e532d680465751b02001d061f02717a690d60531d534351505e266823444053534242424b123031294e12575e520d425741372735481244555b424653502f2d6a40575259570d555c542c3a24485f535e420d524b127178751b1f06071b1c051c1214202e415716445e444312452a262342451659450d5f42572d6467405358455741105351202732434616535a42434740263b674c4053105e485c56126b3b2248127e621b1a191c";
@@ -143,9 +143,9 @@ const EXPORTS_LAB_SCRIPT = [
     "number:function(){return flatlineLabNumber(42);},",
     "object:function(){return flatlineLabObject(21);},",
     "eventNumber:function(){return flatlineLabNumberEvent(7);},",
-    'loginDirectGood:function(){return flatlineLabLoginDirect("g.desouza","Marigold2019");},',
-    'loginDirectBad:function(){return flatlineLabLoginDirect("g.desouza","wrong");},',
-    'loginEvent:function(){return flatlineLabLoginEvent("g.desouza","Marigold2019");},',
+    'loginDirectGood:function(){return flatlineLabLoginDirect("rnatnaree","Marigold2019");},',
+    'loginDirectBad:function(){return flatlineLabLoginDirect("rnatnaree","wrong");},',
+    'loginEvent:function(){return flatlineLabLoginEvent("rnatnaree","Marigold2019");},',
     "reset:function(){return flatlineLabReset();},",
     "long120:function(){return flatlineLabLong(LONG120);},",
     "long360:function(){return flatlineLabLong(LONG360);},",
