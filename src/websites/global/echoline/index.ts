@@ -7,6 +7,7 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import { M05_ECHOLINE_CAPTURE, type StaffRow } from "../../../content/m05/echoline.js";
+import { M05_STAFF_ROLE_KEYS } from "../../../content/m05/hospital.js";
 import { M05_ECHOLINE_DOMAIN, M05_REMOTE_DOMAIN, M05_HOSPITAL_MAIL_DOMAIN } from "../../../content/m05/network.js";
 import {
     M06_ARCHIVE_AGENT_NAME,
@@ -30,13 +31,6 @@ import indexPage from "./index-page.html";
 import snapshotPage from "./snapshot.html";
 import snapshotRecordPage from "./snapshot-record.html";
 
-const ROLE_KEYS: Readonly<Record<StaffRow["roleKey"], string>> = {
-    sysadmin: M05_SITE_KEY.EL_ROLE_SYSADMIN,
-    contractor: M05_SITE_KEY.EL_ROLE_CONTRACTOR,
-    servicedesk: M05_SITE_KEY.EL_ROLE_SERVICEDESK,
-    network: M05_SITE_KEY.EL_ROLE_NETWORK,
-};
-
 interface CaptureGroup {
     readonly subject: string;
     readonly captures: readonly { readonly path: string; readonly date: string }[];
@@ -53,7 +47,7 @@ const renderStaffRows = (staff: readonly StaffRow[]): string =>
     staff
         .map(
             (entry) =>
-                `<tr><td>${escape(entry.name)}</td><td>${escape(siteT(ROLE_KEYS[entry.roleKey]))}</td><td class="c">${escape(entry.account)}</td></tr>`,
+                `<tr><td>${escape(entry.name)}</td><td>${escape(siteT(M05_STAFF_ROLE_KEYS[entry.roleKey]))}</td><td class="c">${escape(entry.account)}</td></tr>`,
         )
         .join("");
 
@@ -155,14 +149,26 @@ const gated = (
 
 const anyCaptureOpen = (): boolean => m05CapturesOpen() || m06CapturesOpen();
 
+const indexPageDefinition = (): DynamicWebsitePageDefinition => ({
+    path: "/",
+    seo: true,
+    metadata: (context: PageContext): PageMetadata | null => {
+        if (!anyCaptureOpen()) return context.searchStr === undefined ? notFoundMetadata() : null;
+
+        const insecure = context.searchStr === undefined ? requireHttps(context) : null;
+
+        return insecure ?? { title: "Echoline Archive", description: "Archived capture.", html: renderIndex() };
+    },
+});
+
 @RegisterWebsite
 export class EcholineArchiveWebsite extends Website {
-    SiteName = "Echoline Archive";
+    SiteName = "Echoline Web Archive";
     Host = M05_ECHOLINE_DOMAIN;
     Icon = "";
 
     Pages: DynamicWebsitePageDefinition[] = [
-        gated("/", "Echoline Archive", anyCaptureOpen, renderIndex),
+        indexPageDefinition(),
         ...gateMissionPages("m05", [
             gated(M05_ECHOLINE_CAPTURE.path, "Archived capture", isM05ArchiveOpen, () =>
                 renderStaffSnapshot(M05_ECHOLINE_CAPTURE.date, M05_ECHOLINE_CAPTURE.staff),

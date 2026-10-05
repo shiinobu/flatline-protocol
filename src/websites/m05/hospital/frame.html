@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="{{t:M05.SITE.HS.LANG}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/*__TITLE__*/</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f4f8f7;--card:#ffffff;--ink:#1c2b2a;--mute:#4a5a58;--green:#1f8a6f;--deep:#135846;--line:#d6e3e0;--soft:#e7f2ef;--focus:#2a6fb0;--warn:#a5481f}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Arial,sans-serif;line-height:1.6}
+a{color:var(--deep)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+header{background:var(--card);border-bottom:3px solid var(--green)}
+.bar{max-width:920px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand svg{width:34px;height:34px;flex:none}
+.brand b{display:block;font-size:17px;color:var(--green)}
+.brand span{display:block;font-size:11px;color:var(--mute)}
+nav{margin-left:auto;display:flex;gap:4px 18px;flex-wrap:wrap;font-size:14px}
+nav a{text-decoration:none;color:var(--ink);padding:4px 0;border-bottom:2px solid transparent}
+nav a:hover{border-bottom-color:var(--green)}
+nav a.on{border-bottom-color:var(--green);font-weight:600}
+main{max-width:920px;margin:0 auto;padding:30px 22px 20px}
+h1{font-size:26px;margin:0 0 6px;color:var(--green)}
+h2{font-size:18px;margin:26px 0 10px;color:var(--deep)}
+.lead{color:var(--mute);margin:0 0 20px}
+.alert{background:#1a0e0e;border:1px solid #5c1f1f;color:#ffb3b3;font-family:Consolas,"Courier New",monospace;padding:18px 20px;margin-bottom:28px;max-width:660px}
+.alert-title{color:#ff6b6b;font-weight:bold;letter-spacing:.5px;margin-bottom:8px}
+.alert p{margin:0}
+.alert img{display:block;max-width:100%;margin-top:14px;border:1px solid #5c1f1f}
+.alert .alert-note{color:#c98a8a;font-size:12px;margin-top:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.card h3{margin:0 0 4px;font-size:16px}
+.card h3 a{color:var(--green);text-decoration:none}
+.card p{margin:0;font-size:14px;color:var(--mute)}
+.post{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 20px;margin-bottom:14px}
+.post h3{margin:0 0 2px;font-size:17px}
+.post time{display:block;font-size:12px;color:var(--mute);margin-bottom:8px}
+.post p{margin:0}
+.meta{font-size:13px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--mute);background:var(--soft);font-weight:600}
+td.ok{color:var(--deep)}
+td.closed{color:var(--warn);font-weight:600}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:13px}
+ul.req{margin:8px 0 0;padding-left:20px}
+.note{font-size:13px;color:var(--mute);margin:16px 0 0}
+.form{max-width:340px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px}
+.form label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+.form input{width:100%;padding:8px 10px;border:1px solid #b9cbc7;border-radius:4px;font-size:14px;font-family:inherit}
+.form button{margin-top:16px;width:100%;padding:9px;background:var(--green);color:#fff;border:0;border-radius:4px;font-size:14px;cursor:pointer}
+.form button:hover{background:var(--deep)}
+.err{min-height:20px;margin-top:12px;font-size:13px;color:var(--warn)}
+.banner{background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:14px 18px}
+footer{max-width:920px;margin:0 auto;padding:18px 22px 36px;font-size:12px;color:var(--mute);border-top:1px solid var(--line)}
+footer a{margin-left:12px}
+@media(max-width:560px){main{padding:22px 14px}.bar{padding:12px 14px}nav{margin-left:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+<div class="bar">
+<a class="brand" href="https://pacificcare-health.org/"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28C3 14 12 4 29 3c1 16-7 26-21 26z" fill="#35c68c"/><path d="M7 25c4-8 9-12 17-16" fill="none" stroke="#06231b" stroke-width="2" stroke-linecap="round"/></svg><span><b>PacificCare Health</b><span>{{t:M05.SITE.HS.TAGLINE}}</span></span></a>
+<nav aria-label="Main">/*__NAV__*/</nav>
+</div>
+</header>
+<main>/*__MAIN__*/</main>
+<footer>{{t:M05.SITE.HS.FOOTER}}/*__FOOTER_LINKS__*/</footer>
+</body>
+</html>

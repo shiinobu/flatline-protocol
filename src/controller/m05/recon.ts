@@ -10,7 +10,7 @@ import {
 } from "../../content/m05/network.js";
 import { M05_LOG_DISMISSED, M05_LOG_GRETA } from "../../content/m05/quest-logs.js";
 import { M05_GRETA_LYNX_INPUTS } from "../../content/m05/twotter.js";
-import { setM05ArchiveOpen } from "../../context/m05/progress.js";
+import { setM05ArchiveOpen, setM05TeamOpen } from "../../context/m05/progress.js";
 import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M05Quest } from "./types.js";
@@ -30,7 +30,7 @@ const bindVault = (quest: M05Quest): void => {
         if (data.folder !== M01_VAULT_PROJECT_FOLDER) return;
 
         trace("M05", "probe:vault-revisited");
-        advanceStep(quest, M05_GATES, "vaultRevisited");
+        advanceStep(quest, M05_GATES, "vaultRevisited", () => setM05TeamOpen(true));
     });
 };
 

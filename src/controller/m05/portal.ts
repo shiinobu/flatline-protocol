@@ -18,7 +18,7 @@ import {
     M05_LOG_SEPARATION,
 } from "../../content/m05/quest-logs.js";
 import type { M05QuestData } from "../../content/m05/state.js";
-import { setM05PortalMin, setM05PortalUser } from "../../context/m05/progress.js";
+import { getM05PortalUser, setM05PortalMin, setM05PortalUser } from "../../context/m05/progress.js";
 import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M05Quest } from "./types.js";
@@ -62,7 +62,15 @@ const seenReady = (quest: M05Quest, step: M05Step): boolean => {
     return false;
 };
 
+const retryPortalLogin = (quest: M05Quest): void => {
+    if (getM05PortalUser() !== M05_PORTAL_LOGIN_USER) return;
+
+    advanceStep(quest, M05_GATES, "portalLoggedIn", () => recomputeMin(quest));
+};
+
 export const settleM05 = (quest: M05Quest): void => {
+    retryPortalLogin(quest);
+
     let advanced = true;
     while (advanced) {
         advanced = false;

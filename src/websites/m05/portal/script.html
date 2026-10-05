@@ -1,0 +1,551 @@
+var BOOT = /*__PORTAL_BOOT__*/{};
+var DATA = /*__PORTAL_DATA__*/{};
+var ZH = /*__PORTAL_ZH__*/{};
+var ZH_ON = Object.keys(ZH).length > 0;
+var ZH_RE = [];
+Object.keys(ZH).forEach(function (k) {
+  var names = [], src;
+  if (k.indexOf("{") < 0) return;
+  src = k.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{([#!]?)(\w+)\}/g, function (m, kind, n) { names.push(n); return kind === "#" ? "(\\d[\\d,]*)" : kind === "!" ? "(\\S+)" : "(.+?)"; });
+  ZH_RE.push({ re: new RegExp("^" + src + "$"), names: names, to: ZH[k] });
+});
+function unesc(s) { return String(s).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&"); }
+function Z(s) {
+  var i, m, out;
+  if (!ZH_ON || typeof s !== "string") return s;
+  if (Object.prototype.hasOwnProperty.call(ZH, s)) return ZH[s];
+  for (i = 0; i < ZH_RE.length; i++) {
+    m = ZH_RE[i].re.exec(s);
+    if (!m) continue;
+    out = ZH_RE[i].to.replace(/\{[#!]?(\w+)\}/g, function (tok, n) {
+      var j = ZH_RE[i].names.indexOf(n);
+      return j < 0 ? tok : Z(m[j + 1]);
+    });
+    return out;
+  }
+  return s;
+}
+function zhHtml(html) {
+  return html.split(/(<[^>]*>)/).map(function (seg, i) {
+    var lead, trail, core;
+    if (i % 2) return seg.replace(/(\s(?:placeholder|aria-label|title|alt)=")([^"]*)(")/g, function (m, a, v, b) { return a + esc(Z(unesc(v))) + b; });
+    if (!/[A-Za-z]/.test(seg)) return seg;
+    lead = seg.match(/^\s*/)[0];
+    trail = seg.match(/\s*$/)[0];
+    core = seg.slice(lead.length, seg.length - trail.length);
+    return lead + esc(Z(unesc(core))) + trail;
+  }).join("");
+}
+function put(el, html) { el.innerHTML = ZH_ON ? zhHtml(html) : html; }
+var TODAY = DATA.today;
+var DAYS = 88;
+var PER = 25;
+var MON_HOST = DATA.rdcHost;
+var ROLLBACK_HEX = DATA.rollbackHex;
+var TABS = [
+    { id: "overview", name: "Overview", min: 0, g: "Monitor", ic: "overview" },
+    { id: "signins", name: "Sign-ins", min: 0, g: "Monitor", ic: "signins" },
+    { id: "directory", name: "Directory", min: 1, g: "People", ic: "directory" },
+    { id: "tickets", name: "Tickets", min: 1, g: "People", ic: "tickets" },
+    { id: "config", name: "Config", min: 2, g: "Infrastructure", ic: "config" },
+    { id: "systems", name: "Systems", min: 4, g: "Infrastructure", ic: "systems" },
+    { id: "network", name: "Network", min: 4, g: "Infrastructure", ic: "network" }
+  ];
+var PROFILE_TAB = { id: "profile", name: "Profile", g: "Account", ic: "profile" };
+var PAGE_NAME = { overview: "Overview", signins: "Sign-ins", directory: "Directory", tickets: "Tickets", config: "Config", systems: "Systems", network: "Network", profile: "Profile" };
+var ACCTS = DATA.accts;
+var HRFEED = DATA.hr;
+var SYSTEMS = DATA.systems;
+var RULES = DATA.rules;
+var CHG = DATA.chg;
+var TICKETS = DATA.tickets;
+var LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28C3 14 12 4 29 3c1 16-7 26-21 26z" fill="#35c68c"/><path d="M7 25c4-8 9-12 17-16" fill="none" stroke="#06231b" stroke-width="2" stroke-linecap="round"/></svg>';
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var st = {
+  view: BOOT.view || "login", user: BOOT.user || "", tab: BOOT.view === "contractor" ? "profile" : "overview", min: BOOT.min || 0,
+  loginErr: "", fresh: {}, pulse: {}, flagged: {}, sent: {},
+  si: blankSi("list"), srcQ: "", srcSort: { k: "n", d: -1 }, cf: { a: "2026-08-30", b: "2026-09-20" }, tk: "", sheet: "", drawn: false
+};
+function blankSi(view) { return { acct: "", src: "", ok: "", q: "", fl: false, page: 0, view: view }; }
+function utc(ds) { var p = ds.slice(0, 10).split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function days(a, b) { return Math.round((utc(b) - utc(a)) / 86400000); }
+function dateAt(i) { var t = new Date(Date.UTC(2026, 6, 1) + i * 86400000); return t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate()); }
+function dayIdx(ds) { return days("2026-07-01", ds.slice(0, 10)); }
+function fmtDay(ds) {
+  var t = new Date(utc(ds));
+  return ZH_ON ? (t.getUTCMonth() + 1) + "月" + t.getUTCDate() + "日" : t.getUTCDate() + " " + MONTHS[t.getUTCMonth()];
+}
+function fmtLong(ds) {
+  var t = new Date(utc(ds));
+  if (ZH_ON) return t.getUTCFullYear() + "年" + (t.getUTCMonth() + 1) + "月" + t.getUTCDate() + "日 周" + "日一二三四五六".charAt(t.getUTCDay());
+  return WEEK[t.getUTCDay()] + ", " + t.getUTCDate() + " " + MONTHS[t.getUTCMonth()] + " " + t.getUTCFullYear();
+}
+function acct(a) { return ACCTS.filter(function (q) { return q.a === a; })[0]; }
+function acctName(a) { var x = acct(a); return x ? x.n : "Unknown account"; }
+function hue(s) { var h = 0, i; for (i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+function uav(u, cls) {
+    var p = u.split(/[.\-_]/);
+    return '<span class="av ' + (cls || "") + '" style="--h:' + hue(u) + '">' + esc((p[0].charAt(0) + (p[1] ? p[1].charAt(0) : "")).toUpperCase()) + "</span>";
+  }
+function head(title, lead, right) {
+    return '<div class="ph"><div><h1>' + title + '</h1><p class="lead">' + lead + "</p></div>" + (right ? '<div class="ph-r">' + right + "</div>" : "") + "</div>";
+  }
+function tabOpen(id) { return TABS.some(function (t) { return t.id === id && t.min <= st.min; }); }
+var ROWS = DATA.rows;
+var SRC = (function () {
+    var map = {};
+    ROWS.forEach(function (x) {
+      var g = map[x.s] || (map[x.s] = { s: x.s, n: 0, bad: 0, acc: {}, geo: x.g });
+      g.n++;
+      if (!x.ok) g.bad++;
+      g.acc[x.a] = 1;
+    });
+    return Object.keys(map).map(function (k) { var g = map[k]; g.accN = Object.keys(g.acc).length; return g; });
+  })();
+function lastSeen(a) {
+    var best = "";
+    ROWS.forEach(function (x) { if (x.a === a && x.ok && x.t > best) best = x.t; });
+    return best || "n/a";
+  }
+function snapshots() {
+    var out = [], d = Date.UTC(2026, 0, 4);
+    while (d <= Date.UTC(2026, 8, 20)) {
+      var t = new Date(d);
+      out.push(t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate()));
+      d += 7 * 86400000;
+    }
+    return out;
+  }
+var SNAPS = snapshots();
+function shell() {
+    var me = acct(st.user);
+    return '<div class="app"><aside class="side"><div class="brand">' + LOGO + '<div class="brand-t"><b>PacificCare Health</b><span>Remote access</span></div></div><nav class="nav" id="nav" aria-label="Main"></nav>' +
+      '<div class="side-foot"><span class="led"></span><div class="sf-t"><b>Gateway fw-edge</b><span class="sub">People. Care. A Healthier Tomorrow.</span></div></div></aside>' +
+      '<header class="top"><div class="crumb">Remote access<i>/</i><b id="crumb"></b></div><div class="sp"></div><div class="me">' + uav(st.user) + '<div class="me-t"><b>' + esc(me ? me.n : st.user) + "</b><span>" + esc(me ? me.role : "") + '</span></div></div><button class="btn ghost sm" data-act="signout">' + ic("out") + "Sign out</button></header>" +
+      '<main class="main" id="main"></main></div>';
+  }
+function drawLogin() {
+    put($("stage"), '<div class="login"><section class="lg-l"><div class="logo">' + LOGO + '<div><b>PacificCare Health</b><span>People. Care. A Healthier Tomorrow.</span></div></div><div class="lg-copy"><h1>Remote access for clinical and IT staff</h1><p>Authorised use only. Activity is logged. This gateway is monitored by the hospital Office of the CRO.</p><ul class="lg-facts"><li>' + ic("network") + 'Encrypted session</li><li>' + ic("signins") + 'Every sign-in is logged</li><li>' + ic("profile") + 'Staff and approved contractors</li></ul></div></section>' +
+      '<section class="lg-r"><div class="lg-f"><h2>Sign in</h2><p class="lead">PacificCare remote access portal</p><div class="fld">' + ic("profile") + '<input id="lu" name="username" type="text" autocomplete="off" spellcheck="false" placeholder="Username" aria-label="Username"></div><div class="fld">' + ic("lock") + '<input id="lp" name="password" type="password" autocomplete="off" placeholder="Password" aria-label="Password"></div><div class="err" id="lerr">' + esc(st.loginErr) + '</div><button class="btn" data-act="login">Sign in</button><small>Locked out? The IT service desk can reset your access.</small></div></section></div>');
+  }
+function drawNav() {
+    var el = $("nav");
+    if (!el) return;
+    var items = st.view === "portal" ? TABS.filter(function (t) { return t.min <= st.min; }) : [PROFILE_TAB];
+    var html = "", last = "";
+    items.forEach(function (t) {
+      if (t.g !== last) { html += '<div class="grp">' + t.g + "</div>"; last = t.g; }
+      html += '<button class="ni ' + (st.tab === t.id ? "on " : "") + (st.fresh[t.id] ? "fresh " : "") + (st.pulse[t.id] ? "pulse" : "") + '" data-act="tab" data-v="' + t.id + '" title="' + t.name + '">' + ic(t.ic) + '<span class="nl">' + t.name + "</span>" + (st.fresh[t.id] ? '<span class="new">New</span>' : "") + "</button>";
+    });
+    put(el, html);
+  }
+function linePath(vals, w, h, max) {
+    var n = vals.length, p = [], i;
+    for (i = 0; i < n; i++) p.push((i ? "L" : "M") + ((i / (n - 1)) * w).toFixed(1) + " " + (h - 5 - (vals[i] / max) * (h - 10)).toFixed(1));
+    return p.join(" ");
+  }
+function heartPath(n, flatFrom, w, h) {
+    var u = w / n, b = h - 22, p = ["M0 " + b], i, x;
+    for (i = 0; i < n; i++) {
+      x = i * u;
+      if (i < flatFrom && i % 3 === 0) p.push("L" + x.toFixed(1) + " " + b + " L" + (x + u * .5).toFixed(1) + " " + (b - 3) + " L" + (x + u * .9).toFixed(1) + " " + b + " L" + (x + u * 1.3).toFixed(1) + " " + (b + 4) + " L" + (x + u * 1.6).toFixed(1) + " " + (b - 34) + " L" + (x + u * 2).toFixed(1) + " " + (b + 8) + " L" + (x + u * 2.4).toFixed(1) + " " + b);
+    }
+    p.push("L" + w + " " + b);
+    return p.join(" ");
+  }
+function svgTrace(d, area) {
+    return '<svg viewBox="0 0 640 68" preserveAspectRatio="none" aria-hidden="true">' + (area ? '<path class="area" d="' + d + ' L640 68 L0 68 Z"/>' : "") + '<path class="trace" d="' + d + '"/></svg>';
+  }
+function drawOverview() {
+    var ok = [], bad = [], over = [], i, okN = 0, badN = 0;
+    for (i = 0; i < DAYS; i++) { ok.push(0); bad.push(0); }
+    ROWS.forEach(function (x) { var k = dayIdx(x.t); if (k < 0 || k >= DAYS) return; if (x.ok) { ok[k]++; okN++; } else { bad[k]++; badN++; } });
+    for (i = 0; i < DAYS; i++) { var ds = dateAt(i); over.push(ds >= "2026-08-22" ? 4 : ds >= "2026-08-21" ? 2 : 0); }
+    var syncDays = days("2026-06-01", TODAY) + 1;
+    var syncFlat = days("2026-06-01", "2026-06-30");
+    var tiles = [
+      ["c-ecg", "Sign-ins", (okN / DAYS).toFixed(1), "per day", svgTrace(linePath(ok, 640, 68, 9), true), "Daily average over 88 days", false],
+      ["c-amber", "Failed sign-ins", String(badN), "in 88 days", svgTrace(linePath(bad, 640, 68, 36), true), "Most of them on 9 July", false],
+      ["c-red", "Directory sync", String(days("2026-06-30", TODAY)), "days no heartbeat", svgTrace(heartPath(syncDays, syncFlat, 640, 68), false), "Last healthy sync on 30 June", true],
+      ["c-spo", "Overdue reviews", "4", "firewall rules", svgTrace(linePath(over, 640, 68, 4), true), "Past their review date", false]
+    ];
+    var alarms = [
+      ["bad", "High", "Sign-ins", "Sign-in from an unusual location", "One sign-in has not been acknowledged.", days("2026-08-11", TODAY), "signins", "Open sign-ins"],
+      ["bad", "High", "Directory", "Directory sync is failing", "No successful run since 2026-06-30.", days("2026-06-30", TODAY), "directory", "Open directory"],
+      ["warn", "Medium", "Network", "Firewall policy review is overdue", "Four rules are past their review date.", days("2026-08-21", TODAY), "network", "Open network"]
+    ];
+    var first = !st.drawn;
+    st.drawn = true;
+    return head("Overview", "Remote access gateway fw-edge. All times are UTC.") +
+      '<div class="tiles ' + (first ? "draw" : "") + '">' + tiles.map(function (c) {
+        return '<div class="tile ' + c[0] + (c[6] ? " alarm" : "") + '"><div class="tile-h"><span class="led' + (c[6] ? " blink" : "") + '"></span>' + c[1] + '</div><div class="tile-v"><b>' + c[2] + "</b><span>" + c[3] + "</span></div>" + c[4] + '<div class="tile-f">' + c[5] + "</div></div>";
+      }).join("") + '</div><div class="sec-h"><h2>Needs attention</h2><span class="dim">' + alarms.length + ' open alarms</span></div><div class="att">' +
+      alarms.map(function (a) {
+        return '<div class="att-r"><span><span class="pill ' + a[0] + '">' + a[1] + '</span></span><div><b>' + esc(a[3]) + "</b><small>" + esc(a[4]) + '</small></div><span class="age"><b>' + a[5] + "</b> days open</span><span class=\"go\">" + (tabOpen(a[6]) ? '<button class="btn ghost sm" data-act="tab" data-v="' + a[6] + '">' + a[7] + "</button>" : "") + "</span></div>";
+      }).join("") + "</div>";
+  }
+function siMatch(x) {
+    var f = st.si;
+    if (f.acct && x.a !== f.acct) return false;
+    if (f.src && x.s !== f.src) return false;
+    if (f.ok === "ok" && !x.ok) return false;
+    if (f.ok === "bad" && x.ok) return false;
+    if (f.fl && !st.flagged[x.id]) return false;
+    if (f.q && (x.t + " " + x.a + " " + acctName(x.a) + " " + x.s + " " + x.g).toLowerCase().indexOf(f.q.toLowerCase()) < 0) return false;
+    return true;
+  }
+function anyFilter() { var f = st.si; return !!(f.acct || f.src || f.ok || f.q || f.fl); }
+function flagCount() { return Object.keys(st.flagged).filter(function (k) { return st.flagged[k]; }).length; }
+function stripHtml() {
+    var H = 52, i, tot = [], mok = [], mbad = [];
+    for (i = 0; i < DAYS; i++) { tot.push(0); mok.push(0); mbad.push(0); }
+    ROWS.forEach(function (x) {
+      var k = dayIdx(x.t);
+      if (k < 0 || k >= DAYS) return;
+      tot[k]++;
+      if (siMatch(x)) { if (x.ok) mok[k]++; else mbad[k]++; }
+    });
+    var out = '<svg class="strip" viewBox="0 0 ' + (DAYS * 10) + " " + H + '" preserveAspectRatio="none" role="img" aria-label="Sign-ins per day">';
+    for (i = 0; i < DAYS; i++) {
+      var d = dateAt(i), x = i * 10 + 1;
+      var ht = Math.min(H - 4, tot[i] * 4), hok = Math.min(H - 4, mok[i] * 4), hbad = Math.min(H - 4 - hok, mbad[i] * 4);
+      out += '<g data-act="day" data-v="' + d + '"><rect x="' + (x - 1) + '" y="0" width="10" height="' + H + '" fill="transparent"/><title>' + d + ": " + tot[i] + " sign-ins</title>" +
+        (tot[i] ? '<rect x="' + x + '" y="' + (H - ht) + '" width="8" height="' + ht + '" fill="#2a4a40"/>' : "") +
+        (hok ? '<rect x="' + x + '" y="' + (H - hok) + '" width="8" height="' + hok + '" fill="#38c88e"/>' : "") +
+        (hbad ? '<rect x="' + x + '" y="' + (H - hok - hbad) + '" width="8" height="' + hbad + '" fill="#f2b84b"/>' : "") + "</g>";
+    }
+    out += "</svg>";
+    return out + '<div class="axis"><span style="left:0">1 Jul</span><span style="left:35.2%">1 Aug</span><span style="left:70.5%">1 Sep</span><span style="right:0">26 Sep</span></div>';
+  }
+function drawSignins() {
+    var f = st.si;
+    return head("Sign-ins", "Remote access sign-ins from 1 Jul to 26 Sep 2026. All times are UTC.") +
+      '<div class="ptabs"><button class="' + (f.view === "list" ? "on" : "") + '" data-act="siview" data-v="list">All sign-ins<i>' + ROWS.length + '</i></button><button class="' + (f.view === "src" ? "on" : "") + '" data-act="siview" data-v="src">By source<i>' + SRC.length + "</i></button></div>" +
+      (f.view === "list" ? signinsList() : sourcesView());
+  }
+function signinsList() {
+    var f = st.si, accts = {};
+    ROWS.forEach(function (x) { accts[x.a] = 1; });
+    return '<div class="card strip-card"><div class="strip-h"><div><b>Sign-ins per day</b><span class="hint">Select a day to search for it.</span></div><div class="legend"><span><i class="k1"></i>Matches your filters</span><span><i class="k2"></i>Failed</span><span><i class="k3"></i>Other</span></div></div><div id="siStrip"></div></div>' +
+      '<div class="card tbar" id="siTbar"><div class="fl grow"><label for="siq">Search</label><div class="sbox">' + ic("search") + '<input type="text" id="siq" name="q" data-f="q" autocomplete="off" placeholder="Time, account, address or place" value="' + esc(f.q) + '"></div></div>' +
+      '<div class="fl"><label for="sia">Account</label><select id="sia" name="acct" data-f="acct"><option value="">All accounts</option>' + Object.keys(accts).sort().map(function (a) { return '<option value="' + a + '"' + (f.acct === a ? " selected" : "") + ">" + a + "</option>"; }).join("") + "</select></div>" +
+      '<div class="fl"><span class="lab">Result</span><div class="seg"><button data-act="ok" data-v="">Any</button><button data-act="ok" data-v="ok">OK</button><button data-act="ok" data-v="bad">Failed</button></div></div>' +
+      '</div><div class="sumbar"><div class="sum" id="siSum"></div><div class="r2"><button class="tog" id="flagTog" role="switch" aria-checked="false" data-act="onlyflag"><i></i><span id="flagTxt"></span></button><button class="btn ghost sm" id="clr" data-act="clear">Clear filters</button></div></div>' +
+      '<div class="card"><table class="list" id="siTable"><colgroup><col style="width:150px"><col><col><col style="width:120px"><col style="width:176px"></colgroup><thead><tr><th>Time</th><th>Account</th><th>Source</th><th>Result</th><th class="act">Action</th></tr></thead><tbody id="siBody"></tbody></table><div class="pager" id="siPager"></div></div>';
+  }
+function rowsHtml(rows) {
+    if (!rows.length) return '<tr><td colspan="5"><div class="zero"><b>No sign-ins match these filters</b>Widen the search or clear a filter.</div></td></tr>';
+    return rows.map(function (x) {
+      var on = !!st.flagged[x.id];
+      return '<tr class="' + (on ? "flagged" : "") + '"><td class="c2"><b class="mono">' + x.t.slice(11) + "</b><small>" + fmtLong(x.t.slice(0, 10)) + "</small></td>" +
+        '<td><div class="pc">' + uav(x.a) + '<span class="c2"><b>' + esc(x.a) + "</b><small>" + esc(acctName(x.a)) + "</small></span></div></td>" +
+        '<td class="c2"><b class="mono">' + x.s + "</b><small>" + esc(x.g) + "</small></td>" +
+        '<td><span class="pill ' + (x.ok ? "ok" : "bad") + '">' + (x.ok ? "OK" : "Failed") + "</span></td>" +
+        '<td class="act"><button class="flagbtn' + (on ? " on" : "") + '" data-act="flag" data-id="' + x.id + '" aria-pressed="' + (on ? "true" : "false") + '">' + ic("flag") + "<span>" + (on ? "Flagged" : "Flag") + "</span></button></td></tr>";
+    }).join("");
+  }
+function sumHtml(total, from, to) {
+    var f = st.si, tags = [];
+    if (f.q) tags.push(["q", 'Search "' + f.q + '"']);
+    if (f.acct) tags.push(["acct", "Account " + f.acct]);
+    if (f.ok) tags.push(["ok", "Result " + (f.ok === "ok" ? "OK" : "Failed")]);
+    if (f.src) tags.push(["src", "Source " + f.src]);
+    if (f.fl) tags.push(["fl", "Flagged only"]);
+    return "<b>" + (total ? "Showing " + from + " to " + to + " of " + total + " sign-ins" : "No sign-ins match") + "</b>" +
+      (tags.length ? '<span class="tags">' + tags.map(function (t) { return '<button class="chip" data-act="rm" data-v="' + t[0] + '" title="Remove this filter">' + esc(t[1]) + ic("x") + "</button>"; }).join("") + "</span>" : '<span class="dim">No filters applied</span>');
+  }
+function pagerHtml(total, page, pages, from, to) {
+    return '<span class="dim">' + (total ? "Rows " + from + " to " + to + " of " + total : "No rows") + '</span><div class="pg-r"><span class="dim">Page ' + (page + 1) + " of " + pages + '</span><button class="btn ghost sm" data-act="pg" data-v="-1"' + (page <= 0 ? " disabled" : "") + ">" + ic("prev") + 'Previous</button><button class="btn ghost sm" data-act="pg" data-v="1"' + (page >= pages - 1 ? " disabled" : "") + ">Next" + ic("next") + "</button></div>";
+  }
+function syncControls() {
+    var f = st.si, tg = $("flagTog");
+    all('[data-act="ok"]').forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-v") === f.ok); });
+    if (tg) { tg.classList.toggle("on", !!f.fl); tg.setAttribute("aria-checked", f.fl ? "true" : "false"); }
+    if ($("flagTxt")) $("flagTxt").textContent = Z("Flagged only (" + flagCount() + ")");
+    if ($("clr")) $("clr").disabled = !anyFilter();
+  }
+function drawSigninsOut() {
+    var body = $("siBody");
+    if (!body) return;
+    var rows = ROWS.filter(siMatch).reverse();
+    var pages = Math.max(1, Math.ceil(rows.length / PER));
+    if (st.si.page > pages - 1) st.si.page = pages - 1;
+    if (st.si.page < 0) st.si.page = 0;
+    var from = rows.length ? st.si.page * PER + 1 : 0, to = Math.min(rows.length, (st.si.page + 1) * PER);
+    put($("siStrip"), stripHtml());
+    put($("siSum"), sumHtml(rows.length, from, to));
+    put(body, rowsHtml(rows.slice(st.si.page * PER, (st.si.page + 1) * PER)));
+    put($("siPager"), pagerHtml(rows.length, st.si.page, pages, from, to));
+    syncControls();
+  }
+function sourcesView() {
+    return '<div class="card tbar"><div class="fl grow"><label for="srq">Search sources</label><div class="sbox">' + ic("search") + '<input type="text" id="srq" name="srq" data-f="sq" autocomplete="off" placeholder="Address or place" value="' + esc(st.srcQ) + '"></div></div></div>' +
+      '<div class="sum" id="srSum"></div><div class="card"><table class="list" id="srTable"><colgroup><col style="width:190px"><col><col style="width:130px"><col style="width:120px"><col style="width:130px"><col style="width:150px"></colgroup><thead id="srHead"></thead><tbody id="srBody"></tbody></table></div>';
+  }
+function srHeadHtml() {
+    var s = st.srcSort;
+    function th(k, label) {
+      var on = s.k === k;
+      return '<th class="num"' + (on ? ' aria-sort="' + (s.d < 0 ? "descending" : "ascending") + '"' : "") + '><button class="th-sort' + (on ? " on" : "") + '" data-act="srcsort" data-v="' + k + '">' + label + ic("sort", on && s.d > 0 ? "up" : "") + "</button></th>";
+    }
+    return "<tr><th>Source address</th><th>Location</th>" + th("n", "Sign-ins") + th("bad", "Failed") + th("accN", "Accounts") + '<th class="act">Action</th></tr>';
+  }
+function drawSrcOut() {
+    var body = $("srBody");
+    if (!body) return;
+    var q = st.srcQ.toLowerCase(), s = st.srcSort;
+    var list = SRC.filter(function (g) { return !q || (g.s + " " + g.geo).toLowerCase().indexOf(q) >= 0; }).sort(function (p, r) {
+      if (p[s.k] !== r[s.k]) return (p[s.k] - r[s.k]) * s.d;
+      return p.s < r.s ? -1 : 1;
+    });
+    put($("srHead"), srHeadHtml());
+    put($("srSum"), "<b>Showing " + list.length + " of " + SRC.length + " sources</b><span class=\"hint\">Each address is listed once. Choose View sign-ins to see every session from it.</span>");
+    put(body, list.length ? list.map(function (g) {
+      return '<tr><td class="c2"><b class="mono">' + g.s + "</b></td><td>" + esc(g.geo) + '</td><td class="num">' + g.n + '</td><td class="num">' + (g.bad ? '<span class="pill warn plain">' + g.bad + "</span>" : '<span class="dim">0</span>') + '</td><td class="num">' + g.accN + '</td><td class="act"><button class="btn ghost sm" data-act="src" data-v="' + g.s + '">View sign-ins</button></td></tr>';
+    }).join("") : '<tr><td colspan="6"><div class="zero"><b>No sources match</b>Try another address or place.</div></td></tr>');
+  }
+function relAge(ds) { return days(ds.slice(0, 10), TODAY) + " days ago"; }
+function drawDirectory() {
+    return head("Directory", "Accounts mirrored from the hospital directory.") + '<div class="card hr"><div class="hr-h"><h2>HR separations</h2><p class="hint">The HR feed was last applied on 2026-06-30.</p></div><div class="hrl">' +
+      HRFEED.map(function (h) { return '<div class="c2"><b>' + esc(acctName(h.a)) + "</b><small>" + h.a + '</small><span class="pill plain">' + fmtDay(h.d) + ", " + esc(h.why) + "</span></div>"; }).join("") +
+      '</div></div><div class="card"><table class="list auto"><thead><tr><th>Person</th><th>Status</th><th>Last sign-in</th><th>Password age</th><th>MFA</th></tr></thead><tbody>' +
+      ACCTS.map(function (a) {
+        var seen = lastSeen(a.a), pw = days(a.pw, TODAY);
+        return '<tr><td><div class="pc">' + uav(a.a) + '<span class="c2"><b>' + esc(a.n) + "</b><small>" + a.a + ", " + esc(a.role) + '</small></span></div></td><td><span class="pill ok">Active</span></td><td class="c2">' +
+          (seen === "n/a" ? '<span class="dim">No sign-ins</span>' : '<b class="mono">' + seen.slice(0, 10) + "</b><small>" + relAge(seen) + "</small>") + '</td><td><span class="pill ' + (pw > 365 ? "warn" : "plain") + '">' + pw.toLocaleString("en-US") + ' days</span></td><td><span class="pill ' + (a.mfa ? "ok" : "warn") + '">' + (a.mfa ? "Enrolled" : "Not enrolled") + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+function sysPill(s) {
+    var cls = /^(Held|Isolated)/.test(s.stt) ? "warn" : s.stt === "Operational" ? "ok" : "plain";
+    return '<span class="pill ' + cls + '">' + esc(s.stt) + "</span>";
+  }
+function drawSystems() {
+    return head("Systems", "Systems managed by this role.") + '<div class="note info">Remote display for held hosts runs through Remote Desktop Connection at <span class="mono">https://' + MON_HOST + "</span>. It needs an access token for the host. The service desk has issued some before, see Tickets.</div>" + '<div class="card"><table class="list auto"><thead><tr><th>Host</th><th>Role</th><th>LAN address</th><th>Owner</th><th>Status</th></tr></thead><tbody>' +
+      SYSTEMS.map(function (s) { return '<tr><td class="c2"><b>' + s.h + "</b><small>" + s.tag + "</small></td><td>" + esc(s.role) + '</td><td class="mono">' + s.lan + "</td><td>" + s.own + "</td><td>" + sysPill(s) + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+function drawNetwork() {
+    return head("Network", "Firewall policy is read only for this role.") + '<div class="note info">Policy changes are made by the network team and approved in a change record.</div>' +
+      '<div class="sec-h"><h2>Firewall policy</h2></div><div class="card"><table class="list auto"><thead><tr><th>Rule</th><th>Traffic</th><th>Destination (LAN)</th><th>Reason</th><th>Review</th></tr></thead><tbody>' +
+      RULES.map(function (r) {
+        return '<tr><td><span class="tag">' + r.id + '</span></td><td class="c2"><b>Deny</b><small>tcp/' + r.port + '</small></td><td class="mono">' + r.dst + '</td><td class="c2"><b>' + esc(r.why) + "</b><small>Applied " + r.at + ' UTC</small></td><td class="c2"><span class="pill bad">Overdue ' + days(r.due, TODAY) + " days</span><small>Due " + r.due + "</small></td></tr>";
+      }).join("") + '</tbody></table></div><div class="sec-h" style="margin-top:30px"><h2>NAT table</h2></div><div class="card"><table class="list auto"><thead><tr><th>Published address</th><th>LAN address</th><th>Service</th></tr></thead><tbody>' +
+      SYSTEMS.map(function (s) {
+        var svc = s.h === "fw-edge" ? "http:80" : s.h === "Bedside-17" ? "rdp:3389" : s.h === "prn-03" ? "raw:9100" : "ssh:22";
+        return '<tr><td class="mono">' + s.pub + '</td><td class="mono">' + s.lan + '</td><td><span class="tag">' + svc + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+function drawConfig() {
+    var opts = function (sel) { return SNAPS.map(function (d) { return '<option value="' + d + '"' + (sel === d ? " selected" : "") + ">" + d + "</option>"; }).join(""); };
+    return head("Config", "Weekly configuration snapshots. Compare two of them to see what changed.") +
+      '<div class="card tbar"><div class="fl"><label for="cfa">From snapshot</label><select id="cfa" name="cfa" data-f="cfa">' + opts(st.cf.a) + '</select></div><div class="fl"><label for="cfb">To snapshot</label><select id="cfb" name="cfb" data-f="cfb">' + opts(st.cf.b) + '</select></div><p class="hint">Snapshots are taken every Sunday at 03:00 UTC.</p><div class="r"><button class="btn" data-act="compare">Compare snapshots</button></div></div><div id="cfOut"></div>';
+  }
+function drawConfigOut() {
+    var out = $("cfOut");
+    if (!out) return;
+    var a = st.cf.a, b = st.cf.b;
+    if (a === b) { put(out, '<div class="note">Select two different snapshots.</div>'); return; }
+    if (a > b) { var t = a; a = b; b = t; }
+    var lo = a + " 03:00", hi = b + " 03:00";
+    var hits = CHG.filter(function (c) { return c.at > lo && c.at <= hi; });
+    if (!hits.length) { put(out, '<div class="sum"><b>No changes between ' + a + " and " + b + "</b></div>"); return; }
+    put(out, '<div class="sum"><b>' + hits.length + (hits.length === 1 ? " change" : " changes") + " between " + a + " and " + b + "</b></div>" + hits.map(function (c) {
+      return '<div class="card chg"><div class="chh"><span><b class="mono">' + c.id + '</b><span class="mono mt">' + c.at + '</span><span class="mt">' + esc(c.sec) + '</span></span><button class="btn ghost sm" data-act="chg" data-id="' + c.id + '">View change record</button></div><div class="diff">' +
+        '<div class="sec"><span></span><span>[' + esc(c.sec) + "]</span></div>" + c.lines.map(function (l) { return '<div class="' + (l[0] === "+" ? "add" : "del") + '"><span>' + l[0] + "</span><span>" + esc(l[1]) + "</span></div>"; }).join("") + "</div></div>";
+    }).join(""));
+  }
+function linkRefs(s) {
+    return esc(s).replace(/HD-\d{4}/g, function (m) { return '<button class="ref" data-act="ticket" data-id="' + m + '">' + m + "</button>"; });
+  }
+function noteHtml(n) {
+    var m = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^:]+): (.*)$/.exec(n);
+    if (!m) return '<div class="msg none"><span></span><p>' + esc(n.replace(/[()]/g, "")) + "</p></div>";
+    return '<div class="msg">' + uav(m[2], "sm") + '<div><div class="mh"><b>' + esc(m[2]) + "</b><span>" + m[1] + "</span></div><p" + (/^[0-9a-f]{32,}$/.test(m[3]) ? ' class="mono tk"' : "") + ">" + linkRefs(m[3]) + "</p></div></div>";
+  }
+function ticketPane(sel) {
+    if (!sel) return '<div class="zero"><b>Select a ticket</b>Pick a ticket on the left to read its thread.</div>';
+    return '<div class="tp-h"><span class="tag">' + sel.id + '</span><span class="pill ' + (sel.stt === "OPEN" ? "warn" : "plain") + '">' + (sel.stt === "OPEN" ? "Open" : "Closed") + "</span></div><h2>" + esc(sel.title) + '</h2><dl class="meta"><dt>Opened</dt><dd class="mono">' + sel.at + " UTC</dd><dt>Requested by</dt><dd>" + esc(sel.by) + "</dd><dt>Priority</dt><dd>" + sel.pr + "</dd><dt>Assigned to</dt><dd>" + esc(sel.who) + '</dd></dl><div class="thread">' + sel.notes.map(noteHtml).join("") + "</div>";
+  }
+function drawTickets() {
+    var sel = TICKETS.filter(function (t) { return t.id === st.tk; })[0];
+    var list = TICKETS.slice().reverse().map(function (t) {
+      var cls = st.tk === t.id ? "on" : "";
+      return '<button class="trow ' + cls + '" data-act="ticket" data-id="' + t.id + '"><span class="tag">' + t.id + '</span><span class="c2"><b>' + esc(t.title) + "</b><small>" + fmtDay(t.at.slice(0, 10)) + ", opened by " + esc(t.by) + '</small></span><span class="pill ' + (t.stt === "OPEN" ? "warn" : "plain") + '">' + (t.stt === "OPEN" ? "Open" : "Closed") + "</span></button>";
+    }).join("");
+    return head("Tickets", "Helpdesk queue, newest first.") + '<div class="ws tk"><div class="card tl" id="tlist">' + list + '</div><aside class="card rp" id="tpane">' + ticketPane(sel) + "</aside></div>";
+  }
+function drawProfile() {
+    var me = acct(st.user);
+    return head("Profile", "Your account on the remote access gateway.") + '<div class="card prof">' + uav(st.user, "big") + '<div class="grow"><h2>' + esc(me.n) + '</h2><p class="lead">' + esc(me.role) + '</p></div><span class="pill ok">Active</span></div><div class="note">No managed systems are assigned to this profile. Contract ended 2026-07-31.</div>';
+  }
+function drawMain() {
+    var el = $("main");
+    if (!el) return;
+    var tab = st.view === "portal" ? st.tab : "profile";
+    put(el, '<div class="page">' + (tab === "overview" ? drawOverview() : tab === "signins" ? drawSignins() : tab === "directory" ? drawDirectory() : tab === "systems" ? drawSystems() : tab === "network" ? drawNetwork() : tab === "config" ? drawConfig() : tab === "tickets" ? drawTickets() : drawProfile()) + "</div>");
+    $("crumb").textContent = Z(PAGE_NAME[tab]);
+    if (tab === "signins") { if (st.si.view === "src") drawSrcOut(); else drawSigninsOut(); }
+    if (tab === "config") drawConfigOut();
+  }
+function drawSheet() {
+    var host = $("sheetHost");
+    var c = CHG.filter(function (x) { return x.id === st.sheet; })[0];
+    if (!c) { put(host, ""); return; }
+    put(host, '<div class="scrim" data-act="close"></div><aside class="sheet" role="dialog" aria-label="Change record"><div class="sh-h"><h2 class="mono">' + c.id + '</h2><button class="btn ghost sm" data-act="close">' + ic("x") + 'Close</button></div><dl><dt>Applied (UTC)</dt><dd class="mono">' + c.at + "</dd><dt>Applied by</dt><dd>" + esc(c.by) + "</dd><dt>Approved by</dt><dd>" + esc(c.appr) + "</dd><dt>Section</dt><dd>" + esc(c.sec) + "</dd><dt>Reason</dt><dd>" + esc(c.why) + "</dd>" +
+      (c.rev ? '<dt>Revert or review due</dt><dd><span class="mono">' + c.rev + '</span> <span class="pill bad">' + esc(c.state === "NOT REVERTED" ? "Not reverted" : "Not reviewed") + "</span></dd>" : "") + (c.tix ? '<dt>Linked ticket</dt><dd class="mono">' + c.tix + "</dd>" : "") + "</dl>" +
+      (c.att ? '<div class="att"><div class="att-h">' + ic("lock") + "<b>Attachment: " + esc(c.att) + ' (sealed)</b></div><p class="mono att-x">' + ROLLBACK_HEX + '</p><p class="att-n">Sealed with the change ID</p></div>' : "") + "</aside>");
+  }
+function syncFilterInputs() {
+    if ($("siq")) $("siq").value = st.si.q;
+    if ($("sia")) $("sia").value = st.si.acct;
+  }
+var STORE = "flatline.portal.v1";
+function savedOut() {
+  try { return !!(JSON.parse(localStorage.getItem(STORE) || "null") || {}).out; } catch (e) { return false; }
+}
+function saveOut(out) {
+  try { localStorage.setItem(STORE, JSON.stringify({ out: out })); } catch (e) { return; }
+}
+if (savedOut()) st.view = "login";
+
+function setMin(n) {
+  var from = st.min;
+  if (typeof n !== "number" || n <= from) return;
+  TABS.forEach(function (t) { if (t.min > from && t.min <= n) { st.fresh[t.id] = true; st.pulse[t.id] = true; } });
+  st.min = n;
+  drawNav();
+  st.pulse = {};
+}
+function syncMin() {
+  var s = null;
+  if (st.view !== "portal") return;
+  try { s = typeof flatlinePortalState === "function" ? flatlinePortalState() : null; } catch (e) { s = null; }
+  if (s && typeof s.min === "number") setMin(s.min);
+}
+function report(kind, ref) {
+  var key = kind + ":" + ref, min;
+  if (st.sent[key]) return;
+  st.sent[key] = true;
+  try { min = typeof flatlinePortalSeen === "function" ? flatlinePortalSeen(kind, ref) : st.min; } catch (e) { delete st.sent[key]; return; }
+  setMin(min);
+  SCH.wait(700, syncMin);
+}
+
+function drawStage() {
+  if (st.view === "login") { drawLogin(); return; }
+  put($("stage"), shell());
+  drawNav();
+  drawMain();
+}
+function doLogin() {
+  var u = $("lu").value.trim(), p = $("lp").value, view = "denied";
+  try { view = typeof flatlineLogin === "function" ? flatlineLogin(u, p) : "denied"; } catch (e) { view = "denied"; }
+  if (view === "portal" || view === "contractor") {
+    st.view = view;
+    st.user = u;
+    st.tab = view === "portal" ? "overview" : "profile";
+    st.loginErr = "";
+    saveOut(false);
+    drawStage();
+    if (view === "portal") syncMin();
+    return;
+  }
+  st.loginErr = "Sign-in failed. Check your username and password.";
+  $("lerr").textContent = Z(st.loginErr);
+}
+function setTab(id) {
+  st.tab = id;
+  delete st.fresh[id];
+  drawNav();
+  drawMain();
+  $("main").scrollTop = 0;
+  if (id === "systems") report("systems", "systems");
+}
+function showChange(id) {
+  var c = CHG.filter(function (x) { return x.id === id; })[0];
+  if (!c) return;
+  st.sheet = id;
+  drawSheet();
+  if (c.key) report(c.key, c.id);
+}
+function openTicket(id) {
+  var t = TICKETS.filter(function (x) { return x.id === id; })[0], pane = $("tpane"), row;
+  if (!t) return;
+  st.tk = id;
+  if (t.key) report(t.key, t.id);
+  if (pane) {
+    all(".trow").forEach(function (r) { r.classList.toggle("on", r.getAttribute("data-id") === id); });
+    put(pane, ticketPane(t));
+    pane.scrollTop = 0;
+    row = document.querySelector('.trow[data-id="' + id + '"]');
+    if (row) row.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  st.tab = "tickets";
+  drawNav();
+  drawMain();
+}
+function flag(id) {
+  var on = !st.flagged[id], btn = document.querySelector('[data-act="flag"][data-id="' + id + '"]'), fr;
+  st.flagged[id] = on;
+  if (btn) {
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    btn.querySelector("span").textContent = Z(on ? "Flagged" : "Flag");
+    btn.closest("tr").classList.toggle("flagged", on);
+  }
+  if ($("flagTxt")) $("flagTxt").textContent = Z("Flagged only (" + flagCount() + ")");
+  if (!on) return;
+  fr = ROWS.filter(function (x) { return x.id === id; })[0];
+  if (!fr) return;
+  toast(Z("Flagged for review"), Z(fr.a + " from " + fr.s + " at " + fr.t + " UTC"));
+  report("foothold", fr.s);
+}
+
+function act(a, d) {
+  if (a === "tab") { setTab(d.v); return; }
+  if (a === "login") { doLogin(); return; }
+  if (a === "signout") { st.view = "login"; st.sheet = ""; $("sheetHost").innerHTML = ""; saveOut(true); drawStage(); return; }
+  if (a === "siview") { st.si.view = d.v; drawMain(); return; }
+  if (a === "src") { st.si = blankSi("list"); st.si.src = d.v; drawMain(); return; }
+  if (a === "srcsort") { st.srcSort = st.srcSort.k === d.v ? { k: d.v, d: -st.srcSort.d } : { k: d.v, d: -1 }; drawSrcOut(); return; }
+  if (a === "ok") { st.si.ok = d.v; st.si.page = 0; drawSigninsOut(); return; }
+  if (a === "onlyflag") { st.si.fl = !st.si.fl; st.si.page = 0; drawSigninsOut(); return; }
+  if (a === "clear") { st.si = blankSi(st.si.view); syncFilterInputs(); drawSigninsOut(); return; }
+  if (a === "rm") { st.si[d.v] = d.v === "fl" ? false : ""; st.si.page = 0; syncFilterInputs(); drawSigninsOut(); return; }
+  if (a === "day") { st.si.q = d.v; st.si.page = 0; syncFilterInputs(); drawSigninsOut(); return; }
+  if (a === "pg") { st.si.page += +d.v; drawSigninsOut(); var tb = $("siTbar"); if (tb) tb.scrollIntoView({ block: "start" }); return; }
+  if (a === "flag") { flag(d.id); return; }
+  if (a === "compare") { drawConfigOut(); return; }
+  if (a === "chg") { showChange(d.id); return; }
+  if (a === "ticket") { openTicket(d.id); return; }
+  if (a === "close") { st.sheet = ""; drawSheet(); return; }
+  if (a === "toastx") { dismissToast(d.el.closest(".toast")); return; }
+}
+
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-act]");
+  if (!b) return;
+  act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), id: b.getAttribute("data-id"), el: b });
+});
+document.addEventListener("change", function (e) {
+  var t = e.target, f = t.getAttribute("data-f");
+  if (!f) return;
+  if (f === "cfa") st.cf.a = t.value;
+  else if (f === "cfb") st.cf.b = t.value;
+  else if (f === "acct") { st.si.acct = t.value; st.si.page = 0; drawSigninsOut(); }
+});
+document.addEventListener("input", function (e) {
+  var f = e.target.getAttribute("data-f");
+  if (f === "q") { st.si.q = e.target.value; st.si.page = 0; drawSigninsOut(); }
+  if (f === "sq") { st.srcQ = e.target.value; drawSrcOut(); }
+});
+document.addEventListener("keydown", function (e) {
+  var id = e.target.id;
+  if (e.key === "Enter" && (id === "lu" || id === "lp")) { doLogin(); return; }
+  if (e.key === "Escape" && st.sheet) { st.sheet = ""; drawSheet(); }
+});
+window.addEventListener("focus", syncMin);
+
+drawStage();
+drawSheet();

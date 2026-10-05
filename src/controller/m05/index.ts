@@ -21,6 +21,7 @@ import {
     setM05PortalMin,
     setM05PortalUser,
     setM05RdcState,
+    setM05TeamOpen,
 } from "../../context/m05/progress.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
 import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
@@ -58,6 +59,7 @@ const portalMinOf = (data: M05QuestData): number => {
 };
 
 const restoreMirrors = (data: M05QuestData): void => {
+    setM05TeamOpen(data.vaultRevisited);
     setM05ArchiveOpen(data.teamPageSeen);
     setM05PortalUser(data.portalLoggedIn ? M05_PORTAL_LOGIN_USER : "");
     setM05PortalMin(portalMinOf(data));

@@ -1,5 +1,6 @@
 import { SharedVariables } from "@hotbunny/hackhub-content-sdk";
 
+const M05_TEAM_OPEN_KEY = "flatline.m05.teamOpen";
 const M05_ARCHIVE_OPEN_KEY = "flatline.m05.archiveOpen";
 const M05_PORTAL_USER_KEY = "flatline.m05.portalUser";
 const M05_PORTAL_MIN_KEY = "flatline.m05.portalMin";
@@ -10,6 +11,9 @@ export interface M05RdcMirror {
     readonly attached: boolean;
     readonly docs: readonly number[];
 }
+
+export const setM05TeamOpen = (open: boolean): void => SharedVariables.set(M05_TEAM_OPEN_KEY, open);
+export const isM05TeamOpen = (): boolean => SharedVariables.get<boolean>(M05_TEAM_OPEN_KEY) === true;
 
 export const setM05ArchiveOpen = (open: boolean): void => SharedVariables.set(M05_ARCHIVE_OPEN_KEY, open);
 export const isM05ArchiveOpen = (): boolean => SharedVariables.get<boolean>(M05_ARCHIVE_OPEN_KEY) === true;
@@ -25,6 +29,7 @@ export const getM05RdcState = (): M05RdcMirror =>
     SharedVariables.get<M05RdcMirror>(M05_RDC_STATE_KEY) ?? { loggedIn: false, attached: false, docs: [] };
 
 export const clearM05Progress = (): void => {
+    SharedVariables.remove(M05_TEAM_OPEN_KEY);
     SharedVariables.remove(M05_ARCHIVE_OPEN_KEY);
     SharedVariables.remove(M05_PORTAL_USER_KEY);
     SharedVariables.remove(M05_PORTAL_MIN_KEY);
