@@ -124,14 +124,14 @@ yang konsisten. **Salah pilih tidak membuntukan:** menyentuh Null-Crown memicu s
 
 | `choice` | Efek mekanis | Epilog |
 |---|---|---|
-| `expose` | bukti dilepas | surat Greta A dari `greta.desouza@postbox.my`, log pribadi BACKTRACE A |
-| `handoff` | bukti diserahkan | surat Greta B, log pribadi B |
+| `expose` | bukti dilepas | surat Roxanne A dari `roxanne.natnaree@postbox.my`, log pribadi BACKTRACE A |
+| `handoff` | bukti diserahkan | surat Roxanne B, log pribadi B |
 | `destroy` | jaringan C2 dihancurkan (`unregister`, berurutan #35), `.enc` hilang | **tanpa surat**, log pribadi C |
 
 Beat surat (dari `09-konten-m5-m6.md` B10): A, namanya bersih tetapi tidak ada yang kembali seperti
 semula. B, seorang pengacara menelepon dan prosesnya akan lama. C, kotak masuk tetap sunyi.
 Log pribadi per ending memuat nasib Reyes, Vivien Orchid, dan Conrad Lindqvist sesuai
-`05-ending.md` bagian B. `greta.desouza@postbox.my` adalah alamat pribadi Greta, yang sama dengan
+`05-ending.md` bagian B. `roxanne.natnaree@postbox.my` adalah alamat pribadi Roxanne, yang sama dengan
 rekaman umpan #2 di LeakIndex (M5).
 
 ## I. Konten (beat)
@@ -150,7 +150,7 @@ dalam teks biasa, tanggal 2022.
 **`manifest.txt` (C2, bisa dibaca).** "MASTER LEDGER INDEX": rekening korban (Northstar Port Authority
 2020 NA, Rheinland Energie AG 2023 EU, LOG-EU-2209 $1.400.000 2026-05-02, FIN-NA-0091 $4.100.000
 2026-07-22, PacificCare Health CASE-A7X-0417 $2.850.000 2026-08-14), tiap baris "settled". Catatan
-PacificCare: klasifikasi "employee negligence (G. de Souza)", disusun bersama V. Orchid, persetujuan
+PacificCare: klasifikasi "employee negligence (R. Natnaree)", disusun bersama V. Orchid, persetujuan
 Nordhaven 2026-08-17. Catatan pantauan: "d.reyes: monitor". Pernyataan model Conrad: kerugian yang bisa
 dihitung bukan bencana, melainkan satu baris pembukuan, dan semua rekening dilunasi. Penutup:
 "every account, settled."
@@ -163,7 +163,7 @@ ia ciptakan sendiri: tebusan sebagai kerugian yang bisa diprediksi bila pasokann
 menutup X-b.
 
 **Laporan.** Kolom `architect` (Conrad Lindqvist), `evidence` (ringkasan: kelalaian karyawan
-disusun, G. de Souza dijadikan kambing hitam), `choice` (`expose`/`handoff`/`destroy`). Validator
+disusun, R. Natnaree dijadikan kambing hitam), `choice` (`expose`/`handoff`/`destroy`). Validator
 menolak nama lain dan pilihan di luar tiga itu.
 
 **Petunjuk "belum waktunya" (beat).** Tip belum dibaca: baca kabar Custodian. C2 belum dipindai: lihat
@@ -234,7 +234,7 @@ serta jebakan lengkap. Enam cacat bagian B diperbaiki: #1, #2, #3, #4, #6, #11.
 **Yang ditunda ke fase 4** (sesuai peta fase prompt): HoneyCheck (bagian F),
 tabel status node `/legacy-cms/` yang dirancang (bagian I), pelacakan 240 detik
 beserta banner, penalti dan pembobolan desktop (bagian G), efek ending dan
-surat Greta (bagian H), surel "What now?" dan kolom `choice`, pembayaran hadiah
+surat Roxanne (bagian H), surel "What now?" dan kolom `choice`, pembayaran hadiah
 5000, kunci BACKTRACE m7 (bagian I), dan teks zh. `Rewards` quest sengaja tidak
 diisi (prompt D1).
 
@@ -245,7 +245,7 @@ diisi (prompt D1).
 | LAN | Router `.1`, Splitter `.2`, Firewall `.3`, C2 `.4`, Null-Crown `.5`, Ash-Vector `.6`, semua `192.168.1.x` | E-7; berurutan dari `.1`, tanpa pengulangan |
 | Pengguna Firewall | `fw.admin` / `Ashgate#2022r2` | satu-satunya pengguna valid (E-9). Kata sandi dibaca dari cadangan 2022 |
 | `M07_ARCHITECT_REAL_NAME` | `Conrad Lindqvist` | keputusan #8; nilai lama "Damien Okoro" dibuang |
-| Kolom `evidence` | `employee negligence (G. de Souza)` | persis seperti tercetak di `manifest.txt`, jadi pemain terbukti membacanya |
+| Kolom `evidence` | `employee negligence (R. Natnaree)` | persis seperti tercetak di `manifest.txt`, jadi pemain terbukti membacanya |
 | Tenggat probe pelacakan | 60 detik (`realMs`) | hanya probe fase 1; angka sebenarnya 240 detik di fase 4 |
 
 **Tanggal.** Semua dari `13-story-timeline.md`: `manifest.txt` memakai 2020,
@@ -296,7 +296,7 @@ langkah 8, dipasang lagi di setiap sesi baru ke C2 sampai `fileExtracted`,
 dipangkas jadi 120 detik bila `.enc` dibuka dengan `open`); HoneyCheck di
 `websites/global/honeycheck/` dengan penilaian yang sengaja salah pada kedua
 kotak mati; tabel status node `/legacy-cms/` yang dirancang; kolom `choice`
-dengan ketiga efek ending; dua surat epilog Greta dan kesunyian pada `destroy`;
+dengan ketiga efek ending; dua surat epilog Roxanne dan kesunyian pada `destroy`;
 hadiah 5000 lewat `Bank.transaction`; enam kunci BACKTRACE m7 dengan kartu
 laporan penuh di `backtrace.html`; dan teks zh lengkap.
 
@@ -313,7 +313,7 @@ laporan penuh di `backtrace.html`; dan teks zh lengkap.
 **Tanggal.** Tidak ada tanggal baru selain **2026-10-01** (stempel sampel
 HoneyCheck), yang memenuhi aturan `13` §A.3. `manifest.txt` tetap dari
 `finance.ts`; `ash-gate_backup.txt` tetap 2022; tabel node tetap 2019 dan 2022.
-Surat Greta dan log pribadi per ending tanpa tanggal (sudut pandang sesudah M7,
+Surat Roxanne dan log pribadi per ending tanpa tanggal (sudut pandang sesudah M7,
 diizinkan `13` §A.3).
 
 **Penyimpangan.** (1) `.enc` tidak dihapus lalu dibuat ulang, melainkan
@@ -339,7 +339,7 @@ Perbaikan setelah audit pemilik atas run fase 2-8 (cabang `fix/phases2-8-m04-m07
 Keputusannya ada di README #38, #39, dan #41; yang di bawah ini hanya selisih terhadap spesifikasi
 dan catatan fase 4.
 
-**Ending (bagian H).** Log BACKTRACE dan surat Greta ditulis saat laporan diterima, sebelum
+**Ending (bagian H).** Log BACKTRACE dan surat Roxanne ditulis saat laporan diterima, sebelum
 `completeObjective`, yang menjalankan `OnComplete` secara sinkron: log yang ditulis sesudahnya hilang.
 Hanya `destroy` menghancurkan jaringan C2, dengan satu `unregister` sesudah berkas ledger dihapus.
 `expose` dan `handoff` membiarkan C2 hidup, dan `onCompleteM07` tidak lagi memanggil `unregister`.

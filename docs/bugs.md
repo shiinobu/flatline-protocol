@@ -2474,7 +2474,7 @@ what the stub cannot reproduce. The live tests are in `docs/m05-playtest.md` §2
 
 | Item | What the code assumes | What would show it wrong |
 |---|---|---|
-| R12 long `Exports` strings | The 114-digit token, the 120-digit sample and the 358-digit attachment (up to 4096 accepted) pass through a plain call. The 64-character chunk fallback was **not built**; the places to add it are `tokenCheck` in `rdcdesk/script.html`, `cipherObserve` in `cipherdesk/script.html` and `rdcdesk/exports.ts`, `cipherdesk/exports.ts` | Cipher Desk or RDC answer as if the input were empty; `[FP][CIPHER] run … inputLength=` shows a shorter length than the page sent |
+| R12 long `Exports` strings | The 138-digit token (114 before the password change of 2026-10-05), the 120-digit sample and the 358-digit attachment (up to 4096 accepted) pass through a plain call. The 64-character chunk fallback was **not built**; the places to add it are `tokenCheck` in `rdcdesk/script.html`, `cipherObserve` in `cipherdesk/script.html` and `rdcdesk/exports.ts`, `cipherdesk/exports.ts` | Cipher Desk or RDC answer as if the input were empty; `[FP][CIPHER] run … inputLength=` shows a shorter length than the page sent |
 | R15, R16 | RDC fonts, `cursor:none`, clipboard, and session restore through `flatlineRdcState()` on load work in the game iframe | A blank desktop, a pointer that stays visible, or a reload that returns to the login |
 | R19 | Cipher Desk, RDC, LeakIndex and Echoline open by host with no subnet and no domain record | Their host does not resolve; fall back to `registerDomains` with `needsSubnet: true` (lab pattern) |
 | `Popular` | Both new tool sites appear in the Goagle apps grid with their own icons | A pale globe or a missing tile |
@@ -2486,3 +2486,47 @@ what the stub cannot reproduce. The live tests are in `docs/m05-playtest.md` §2
 
 Two defaults taken without a question: the `flatlineLogin` result is a string (`portal`, `contractor`, `denied`), because strings are
 live-proven; and `flatlinePortalSeen` ignores every report that does not come from a Greta session.
+
+## 67. A dynamic page listed by Goagle links to `<host>/search`: a mission site needs a `/search` alias
+
+**Status: DOCUMENTED (engine read; owner's first live test of M5 v2, 2026-10-05). The alias is UNVERIFIED in the game.**
+Found: the owner searched `pacificcare`, got the hospital results, and every click opened a 404
+(`https://news.pacificcare-health.org/search`). The same happened to Echoline.
+
+The engine builds a dynamic page's result address in `h2c` as `url = meta.pathname ?? l.url ?? t.path`. Goagle calls
+`metadata()` with its own `meta`, so `pathname` is Goagle's `/search`, and the result click navigates to `site.Url + metadata.url`.
+A static page (`d2c`) returns its own `path`, which is why the lab never showed it. Every `DynamicWebsitePageDefinition` that Goagle
+lists therefore points at `/search`, whatever its real path.
+
+**Consequences.** A listed dynamic page needs a second page registered at `/search` that renders the same content, with `seo` unset so
+Goagle does not list it twice (`withSearchAlias` in `websites/m05/hospital/index.ts`; the Echoline index has one inline). `dirhunter`
+prints it (E-3), so the host lists `/search` next to its real paths. A closed alias answers 404 by address, as a page without `seo`
+does. Making the pages static is no way out: a static page cannot be closed outside the mission.
+
+## 68. `lynx` does not resolve an email address, and a Goagle keyword search matches only titles and site names
+
+**Status: DOCUMENTED (owner-tested in the game, 2026-10-05; the Goagle half is #62).**
+Found: the owner searched `CONTACT` and the staff email with `lynx` and got nothing; searching the name worked. `lynx [search]` is an
+OSINT lookup on a subject (a name or a Twotter handle); `Terminal.Lynx.Search` fires for every term typed, `Terminal.Lynx.Lookup`
+only when the term resolved to a profile, and its `input` is the resolved full name (SDK `LynxLookupData`).
+
+**Consequences.** A puzzle may hand the player an account name or a full name to type into `lynx`, never an email address or a
+generic word. M5's `M05_GRETA_LYNX_INPUTS` accepts `@g.desouza`, `g.desouza` and `Greta de Souza`, and a fixture exists for each so the
+terminal prints what the gate counts. The hospital site search follows #62: a result needs a word at the start of a keyword.
+
+## 69. The M5 `door` and M7 `evidence` report fields still look for the old surname
+
+**Status: FOUND (docs sweep, 2026-10-06). NOT FIXED: it needs the owner's EKSEKUSI.**
+The rename of 2026-10-05 (README #66) changed `GRETA_FULL_NAME` to "Roxanne Anindita Natnaree" and `GRETA_SHORT_NAME` to "R. Natnaree",
+but two lowercase term lists were not touched:
+
+- `content/m05/report.ts:19-20`: `M05_REPORT_DOOR_TERMS = ["greta", "souza"]`, `M05_REPORT_DOOR_REJECTED_TERMS = ["gareth"]`, used by
+  `matchesDoor` in `controller/m05/report.ts`. `M05_REPORT_DOOR` is `GRETA_FULL_NAME`, so even the sample answer fails. `matchesFields`
+  needs `matchesDoor`, so the Mission 5 Findings report never matches and the mission cannot complete with the name the player has read.
+- `content/m07/report.ts:20`: `M07_REPORT_EVIDENCE_PERSON_TERMS = ["souza"]`. `manifest.txt` prints `employee negligence (R. Natnaree)`
+  (`M07_EVIDENCE_CLASSIFICATION`, `content/m07/server-files.ts:35`), and `matchesFields` in `controller/m07/report.ts` needs the term, so a
+  player who copies the line fails the M7 report.
+
+**Proposed fix (not applied):** `["roxanne", "natnaree"]` with `["gideon"]` rejected for M5, and `["natnaree"]` for M7. Checked while
+looking: every other lowercase old-name string left in `src` is an internal id (the BACKTRACE key `greta`, `M05_LOG_GRETA`).
+`docs/m05-playtest.md` section 18 and `docs/m07-playtest.md` state the intended terms and point here.

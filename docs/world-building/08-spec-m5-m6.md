@@ -37,21 +37,21 @@ kredensial yang harus dipecahkan (crack), dan firewall tersembunyi lalu SSH (net
 | 1 | `tipReviewed` | - | `Mail.Read` tip Custodian ("kembali ke vault") | 1 | - |
 | 2 | `vaultRevisited` | 1 | `flatline.m01.projectOpened`, folder `M01_LEDGERVAULT_PROJECT_FOLDER` | 1 | buka halaman Archive, fixture `lynx` blurb staf |
 | 3 | `staff2025Seen` dan `staff2026Seen` lalu `staffArchiveCompared` | 2 | `Browser.Meta` halaman staf IT 2025 dan 2026 (dua flag, digabung) | 1 | kunci `dismissed`. Buka domain tepi jaringan dan fixture `whois`/`nslookup` |
-| 4 | `gretaProfiled` | 2 | `Terminal.Lynx.Lookup` akun Greta (bukan Gareth) | 1 | kunci `greta` |
+| 4 | `gretaProfiled` | 2 | `Terminal.Lynx.Lookup` akun Roxanne (bukan Gideon) | 1 | kunci `greta` |
 | 5 | `edgeMapped` | 3, 4 | `Terminal.NmapScan` pada tepi jaringan | 1 | buka fixture `nmap` mendalam, buka situs Breach lookup |
-| 6 | `credentialFound` | 5 | `Exports` halaman Breach lookup memancarkan event untuk rekaman Greta yang benar | 1 | - |
+| 6 | `credentialFound` | 5 | `Exports` halaman Breach lookup memancarkan event untuk rekaman Roxanne yang benar | 1 | - |
 | 7 | `passwordCracked` | 6 | `John.DecryptHash` dengan hash rekaman itu | 1 (#13) | - |
 | 8 | `firewallLoggedIn` | 7 | `PFSense.Login` pada Firewall tersembunyi (pola `controller/m01/breach.ts:27`, `m02/home.ts:39`) | 1 | - |
 | 9 | `firewallBreached` | 8 | `PFSense.Changes` (pola yang sama) | 1 | `removeFirewallRules` dan `openPorts` untuk 22 `Cold-Chart` dan 3389 `PC-IT-017` |
 | 10 | `archiveAccessed` | 9 | `RemoteConnection.Established` dengan `t === "SSH"` ke `Cold-Chart` (#17: Device, bukan Firewall) | 1 | kunci `archive` |
-| 11 | `statementRead` | 10 | `Terminal.Cat` pengakuan Greta (`acknowledgement_gdesouza.txt`) | 1 | kunci `statement` |
+| 11 | `statementRead` | 10 | `Terminal.Cat` pengakuan Roxanne (`acknowledgement_rnatnaree.txt`) | 1 | kunci `statement` |
 | 12 | `memoRead` | 10 | `Terminal.Cat` memo keputusan Vivien Orchid | 1 | kunci `decisionMemo` |
 | 13 | `ticketRead` | 10 | `Terminal.Cat` tiket USB (`usb_ticket_PC-IT-017.txt`) | 1 | kunci `usbTicket` |
 | 14 | `reportSent` | 11, 12, 13 | `Mail.Sent` ke Custodian dengan `matchesFields` | 1 | `completeObjective`. Balasan "belum waktunya" memakai `firstUnmetStep` |
 
 Bonus **di luar rantai** (pelajaran `rootgrab`, `docs/changelog.md` 2026-10-01): `PC-IT-017` dengan
 RDP yang bisa dieksploitasi (Metasploit `exploit` biasa, `RemoteConnection.Established` dengan
-`t === "METASPLOIT"`). Di sesi itu `cat` membaca catatan pribadi Greta, dan hasilnya hanya log
+`t === "METASPLOIT"`). Di sesi itu `cat` membaca catatan pribadi Roxanne, dan hasilnya hanya log
 pribadi BACKTRACE.
 
 ### B3. Dunia per langkah (`UnlockSpec`)
@@ -66,8 +66,8 @@ pribadi BACKTRACE.
 ```text
 Router (tepi rumah sakit)  [domain dari Archive]   443 terbuka, 80 tertutup
 └─ Splitter (pass-through)
-   ├─ Firewall (isIpHidden)   pfSense: satu pengguna valid g.desouza/<P>; aturan blok 22 dan 3389
-   ├─ Device "Cold-Chart" (arsip IR)  ssh 22 (nonaktif sampai langkah 9), users g.desouza/<P>, root
+   ├─ Firewall (isIpHidden)   pfSense: satu pengguna valid rnatnaree/<P>; aturan blok 22 dan 3389
+   ├─ Device "Cold-Chart" (arsip IR)  ssh 22 (nonaktif sampai langkah 9), users rnatnaree/<P>, root
    ├─ Device "Bedside-17" (PC-IT-017)  rdp 3389 FreeRDP (nonaktif sampai langkah 9), bonus
    └─ Umpan: Lead-Apron (radiologi), Pay-Station (penagihan), Printer
 ```
@@ -77,33 +77,33 @@ Router (tepi rumah sakit)  [domain dari Archive]   443 terbuka, 80 tertutup
   `docs/app-asar-reference.md` E-7).
 - Aturan Firewall tanpa `destination` (pola M1 dan M2, tiap port milik satu perangkat) atau dengan
   `destination` sama dengan `lanIp` target; tidak pernah IP publik (`docs/app-asar-reference.md` E-8).
-- Password `<P>` dipakai ulang di Firewall dan di `Cold-Chart` (kebiasaan Greta, sejalan dengan tema).
+- Password `<P>` dipakai ulang di Firewall dan di `Cold-Chart` (kebiasaan Roxanne, sejalan dengan tema).
   `MD5(<P>)` otomatis terdaftar karena penggunanya ada di dunia (#13).
 
 ### B5. Data dan fixture
 - **Breach lookup** (situs misi): 10 rekaman dalam halaman dengan pencarian JS (pola ClearEscrow).
   Setiap hash adalah MD5 asli dari password pengguna yang benar-benar ada di dunia, termasuk
   rekaman umpan (pengguna di perangkat umpan atau Firewall umpan), supaya semuanya bisa di-crack
-  dan tidak ada jalan buntu diam-diam (#13). Varian nama pengguna: `g.desouza` (benar),
-  `greta.desouza` dan `gdesouza` (gagal di Firewall dan SSH).
-- **Archive** (situs misi): halaman staf IT 2025 dan 2026. Greta dihapus. Gareth Lim (kontrak
+  dan tidak ada jalan buntu diam-diam (#13). Varian nama pengguna: `rnatnaree` (benar),
+  `greta.desouza` dan `rnatnaree` (gagal di Firewall dan SSH).
+- **Archive** (situs misi): halaman staf IT 2025 dan 2026. Roxanne dihapus. Gideon Bayu Teoh (kontrak
   berakhir) juga hilang dari 2026. Tidak ada halaman yang menyebut alasan.
-- **Twotter:** persona Greta dan Gareth (umpan).
+- **Twotter:** persona Roxanne dan Gideon (umpan).
 - **`Cold-Chart`:** dokumen, nama berkas, dan beat ada di `09-konten-m5-m6.md` bagian B5.
 
 ### B6. BACKTRACE
 Kunci (satu per aksi, dilacak dari `onAdvance`): `dismissed`, `greta`, `archive`, `statement`,
 `decisionMemo`, `usbTicket`. Extras: nama asuransi, jeda 6 jam 21 menit. Log pribadi: refleksi
-pemain tentang "pintu" dan tentang Greta.
+pemain tentang "pintu" dan tentang Roxanne.
 
 ### B7. Laporan
 Kolom `door`, `cause`, `decider`, `gap`, `motive`, dengan nilai benar dan yang ditolak di
-`09-konten-m5-m6.md` bagian B7. Validator menolak Gareth Lim dan penyebab "vendor".
+`09-konten-m5-m6.md` bagian B7. Validator menolak Gideon Bayu Teoh dan penyebab "vendor".
 
 ### B8. Teks, lapisan visual, berkas
 - Teks en dan zh di `i18n/m05/core.ts`, `site.ts`, `site-keys.ts`, `twotter.ts`. Satu kunci
   petunjuk "belum waktunya" per langkah.
-- Visual: situs Archive dan Breach lookup berdesain berbeda, linimasa Twotter Greta, kartu BACKTRACE.
+- Visual: situs Archive dan Breach lookup berdesain berbeda, linimasa Twotter Roxanne, kartu BACKTRACE.
 - Berkas: `content/m05/*`, `controller/m05/` (`index`, `spec`, `report`, `world`, `recon`,
   `web`, `crack`, `firewall`, `access`, `documents`), `i18n/m05/*`, `websites/m05/` (`leakindex`),
   Archive di `websites/global/echoline/`, `context/m05/` (cermin visibilitas), `main/m05.ts`.
@@ -113,7 +113,7 @@ Kolom `door`, `cause`, `decider`, `gap`, `motive`, dengan nilai benar dan yang d
 | Butir | Status |
 |---|---|
 | `John.DecryptHash` | Terbukti di M2 lama (#13). Pemilik proyek: tidak perlu lab, MD5 asli sudah cukup |
-| Persona Twotter di-seed sejak awal (`core/seed.ts`) | Akun Greta bisa terlihat sebelum langkah 2. Diterima oleh pemilik proyek |
+| Persona Twotter di-seed sejak awal (`core/seed.ts`) | Akun Roxanne bisa terlihat sebelum langkah 2. Diterima oleh pemilik proyek |
 | `Exports` memancarkan event dari situs misi | Pola sama dengan LedgerVault (live), situs berbeda |
 | Firewall dan Device sebagai saudara di dalam Splitter | Bentuk M2 (live) |
 | Bonus `PC-IT-017` | Di luar rantai, jadi kegagalannya tidak menghentikan misi |
@@ -191,7 +191,7 @@ Fase 6: **M5 penuh**, 13 langkah sesuai bagian B.
 
 **Bentuk rantai.** Dua pasang paralel, bukan satu garis. Snapshot 2025 dan 2026
 berdiri sendiri lalu bergabung di `staffArchiveCompared`; cabang arsip itu
-bergabung dengan profil `lynx` Greta di `edgeMapped`. Tiga dokumen insiden
+bergabung dengan profil `lynx` Roxanne di `edgeMapped`. Tiga dokumen insiden
 (`acknowledgement`, `decision_memo`, `usb_ticket`) juga paralel, bergantung hanya
 pada sesi arsip, supaya urutan bacanya bebas dan tidak ada langkah yang bisa
 menguncinya. Laporan menunggu ketiganya.
@@ -207,7 +207,7 @@ menguncinya. Laporan menunggu ketiganya.
 | Tiga pengalih (Lead-Apron, Pay-Station, printer) | `45.142.193.29` / `176.113.115.84` / `195.133.40.17` | LAN `.6`-`.8`, port tertutup sejak build |
 | `echoline.net` / `leakindex.net` | `185.31.164.22` / `91.229.23.105` | situs, tanpa subnet |
 | Jalur snapshot | `/s/8fq2/` (2025-11-03) dan `/s/8fq7/` (2026-09-02) | buram, karena `dirhunter` mencetak semua jalur terdaftar (#40) |
-| Password Greta | `Marigold2019` | MD5-nya `a3106b24578d51822fb862154d11b89d` |
+| Password Roxanne | `Marigold2019` | MD5-nya `a3106b24578d51822fb862154d11b89d` |
 | Password pengalih | `radiology2021`, `billing-desk-04`, `printroom01` | tiga hash pengalih di tabel LeakIndex |
 | Hadiah | 1200 | kontrak terkecil dalam rangkaian, sesuai D1 |
 
@@ -219,7 +219,7 @@ registri lewat array `users` sebuah perangkat. Keempatnya diperiksa di harness.
 **Tanggal.** Tidak ada tanggal baru. Semua dari `13` §B: 2026-08-11 (media
 dihubungkan), 2026-08-14 (insiden dan pembayaran), 2026-08-15 (draf), 2026-08-18
 (tanda tangan), 2026-08-19 (temuan final), 2026-08-24 (ditutup), 2026-07-31
-(kontrak Gareth berakhir), 2025-11-03 dan 2026-09-02 (dua snapshot). Jeda
+(kontrak Gideon berakhir), 2025-11-03 dan 2026-09-02 (dua snapshot). Jeda
 02:41 -> 09:02 = 6 jam 21 menit, nilai yang diminta laporan.
 
 **Penyimpangan.** (1) LeakIndex memakai `Exports` sebagai gerbang dan mengirim
@@ -230,8 +230,8 @@ dihubungkan), 2026-08-14 (insiden dan pembayaran), 2026-08-15 (draf), 2026-08-18
 folder `q3`, bukan mengimpor konten M01 yang terkunci — aturan tanpa impor
 antar-misi tetap utuh. (3) Fixture `nmap` untuk alamat edge dibuang: edge adalah
 router sungguhan, dan fixture cetak akan menimpa pemindaian hidup. (4) Snapshot
-2026 menghilangkan **dua** nama, bukan satu: Gareth Lim karena kontraknya memang
-berakhir, Greta tanpa alasan apa pun — itulah pengalihnya, dan `Gareth Lim`
+2026 menghilangkan **dua** nama, bukan satu: Gideon Bayu Teoh karena kontraknya memang
+berakhir, Roxanne tanpa alasan apa pun — itulah pengalihnya, dan `Gideon Bayu Teoh`
 adalah jawaban `door` yang ditolak laporan. (5) Plugin `frontend-design`
 **tidak tersedia** di lingkungan ini, jadi LeakIndex dan halaman Echoline
 dirancang manual mengikuti brief prompt §6.
@@ -324,7 +324,7 @@ login portal; (2) lapis network (Firewall tersembunyi lalu SSH) diganti RDC, jad
 Status, dan `hospitalShells` hanya separuh Bedside-17, dipicu `displayAttached`; (3) tiga dokumen dibaca di jendela arsip RDC lewat
 `Exports` angka (`flatlineRdcRead`), bukan `onFileRead`; (4) langkah 9 sampai 14 memakai bendera `seen` dan `settleM05` karena pemain boleh
 membuka halaman portal dan Cipher dalam urutan apa pun (`advanceStep` tidak diubah); (5) delapan situs rumah sakit milik M5, tidak lagi
-M1; (6) enam log NOTE opsional baru di `MISSION_LOGS`, enam kunci wajib tetap. Pengguna Firewall `r.wong` dan `ssh` ke Cold-Chart ditolak
+M1; (6) enam log NOTE opsional baru di `MISSION_LOGS`, enam kunci wajib tetap. Pengguna Firewall `rafael.bautista` dan `ssh` ke Cold-Chart ditolak
 (hold IR-22) sebagai umpan jujur. Cipher Desk dan RDC adalah situs global permanen `Popular` yang akan dipakai M6 dan M7 lewat
 `content/global/sealed.ts` dan `rdc.ts`. Yang belum dikerjakan: cadangan potongan 64 karakter (R12) dan semua
 yang tercantum di `docs/bugs.md` #66.

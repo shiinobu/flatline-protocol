@@ -26,7 +26,7 @@ pada konten baru yang berdiri sendiri.
 | H1 | Custodian berjanji bersuara hanya bila ada yang salah: "I won't check in. If something's wrong, you'll hear from me." | `i18n/m01/core.ts:92-93` | Belum dibayar | M4 |
 | H2 | Pemain bisa ditemukan lewat aturan forward yang tertinggal: "A rule that's still open when they audit is how people like us get found." | `i18n/m03/core.ts:69-70` | Belum dibayar | M4 |
 | H3 | "this one needs to go clean. no loose ends this time" dan "talk when the next one's ready" | `i18n/m01/core.ts:195-196` | Dibayar sebagian oleh M4 | M4 (satu baris `old_targets.txt`: "next: prepping") |
-| H4 | `found_note.txt` bertanda G: "Q3-2026-SEA -- what does it mean? -- G". Bukti dilabeli "Evidence PC-IT-017 — USB / staff badge / memo" | `websites/m01/ledgervault/home.html` (teks gambar SVG berbasis base64, didekode 2026-10-02); `i18n/m01/ledgervault.ts:57` | Belum dibayar | M5 (G = Greta de Souza, DECIDED) |
+| H4 | `found_note.txt` bertanda R.a.N: "Q3-2026-SEA -- what does it mean? -- R.a.N" (tiga inisial; dulu "G", diganti 2026-10-06; teks gambar SVG berbasis base64 di `home.html`). Bukti fisik di folder Q3 kini foto "Access kit — USB / badge / key" (`q3-accesskit.jpg`, Aug 07 2026): USB bertulisan spidol putih "Q3-2026-SEA", lencana staf IT dan stiker aset "PC-IT-017". Label "Evidence PC-IT-017 — USB / staff badge / memo" dan fotonya yang lama sudah tidak ada | `websites/m01/ledgervault/home.html` (folder `q3`); `i18n/m01/ledgervault.ts` (`NAME_Q3_ACCESSKIT`) | Belum dibayar | M5 (R.a.N = Roxanne Anindita Natnaree, DECIDED) |
 | H5 | Lencana terpulihkan di dua insiden lama: Northstar Port Authority 2020 dan Rheinland Energie AG 2023 | `i18n/m01/ledgervault.ts:50-51` | Belum dibayar | Latar (tidak dirujuk langsung oleh M4-M7). INFERENSI: ada pihak di lapangan |
 | H6 | "Architect's cut goes out same day as settlement ... they flagged it twice already." dan "a second signer above the shell company" | `i18n/m02/core.ts:176-177`, `:86`, `:96` | "second signer" dibayar M6 dan M7. "they" (siapa yang menandai) belum | M4, M6 |
 | H7 | Catatan Reyes: "i want it on record that i wrote this down first." dan spreadsheet: "told this is normal for the holding company's structure. Hope that's true." | `i18n/m03/core.ts:162`, `:142` | Dibayar sebagian oleh M4 dan M7 | M4 (`old_targets.txt`: "d.reyes: monitor"), M7 (`manifest.txt`, log pribadi per ending) |
@@ -80,7 +80,7 @@ sudah ada:
 | Misi | Bergantung pada | Sumber |
 |---|---|---|
 | M4 | Custodian berjanji bersuara bila ada yang salah, audit aturan forward, "no loose ends", peer `SKN-CENTRAL`, Reyes | `i18n/m01/core.ts:92-93`, `i18n/m03/core.ts:70`, `i18n/m01/core.ts:195`, `content/m03/network.ts:47` |
-| M5 | Folder `q3` dan event pembukaannya, `found_note.txt` bertanda G, garis waktu 02:41 sampai 09:02 dari `deploy.log` | `content/m01/report.ts:9`, `websites/m01/ledgervault/index.ts:25`, `i18n/m02/core.ts:110-119` (tanggal dari `settledAt`) |
+| M5 | Folder `q3` dan event pembukaannya, `found_note.txt` bertanda R.a.N, garis waktu 02:41 sampai 09:02 dari `deploy.log` | `content/m01/report.ts:9`, `websites/m01/ledgervault/index.ts:25`, `i18n/m02/core.ts:110-119` (tanggal dari `settledAt`) |
 | M6 | "Nominees ... someone real still owns it", `owner_note`, `203.0.113.160` | `i18n/m03/core.ts:99`, `:173`, `M04_ARCHITECT_VPN_IP` (dipakai M2 dan M3) |
 | M7 | Router `203.0.113.160` dan fixture `whois`/`geoip`-nya di M3 | `content/m03/fixtures.ts:93-97` |
 

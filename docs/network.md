@@ -279,11 +279,11 @@ Router  198.244.91.37  (remote.pacificcare-health.org)  lan 192.168.1.1
 │     ports: 443 https active · 80 http closed
 └─ Splitter  37.120.145.62  lan 192.168.1.2
    ├─ Firewall  193.29.57.184  lan 192.168.1.3  isIpHidden
-   │     ONE valid user: r.wong (admin only; his password is nowhere in the game, so the console never takes Greta's)
+   │     ONE valid user: rafael.bautista (admin only; his password is nowhere in the game, so the console never takes Roxanne's)
    │     ports: 80 http (its own pfSense panel)
    │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.5
    ├─ Device "Cold-Chart"  141.98.252.76  lan 192.168.1.4
-   │     g.desouza (+ root; the user exists so the MD5 of her password is registered) · 22 ssh, refused: hold IR-22, never opened
+   │     rnatnaree (+ root; the user exists so the MD5 of her password is registered) · 22 ssh, refused: hold IR-22, never opened
    │     no rootFiles: the seven archive files live in the RDC page (`content/m05/rdc.ts`)
    ├─ Device "Bedside-17"  80.94.92.118  lan 192.168.1.5
    │     it.station online (+ root) · 3389 rdp "FreeRDP 6.0.4", closed until
@@ -303,7 +303,7 @@ harmless (`docs/bugs.md` #13). The sites around the network have **no subnet**:
 the seven hospital hosts, which the domain records register with `needsSubnet: true`. Discovery no longer uses the Custodian's
 follow-up mails (README #38 is superseded for M5): the hospital pages, Echoline (`seo`) and the Cipher/RDC tool sites (`Popular`,
 `search`) are found through Goagle, and the portal's Systems page names `rdcdesk.io`. Fixtures (`nslookup`, `whois`, and the
-`lynx` entries for Greta and Gareth) register with their step, not at build.
+`lynx` entries for Roxanne and Gideon) register with their step, not at build.
 
 ## M6 — "Open Register" (written 2026-10-02; full mission, not yet live-tested)
 

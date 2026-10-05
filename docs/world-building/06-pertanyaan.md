@@ -3,17 +3,17 @@
 Status: diperbarui 2026-10-02. Tandai `[x]` dan pindahkan ke log keputusan di
 `README.md` saat dijawab.
 
-## G (Greta de Souza)
+## G (Roxanne Anindita Natnaree)
 
 - [x] **G1-a.** Status saat M5: hidup, dipecat, dijadikan penyebab resmi, tak terjangkau.
   DECIDED 2026-10-02.
-- [x] **G1-b.** Nama dan jenis kelamin: Greta de Souza, perempuan. DECIDED 2026-10-02.
-- [x] **G1-c.** Selama M5 pemain tidak bicara dengan Greta (dokumen saja). Setelah M7 satu
+- [x] **G1-b.** Nama dan jenis kelamin: Roxanne Anindita Natnaree, perempuan. DECIDED 2026-10-02.
+- [x] **G1-c.** Selama M5 pemain tidak bicara dengan Roxanne (dokumen saja). Setelah M7 satu
   surat epilog searah; ending C tanpa surat. Percakapan dua arah ditunda (Tier 2).
   DECIDED 2026-10-02.
-- [x] **G1-d.** Cover-up: Greta dipecat dan dinamai penyebab resmi dalam laporan insiden
+- [x] **G1-d.** Cover-up: Roxanne dipecat dan dinamai penyebab resmi dalam laporan insiden
   (bukan ditahan). DECIDED 2026-10-02.
-- [x] **G1-e.** Beat dokumen Greta (catatan, pengakuan paksa) dan surat epilog A dan B sudah
+- [x] **G1-e.** Beat dokumen Roxanne (catatan, pengakuan paksa) dan surat epilog A dan B sudah
   final di `09-konten-m5-m6.md` (B5, B10). Prosa en dan zh ditulis saat implementasi.
 - [ ] **G1-f.** Apakah percakapan dua arah (`replyable`) diuji di lab nanti atau dilepas.
 
@@ -100,5 +100,5 @@ Status: diperbarui 2026-10-02. Tandai `[x]` dan pindahkan ke log keputusan di
 
 - [x] **E-a.** Matriks konsekuensi di `05-ending.md` bagian B diterima sebagai dasar efek ending
   M7 (EKSEKUSI 2026-10-02, `11-spec-m7.md` bagian H).
-- [ ] **E-b.** Bentuk epilog Reyes dan apakah ia muncul langsung di finale. Greta hanya
+- [ ] **E-b.** Bentuk epilog Reyes dan apakah ia muncul langsung di finale. Roxanne hanya
   lewat surat epilog (G1-c).

@@ -9,7 +9,7 @@ permanent design doc (that is `docs/world-building/11-spec-m7.md`).
 closed until the firewall step opens it), the five bare probes are gone, and the
 mission now ships the real 240-second tracking, HoneyCheck, the designed
 `/legacy-cms/` node table, the `choice` field with its three ending effects,
-Greta's epilogue letters, the 5000 payout, the six BACKTRACE keys with a report
+Roxanne's epilogue letters, the 5000 payout, the six BACKTRACE keys with a report
 card, and the full Chinese text.
 
 **What phase 1 was for.** M07 is the old M4 migrated to mission id `m07`
@@ -20,7 +20,7 @@ test is still owed, and sections 4-9 below are it.
 
 **Built in phase 4.** HoneyCheck, the designed `/legacy-cms/` node table, the
 240-second tracking banner with its penalty and desktop breach, the ending
-effects and Greta's letters, the "What now?" mail and the `choice` report
+effects and Roxanne's letters, the "What now?" mail and the `choice` report
 field, the money reward, the m7 BACKTRACE keys, and the Chinese text.
 
 **Language.** English and Simplified Chinese are both complete. Switch the game
@@ -213,7 +213,7 @@ Then, at `meterpreter >`:
 **`manifest.txt` must read** as five settled accounts (Northstar 2020 NA,
 Rheinland 2023 EU, LOG-EU-2209 $1,400,000 2026-05-02, FIN-NA-0091 $4,100,000
 2026-07-22, CASE-A7X-0417 $2,850,000 2026-08-14), the PacificCare note
-classifying it *employee negligence (G. de Souza)* prepared with V. Orchid and
+classifying it *employee negligence (R. Natnaree)* prepared with V. Orchid and
 approved by Nordhaven on 2026-08-17, the watch line `d.reyes: monitor`, and the
 closing *every account, settled.* Any `{{placeholder}}` or raw `M07.` key is a
 finding.
@@ -283,8 +283,10 @@ answer, and Send enables after the last one is filled.
 - `architect` → `Conrad Lindqvist` (needs "lindqvist")
 - `path` → `Ash-Vector, ash-gate, 203.0.113.161` (needs all three: the dead box, the edge
   firewall and the index host)
-- `evidence` → `employee negligence (G. de Souza)` (needs a fault word,
-  "negligen" or 疏忽 / 过失, and "souza")
+- `evidence` → `employee negligence (R. Natnaree)` (needs a fault word,
+  "negligen" or 疏忽 / 过失, and the surname: intended "natnaree"; the code
+  still checks "souza", so a copy of the manifest line fails until
+  `docs/bugs.md` #69 is fixed)
 - `choice` → one of `expose`, `handoff`, `destroy`
 
 Case and edge spacing are ignored; a fourth word is rejected, and so is an empty
@@ -292,8 +294,8 @@ choice. A rejected report gets no reply.
 
 | `choice` | Expect |
 |---|---|
-| `expose` | Greta's letter arrives from `greta.desouza@postbox.my`; two personal-log lines; the C2 network stays up |
-| `handoff` | Greta's other letter (a lawyer called, it will take years); two personal-log lines; network stays up |
+| `expose` | Roxanne's letter arrives from `roxanne.natnaree@postbox.my`; two personal-log lines; the C2 network stays up |
+| `handoff` | Roxanne's other letter (a lawyer called, it will take years); two personal-log lines; network stays up |
 | `destroy` | **no letter at all** — the inbox stays silent; two personal-log lines; the ledger file is removed and `[FP][M07] C2 network torn down (destroy ending)` appears, once, and the C2 hosts stop answering (`nmap 203.0.113.161`) |
 
 The two log lines and the letter are written when the report is accepted, before
@@ -336,7 +338,7 @@ Replay in Simplified Chinese. Everything above has zh text, **including the
 countdown banner**, whose labels are passed in already localized through its
 `Variables` view (a widget loaded by path never sees `{{t:KEY}}` —
 `docs/bugs.md` #48). Watch for any English leaking into the banner, the node
-table, HoneyCheck, the manifest, the mails or Greta's letter.
+table, HoneyCheck, the manifest, the mails or Roxanne's letter.
 
 ---
 

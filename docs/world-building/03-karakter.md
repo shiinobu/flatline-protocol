@@ -1,7 +1,7 @@
 # 03 — Karakter
 
 Status: tokoh canon diverifikasi dari sumber (2026-10-02). Tokoh baru berlabel.
-Jenis kelamin Conrad Lindqvist dan tokoh pendukung baru (Gareth Lim, Alexander Voss, Imogen
+Jenis kelamin Conrad Lindqvist dan tokoh pendukung baru (Gideon Bayu Teoh, Alexander Voss, Imogen
 Hartley) belum ditentukan. Dokumen ini menulis mereka tanpa kata ganti gender.
 
 ## A. Canon
@@ -24,38 +24,39 @@ Hartley) belum ditentukan. Dokumen ini menulis mereka tanpa kata ganti gender.
 
 ## B. Tokoh baru dan keputusan karakter
 
-### G: Greta de Souza (G1, DECIDED 2026-10-02)
+### G: Roxanne Anindita Natnaree (G1, DECIDED 2026-10-02)
 
-- **Siapa.** Greta de Souza, perempuan, staf IT PacificCare Health. Penasaran dengan kode
+- **Siapa.** Roxanne Anindita Natnaree, perempuan, staf IT PacificCare Health. Penasaran dengan kode
   proyek "Q3-2026-SEA" yang tercetak di memo pada sebuah USB, lalu mencolokkannya (G1).
   Latar keluarga Eurasia (komunitas Kristang) di Singapura atau Malaysia, yang membuat
   nama depan Barat wajar (usulan yang diterima pemilik proyek).
-- **Bukti di canon.** `found_note.txt`: "Q3-2026-SEA -- what does it mean? -- G".
-  Bukti dilabeli "PC-IT-017 — USB / staff badge / memo" (`01-canon-dan-hook.md` H4).
+- **Bukti di canon.** `found_note.txt`: "Q3-2026-SEA -- what does it mean? -- R.a.N" (tiga inisial; dulu "G").
+  Bukti fisik: foto "Access kit — USB / badge / key" dengan stiker "PC-IT-017" (`01-canon-dan-hook.md` H4).
+  Pemetaan nama M5 yang berlaku: `14-rename-m5.md`.
   INFERENSI: tiga barang itu (USB, lencana, memo) adalah cara masuknya.
 - **Fungsi.** Titik masuk serangan (log M1: "That's the hallway. That's the door."),
   manusia yang hilang dari arsip 2026, dan kambing hitam cover-up.
 - **Nasib (DECIDED).** Hidup. Dipecat dan dijadikan penyebab resmi dalam laporan insiden
   rumah sakit (bukan ditahan). Tidak bisa dihubungi: hilang dari arsip 2026.
-- **Kehadiran (DECIDED).** Selama M5 pemain tidak bicara dengan Greta. Ia hadir lewat
+- **Kehadiran (DECIDED).** Selama M5 pemain tidak bicara dengan Roxanne. Ia hadir lewat
   dokumen: catatannya sendiri, pernyataan yang ia dipaksa tandatangani, dan selisih arsip
   situs PacificCare 2025 dan 2026. Setelah M7: satu surat epilog searah lewat `Mail.send`
   (Tier 1) yang isinya mengikuti ending (`05-ending.md`; ending C tanpa surat).
   Percakapan dua arah (`MailDefinition.replyable`) ditunda: Tier 2, dicoba di lab dulu.
 - **Cermin.** Reyes menjaga gaji ("That's how it gets you", `i18n/m03/core.ts` LOG_REYES_2).
-  Greta yang hanya penasaran kehilangan segalanya.
-- **OPEN.** Umur, teks dokumen Greta (catatan dan pernyataan paksa), bunyi surat epilog
+  Roxanne yang hanya penasaran kehilangan segalanya.
+- **OPEN.** Umur, teks dokumen Roxanne (catatan dan pernyataan paksa), bunyi surat epilog
   (`06-pertanyaan.md` G1-e).
 
 ### Vivien Orchid, CRO PacificCare (nama dan peran DECIDED 2026-10-02)
 
 - **Siapa.** Vivien Orchid, Chief Risk Officer PacificCare Health. Memutuskan membayar
-  tebusan dan menandatangani temuan insiden yang menyebut Greta sebagai penyebab. Pernah
+  tebusan dan menandatangani temuan insiden yang menyebut Roxanne sebagai penyebab. Pernah
   bekerja di sisi asuransi, di Nordhaven Mutual Assurance, asuransi fiktif di puncak rantai pemilikan SKN Capital Nominees,
   di bawah Conrad Lindqvist. Perempuan (DECIDED 2026-10-02).
 - **Motif cover-up (PROPOSAL yang diterima).** Label "kelalaian staf" (human error) menjaga
   klaim asuransi rumah sakit tetap berlaku, sedangkan "kegagalan kontrol sistemik" bisa
-  membatalkannya. Karena itu Greta yang dipilih dan penyelidikan ditutup cepat.
+  membatalkannya. Karena itu Roxanne yang dipilih dan penyelidikan ditutup cepat.
 - **Perantara pembayaran.** Negosiator yang ditunjuk perusahaan asuransi menangani "client
   escrow released" (`deploy.log`): Brightwater Resolutions (DECIDED).
 - **Garis waktu canon.** Pada 2026-08-14 sistem terkunci pukul 02:41 UTC dan tebusan dibayar
@@ -85,7 +86,7 @@ Hartley) belum ditentukan. Dokumen ini menulis mereka tanpa kata ganti gender.
   (`content/m04.ts:33-37`).
 - **Wajah publik (DECIDED).** Chairman Risk Committee Nordhaven Mutual (2018-2024), mantan Chief
   Actuary (2009-2018), direktur Nordhaven Holdings (PC) Ltd 2021-12-02 sampai 2024-03-01
-  (`09-konten-m5-m6.md` C1). Tokoh pendukung M5 dan M6 (Gareth Lim, Alexander Voss, Imogen
+  (`09-konten-m5-m6.md` C1). Tokoh pendukung M5 dan M6 (Gideon Bayu Teoh, Alexander Voss, Imogen
   Hartley) juga di sana.
 - **Umur dan motif (DECIDED 2026-10-02).** 59 tahun (lahir 1967). Aktuaris yang memberi harga pada
   risiko yang ia ciptakan sendiri: tebusan sebagai kerugian yang bisa diprediksi bila pasokannya dikelola,

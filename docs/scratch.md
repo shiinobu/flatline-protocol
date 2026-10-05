@@ -2971,3 +2971,17 @@ password-cracked), `portal.ts` (portal-seen, portal-login contractor), `cipher.t
 rdc-attached, rdc-read), `access.ts` (bedside-bonus, status-note). `websites/m05/portal/exports.ts` (`portal:login`).
 `websites/global/cipherdesk/exports.ts` (scope `CIPHER`: run, opened) and `websites/global/rdcdesk/exports.ts` (scope `RDC`: login, signal,
 attach, read, state). Cipher and RDC are shared with M6 and M7, so their traces go when the last of the three missions locks.
+
+### Puzzle architecture V2 (2026-10-05, same day, English only)
+
+- `controller/m05/crack.ts` is deleted (`probe:leak-record-opened` and `probe:password-cracked` are gone). `recon.ts` now traces
+  `vault-revisited`, `team-page-seen`, `change-record-seen`, `capture-seen early|late` and `greta-seen`; `staff-archive-compared` is
+  gone with its handler (the step settles in `controller/m05/evidence.ts`, which has no trace). `websites/m05/portal/exports.ts` adds
+  `portal:login retired`. `cipher.ts` still traces `cipher-opened` for the two new ids (`handoverNote`, `recoveryFormat`).
+- The mocked-SDK harness of the earlier session still describes the old chain (credential, `john`, a four-person capture); it was not
+  updated or run for V2, so only the typecheck and the baseline greps back this change. Rebuild it before trusting a green run.
+- Sealed texts must be printable ASCII (`readableText` rejects anything else), so the two new plaintexts in `content/m05/sealed.ts`
+  carry no em dash or accented letter.
+- Gareth Lim stays canon (nine months, contract to 2026-07), so the captures list him only from 2025-11-03 although the source
+  document listed him from 2024; Bianca Silva and Nadia Karim are on the 2026-08-18 capture but not on the live page (the source
+  document's roster of 14 omits them), so they read as ordinary churn after 2026-08-18.

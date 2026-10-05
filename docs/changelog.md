@@ -25,6 +25,36 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-06
+
+- **[mechanic] M1 LedgerVault folder Q3-2026-SEA has seven new photographs** (README #67). `public/assets/m01/q3-receipt.jpg`,
+  `q3-recon.jpg`, `q3-accesskit.jpg` and `q3-visitorpass.jpg` are the owner's friend's JPGs, kept as delivered; `q3-notice.png`,
+  `q3-corridor.png` and `q3-scheduling.png` came from Creative Claw (gpt-image-2.5-sunburst, 13 + 13 + 16 credits). `q3-receipt.png`
+  and `q3-foundnote.png` are deleted; `q3-exterior.png` stays for the login backdrops of the portal, RDC and the dashboard preview.
+  Rows in `websites/m01/ledgervault/home.html`: receipt Aug 03, recon Jul 09, corridor Aug 15, notice Aug 14, scheduling Aug 14,
+  access kit Aug 07, visitor pass Aug 03; Recent lists `found_note.txt`, `case_id.txt`, `network_map.txt`, corridor and scheduling;
+  Shared lists the receipt. New names `NAME_Q3_RECON`, `NAME_Q3_ACCESSKIT` and `NAME_Q3_VISITORPASS` (en and zh) in
+  `i18n/m01/ledgervault.ts`.
+- **[mechanic] `found_note.txt` is signed "-- R.a.N"** (the base64 SVG in `home.html` was decoded and re-encoded).
+- **[fix] M1's eight `pacificcare-health.org` records and `M01_HOSPITAL_DOMAIN` / `M01_HOSPITAL_IP` are gone from
+  `content/m01/network.ts`** (owner's permission to edit locked M1: M5 owns the domain with other addresses; README #58 and #67).
+- **[mechanic] The hospital home has eight photographs** (`public/assets/m05/hospital-*.jpg`, 1248 x 832, the owner's files; the hero is
+  the photo, the care cards and the specialty and about panels use `url("./assets/m05/…")` with the old gradient as a fallback) and a
+  phone-width fix for the hero chip. Headless Chrome only, not seen in the game (`docs/m05-playtest.md` section 21).
+- **[fix] The service-notice image on the hospital home is a flat BLACKLEDGER screen capture** (`public/assets/m05/pacificcare-lockscreen.jpg`,
+  1536 x 864, Creative Claw, 13 credits), not the operating-theatre photo: the notice talks about the Patient Portal and scheduling, and
+  the photo spelled out "Operating Theatre 3" on a public page. The alt text is "cached lock screen: SYSTEM UNAVAILABLE, Q3-2026-SEA"
+  (en and zh), the note under it is unchanged, and the old `.png` is gone.
+- **[bug] Found, not fixed: `docs/bugs.md` #69.** `M05_REPORT_DOOR_TERMS` (`greta`, `souza`; rejects `gareth`) and
+  `M07_REPORT_EVIDENCE_PERSON_TERMS` (`souza`) still hold the old surname, so the M5 `door` answer and the M7 `evidence` answer cannot
+  match the names the player reads.
+- **[docs] Docs brought up to date for the rename and the images.** Names, accounts and the password are swept through
+  `docs/m05-playtest.md`, `m07-playtest.md`, `network.md`, `architecture.md` and world-building 01 to 13; new
+  `docs/world-building/14-rename-m5.md` and README #66 and #67; the Echoline gate, the token hex prefix, the vault and the
+  BACKTRACE thumbnails are described where they live. `npx tsc -p tsconfig.json --noEmit` is clean and all 18 inline `<script>` blocks
+  under `src/websites` parse (node `new Function`, which also shows the `frame.html` search script no longer has a missing `)`).
+  Nothing was built with esbuild or run in the game.
+
 ## 2026-10-05
 
 - **[milestone] M5 "The Door" v2 is built in code: the cloud run's Phases 0 to 2 were merged and the rest of Phase 3 and all of
@@ -49,13 +79,51 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   completion) opens `/it/team` and the `remote.` login. `settleM05` now retries `portalLoggedIn` when the mirror says Greta is signed
   in, so a login that arrived before `john` is not lost.
 - **[docs] The M1 hospital site moved to M5** (README #58): the import line in `main/m01.ts` and `websites/m01/pacificcare-health/`
-  are gone, `pacificcare-lockscreen.png` is now `public/assets/m05/`, M1's eight domain records are untouched.
+  are gone, `pacificcare-lockscreen.png` is now `public/assets/m05/` (a `.jpg` screen capture since 2026-10-06), M1's eight domain records were untouched then and were removed on 2026-10-06.
 - **[docs] BACKTRACE `MISSION_LOGS` gained six optional NOTE logs for M5** (portal foothold, separation, controls, hold, the Theatre 3
   status note and Greta's sealed note); the six required keys and the app are unchanged.
 - **[docs] The Remote Desktop Connection page script is one file** (`websites/global/rdcdesk/script.html`, 1933 lines) by owner
   instruction; it is the one exception to the 800-line ceiling in `src/websites` (the lab file it came from is 3988 lines).
 - **[docs] Phase 4 documents:** `docs/m05-playtest.md` rewritten, `docs/network.md`, `docs/architecture.md`, `docs/m01-playtest.md`,
   README #58 to #64, implementation notes in `08-spec-m5-m6.md`, a v2 note in `09-konten-m5-m6.md` and `04-web-layer.md`.
+- **[milestone] M5 puzzle architecture V2: steps 1 to 9 are an evidence chain on the hospital web, and the password is reconstructed,
+  not cracked** (owner's first live test and `FLATLINE_PROTOCOL_Puzzle_Architecture_V2.txt`; English only, zh deferred). The chain is
+  now 21 flags: `tipReviewed`, `vaultRevisited`, `teamPageSeen`, `changeRecordRead`, `staffArchiveCompared`, `gretaProfiled`,
+  `handoverOpened`, `policyRead`, `portalLoggedIn`, then the unchanged portal, RDC and document steps. `credentialFound` and
+  `passwordCracked` are gone with `controller/m05/crack.ts`.
+- **[mechanic] `/it` replaces `/it/team` and carries the story.** Fourteen current staff (Greta is not on it and nothing says anyone
+  left), a four-thread **IT notices** board between Tara and Ruben that hints without naming, a site-wide **Search PacificCare** box
+  (a word at the start of a title or keyword; two characters at least), and two document pages the search finds:
+  `/it/change/:id` (only `SA-0826`) and `/it/policy/:id` (only `IT-DEPT-77`, exact query). Both are registered as patterns so
+  `dirhunter` prints no token. Careers, Status (OT1 to OT3 codes) and Newsroom gained the sentences the chain reads.
+- **[mechanic] Cipher Desk is two layers of the hospital puzzle.** The change record holds a sealed *handover note* (key: the previous
+  holder's account name, `g.desouza`); it names `IT-DEPT-77`. The policy holds a sealed *recovery validation format* (key: the closing
+  change reference, `SA-0826`): `<account local-part>-<affected system code>-<incident date>`. Both open through
+  `SEALED_OPENED_EVENT` (`handoverNote`, `recoveryFormat`) and are held and settled like the portal observations
+  (`controller/m05/evidence.ts`).
+- **[mechanic] Echoline holds nine dated captures of the IT page** (2024-05-14 to 2026-08-18) with real staff churn and four red
+  herrings; the index opens when the change record has been read, and `staffArchiveCompared` needs the 2026-08-18 capture plus any
+  other. Gareth Lim keeps his canon (contractor to 2026-07, from 2025-11-03) and is gone on 2026-08-18 like Greta; the role Careers
+  reopens tells them apart.
+- **[mechanic] Greta's password is `g.desouza-OT3-2026-08-14`.** `Marigold2019` stays as the old, leaked one (LeakIndex record 1, `john`);
+  the portal answers it with "This password was retired during recovery." and it still opens Greta's sealed Twotter post, so
+  LeakIndex is an optional side path with a payoff and gates nothing. Her Twotter gained "OT3 again", "0814 was the night nobody in IT
+  will forget" and two posts about legacy access; `lynx` accepts `g.desouza` as well as the handle and the full name.
+- **[fix] Goagle results of dynamic pages linked to `<host>/search` and opened a 404** (`docs/bugs.md` #67). The five seo hospital
+  sites and the Echoline index register a `/search` alias that renders the same page.
+- **[docs] `docs/bugs.md` #67 and #68** (the `/search` address, `lynx` and emails), `docs/m05-playtest.md` sections 1 to 8 rewritten
+  and the later steps renumbered (21 steps). Typecheck only; nothing was built, run in the game or committed.
+- **[mechanic] M5 rename (README #66, `docs/world-building/14-rename-m5.md`).** Greta de Souza became Roxanne Anindita Natnaree
+  (`rnatnaree`, signature "R.a.N"), Gareth Lim became Gideon Bayu Teoh (`gteoh`) and 30 more names changed, with a random email
+  local-part per person. The password is now `rnatnaree-OT3-2026-08-14` and the Cipher key `rnatnaree` (the Cold-Chart token is still
+  138 hex digits, now starting `3e4353425e595f55`); `Marigold2019` stays the old password. Internal ids (`GRETA_*`, `gretaSeen`, the
+  BACKTRACE key `greta`) are unchanged. The lowercase report-match terms were missed (`docs/bugs.md` #69).
+- **[mechanic] Echoline redesigned (README #66).** Nine captures on the master timeline (C1 2024-05-14 to C9 2026-08-18; live page
+  stamp 2026-09-02). A capture page shows "Capture N of 9", Status and Date columns, a Left block, the shared mailboxes `servicedesk@`
+  and `it.ops@`, a per-capture "Page last updated" stamp, an archivist note, a late-capture line and +n/-n chips. Step 5 now needs
+  capture `8fq2` and capture `4ec9` (it was the 2026-08-18 capture plus any other).
+- **[mechanic] Hospital web UI pass.** `frame.html` CSS polish, a duplicate `/*__NAV__*/` marker fixed with `NAV_MOBILE`, and the home
+  and frame chrome moved to 77 new i18n keys with a first zh pass (not yet read by the owner).
 
 ## 2026-10-04
 

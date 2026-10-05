@@ -348,8 +348,11 @@ case file), as six flat files:
     events) adds an analyst note per mission, a Key card and props: an
     evidence bag, a torn clipping, a barcode label, a loose red string, an
     UNDER REVIEW stamp and two photographs, `backtrace-receipt.jpg` (M1) and
-    `backtrace-corridor.jpg` (M5), 480 px copies of the vault scans
-    `public/assets/m01/q3-receipt.png` and `q3-corridor.png`. A fill item
+    `backtrace-corridor.jpg` (M5), 480 px copies of the earlier vault scans
+    `q3-receipt.png` and `q3-corridor.png`. The vault now holds a new
+    `public/assets/m01/q3-receipt.jpg` and `q3-corridor.png` (2026-10-06,
+    README #67); the thumbnails were not regenerated because the app is
+    under FINAL LOCK. A fill item
     appears once its mission is complete and the objects it `needs` are on
     the board; the M1 photograph is `outside` the frame, so it does not move
     the fit. A name inside a note is a `{key}` token resolved to the name on
@@ -490,7 +493,7 @@ guessed.
 | M5 | `dismissed` | both dated Echoline captures of the hospital IT page visited (`Browser.Meta` x2 joining at `staffArchiveCompared`) |
 | M5 | `greta` | `lynx` on the administrator's handle (`Terminal.Lynx.Lookup` or `.Search`, the `gretaProfiled` flag) |
 | M5 | `archive` | `RemoteConnection.Established` with `t === "SSH"` on Cold-Chart, the clinical archive |
-| M5 | `statement` | `acknowledgement_gdesouza.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
+| M5 | `statement` | `acknowledgement_rnatnaree.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M5 | `decisionMemo` | `decision_memo.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M5 | `usbTicket` | `usb_ticket_PC-IT-017.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M6 | `nominees` | the nominee company's own register record opened (`Browser.Meta` on `/entity/r7k4/`) |

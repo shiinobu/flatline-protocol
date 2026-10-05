@@ -71,7 +71,7 @@ dengan offset karakter yang tepat ada di `docs/app-asar-reference.md`. SDK 0.25.
 | **Registry** (Port Calder Companies Registry) | OpenCorporates | Skynet Import-Export Co., SKN Capital Nominees, direktur nominee (Alexander Voss, Imogen Hartley), agen terdaftar (Marlowe & Pryce), Nordhaven Mutual Assurance dan riwayat jabatan Vivien Orchid | M6 |
 | **Archive** (Echoline) | Wayback Machine | Snapshot situs PacificCare 2025 dan 2026 (halaman staf IT), Skynet 2024 dan 2026, BLACKLEDGER. Perubahan antar snapshot adalah petunjuknya | M5, M6 |
 | **Domain index** (HostTrail) | SecurityTrails, urlscan.io | Riwayat domain dan host: `x7xsentry9.tech`, `tr4c3404.dev`, `skynet-importexport.biz`, titik akhir `203.0.113.160` | M6 |
-| **Breach lookup** (LeakIndex) | Have I Been Pwned | Rekaman breach lama dengan hash MD5 asli (termasuk milik Greta) dan rekaman umpan | M5 |
+| **Breach lookup** (LeakIndex) | Have I Been Pwned | Rekaman breach lama dengan hash MD5 asli (termasuk milik Roxanne) dan rekaman umpan | M5 |
 | **Claims tracker** | Pelacak ransomware | Klaim BLACKLEDGER (H14), korban lain (H13), "the next one" (H3) | belum dipakai misi mana pun (OPEN) |
 | **Hackhub feed** | Hackhub | Postingan dengan komentar NPC (`QuestHackhubPostDefinition`; M1 sudah memakainya) | Belum dipakai spesifikasi M4-M7 (OPEN) |
 

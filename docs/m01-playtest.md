@@ -150,10 +150,18 @@ abandoned; they are open only while M1 runs (`gateMissionPages`,
     run. Inside the Q3 folder: `case_id.txt` (**CASE-A7X-0417**, fixed,
     independent of the random listing code), `network_map.txt` (a static
     evidence image — deliberately generic, doesn't cite a specific listing
-    code so it can never go stale from randomization), `found_note.txt`, plus
-    scans/photos. `associate_infra.txt` is an M2 teaser. The `Recent` sidebar
-    view lists `case_id.txt` too, but only the Q3 folder click traces
-    `caseId`.
+    code so it can never go stale from randomization), `found_note.txt` (a
+    hand-written sticky note, signed "-- R.a.N"), plus seven photographs in
+    this order: the ClearEscrow receipt (Aug 03), the annotated PacificCare
+    site recon (Jul 09), the ward corridor (Aug 15), the BLACKLEDGER notice
+    (Aug 14), the locked surgical scheduling screen (Aug 14), the access kit
+    (Aug 07) and the consultant visitor pass (Aug 03). Receipt, recon,
+    access kit and visitor pass are `.jpg`; corridor, notice and scheduling
+    are `.png` (`public/assets/m01/q3-*`; `q3-exterior.png` stays for the
+    login backdrops of the M5 portal and RDC). `associate_infra.txt` is an M2
+    teaser. The `Recent` sidebar view lists `found_note.txt`, `case_id.txt`,
+    `network_map.txt`, the corridor and the scheduling photograph, `Shared`
+    lists the receipt, but only the Q3 folder click traces `caseId`.
 
 ---
 

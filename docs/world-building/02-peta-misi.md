@@ -66,15 +66,15 @@ implementasi.
 - **Kaitan.** H4 (G) dan H9 (pernyataan publik). H3 muncul di M4 (`old_targets.txt`: "pacificcare/it:
   closed"), H7 dan H13 di M7 (`manifest.txt`).
 - **Tiga lapis kesulitan.** (1) Page layer: arsip situs PacificCare 2025 dan 2026, persona
-  Twotter Greta dan Gareth (umpan), situs Breach lookup. (2) Crack: hash rekaman breach yang
+  Twotter Roxanne dan Gideon (umpan), situs Breach lookup. (2) Crack: hash rekaman breach yang
   benar harus dipecahkan dengan `john` (#13). (3) Network layer: Firewall tersembunyi
   (`net_tree.py`), login pfSense lalu pencabutan aturan, SSH ke Cold-Chart (arsip IR).
   Bonus di luar rantai: Bedside-17 (PC-IT-017) lewat Metasploit.
 - **Rantai.** 14 langkah transitif, semua Tier 1 (`08-spec-m5-m6.md` bagian B). Pemain tidak
-  bicara dengan Greta (DECIDED).
+  bicara dengan Roxanne (DECIDED).
 - **Cover-up.** Rumah sakit membayar diam-diam (H9). Vivien Orchid (CRO) menandatangani
-  temuan yang menyebut Greta penyebab, karena label "kelalaian staf" menjaga klaim asuransi
-  tetap berlaku. Greta dipecat dan dijadikan penyebab resmi supaya penyelidikan cepat
+  temuan yang menyebut Roxanne penyebab, karena label "kelalaian staf" menjaga klaim asuransi
+  tetap berlaku. Roxanne dipecat dan dijadikan penyebab resmi supaya penyelidikan cepat
   ditutup. Jeda 6 jam 21 menit antara kunci dan bayar tampil di memo keputusan.
 - **Hasil.** Ending B punya alasan mencurigai jalur resmi. Vivien Orchid terhubung ke rantai
   Conrad Lindqvist lewat Nordhaven Mutual Assurance, asuransi fiktif di puncak rantai pemilikan SKN Capital Nominees
@@ -106,9 +106,9 @@ implementasi.
   Firewall, buka ash-gate, eksploitasi RDP (bluekeep) ke C2, baca `manifest.txt`, `attrcheck`, ekstrak
   `master_ledger_backup.enc` di bawah pelacakan waktu nyata 240 detik, lalu satu surel laporan yang membawa
   `choice`.
-- **Efek ending nyata.** `expose` dan `handoff` melepas bukti dan Greta mengirim surat; `destroy`
+- **Efek ending nyata.** `expose` dan `handoff` melepas bukti dan Roxanne mengirim surat; `destroy`
   menghancurkan jaringan C2 tanpa surat.
-- **Epilog.** Surat searah dari Greta de Souza lewat `Mail.send` (ending C: tanpa surat).
+- **Epilog.** Surat searah dari Roxanne Anindita Natnaree lewat `Mail.send` (ending C: tanpa surat).
 - **Perbaikan M4 lama.** Sepuluh cacat diperbaiki (`11-spec-m7.md` bagian B), termasuk #29,
   banner yang tidak diterima modul, bentuk Firewall yang belum teruji, dan dialog telepon yang dibuang.
 - **Hadiah.** 5000 uang, dibayar lewat `Bank.transaction` (XP dilewati, keputusan #34).
