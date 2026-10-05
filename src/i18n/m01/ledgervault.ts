@@ -21,11 +21,12 @@ export const M01_LV_KEY = {
     NAME_Q1_EVIDENCE: "M01.LV.NAME.Q1_EVIDENCE",
     NAME_Q2_EVIDENCE: "M01.LV.NAME.Q2_EVIDENCE",
     NAME_Q3_RECEIPT: "M01.LV.NAME.Q3_RECEIPT",
-    NAME_Q3_EXTERIOR: "M01.LV.NAME.Q3_EXTERIOR",
+    NAME_Q3_RECON: "M01.LV.NAME.Q3_RECON",
     NAME_Q3_CORRIDOR: "M01.LV.NAME.Q3_CORRIDOR",
     NAME_Q3_NOTICE: "M01.LV.NAME.Q3_NOTICE",
     NAME_Q3_SCHEDULING: "M01.LV.NAME.Q3_SCHEDULING",
-    NAME_Q3_FOUNDNOTE_EVIDENCE: "M01.LV.NAME.Q3_FOUNDNOTE_EVIDENCE",
+    NAME_Q3_ACCESSKIT: "M01.LV.NAME.Q3_ACCESSKIT",
+    NAME_Q3_VISITORPASS: "M01.LV.NAME.Q3_VISITORPASS",
 } as const;
 
 Localization.registerAll({
@@ -49,12 +50,13 @@ Localization.registerAll({
 
         [M01_LV_KEY.NAME_Q1_EVIDENCE]: "Northstar Port Authority — access badge, recovered",
         [M01_LV_KEY.NAME_Q2_EVIDENCE]: "Rheinland Energie AG — staff badge, recovered",
-        [M01_LV_KEY.NAME_Q3_RECEIPT]: "Escrow receipt — X7xS3NTRY9 → TR4C3#404",
-        [M01_LV_KEY.NAME_Q3_EXTERIOR]: "PacificCare Health — main entrance",
+        [M01_LV_KEY.NAME_Q3_RECEIPT]: "ClearEscrow receipt — X7xS3NTRY9 → TR4C3#404",
+        [M01_LV_KEY.NAME_Q3_RECON]: "PacificCare Health — site recon (annotated)",
         [M01_LV_KEY.NAME_Q3_CORRIDOR]: "Ward corridor — systems down",
         [M01_LV_KEY.NAME_Q3_NOTICE]: "BLACKLEDGER notice — Operating Theatre 3",
         [M01_LV_KEY.NAME_Q3_SCHEDULING]: "Surgical scheduling — locked",
-        [M01_LV_KEY.NAME_Q3_FOUNDNOTE_EVIDENCE]: "Evidence PC-IT-017 — USB / staff badge / memo",
+        [M01_LV_KEY.NAME_Q3_ACCESSKIT]: "Access kit — USB / badge / key",
+        [M01_LV_KEY.NAME_Q3_VISITORPASS]: "Visitor pass — consultant",
     },
     zh: {
         [M01_LV_KEY.USER_LABEL]: "内部人员",
@@ -76,11 +78,12 @@ Localization.registerAll({
 
         [M01_LV_KEY.NAME_Q1_EVIDENCE]: "北极星港务局 — 门禁卡，已回收",
         [M01_LV_KEY.NAME_Q2_EVIDENCE]: "莱茵兰能源公司 — 员工门禁卡，已回收",
-        [M01_LV_KEY.NAME_Q3_RECEIPT]: "托管收据 — X7xS3NTRY9 → TR4C3#404",
-        [M01_LV_KEY.NAME_Q3_EXTERIOR]: "PacificCare医院 — 正门",
+        [M01_LV_KEY.NAME_Q3_RECEIPT]: "ClearEscrow 托管收据 — X7xS3NTRY9 → TR4C3#404",
+        [M01_LV_KEY.NAME_Q3_RECON]: "PacificCare医院 — 现场勘察（已标注）",
         [M01_LV_KEY.NAME_Q3_CORRIDOR]: "病房走廊 — 系统瘫痪",
         [M01_LV_KEY.NAME_Q3_NOTICE]: "BLACKLEDGER 通知 — 3号手术室",
         [M01_LV_KEY.NAME_Q3_SCHEDULING]: "手术排程 — 已锁定",
-        [M01_LV_KEY.NAME_Q3_FOUNDNOTE_EVIDENCE]: "证据 PC-IT-017 — USB / 员工门禁卡 / 便条",
+        [M01_LV_KEY.NAME_Q3_ACCESSKIT]: "接入工具包 — USB / 门禁卡 / 钥匙",
+        [M01_LV_KEY.NAME_Q3_VISITORPASS]: "访客证 — 顾问",
     },
 });

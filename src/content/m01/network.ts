@@ -67,8 +67,6 @@ export const M01_LEDGERVAULT_IP = "185.220.31.6";
 export const M01_ESCROW_DOMAIN = "clearescrow.io";
 export const M01_ESCROW_IP = "46.29.115.63";
 export const M01_ESCROW_APP_IP = "46.29.115.201";
-export const M01_HOSPITAL_DOMAIN = "pacificcare-health.org";
-export const M01_HOSPITAL_IP = "103.87.62.145";
 
 export interface M01DomainRecord {
     readonly name: string;
@@ -103,15 +101,6 @@ export const M01_DOMAIN_RECORDS: M01DomainRecord[] = [
     { name: `status.${M01_ESCROW_DOMAIN}`, ip: "46.29.115.42", needsSubnet: true },
     { name: `gateway.${M01_ESCROW_DOMAIN}`, ip: "46.29.115.220", needsSubnet: true },
     { name: `partners.${M01_ESCROW_DOMAIN}`, ip: "46.29.115.6", needsSubnet: true },
-
-    { name: M01_HOSPITAL_DOMAIN, ip: M01_HOSPITAL_IP, needsSubnet: true },
-    { name: `www.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.9", needsSubnet: true },
-    { name: `patientportal.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.188", needsSubnet: true },
-    { name: `careers.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.71", needsSubnet: true },
-    { name: `news.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.130", needsSubnet: true },
-    { name: `mail.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.54", needsSubnet: true },
-    { name: `status.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.216", needsSubnet: true },
-    { name: `gateway.${M01_HOSPITAL_DOMAIN}`, ip: "103.87.62.97", needsSubnet: true },
 
     { name: M01_OBSIDIAN_DOMAIN, ip: M01_OBSIDIAN_IP, needsSubnet: false },
     { name: `www.${M01_OBSIDIAN_DOMAIN}`, ip: "5.188.94.203", needsSubnet: true },
