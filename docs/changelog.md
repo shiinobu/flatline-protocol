@@ -25,6 +25,38 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-05
+
+- **[milestone] M5 "The Door" v2 is built in code: the cloud run's Phases 0 to 2 were merged and the rest of Phase 3 and all of
+  Phase 4 were finished in a local session.** The cloud run (`claude/m05-door-v2`, tip `330657d`) stopped when the owner's credit
+  ran out, before it wrote the hospital web pages or the portal data. Typecheck, the baseline greps and a mocked-SDK harness
+  (67 checks plus 16 static checks, kept outside the repo) pass; nothing was built with esbuild, committed or run in the game.
+  See `docs/m05-playtest.md` (rewritten for the 20-step chain), `docs/bugs.md` #66 and `docs/scratch.md` (2026-10-05).
+- **[mechanic] The hospital web is eight hosts and one renderer.** `pacificcare-health.org` (home and the gated `/it/team`),
+  `news.`, `careers.`, `status.`, `patientportal.`, `mail.` (the webmail decoy answers "This account was disabled on
+  2026-08-19." through `flatlineMailLogin`), `gateway.` and the portal on `remote.`. Code: `websites/m05/hospital/` and
+  `websites/m05/portal/`; data in `content/m05/hospital.ts`, `portal-data.ts` and `portal-signins.ts`; en and zh in
+  `i18n/m05/hospital.ts` and `portal-zh.ts`. Home, Newsroom, Careers, Status and Patient Portal are `seo` pages.
+- **[mechanic] The portal on `remote.` is the lab portal with the game wiring.** `flatlineLogin(user, password)` returns
+  `portal`, `contractor` or `denied`; `flatlinePortalSeen(kind, ref)` returns the current Min; `flatlinePortalState()` lets the
+  page re-read it (on focus and 700 ms after each report). No password or key is in the page source. The sign-in rows are the lab's
+  seeded generator ported to TypeScript and checked row for row against the lab (261 rows, 0 differences). The zh layer is one table
+  (`M05_PORTAL_ZH`) applied to the data on the mod side and to the rendered HTML in the page; it was written without owner review.
+- **[mechanic] `gateMissionPages` hides a closed `seo` page from Goagle** with the `searchStr` pattern of `docs/bugs.md` #63 (404
+  by address, `null` for a search); pages without `seo` still answer the 404 page. The Echoline index is now a `seo` page named
+  "Echoline Web Archive", so Goagle finds it once the team page has been seen.
+- **[mechanic] New SharedVariables mirror `flatline.m05.teamOpen`** (set by `vaultRevisited`, restored at mission start, cleared at
+  completion) opens `/it/team` and the `remote.` login. `settleM05` now retries `portalLoggedIn` when the mirror says Greta is signed
+  in, so a login that arrived before `john` is not lost.
+- **[docs] The M1 hospital site moved to M5** (README #58): the import line in `main/m01.ts` and `websites/m01/pacificcare-health/`
+  are gone, `pacificcare-lockscreen.png` is now `public/assets/m05/`, M1's eight domain records are untouched.
+- **[docs] BACKTRACE `MISSION_LOGS` gained six optional NOTE logs for M5** (portal foothold, separation, controls, hold, the Theatre 3
+  status note and Greta's sealed note); the six required keys and the app are unchanged.
+- **[docs] The Remote Desktop Connection page script is one file** (`websites/global/rdcdesk/script.html`, 1933 lines) by owner
+  instruction; it is the one exception to the 800-line ceiling in `src/websites` (the lab file it came from is 3988 lines).
+- **[docs] Phase 4 documents:** `docs/m05-playtest.md` rewritten, `docs/network.md`, `docs/architecture.md`, `docs/m01-playtest.md`,
+  README #58 to #64, implementation notes in `08-spec-m5-m6.md`, a v2 note in `09-konten-m5-m6.md` and `04-web-layer.md`.
+
 ## 2026-10-04
 
 - **[design] M5 debug lab: the Monitor site is renamed Remote Desktop Connection and rebuilt as an interactive remote

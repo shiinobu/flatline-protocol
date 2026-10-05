@@ -170,12 +170,14 @@ are therefore gated in the page layer: `gateMissionPages(mission, pages)` in
 `websites/global/page-guards.ts` wraps every page so it answers the 404 page
 unless `areMissionSitesOpen(mission)`, which is true only between that mission's
 `OnObjectivesStart` and its `OnComplete` / `OnAbandon`. Gated: every M1 site
-except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow, PacificCare),
-TR4C3404 (M2), Skynet Import-Export (M3), LeakIndex (M5), the Registry and
+except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow),
+TR4C3404 (M2), Skynet Import-Export (M3), the eight PacificCare hospital hosts and the
+portal (M5, since 2026-10-05; the M1 hospital site moved there), the Registry and
 HostTrail (M6), HoneyCheck and the C2 dashboard (M7), and the Echoline captures
 (each one by the mission it belongs to; the Echoline index lists only the
-groups that are open). Not gated,
-on purpose: LedgerVault (its domain is permanent and it has its own seal,
+groups that are open). A closed page with `seo: true`
+answers a Goagle search with `null` and a visit by address with the 404 page (`bugs.md` #63). Not gated,
+on purpose: LeakIndex, Cipher Desk and Remote Desktop Connection (permanent `Popular` tool sites), LedgerVault (its domain is permanent and it has its own seal,
 `isM01VaultSealed`) and BLACKLEDGER (a static story page with no network). The
 mirror is session-only and only written by controllers, so a game that starts
 with a finished mission has every gated site closed.

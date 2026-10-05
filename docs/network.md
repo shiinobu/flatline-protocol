@@ -266,26 +266,28 @@ connect to and nothing to scan. The two strikes, the desktop breach and the
 `flatline` / `sysdiag` / `sysrepair` loop are the shared kit in `src/components/`,
 not topology.
 
-## M5 — "The Door" (written 2026-10-02; full mission, not yet live-tested)
+## M5 — "The Door" (rebuilt 2026-10-05 as v2; full mission, not yet live-tested)
 
 One hospital subnet, the M2 shape (Router, Splitter, hidden Firewall, Devices)
-that has already live-tested.
+that has already live-tested. **v2 (2026-10-05, README #60 and #63): the network is decoration.** The way in
+is no longer SSH: the player opens Cold-Chart's screen through Remote Desktop Connection (`rdcdesk.io`), and the firewall,
+Cold-Chart's port 22 and rule IR-22 are never changed. The shape is kept because hosts need a subnet (E-1) and because the portal's
+NAT table and Systems page describe it.
 
 ```
 Router  198.244.91.37  (remote.pacificcare-health.org)  lan 192.168.1.1
 │     ports: 443 https active · 80 http closed
 └─ Splitter  37.120.145.62  lan 192.168.1.2
    ├─ Firewall  193.29.57.184  lan 192.168.1.3  isIpHidden
-   │     ONE valid user: g.desouza / Marigold2019 (the credential the leak gives up)
+   │     ONE valid user: r.wong (admin only; his password is nowhere in the game, so the console never takes Greta's)
    │     ports: 80 http (its own pfSense panel)
    │     rules: deny 22 -> 192.168.1.4 · deny 3389 -> 192.168.1.5
    ├─ Device "Cold-Chart"  141.98.252.76  lan 192.168.1.4
-   │     g.desouza (+ root) · 22 ssh, closed until the firewall step
-   │     rootFiles: /var/ir/2026-08-14/ (decision memo, draft, final finding,
-   │                acknowledgement) · /var/ir/tickets/ (USB ticket, asset register)
+   │     g.desouza (+ root; the user exists so the MD5 of her password is registered) · 22 ssh, refused: hold IR-22, never opened
+   │     no rootFiles: the seven archive files live in the RDC page (`content/m05/rdc.ts`)
    ├─ Device "Bedside-17"  80.94.92.118  lan 192.168.1.5
-   │     it.station online (+ root) · 3389 rdp "FreeRDP 6.0.4", closed until the
-   │     firewall step · vulnerabilities: RCE, FreeRDP 6.0.4  (bluekeep bonus)
+   │     it.station online (+ root) · 3389 rdp "FreeRDP 6.0.4", closed until
+   │     `displayAttached` (unlock `hospitalShells`: rule IR-3389 removed, port opened) · vulnerabilities: RCE, FreeRDP 6.0.4  (bluekeep bonus)
    │     rootFiles: found_note.txt · usb_history.log
    ├─ Device "Lead-Apron"  45.142.193.29  lan 192.168.1.6   decoy, pacs / radiology2021
    ├─ Device "Pay-Station"  176.113.115.84  lan 192.168.1.7  decoy, billing / billing-desk-04
@@ -296,13 +298,12 @@ Each firewall rule's `destination` is its target's **LAN** address (E-8), and
 the firewall has exactly one user because `PFSense.Login` carries only `{ip}`
 (E-9). Every decoy password is the genuine MD5 of a hash published in the
 LeakIndex table, so `john` can crack any row and three of them lead somewhere
-harmless (`docs/bugs.md` #13). `echoline.net` and `leakindex.net` are sites with
-**no subnet**, resolved by `nslookup` fixtures only. Neither is searchable (mod
-pages default to `seo: false`, `docs/bugs.md` #52): the Custodian's two
-follow-up mails name them when their steps open, the Echoline captures name the
-edge host, and the fixtures (`nslookup`, `nmap`, and the `lynx` entries for the
-handle and the full name of Greta and Gareth) register with their step, not at
-build.
+harmless (`docs/bugs.md` #13). The sites around the network have **no subnet**:
+`echoline.net`, `leakindex.net`, `cipherdesk.io` and `rdcdesk.io` (permanent global sites, R19 in `docs/bugs.md` #66) and
+the seven hospital hosts, which the domain records register with `needsSubnet: true`. Discovery no longer uses the Custodian's
+follow-up mails (README #38 is superseded for M5): the hospital pages, Echoline (`seo`) and the Cipher/RDC tool sites (`Popular`,
+`search`) are found through Goagle, and the portal's Systems page names `rdcdesk.io`. Fixtures (`nslookup`, `whois`, and the
+`lynx` entries for Greta and Gareth) register with their step, not at build.
 
 ## M6 — "Open Register" (written 2026-10-02; full mission, not yet live-tested)
 

@@ -184,3 +184,10 @@ rumah sakit. Infrastruktur belum ditautkan: tunjukkan alamat itu milik siapa.
 ## E. Masih OPEN
 Prosa en dan zh, alamat IP, password dan hash, nama merek Claims tracker
 (W-b, belum dipakai misi mana pun), dan apakah `replyable` diuji di lab (G1-f).
+
+## Pembaruan 2026-10-05 (M5 v2)
+
+Bagian B (M5) di atas ditulis untuk rantai v1. Yang berubah: rumah sakit kini situs misi (delapan host), portal `remote.` menggantikan
+gerbang edge, RDC menggantikan SSH (B1, B4, B5), dan tiga dokumen dibaca di jendela arsip RDC (B5). Sumber kebenarannya sekarang
+`docs/m05-playtest.md`, README #58 sampai #64 dan catatan implementasi di `08-spec-m5-m6.md`; teks dan data kode ada di
+`content/m05/` dan `i18n/m05/`.

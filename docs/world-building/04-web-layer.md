@@ -140,3 +140,7 @@ sekali per kueri Goagle, jadi render tidak boleh menulis apa pun.
   change detector penuh, dan incident database ditunda. M6 butuh deteksi perubahan sederhana.
 - Tanpa `allow-forms`, semua input lewat JS.
 - Situs alat yang permanen tidak boleh membocorkan langkah berikutnya sebelum waktunya.
+
+## Pembaruan 2026-10-05 (M5 v2)
+
+Situs rumah sakit tidak lagi milik M1: delapan host `pacificcare-health.org` adalah situs misi M5 (`websites/m05/hospital/`, portal di `websites/m05/portal/`), dan hanya Echoline, LeakIndex, Cipher Desk dan Remote Desktop Connection yang berupa situs alat. LeakIndex, Cipher Desk dan RDC adalah situs global permanen `Popular`; halaman misi yang `seo` memakai pola `searchStr` di `gateMissionPages`. Tidak satu pun yang di atas sudah dijalankan di game (`docs/bugs.md` #66).

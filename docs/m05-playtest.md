@@ -1,371 +1,227 @@
-# M05 "The Door" — Playtest Script (phase 6: full mission)
+# M05 "The Door" v2 — Playtest Script (20-step chain)
 
-Status: **use once, disposable** — step-by-step script for M05 as implemented in
-phase 6 of the M4-M7 run. Delete or archive once M05 reaches FINAL LOCK; not a
-permanent design doc (that is `docs/world-building/08-spec-m5-m6.md` §B and
-`09-konten-m5-m6.md` §B).
+Status: **use once, disposable.** Step-by-step script for M05 as rebuilt on 2026-10-05 around the hospital web, the forensic
+portal, Cipher Desk and Remote Desktop Connection (RDC). It replaces the script of the first M05 build (SSH chain). Nothing here
+has run in the game yet: the code passed the typecheck and a mocked-SDK harness only (see §21). Delete or archive this file when M05
+reaches FINAL LOCK. The design lives in `docs/draft.md` (gitignored, owner's draft v2) and `docs/world-building/08-spec-m5-m6.md`
+(implementation notes) and `09-konten-m5-m6.md`.
 
-**What M05 is.** The first mission with no intrusion at the front of it. The way
-in is a credential the hospital's own systems administrator lost in somebody
-else's breach, and the mission's real subject is what the hospital did with the
-incident afterwards: a draft finding that named a vendor tool, a filed finding
-that named a person, and a payout decided six hours after the ransom note
-arrived. The player ends up holding the paperwork that proves the named person
-was not the cause.
+**What M05 is.** A hospital's systems administrator lost her password in somebody else's breach, and her account was never closed.
+The player gets in through the hospital's own remote-access portal, reads the failed controls from its forensic pages, opens a held
+archive through a third-party remote-desktop console, and ends up with the paperwork that proves the named person was not the cause.
+All people, hosts, companies and data are fictional and run inside HackHub's simulation.
 
-**What is new in the engine for this mission.**
-
-1. A website **`Exports`** function used as a mission gate for the first time
-   outside M01 (`flatlineOpenLeakRecord` on `leakindex.net`).
-2. A **cross-mission hook with no cross-mission import**: M05 listens for M01's
-   `flatline.m01.projectOpened` event through `src/content/global/vault-hook.ts`,
-   which re-declares the event name and the folder id rather than importing the
-   locked M01 content.
-3. Two **gated archive captures** of the same page at different dates, joined as
-   one step (`staff2025Seen` + `staff2026Seen` -> `staffArchiveCompared`).
-4. A `John.DecryptHash` gate that checks **both** the hash and the password.
-
-**Language.** English and Simplified Chinese are both complete. Switch the game
-language and re-read §12.
+**Language.** English and Simplified Chinese. The mission prose, the hospital web and the portal are both; every Remote Desktop
+Connection and Cipher Desk page, including decrypted texts and the seven archive files, is **English only** (owner rule K15). The
+zh strings of the hospital web and the portal were written without owner review: read them.
 
 ---
 
-## 0. Entry point
+## 0. Entry point and log lines
 
-M05's production prerequisite is `flatline.m04`. Test it on its own with dev
-focus:
+M05's production prerequisite is `flatline.m04`. Test it alone with dev focus:
 
-1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m05 = true` and every other
-   entry to `false`. Leave `isDev = true`, `isDebug = false`, `isTester = false`.
-2. Build and install as usual (`.\build-install.ps1`), restart HackHub.
-3. Expect in the log: `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!`,
-   and in the BACKTRACE app M5 listed as in progress.
+1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m05 = true` and every other entry `false` (`isDev = true`, `isDebug = false`,
+   `isTester = false`). Build and install as usual, restart HackHub. **Put the flag back to `false` before committing.**
+2. Expect `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!` and M5 listed as in progress in BACKTRACE.
+3. The reward is skipped under focus: expect `[FP][M05] reward skipped under focus: 3200`, not `reward paid`.
 
-With focus on, the single objective shows immediately and no other story mission
-auto-starts. **Put the flag back to `false` before committing.**
+Every probe line below is a temporary `trace()` (removed at FINAL LOCK); `docs/scratch.md` lists them.
 
-The reward is skipped under focus by design — expect
-`[FP][M05] reward skipped under focus: 3200` instead of `reward paid`.
-
----
-
-## 1. Tip mail
-
-1. Open GoMail. One mail from `drop@drop.null`, subject **"the note in the
-   vault"**. Read it.
-2. Expect: no trace line (this step is silent), and the quest's one objective
-   still showing as incomplete.
-3. The mail sends you back to the hospital project in LedgerVault from M01: the
-   scan of a hand-written sticky note signed with one letter. That letter is a
-   person, and the mail asks who they are and who decided they were the cause.
-
-**Checks.** The mail must be the only new one in the inbox. Reading any other
-mail from the same sender must not advance anything.
+| Scope | Line | Fires when |
+|---|---|---|
+| M05 | `probe:vault-revisited` | the vault's Q3 folder opens (step 2) |
+| M05 | `probe:team-page-seen` | `https://pacificcare-health.org/it/team` opens (step 3) |
+| M05 | `probe:staff-archive-compared` | the Echoline 2025 capture opens (step 4) |
+| M05 | `probe:leak-record-opened id=N (match|decoy)` | LeakIndex Open (step 6) |
+| M05 | `probe:password-cracked` | `john` prints the real password (step 7) |
+| M05 | `portal:login view=portal|contractor` | `flatlineLogin` accepted a pair (step 8) |
+| M05 | `probe:portal-seen kind=…` | a portal finding is counted (steps 9 to 13) |
+| M05 | `probe:cipher-opened id=…` and `CIPHER opened id=… mission=m05` | Cipher Desk opened a sealed text |
+| M05 / RDC | `probe:rdc-login cold`, `RDC login ok=…`, `RDC signal stage=…` | RDC token accepted, signal fixed |
+| M05 / RDC | `probe:rdc-attached`, `RDC attach …` | `agent attach` succeeded (step 16) |
+| M05 / RDC | `probe:rdc-read gate=N`, `RDC read …` | an archive file counted (steps 17 to 19) |
+| M05 | `probe:status-note`, `probe:bedside-bonus` | optional extras |
 
 ---
+
+## 1. Tip mail (step 1)
+
+1. GoMail: one mail from `drop@drop.null`, subject **"the note in the vault"**. Read it. No trace line.
+2. It sends you back to the hospital project in LedgerVault (the scan of a sticky note signed with one letter) and asks who that
+   person is and who decided they were the cause. **No site is named.**
+
+**Checks.** Another mail from the same sender must advance nothing. The two follow-up mails of the first build no longer exist.
 
 ## 2. Back into the vault (step 2)
 
-1. Browse `https://ledgervault.*` as in M01 and open the **Q3** project folder.
-2. Expect: `[FP][M05] probe:vault-revisited`.
-3. Expect `echoline.net` to start resolving from this point:
-   `nslookup echoline.net` -> `185.31.164.22`. Before this step it must not
-   resolve (the fixtures register with the step, not at build).
-4. Expect a second mail from `drop@drop.null`, subject **"what they used to
-   say"**. It names `echoline.net`, the archive that keeps dated copies of
-   pages, and the hospital's IT team page. That mail is the only in-world
-   pointer to the site: Goagle lists no mod site (`docs/bugs.md` #52).
+1. LedgerVault, open the **Q3** folder: `probe:vault-revisited`. Other folders print nothing.
+2. From this point `https://pacificcare-health.org/it/team` and `https://remote.pacificcare-health.org/` answer; before it both
+   answer the 404 page. The hospital home page footer gains an "Information Technology" link.
 
-**This is the one live question for this step.** M01's LedgerVault page is
-locked content; M05 only listens for the event its `Exports` already emits. If
-`probe:vault-revisited` never appears, the vault page is sealed
-(`isM01VaultSealed`) or the folder id in `vault-hook.ts` has drifted from M01's
-`q3`. Both are code-side, not content-side.
+## 3. The hospital web and the live team page (step 3)
 
-**Checks.** Opening any other folder in the vault must print nothing.
+1. Goagle, search **`pacificcare`**: the hospital home, Newsroom, Careers, Service Status and Patient Portal pages are listed (all
+   `seo` pages; Webmail, Gateway and Remote are not). Open `https://pacificcare-health.org/`: the cached "SYSTEMS EXPERIENCING
+   DISRUPTION" alert with the lock-screen image, four cards, About.
+2. Open `/it/team` (footer link). Two staff only (Tara Nair, Ruben Wong), "We're hiring: Systems Administrator", the address format
+   `initial.surname@pacificcare-health.org`, "Working off-site? Staff remote access: remote.pacificcare-health.org", "Last updated
+   2026-09-02". `probe:team-page-seen`. Nobody named G is there.
+3. Browse the other hosts for the contrast and the decoys: **Newsroom** (three statements, "We are not aware of any impact on
+   patient safety."), **Careers** (SA-0826 posted 2026-08-26, policy 7.2), **Status** (everything Operational except "Operating
+   Theatre 3 — Closed (maintenance)"; `probe:status-note` and one optional NOTE log), **Patient Portal** (unavailable), **Gateway**
+   (vendor gateway retired 2026-08-15), **Webmail** (sign-in available on the hospital network only).
 
----
+**Checks.** Outside M5 every one of these hosts answers 404 by address and is **absent** from Goagle. With the mission open, `http://`
+serves the 400 page (but a Goagle search result must not). `dirhunter` on a hospital host prints only `/` (and `/it/team` on the home).
 
-## 3. The two captures (steps 3-4, parallel)
+## 4. The two pages of the staff list (step 4)
 
-1. `nslookup echoline.net`, then browse **`https://echoline.net/`**. The index
-   lists two captures of the same hospital IT team page, dated **2025-11-03**
-   and **2026-09-02**.
-2. Open the 2025 capture (`/s/8fq2/`). Expect
-   `[FP][M05] probe:snapshot-seen path=/s/8fq2`.
-3. Open the 2026 capture (`/s/8fq7/`). Expect
-   `[FP][M05] probe:snapshot-seen path=/s/8fq7`, then immediately
-   the BACKTRACE toast, the `dismissed` trace in the app and one personal-log entry.
-4. The comparison is the point: **two** names are gone from the later capture.
-   Gareth Lim is gone because his contract ended 2026-07-31 (the capture says
-   so). Greta de Souza is gone with nothing attached to it.
-5. Both captures carry, under the staff table, the line **"Working off-site?
-   Staff remote access: remote.pacificcare-health.org"**. That is where the
-   hospital edge host of §5 comes from; no other page or mail names it.
+1. Goagle, search **`echoline`** or **`web archive`** (it opens after step 3). Open the index, then the 2025-11-03 capture
+   (`/s/8fq2/`): four people including **Greta de Souza** (Systems Administrator) and **Gareth Lim** (IT contractor). Compare with
+   the live page: two names are gone.
+2. `probe:staff-archive-compared`, the `dismissed` trace in BACKTRACE and one personal-log entry.
 
-**Checks.**
+**Checks.** Opening the capture before step 3 must not advance (the step needs `teamPageSeen`). `https://echoline.net/s/zzzz/` 404s.
 
-- Visiting the same capture twice must print the probe twice but trace
-  `dismissed` only once.
-- `http://echoline.net/s/8fq2/` must serve the shared 400 page and must **not**
-  advance the step.
-- `https://echoline.net/s/zzzz/` must 404.
-- Before step 2, every `echoline.net` path must 404 (the site is gated on
-  `flatline.m05.archiveOpen`).
-- `dirhunter echoline.net` prints `/s/8fq2/` and `/s/8fq7/` — opaque by design
-  (engine fact E-3: dirhunter prints every registered path, so no path may name
-  what it holds).
+## 5. Profiling the administrator (step 5, parallel)
 
----
+`lynx g.desouza` (or `lynx Greta de Souza`): three lines, then the `greta` trace. `lynx g.lim` is a decoy and traces nothing. Her
+Twotter profile has 16 posts (one sealed: see §14); Gareth's has 5.
 
-## 4. Profiling the administrator (step 5, parallel)
+## 6. The breach index (step 6)
 
-1. `lynx g.desouza` (a leading `@` is stripped, so `lynx @g.desouza` is the
-   same) or her full name from the staff page, `lynx Greta de Souza`. Three
-   lines: her role, the USB stick with a project code that she asked about in
-   August, and her last post (they want her to sign something).
-2. Expect the `greta` trace in the BACKTRACE app.
-3. `lynx g.lim` or `lynx Gareth Lim` works too and is a decoy — it must trace
-   nothing.
+Browse `https://leakindex.net/` (it is a **permanent** site in the Goagle apps grid, not a mission site). Search
+`g.desouza@pacificcare-health.org`; record **1** (MedVendor Portal 2025) is the match; Open it: `probe:leak-record-opened id=1
+(match)`. Any other record prints `(decoy)` and does not advance. The table shows only the first six hash characters until Open.
 
-**Checks.**
+## 7. The password (step 7)
 
-- The handle and the full name must both trace. `lynx` resolves a typed full
-  name to the Twotter user's name before it raises its events
-  (`docs/bugs.md` #53), so the gate accepts both spellings.
-- The engine raises both `Terminal.Lynx.Search` (first, with the resolved
-  subject as a bare string) and `Terminal.Lynx.Lookup` (after the output, with
-  `{ input, data }`) on every run; either one counts.
-- In Twotter her profile and posts read `@g.desouza`, not `@@g.desouza`: the
-  persona username is stored without the `@` (#54).
+`john a3106b24578d51822fb862154d11b89d` prints `Marigold2019` and `probe:password-cracked`. A decoy hash prints nothing.
 
----
+## 8. The portal login (step 8)
 
-## 5. The hospital edge (step 6)
+1. `https://remote.pacificcare-health.org/`: the staff sign-in (two fields and a button).
+2. Wrong pair: "Sign-in failed. Check your username and password." Right pair `g.desouza` / `Marigold2019`: the portal opens at
+   **Overview** with only Overview and Sign-ins in the sidebar. `portal:login view=portal`.
+3. Decoy: `g.lim` / `printroom01` opens a **Profile** page only ("No managed systems are assigned to this profile. Contract ended
+   2026-07-31.") and advances nothing. Reporting from that session is ignored.
 
-Steps 3-4 and 5 are two branches that join here.
+**Checks.** The page source must contain neither password. A reload while signed in shows the portal again; Sign out then reload shows
+the login. After a Min change the page re-reads the state on window focus.
 
-1. `nslookup remote.pacificcare-health.org` -> `198.244.91.37` (the host name is
-   the remote-access line on the two captures, §3).
-2. `whois remote.pacificcare-health.org` -> the hospital's own contact.
-3. `nmap 198.244.91.37` (or `nmap remote.pacificcare-health.org`). Expect
-   `[FP][M05] probe:edge-mapped`.
-4. Expect `leakindex.net` to start resolving from this point.
-5. Expect a second mail from `drop@drop.null`, subject **"same habits"**. It
-   names `leakindex.net` and tells you to use the address format from the team
-   page. Again that mail is the only in-world pointer to the site (#52).
+## 9. Sign-ins (step 9)
 
-**Live question.** There is **no nmap fixture on the edge address** — the edge
-router is a real network node, so this prints the live port state (80 CLOSE,
-443 OPEN). If the scan prints nothing at all, the subnet was not built; check
-for `Network.createSubnetNetwork` in the log at mission start.
+Overview flags the first alarm; "Open sign-ins". Sign-ins → **By source** (sortable headers) → find the address with location
+"Unresolved, no PTR", zero failures and one account (**194.36.108.20**) → View sign-ins → **Flag** any of its five rows
+(2026-08-11 00:41 UTC first). `probe:portal-seen kind=foothold`, Min 1 (Directory and Tickets appear with a "New" badge), one
+optional NOTE log. Decoys: `svc-vendor` every 01:50, `g.lim` after the contract, Tara's hotel, the failed storm on 9 July.
 
-**Checks.** Running the `nmap` before **both** branches are done must not
-advance: with only the captures compared, or only the profile read, the probe
-line must not appear.
+## 10. Tickets (step 10)
 
----
+Tickets → **HD-4503** (hr.ops, "Account closure: G. de Souza"): it points to HD-4417 and 30 June. `kind=separation`, Min 2 (Config).
+HD-4481 (the USB, no reply) and HD-4496 (a hex string) are the other tickets that matter; opening them counts nothing.
 
-## 6. The breach index (step 7)
+## 11. Config, 30 June (step 11)
 
-1. `nslookup leakindex.net` -> `91.229.23.105`, `nmap` it, then browse
-   **`https://leakindex.net/`**.
-2. Search `pacificcare-health.org`. Nine records come back with the breach they
-   came from and its year. The table prints only the first six characters of
-   each hash (`a3106b…`); the full hash appears in the record you open.
-3. Search `g.desouza` or her full work address. **Record 1** is the one that
-   matters: `g.desouza@pacificcare-health.org`, MedVendor Portal 2025.
-4. Press **Open** on record 1. Expect
-   `[FP][M05] probe:leak-record-opened id=1 (match)`.
-5. Open any other record. Expect `… id=N (decoy)` and no advance.
+Config → compare two snapshots around 2026-06-30 → "View change record" on **CHG-2606-022**. The card carries "Attachment:
+rollback_plan (sealed)", a 358-digit hex and "Sealed with the change ID". Open Cipher Desk (`https://cipherdesk.io`, Goagle apps or
+search `encrypt`): mode **Decrypt**, passphrase **`CHG-2606-022`**. The text says the identity-migration window was never closed and
+manual account closures are held (see HR-7). `kind=controls` is recorded when the card opens, `rollbackOpened` when Cipher opens it;
+the step counts when **both** have happened, in either order. Min 3 (no new page).
 
-**What to look at.** Her private address (`greta.desouza@postbox.my`) is also
-indexed, from a 2022 forum breach, with a **different** hash. That is the decoy:
-cracking it gives a password that opens nothing. Three hashes are shared across
-the nine decoys so the table itself does not point at record 1.
+## 12. Config, the legal hold (step 12)
 
-**Checks.**
+Compare snapshots around 2026-08-09 to 2026-08-16 → CHG-2608-014 (Legal hold, matter **L-2608-03**, approved by the CRO's account at
+05:20 UTC). `kind=hold`, Min 4: Systems and Network appear.
 
-- The page must 404 before step 6.
-- `http://leakindex.net/` must serve the 400 page.
-- No plaintext password may appear anywhere in the page source (view source).
-- No full hash may be copyable from the results table, so `john` cannot be fed a
-  hash before **Open** (the prefix is all the table shows).
+## 13. Systems and Network (step 13)
 
----
+Systems: `arc-ir-01` is **Cold-Chart**, 192.168.1.4 (not `arc-img-02`); the note points to Remote Desktop Connection at
+`https://rdcdesk.io` and an access token. Network: IR-22 (tcp/22), the NAT table (`ssh:22` for Cold-Chart; a decoy, see §16).
+`kind=systems` counts on opening Systems.
 
-## 7. The password (step 8)
+## 14. The sample token and the sealed post (step 14, optional post)
 
-1. `john a3106b24578d51822fb862154d11b89d`.
-2. Expect the password `Marigold2019` and
-   `[FP][M05] probe:password-cracked`.
+1. Tickets → HD-4496: the second note is a 120-digit hex. Cipher Desk, **Decrypt**, passphrase **`L-2608-03`** (the matter number): five
+   parts `user:password:LAN address:change:tag` (`t.nair:…:192.168.1.5:CHG-2608-009:PC-IT-017`). `sampleOpened` is recorded when it
+   decrypts and **counted after the hold** (step 12).
+2. Optional: Greta's sealed Twotter post (hex, "Notes to self.") with passphrase `Marigold2019`: one NOTE log, nothing advances.
 
-**Checks.** Cracking any decoy hash must print nothing. Supplying the right
-hash with the wrong password (not reachable through the shipped `john`, but
-worth a listener check) must also print nothing.
+**Checks.** A wrong passphrase prints nothing useful and records nothing. Encrypt mode never opens a sealed text.
 
----
+## 15. The token and the RDC login (step 15)
 
-## 8. The firewall (steps 9-10)
+1. Build the Cold-Chart token as `user:password:LAN address:change:tag` (Greta's pair, 192.168.1.4, CHG-2608-014, arc-ir-01) and
+   **Encrypt** it in Cipher Desk with the matter number `L-2608-03` (114 hex digits; the first digits are `2b0356534357584a`).
+2. `https://rdcdesk.io`, paste the hex, Login. Wrong parts answer in this order: "Token unreadable.", "Token format not recognised.",
+   "Sign-in failed.", "Address is not on the monitoring network.", "Address and device tag do not match.", "Approval does not cover
+   this address." Three failures lock the form for 15 seconds. The sample token is rejected ("Sign-in failed."). Tokens for the other
+   three hosts open a console without a display module.
+3. A valid Cold-Chart token: `probe:rdc-login cold` and the agent console. Reload the page: the console comes back
+   (`flatlineRdcState`).
 
-1. `nmap 192.168.1.3` finds nothing useful — the firewall hides its public
-   address (`isIpHidden: true`), and in 1.3.13 that only affects `whois` and
-   `nslookup`, so the box is still reachable once you have the address from
-   `python3 net_tree.py 198.244.91.37`.
-2. Open pfSense on **`193.29.57.184`**, log in as `g.desouza` / `Marigold2019`.
-   Expect `[FP][M05] probe:firewall-login`.
-3. The firewall has **exactly one** account, because `PFSense.Login` carries
-   only `{ip}` (engine fact E-7) and a second account would make the gate
-   ambiguous.
-4. Two deny rules are listed: **22 -> 192.168.1.4** and **3389 -> 192.168.1.5**.
-   Each `destination` is the target's **LAN** address (engine fact E-5).
-   Remove both and save.
-5. Expect no new BACKTRACE trace yet, but in the log:
-   two `Network.removeFirewallRule` calls and two `Network.openPort` calls
-   (`141.98.252.76:22` and `80.94.92.118:3389`).
+## 16. The agent console and the display (step 16)
 
-**Checks.** A pfSense login on any other box must not advance. Saving changes
-before logging in must not advance.
+`help`, `agent lease list`, `agent lease clear <pid>` (only the dead pid), `signal sources|relays`, `signal set <key> <value>`,
+`signal calibrate`, `signal apply`, `agent attach`. The puzzle is generated per run (see the Remote Desktop Connection window and
+`man signal|format|agent`). When the display is clean, `agent attach` shows the Cold-Chart desktop with the archive window.
+`probe:rdc-attached`, the `archive` trace, one personal-log entry, and the Bedside-17 half of `hospitalShells` (rule IR-3389 removed,
+port 3389 opened; the firewall rule IR-22 and Cold-Chart's port 22 are **not** touched).
 
----
+**Decoy.** `ssh` to Cold-Chart's public address is refused (hold IR-22). The firewall console wants `r.wong`, whose password is
+nowhere in the game. Webmail answers "This account was disabled on 2026-08-19." to Greta's correct pair.
 
-## 9. The archive (step 11)
+## 17. The three documents (steps 17 to 19)
 
-1. `ssh g.desouza@141.98.252.76` with `Marigold2019`. This is **Cold-Chart**,
-   the clinical archive.
-2. Expect `[FP][M05] probe:archive-accessed`, the `archive` trace in the
-   BACKTRACE app, and a personal-log entry.
-3. `ls` her home: `notes.txt`. Read it — two more personal-log entries. It is
-   her own account of the USB stick and it ends on the theatre ("Theatre 3 is
-   not a system").
-4. `cd /var/ir/2026-08-14` (the folder tree is `var/ir/...`, as
-   `09-konten-m5-m6.md` B5 says; confirm that `ls /var/ir` works on the device).
-   Four files:
-   - `decision_memo.txt`
-   - `finding_draft_v1.txt`
-   - `finding_final.txt`
-   - `acknowledgement_gdesouza.txt`
-5. `cd /var/ir/tickets`. Two files: `usb_ticket_PC-IT-017.txt` and
-   `asset_register.txt`.
+In the archive window open `acknowledgement_gdesouza.txt` (`statement`), `decision_memo.txt` (`decisionMemo`), and
+`usb_ticket_PC-IT-017.txt` (`usbTicket`); four decoys (`finding_draft_v1`, `finding_final`, `asset_register`, `notes`) read without
+effect. Each counts only **after** `agent attach`. The gap is 02:41 to 09:02: **6 hours 21 minutes**.
 
-**Checks.** `finding_draft_v1.txt` and `finding_final.txt` are readable and
-trace **nothing** — they are the contrast, not the evidence. The same goes for
-`asset_register.txt`.
+## 18. The report (step 20)
 
----
+Reply to `drop@drop.null` with the **Mission 5 Findings** template (six empty tokens; unchanged from the first build):
 
-## 10. The three documents (steps 12-14, parallel)
-
-Read in any order; each traces one key.
-
-1. `cat acknowledgement_gdesouza.txt` — she signs for a conclusion she disputes
-   in writing, dated **2026-08-18**. Expect `traced statement` plus two
-   personal-log entries.
-2. `cat decision_memo.txt` — the hospital paid at **09:02 UTC** on 2026-08-14,
-   classified as employee negligence, negotiated through Brightwater
-   Resolutions, approved by **Vivien Orchid**. Expect `traced decisionMemo`.
-3. `cat usb_ticket_PC-IT-017.txt` — the media the filed finding rests on was
-   connected at **00:12 on 2026-08-11**, three days before the incident window,
-   on an asset the register assigns to the service desk. Expect
-   `traced usbTicket`.
-
-The gap the report asks for is between the lock time (**02:41**) in the memo and
-the payment time (**09:02**): **6 hours 21 minutes**.
-
-**Checks.** Each of the three must advance only after the archive session
-(step 11). Reading one must not set the other two. The extension matters:
-`cat decision_memo.log` must do nothing. `open <file>` and a double-click in the
-Files app on a downloaded copy count the same as `cat`.
-
----
-
-## 11. Optional: Bedside-17
-
-Not a step, and not required for the report.
-
-1. `use bluekeep`/Metasploit against **`80.94.92.118:3389`** (FreeRDP 6.0.4,
-   `it.station` online). The port is only open after step 10.
-2. Expect `[FP][M05] probe:bedside-bonus`.
-3. `cat found_note.txt` on the box — the note from the M01 vault, in the place
-   it actually came from. One personal-log entry, only after the session.
-4. `usb_history.log` is there too, and names the same asset tag as the ticket. It is two Log Viewer entries on 2026-08-11 00:12 (`cat` or the Files app; no gate reads it).
-
-**Checks.** Reading `found_note.txt` **before** the session must print nothing.
-
----
-
-## 12. The report
-
-Reply to `drop@drop.null` with the **Mission 5 Findings** template. The six
-fields are **empty tokens** in the compose window, not pre-filled text: type each
-answer, and Send enables after the last one is filled.
-
-| field | an accepted answer | what the match needs |
+| field | an accepted answer | match needs |
 |---|---|---|
-| `door` | `Greta de Souza` | "greta" or "souza", and no "gareth" |
-| `cause` | `unauthorised USB media, employee negligence` | a USB term and a fault term (`negligen`, `careless`, `unauthori`, `policy`, `过失`, ...), and no vendor / remote-support / third-party term |
+| `door` | `Greta de Souza` | "greta" or "souza", no "gareth" |
+| `cause` | `unauthorised USB media, employee negligence` | a USB term and a fault term, no vendor term |
 | `decider` | `Vivien Orchid` | "orchid" or "vivien" |
-| `gap` | `6 hours 21 minutes` | the numbers 6 and 21, or the single number 381 (minutes) |
-| `motive` | `insurance claim classification` | "insur", "claim" or "cover" (or 保险 / 理赔 / 承保) |
-| `archive` | `Cold-Chart` | "cold chart" (the clinical archive's codename) |
+| `gap` | `6 hours 21 minutes` | 6 and 21, or 381 |
+| `motive` | `insurance claim classification` | "insur", "claim" or "cover" |
+| `archive` | `Cold-Chart` | "cold chart" |
 
-Case, punctuation and spacing are ignored. A rejected report gets no reply.
+Sent before steps 17 to 19 and the `greta` trace: one reply "not yet" naming the first unmet step, replaced (not stacked) on the next
+send. Complete: the objective and the mission complete; outside focus `[FP][M05] reward paid: 3200`.
 
-1. Send it **before** the three documents are read: expect one reply with
-   subject **"not yet"** naming the first unmet step. Send again: the old reply
-   is withdrawn and replaced, never stacked.
-2. Send it complete: the objective completes, the mission completes, and expect
-   M5 listed as complete in the BACKTRACE app with its facts, and (outside focus)
-   `[FP][M05] reward paid: 3200`.
-3. Answering `Gareth Lim` for `door`, or `third-party remote support tool` for
-   `cause`, must be rejected. `6h21m` and `381 minutes` must both be accepted for
-   `gap`.
+## 19. BACKTRACE
 
----
+Six required keys, unchanged: `dismissed`, `greta`, `archive`, `statement`, `decisionMemo`, `usbTicket`. Six **optional NOTE logs** are
+new (`MISSION_LOGS`, `backtrace-logs.ts`): foothold, separation, controls, hold (portal findings), the Theatre 3 status note and
+Greta's sealed note; the Bedside-17 note stays. The report card must have no `—`.
 
-## 13. BACKTRACE
+## 20. Optional: Bedside-17
 
-1. Open BACKTRACE. M05's card is **THE DOOR**, nav slot 05.
-2. In progress, the card shows `TRACED SO FAR // n OF 6` with the keys found so
-   far: Staff list changed, Named administrator, Archive access, Signed
-   acknowledgement, Decision memo, USB ticket.
-3. After completion the card becomes the **MISSION 05** report: summary, eight
-   findings, two evidence rows (`EV-M5-01` the decision memo, `EV-M5-02` the USB
-   ticket) and the personal log.
-4. Every `—` in the report must be filled in. A dash left in place means a fact
-   builder key in `backtrace-facts.ts` does not match what the report card asks
-   for.
-5. Layout: while M05 is locked or in progress the view shows only its card, with
-   no report text beside it; once M05 is complete the report scrolls inside the
-   view, like M3's.
+After step 16 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:bedside-bonus`, then `found_note.txt` (one log) and
+`usb_history.log` (Log Viewer).
 
 ---
 
-## 14. Chinese pass
+## 21. What only the game can prove (live tests owed)
 
-Switch the game language to Simplified Chinese and re-walk §1, §6, §9-§12.
-Everything player-facing is translated: the tip mail, the quest title and
-objective, the two site surfaces, all nine documents, the report template and
-its reply, and the personal logs. The `{{t:}}` placeholders must never show
-through. Addresses, usernames, hashes, asset tags and dates stay as they are.
+| # | Check | Why it is unproven |
+|---|---|---|
+| R12 | Long `Exports` strings: the 114-digit token, 120-digit sample, 358-digit attachment (up to 4096 accepted) | only short strings were seen live; the 64-character chunk fallback is **not built** |
+| R15 / R16 | RDC fonts, `cursor:none`, clipboard, session restore through `flatlineRdcState()` on load | read from the engine, not seen |
+| R19 | Cipher Desk and RDC (and LeakIndex, Echoline) have no subnet or domain record | `registerDomain` needs a subnet; a site opened by host alone is read, not seen |
+| — | `Popular` grid shows both new tool sites with their own icons | static; first time in play |
+| — | `Events.emit` from `Exports` reaches the controller before the call returns | the portal re-reads state after 700 ms and on focus as a safety net |
+| — | A Goagle search calls `metadata()` with an empty `url` | the hospital pages skip the HTTPS check when `searchStr` is set |
+| — | The full 20-step chain and its length | estimate 60 to 115 minutes |
 
----
+## 22. Known follow-ups
 
-## 15. Known follow-ups (not fixed / not yet live-tested)
-
-- **`Exports` as a gate on a mod site** is proven in M01 for a single call with
-  a string argument; M05 passes a **number**. A number reaching the mod through
-  `Exports` and through an `Events.emit` payload was proven live by the weblab on
-  2026-10-04 (`docs/app-asar-reference.md` E-16), so the string fallback should not
-  be needed. M05's own `flatlineOpenLeakRecord` is still to be seen in the M05 live
-  test.
-- **`John.DecryptHash` payload shape** (`{hash, password}`) is taken from M01's
-  working listener; M05 is the first to check both fields.
-- **`Terminal.Lynx.Search`** carries the resolved subject as a bare string and
-  `Terminal.Lynx.Lookup` carries `{ input, data }`; the engine raises both on
-  every `lynx` run (`docs/bugs.md` #53, read from the engine, not yet seen live).
-- **`isIpHidden` on the firewall** is cosmetic in 1.3.13 (`whois`/`nslookup`
-  only), so `python3 net_tree.py` still lists the firewall. Expected, not a bug
-  (`docs/changelog.md` 2026-10-02, the entry that prepared the run).
-- **No nmap fixture on the hospital edge** — the step depends on the real subnet
-  existing. If the live scan prints nothing, that is the subnet, not the gate.
+- `M05_LOG_NOTES` ("she plugged it in…") has no trigger since v2; HD-4481 counts nothing.
+- A portal login before `john` cannot advance; the next portal observation retries it (harness-tested).
+- The zh text of the hospital web and the portal needs the owner's read.
+- The M1 hospital site was moved to M5 (`public/assets/m05/pacificcare-lockscreen.png`); M1's eight domain records are left alone.

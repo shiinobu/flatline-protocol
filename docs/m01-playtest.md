@@ -35,8 +35,8 @@ post), flip to `isTester=true` + `TESTER_FOCUS_QUEST.m01=true` (or a full
 `isDev=false`/`isTester=false` production build) and claim the mission by
 opening the post in the HackHub feed.
 
-M1's market and company sites (Blackwire, Frostgate, Obsidian, ClearEscrow,
-PacificCare) answer the 404 page before M1 starts and after it completes or is
+M1's market and company sites (Blackwire, Frostgate, Obsidian, ClearEscrow)
+answer the 404 page before M1 starts and after it completes or is
 abandoned; they are open only while M1 runs (`gateMissionPages`,
 `docs/architecture.md` "Website access"). LedgerVault stays open on purpose
 (permanent domain, its own seal).

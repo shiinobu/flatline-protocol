@@ -2464,3 +2464,25 @@ view from the result or on reload. The "Continue" fallback of `docs/draft.md` §
 (`flatlineOpenLeakRecord(1)`, `flatlineMonitorLogin(1)`) can stay numbers. Not shown: whether code after an `await` inside an
 `Exports` function still has the mod context (the engine pops it when the synchronous call returns, so assume not, #6 and
 #19), and why a page's `metadata()` runs twice per navigation; a render must stay free of writes.
+
+## 66. M5 v2 production sites: what the typecheck and the harness cannot show
+
+**Status: UNVERIFIED (implementation 2026-10-05; none of this has run in the game).**
+Found: while building the hospital web, the portal, Cipher Desk and Remote Desktop Connection from the lab. The mocked-SDK harness
+(outside the repo) drives the real controllers and site `Exports` through the whole 20-step chain, so what is listed here is only
+what the stub cannot reproduce. The live tests are in `docs/m05-playtest.md` §21.
+
+| Item | What the code assumes | What would show it wrong |
+|---|---|---|
+| R12 long `Exports` strings | The 114-digit token, the 120-digit sample and the 358-digit attachment (up to 4096 accepted) pass through a plain call. The 64-character chunk fallback was **not built**; the places to add it are `tokenCheck` in `rdcdesk/script.html`, `cipherObserve` in `cipherdesk/script.html` and `rdcdesk/exports.ts`, `cipherdesk/exports.ts` | Cipher Desk or RDC answer as if the input were empty; `[FP][CIPHER] run … inputLength=` shows a shorter length than the page sent |
+| R15, R16 | RDC fonts, `cursor:none`, clipboard, and session restore through `flatlineRdcState()` on load work in the game iframe | A blank desktop, a pointer that stays visible, or a reload that returns to the login |
+| R19 | Cipher Desk, RDC, LeakIndex and Echoline open by host with no subnet and no domain record | Their host does not resolve; fall back to `registerDomains` with `needsSubnet: true` (lab pattern) |
+| `Popular` | Both new tool sites appear in the Goagle apps grid with their own icons | A pale globe or a missing tile |
+| `Events.emit` timing | An `Events.emit` inside an `Exports` function reaches the quest listener before the call returns, so the returned Min is current | The sidebar lags one action; the page re-reads `flatlinePortalState()` on focus and 700 ms after every report as a safety net |
+| Goagle search context | A search calls `metadata()` with an empty `url`; the hospital pages skip the HTTPS check when `searchStr` is set | A result titled "400 Bad Request" |
+| Closed `seo` pages | Six hospital sites plus Echoline use the #63 pattern; outside M5 none of them is listed | A hospital result in Goagle with no mission running |
+| Class-level `Exports` with dynamic pages | Works as LeakIndex does today (live) | The Webmail or portal buttons do nothing |
+| zh text | The zh of the hospital web, the portal and the NOTE logs was written without owner review | Owner reads it |
+
+Two defaults taken without a question: the `flatlineLogin` result is a string (`portal`, `contractor`, `denied`), because strings are
+live-proven; and `flatlinePortalSeen` ignores every report that does not come from a Greta session.

@@ -2927,3 +2927,47 @@ no network) checked the diff against the requirement matrix in three passes.
   evidence is my scripts in `scratchpad/review-check/`"; "Code-length nit (T-6 guideline is under 50 lines): `act` and the
   scheduler block are each exactly 50 lines"; not checked at all: the rendered look (D-4 tells, contrast, layouts from
   1280 down to 600 px), behaviour inside the game, and what lands on the OS clipboard after Ctrl+C.
+
+## 2026-10-05 — M5 v2 implementation (cloud Phases 0 to 2 merged, Phase 3 rest and Phase 4 done locally)
+
+Why things are the way they are. Real findings move to `docs/bugs.md` #66 and the spec notes when M5 reaches FINAL LOCK.
+
+- **Who built what.** The cloud run `claude/m05-door-v2` (tip `330657d`) did Phases 0 to 2 and the LeakIndex and Echoline part of Phase 3,
+  then stopped (credit). It never wrote the hospital page data or the portal data: those existed only in
+  `src/debug/dashboard-preview.html`. A local session wrote the hospital web, the portal, both tool sites, the docs and the
+  harness. The tool-site and portal pages were first generated from the lab by a scratchpad tool (TypeScript-compiler dependency
+  closure plus CSS pruning, kept outside the repo, now gone); the generated files in the repo are hand-owned and must not be
+  regenerated over.
+- **Why `.html` partials hold the page scripts.** Only `.html` has a text loader (`types.d.ts`), so a large script or style has to
+  be an `.html` file that TypeScript concatenates at render. Markers are `/*__NAME__*/{}` (`fillDataMarker`) and `{{t:KEY}}`.
+- **Written exception to the 800-line ceiling.** `websites/global/rdcdesk/script.html` is 1933 lines on purpose: the owner asked
+  on 2026-10-05 for one `script.html` and no partials ("jadikan 1 script.html saja. jangan dipisah"). It is generated page code
+  ported from a 3988-line lab file, so it follows the "generated files may exceed the ceiling" clause of the coding-style rule. The
+  portal (551 lines) and Cipher Desk (210 lines) scripts fit under it.
+- **Why the portal has no per-string `T()`.** The lab drawers build HTML from concatenated English literals, so a translation per
+  literal would not survive word order. The page keeps its English code and translates at the two places text enters the DOM
+  (`put(el, html)` for `innerHTML`, `Z(text)` for `textContent`) from one table (`i18n/m05/portal-zh.ts`), with `{x}`, `{#n}` and `{!w}`
+  placeholders for dynamic phrases. The table keys were taken by crawling every portal view in headless Chrome and removing the
+  strings already handled by data translation (`portal/payload.ts`). Data fields that code reads (`stt`, `state`, `key`) are never
+  translated on the mod side.
+- **Why `flatlineLogin` writes the mirror itself.** `Exports` may write `SharedVariables` (#65), so the page switches view from the
+  return value and a reload shows the same view; the controller still advances `portalLoggedIn` from the event and retries it on the
+  next observation (`settleM05`).
+- **Why the hospital pages skip the HTTPS check during a search.** The engine builds the search context as `{...t, searchStr}`
+  (E-13) and a Goagle call has no address, so a strict check would list the page as "400 Bad Request".
+- **Lab.** The cloud's Phase 0 already edited the lab (LAN shift +1, the sealed attachment on the CHG-2606-022 card, the
+  `exportslab` extension, commits `48e1b3b` and `7d4c90b`). This session did not touch `src/debug/`; the production code uses the shifted LAN
+  (192.168.1.3 to 192.168.1.8) and the sealed attachment.
+- **Mocked-SDK harness** (scratchpad only): an esbuild bundle of the real sites and controllers with the SDK stubbed (an in-memory
+  `SharedVariables`, `Localization` and event bus), a local HTTP server that serves rendered pages with the `Exports` as
+  synchronous requests into the real mod code, a 67-check chain test and a 16-check static test (reachability from
+  `src/index.ts`, `node --check` on every script block, en/zh key parity). All pass; they are not a substitute for the live test.
+- **Not built:** the 64-character chunk fallback for long `Exports` strings (R12), and M6 and M7 profile registration.
+
+### `trace()` locations added or kept for M5 (remove at FINAL LOCK)
+
+`controller/m05/`: `recon.ts` (vault-revisited, team-page-seen, staff-archive-compared), `crack.ts` (leak-record-opened match and decoy,
+password-cracked), `portal.ts` (portal-seen, portal-login contractor), `cipher.ts` (cipher-opened), `rdc.ts` (rdc-login cold,
+rdc-attached, rdc-read), `access.ts` (bedside-bonus, status-note). `websites/m05/portal/exports.ts` (`portal:login`).
+`websites/global/cipherdesk/exports.ts` (scope `CIPHER`: run, opened) and `websites/global/rdcdesk/exports.ts` (scope `RDC`: login, signal,
+attach, read, state). Cipher and RDC are shared with M6 and M7, so their traces go when the last of the three missions locks.

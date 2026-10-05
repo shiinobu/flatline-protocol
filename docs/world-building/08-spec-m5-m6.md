@@ -315,3 +315,16 @@ yang baru terlihat di HostTrail.
 
 **Laporan M5 dan M6.** Validator mencocokkan kata kunci dan angka (README #39); nilai yang benar
 tidak berubah.
+
+## Catatan implementasi (2026-10-05, M5 v2)
+
+M5 dibangun ulang di atas web rumah sakit, portal `remote.`, Cipher Desk dan Remote Desktop Connection (RDC); rantai menjadi 20 langkah
+(README #58 sampai #64, `docs/m05-playtest.md`). Selisih terhadap B2 sampai B5 di atas: (1) langkah 3 dan 5 (gerbang `nmap` edge) diganti
+login portal; (2) lapis network (Firewall tersembunyi lalu SSH) diganti RDC, jadi `access.ts` hanya memegang bonus Bedside-17 dan catatan
+Status, dan `hospitalShells` hanya separuh Bedside-17, dipicu `displayAttached`; (3) tiga dokumen dibaca di jendela arsip RDC lewat
+`Exports` angka (`flatlineRdcRead`), bukan `onFileRead`; (4) langkah 9 sampai 14 memakai bendera `seen` dan `settleM05` karena pemain boleh
+membuka halaman portal dan Cipher dalam urutan apa pun (`advanceStep` tidak diubah); (5) delapan situs rumah sakit milik M5, tidak lagi
+M1; (6) enam log NOTE opsional baru di `MISSION_LOGS`, enam kunci wajib tetap. Pengguna Firewall `r.wong` dan `ssh` ke Cold-Chart ditolak
+(hold IR-22) sebagai umpan jujur. Cipher Desk dan RDC adalah situs global permanen `Popular` yang akan dipakai M6 dan M7 lewat
+`content/global/sealed.ts` dan `rdc.ts`. Yang belum dikerjakan: cadangan potongan 64 karakter (R12) dan semua
+yang tercantum di `docs/bugs.md` #66.
