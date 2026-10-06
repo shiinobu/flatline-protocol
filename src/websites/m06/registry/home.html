@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t:M06.SITE.REGISTRY.BRAND}}</title>
+/*__REG_STYLE__*/
+</head>
+<body>
+/*__REG_HEADER__*/
+<main class="wrap">
+<h1>{{t:M06.SITE.REGISTRY.HOME_TITLE}}</h1>
+<p class="lead">{{t:M06.SITE.REGISTRY.HOME_INTRO}}</p>
+<section class="search">
+  <label for="q">{{t:M06.SITE.SEARCH.LABEL}}</label>
+  <div class="row">
+    <input id="q" type="text" autocomplete="off" spellcheck="false"
+           placeholder="{{t:M06.SITE.SEARCH.PLACEHOLDER}}" aria-label="{{t:M06.SITE.SEARCH.ARIA}}">
+    <button id="go" type="button">{{t:M06.SITE.SEARCH.BUTTON}}</button>
+  </div>
+</section>
+<section aria-live="polite">
+  <p id="empty" class="state">{{t:M06.SITE.SEARCH.EMPTY}}</p>
+  <p id="none" class="state hide">{{t:M06.SITE.SEARCH.NONE}}</p>
+  <div id="results" class="hide">
+    <p id="count" class="count"></p>
+    <table>
+      <thead><tr>
+        <th scope="col">{{t:M06.SITE.COL.ENTITY}}</th>
+        <th scope="col">{{t:M06.SITE.COL.NUMBER}}</th>
+        <th scope="col">{{t:M06.SITE.COL.STATUS}}</th>
+        <th scope="col">{{t:M06.SITE.COL.KIND}}</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+</main>
+/*__REG_FOOTER__*/
+<script>
+(function () {
+  var DATA = /*__REG_DATA__*/[];
+  var TEXT = /*__REG_TEXT__*/{};
+  var input = document.getElementById("q");
+  var empty = document.getElementById("empty");
+  var none = document.getElementById("none");
+  var results = document.getElementById("results");
+  var rows = document.getElementById("rows");
+
+  function show(el, on) {
+    el.className = el.className.replace(/\s*hide\s*/g, " ").trim() + (on ? "" : " hide");
+  }
+
+  function cell(text, numeric) {
+    var td = document.createElement("td");
+    td.textContent = text;
+    if (numeric) td.className = "num";
+    return td;
+  }
+
+  function rowFor(entry) {
+    var tr = document.createElement("tr");
+    var first = document.createElement("td");
+    var link = document.createElement("a");
+    link.href = entry.path;
+    link.textContent = entry.name;
+    first.appendChild(link);
+    tr.appendChild(first);
+    tr.appendChild(cell(entry.number, true));
+    tr.appendChild(cell(entry.status, false));
+    tr.appendChild(cell(entry.kind, false));
+    return tr;
+  }
+
+  function search(raw) {
+    var q = String(raw || "").trim().toLowerCase();
+    while (rows.firstChild) rows.removeChild(rows.firstChild);
+    if (q === "") { show(empty, true); show(none, false); show(results, false); return; }
+
+    var hits = [];
+    for (var i = 0; i < DATA.length; i += 1) {
+      var entry = DATA[i];
+      if (entry.name.toLowerCase().indexOf(q) !== -1 || entry.number.toLowerCase().indexOf(q) !== -1) hits.push(entry);
+    }
+    if (hits.length === 0) { show(empty, false); show(none, true); show(results, false); return; }
+
+    show(empty, false); show(none, false); show(results, true);
+    document.getElementById("count").textContent = String(TEXT.count || "").replace("{{n}}", hits.length);
+    for (var j = 0; j < hits.length; j += 1) rows.appendChild(rowFor(hits[j]));
+  }
+
+  document.getElementById("go").addEventListener("click", function () { search(input.value); });
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") search(input.value); });
+})();
+</script>
+</body>
+</html>

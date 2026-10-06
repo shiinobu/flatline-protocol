@@ -10,12 +10,12 @@ this file goes back to empty (or gets reused for whichever mission is
 active next). See `docs/implementation-rules.md` §9 for the full policy
 this file exists to support (zero comments in `src/`).
 
-**Currently scoped to: M02-M04, plus a reopened M01 localization pass.**
-M01 reached FINAL LOCK on 2026-09-19 (findings folded into `docs/bugs.md`
-entries 1-11 and `docs/story.md` section 4) but was reopened for a
-Localization pass (EN + Simplified Chinese, `zh` — confirmed via
-`Localization.languages()` live, not `zh-CN`) before the real final lock.
-M02-M04 are implemented but not yet live-tested.
+**Currently scoped to: the M4-M7 run (M05 to M07), plus older M1-M3 notes
+that were never filtered.** The new M4 reached FINAL LOCK on 2026-10-03: its
+notes moved to `docs/bugs.md` #56-#61 and `docs/story.md` ("Mission 4 —
+Burn Notice") and its sections are gone from this file. M1 (2026-09-19) and
+M2-M3 also reached FINAL LOCK, but the notes below from before 2026-10-02 are
+still unfiltered.
 
 ---
 
@@ -426,7 +426,10 @@ recycled.
 ---
 
 **M03/M04 AUDIT FINDINGS (2026-09-23, read-only investigation, NOT YET
-ACTED ON — M2 redesign plan above stays the priority).** Same audit lens
+ACTED ON — M2 redesign plan above stays the priority).** **Update
+2026-09-28:** M3 findings #1, #2 and cross-mission #6 are addressed by the
+M3 redesign (last section of this file, not live-tested). M4 findings #3,
+#4, #5 remain open. Same audit lens
 used on M02 this session (physical-proximity plausibility, dead connective
 tissue, flat antagonist writing, unpaid latent details, looser-than-story
 gating), run against M03 "Money Trail" and M04 "The Architect."
@@ -1292,3 +1295,1693 @@ review). Detail yang gak masuk changelog (biar gak duplikat):
   BLACKLEDGER, LedgerVault fix, Personal Log M1/M3 baru, facts M3 baru.
   M3 jadi fokus live-test pertama kalinya sesi berikutnya
   (`flags.ts` udah diarahkan kesitu).
+
+---
+
+**M3 REDESIGN — PASS 2 (2026-09-28, branch `clouds-modify`, after the first
+live-test of pass 1). Implemented, NOT live-tested.** `tsc --noEmit` clean,
+`npx tsx esbuild.config.ts` clean. This supersedes the pass-1 M3 section
+(removed) — where they differ, this wins. Design intent: `docs/story.md`
+§4; topology: `docs/network-plan.md`.
+
+**Partly superseded by the 2026-09-29 section at the end of this file.** Items
+A-C below stay valid, except that A's remark "M2 uses bettercap legitimately"
+has been stale since M2's 2026-09-24 redesign (no mission uses it now). The
+chain changed (download → `open`, `Meterpreter.Connected` →
+`RemoteConnection.Established`, `vpnConfigPulled` → `vpnConfigRead`), the
+hydra fixture in assumption 9 is now `guest` + `admin` on `ip:80` only, and
+assumptions 2-3 ("two levels unproven") are proven by M2's live-test.
+
+**Live-test bugs from pass 1 — fixed:**
+- **A. bettercap removed entirely.** In this SDK/project bettercap is a
+  Wi-Fi mechanic (`WifiRecon`/`WifiDeAuth`; M2 uses it legitimately to
+  crack a home AP). M3 is a wired remote pivot with no Wi-Fi, so the
+  pass-1 `Bettercap.Open`/`NetProbe` gate was wrong. `internalTrafficCaptured`
+  now gates on `Wireshark.Started` + `natPivotDone` only (`:520`). M2's
+  bettercap/fern is untouched.
+- **B. the finance VLAN is no longer reachable before the pivot.** Pass 1
+  registered Coin-Drift's domain + open ports at mission start, so `sqlmap`
+  worked with zero dependency on pfSense. Now every internal service port
+  ships `active: false` (`:290-291`, `:317`, `:337`, `:349`) and is opened
+  only by `openM03InternalPorts()` (`:142`), called on the pivot's
+  `PFSense.Changes` (`:510`) and reconciled on restart if `natPivotDone`
+  (`:480`) — the exact `Network.openPort`-after-breach mechanism M1 uses.
+  The `sqlmap` port-active gate (`bugs.md` #12) is what makes this bite:
+  3306 inactive → "No sql-injection vulnerabilities found" until the pivot.
+- **C. VLAN re-addressed to `192.168.1.x`.** The pfSense port-forward panel
+  rejected `10.50.1.x` with "Local IP must be a LAN address (192.168.1.x)
+  or left empty for Any." Every `lanIp` (pfSense `.1`, splitter `.2`,
+  Coin-Drift `.3`, Faded-Ledger `.4`, Split-Bill `.5`, Vault-Line `.6`) is
+  now `192.168.1.x`. Public `ip`s stay scattered/unique. (This is the same
+  `IsLocalIp()` constraint M2's LAN hit on 2026-09-24; the pass-1 "open
+  question" about it is now resolved by the live error message.)
+
+**New depth this pass (the mission was too shallow — one leaked password →
+one DB dump):**
+- **Metasploit exploitation chain (real, mirrors M2/M4).** New internal
+  host `Vault-Line` (`79.124.62.90` / lan `192.168.1.6`), the finance
+  site-to-site VPN gateway. RDP 3389 `FreeRDP 7.1.9` + `setVulnerabilities
+  [{type:"RCE", version:"FreeRDP 7.1.9"}]` (`:376`) — the **exact** recipe
+  M2's workstation live-confirmed, chosen so a Metasploit module is
+  guaranteed to match. Player: nmap -sV → search/use/set/run →
+  `Metasploit.Meterpreter.Connected` (`:541`) → `Metasploit.Rootgrab`
+  (`:547`, gated on the shell flag like M4) → read the root file → download
+  `site_to_site_backup.txt` → `Files.Transfer` DOWNLOAD (`:556`, M4's proven
+  download gate). The config names `M04_ARCHITECT_VPN_IP` as peer
+  `SKN-CENTRAL`, owner `SKN Capital Nominees` — so the exploit is what
+  proves the money's destination and the tunnel's far end are one hand, and
+  it carries the DB creds for the DatabaseManager path below.
+- **DatabaseManager as an alternative to sqlmap (scope item 1).**
+  `Database.Connected` (`:536`) with `host === Coin-Drift` sets
+  `ledgerDumped` too, so a player who lifts `finance_svc` creds from the
+  gateway config can read the ledger through the app instead of `sqlmap`.
+  The `index.d.ts` Database doc comment ("used by sqlmap, DatabaseManager
+  app, etc.") is the only basis for assuming the app fires this event on
+  connect — hence it is an *alternative*, never the only route (sqlmap
+  still sets the same flag), so if it doesn't fire nothing is lost.
+- **Multi-step OSINT password puzzle (scope item 4).** No single line
+  leaks the pfSense password. The player must combine: the FORMAT from
+  Reyes's Twotter/`lynx @d.reyes` ("short company name + policy year + '!',
+  one word, capitalized"), the SHORT NAME from the site ("trading as
+  Skynet"), and the POLICY YEAR from the site footer ("policy in force
+  since 2024, rotation suspended"). `M03_PFSENSE_PASSWORD` is derived in
+  code as `${SHORT_NAME}${POLICY_YEAR}!` so the puzzle and the credential
+  can never drift apart. Pure content (lynx `additional` + site HTML) — the
+  only SDK dependency is `PFSense.Login`, already used.
+- **`@m.okafor` real red-herring persona (scope item 5).** Full Twotter
+  account + 5 posts: an ops/facilities guy who brags about "running the
+  building" and access he admits he doesn't have. The one credential he
+  posts is a fake guest-wifi password (`SkynetGuest2019`) that looks like
+  the corporate pattern but is a dead end (wrong token, wrong year, wrong
+  system). A player who chases him wastes real effort.
+
+**Objectives: collapsed to exactly ONE** (`m03.objective.00`
+`reportFindings`), matching M1/M2. Every step above is still enforced
+underneath ("full mechanic, not full objective") via the report's hard
+gates: `internalTrafficCaptured && ledgerDumped && vpnConfigPulled &&
+natReverted` + the three correct field values (shellCompany, parentEntity,
+vpnLead). BACKTRACE logs fire at each milestone (ledger dump, capture, root,
+Reyes's share) so the single silent objective still gives running feedback,
+exactly as M1's one objective does. **Before testing, abandon or
+`mods.reset` M3 — the objective IDs changed again (pass-1 `.00`-`.02` → one
+`.00`).**
+
+**Cross-mission connections preserved:** `M02_SHELL_COMPANY_NAME` (report +
+ledger), `M04_ARCHITECT_VPN_IP` (imported from the `characters` leaf, never
+`m04.js`; appears in the capture log, the gateway config, and the report
+field), `M03_PARENT_ENTITY_NAME` = SKN Capital Nominees (imported by
+`m04.ts`, unchanged), and the BLACKLEDGER throughline in the report body.
+
+**SDK-BEHAVIOR ASSUMPTIONS — verify against the real client before merge**
+(all in `src/main/m03-quest.ts`):
+1. **`:107-116` capture file via `Events.emit` → module-level `Events.on`
+   → `Files.create`** (unchanged from pass 1). Bridge shape = `bugs.md`
+   #19 row 6, but reached from a quest `this.Events.on` rather than a
+   `Website.Exports` click; assumes `Files.getHomePath()` + `parentPath`
+   lands the file in the player's home. Non-load-bearing: the VPN IP also
+   reaches the player via the BACKTRACE `architectVpn` fact (`:526`) and
+   the gateway config, so a failure here only loses the `.log` artifact.
+2. **`:376` + the metasploit chain (`:541`,`:547`).** `setVulnerabilities
+   [{type:"RCE", version:"FreeRDP 7.1.9"}]` on an RDP-3389 device is copied
+   verbatim from M2's live-confirmed workstation, so the module match is
+   the safest available — BUT M2's host is Router→Device (one level) and
+   Vault-Line is Router→Splitter→Device (two levels). Two-level metasploit
+   reachability is unproven (M4 assumes the same shape, also untested).
+   `Meterpreter.Connected`/`Rootgrab` match on `ip` only. **Non-load-bearing
+   for completion:** the report gates on `Files.Transfer` of the config
+   (`:556`), which needs in-game root access regardless of whether my
+   `gatewayShellObtained`/`gatewayRooted` feedback flags ever set.
+3. **`:480` + `:510` `Network.openPort` on a device two levels deep**
+   (Router→Splitter→Device). M1 proves `openPort` at one level; two levels
+   is unproven, though the shipped M3 already assumed two-level
+   reachability for `sqlmap`. If it fails, the whole VLAN stays dark after
+   the pivot — first thing to check on live-test.
+4. **`:536` `Database.Connected` fires when the player connects via the
+   DatabaseManager app** with host+creds. Only basis is the `index.d.ts`
+   doc comment. Optional path (sqlmap also sets `ledgerDumped`), so a
+   no-fire costs nothing.
+5. **`:279` `ledger.skynet-importexport.biz` on a device nested
+   Router→Splitter→Device** (unchanged) — assumes `sqlmap`'s domain
+   resolution reaches two levels deep; M2 proved one level.
+6. **`:530` `Sqlmap.DumpTable.host`** accepts the device IP *or* the
+   domain (sqlmap input must be a domain; the event's `host` field's exact
+   value at two-level depth is unconfirmed).
+7. **`:266` + `:497` pfSense admin panel on a `Router`-type node.** M1/M2's
+   confirmed panels are on `Firewall` nodes; `bugs.md` #17 says pfSense
+   keys off `users` not type; M3 has always used the Router. Unconfirmed.
+8. **`:502-518` `PFSense.Changes` counting.** Change #1 = pivot (opens the
+   ports). The first change *after* capture+ledger+config counts as the
+   revert. Event carries no rule data, so "revert" = "any later saved
+   change," not "removed that specific rule."
+9. **`:203` hydra fixture registered for both bare IP and `ip:80`.** The
+   pivot does NOT depend on hydra — `PFSense.Login` fires on a correct
+   manual login with the deduced password, so hydra is only a convenience.
+10. **`:562` `Terminal.Explorer.ip`** accepts the public IP or the LAN IP
+    (bonus path; not required for completion).
+11. **`:393` Twotter personas** created with no avatar/banner (M1 supplies
+    both); `createUser` documented to fill missing fields. Two personas
+    now (Reyes female, Okafor male). `lynx @handle` fixtures share the
+    handles with the real accounts, as M1 does.
+
+**Remaining open item (unchanged):** `resetMissionNetworks` (`bugs.md`
+#18/#21 race) — the report hard-requires the ledger dump, which requires
+the domain+port to come up cleanly on a rebuilt save; first suspect if the
+VLAN can't be reached at all after the pivot.
+
+---
+
+**2026-09-29 — BACKTRACE keys, one money model, M3 follow-up.** Implemented,
+NOT live-tested. `npx tsc -p tsconfig.json --noEmit` clean (exit 0), the inline
+scripts of `backtrace.html` and `ledgervault/home.html` pass `node --check`,
+and the finance arithmetic was re-run outside the game (totals and the
+12-row balance below). No build was run. Detail per change: `docs/changelog.md`
+(2026-09-29), rules: `docs/implementation-rules.md` §13-14.
+
+**Why (user feedback, 2026-09-29).** One action used to trace several facts
+(M2's `affiliates` dump 5, M3's ledger dump 4), the panel listed every fact,
+and M3's ledger showed one $42,000 row while M2's ransom was $2,850,000. Asked
+for: one action = one key finding, keys shown as title + value only, the
+descriptions composed into Key Findings at COMPLETE (which may outnumber the
+keys), the case id merged with the Q3 folder in M1, new keys in M2/M3, and one
+detailed money model for M2 and M3.
+
+**Money model decisions (`src/content/finance.ts`).**
+- Three batches, chronological: `LOG-EU-2209` $1,400,000 2026-05-02
+  (`PB-2605-01`), `FIN-NA-0091` $4,100,000 2026-07-22 (`PB-2607-01`),
+  `CASE-A7X-0417` $2,850,000 2026-08-14 (`PB-2608-01`). FIN-NA-0091 was moved
+  from 2026-02-19 so it really falls in the "Q3" that `quota_report` ("Q3
+  summary", "top account") and the M2 report ("Q3 closes: 4") claim.
+- One waterfall for every batch: 60% SKN Capital Nominees ("management fee",
+  the Architect's cut — M2's `routing_notes` say it "goes out same day as
+  settlement"), 25% TR4C3404 Consulting ("consulting fees (logistics)" — M2's
+  `panelShare`), 5% X7xSentry9 Brokerage ("customs brokerage" — the M1
+  broker), 10% retained by Skynet (the remainder, so cents never drift).
+  Postings 09:04 in, 09:20 / 09:24 / 09:27 out. Totals $8,350,000 in,
+  $5,010,000 / $2,087,500 / $417,500 / $835,000. Re-run outside the game: every
+  split sums to its gross; by hand the 12 ledger rows end at a $835,000
+  balance (140,000 → 550,000 → 835,000 after each batch).
+- Where it surfaces: M2 `affiliates` (gross, `panelShare`, `batchRef`),
+  `deploy.log`, `wire_authorization.pdf`, `quota_report.txt`; M3
+  `wire_transfers` (all three batches), the Q3 reconciliation (July + August:
+  $6,950,000 in, $4,170,000 to the parent), the tip mail, the report's Funds
+  lines, BACKTRACE's M2/M3 facts.
+- Name note: M1's broker alias is `X7xS3NTRY9` (leet) while the ledger party is
+  `X7xSentry9 Brokerage`, after the broker's own domain `x7xsentry9.tech` — read
+  as the alias' corporate front. If the literal alias is preferred, change
+  `M03_LEDGER_BROKER_PARTY` (the only place the string lives).
+- Soft inconsistency left alone: M2's `quota_report` says "Closes this quarter:
+  4" and the report says "Q3 closes: 4" while the table holds two Q3 batches
+  (`LOG-EU-2209` is May). Read as the closer's own count, not the table's;
+  changing it means either moving the EU batch into Q3 or rewording two lines.
+
+**BACKTRACE decisions and edge cases.**
+- Keys are the only thing the mission card shows; extras (M1 listing/project,
+  M2 caseId/settled/victims/buyer/batchRef/panelShare, M3 the whole waterfall
+  plus the peer facts) exist only in the snapshot written at COMPLETE.
+- M1 `caseId` traces on the click of the `Q3-2026-SEA` folder, as asked. The
+  `Recent` sidebar view also lists `case_id.txt`; opening the file from there
+  does not trace the key. M1 `buyer` has no quest flag, so unlike the
+  listing / vault / Q3 folder it is not re-traced on a quest restart.
+- M3 `vpnPeer` has no shell gate. `mods.reset` does not clear the player's own
+  files, so a stale `site_to_site_backup.conf` left in `~/downloads` by an
+  earlier run, opened before the gateway is rooted, traces `vpnPeer` and sets
+  `vpnConfigRead` (a report gate) early. M2 avoids this with `firewallBreached`. The natural M3
+  gate, `gatewayShellObtained`, depends on `RemoteConnection.Established`, which
+  is unplayed — gating on it would risk a dead end if the event does not
+  fire, so it was left ungated. Revisit after the first live-test.
+- `captureRead` needs `internalTrafficCaptured`, which resets per claim, so a
+  stale `.pcap` cannot trigger it.
+
+**Assumptions to verify in the game (in the order a run hits them).**
+1. **LedgerVault folder click → quest.** `Website.Exports` +
+   `Events.emit` is proven (`bugs.md` #19 row 6, received by a *module-level*
+   `Events.on`; #20 row 2: a `SaveStorage` write inside that handler persists).
+   A **quest-scoped** `this.Events.on` (`m01-quest.ts`, the
+   `M01_PROJECT_OPENED_EVENT` handler) receiving an event emitted from a
+   website is not proven: the SDK doc says every `Events.emit` is dispatched to
+   both the game's event system (quest listeners) and the custom bus, and a
+   quest listener receiving a *command*-emitted custom event is live-proven
+   (`open` → M2), so only the website emitter context is untested.
+   Fallback if it never fires: a module-level `Events.on` that calls
+   `traceBacktraceFinding("m1", "caseId")` — guard it on the M1 status, because
+   `applyFinding` self-heals a `locked` mission to `progress`, and LedgerVault
+   stays reachable after M1 ends (the `caseId` key would otherwise only appear
+   in the COMPLETE snapshot).
+2. **`open` at a `meterpreter >` prompt** (M3 config, the M2 PDF) — **not an
+   assumption any more, it does not work** (`bugs.md` #30, engine-verified):
+   custom commands see the target's files only over SSH (`isRemote` =
+   `ssh_ip`). The route is Meterpreter `download` (lands in `~/downloads`) and
+   `open ~/downloads/<file>`; the handlers accept the local copy because the
+   event carries only `{ id, name, extension }`. Proposal, not applied: make
+   `open` cwd-aware with `Files.resolvePath` (a bare name currently resolves
+   from the home folder).
+3. **`RemoteConnection.Established`** (`t: "METASPLOIT"`, `targetIp`) for a plain
+   `exploit` (M2 `workstation`, M3 `gateway`), read from the decompiled client
+   (`bugs.md` #29), never seen in play. M3 also keeps
+   `Metasploit.Meterpreter.Connected`, which only the reverse-TCP listener raises.
+4. **Wireshark App start after the pivot** raises `Wireshark.Started`, which
+   emits the module-level export that writes `finance_vlan_capture.pcap` in
+   the player's home (a start before the pivot is ignored — Stop/Start again).
+   The capture is now the source of the two public IPs (with `python3
+   net_tree.py` as the independent route) and of the `architectVpn` key, so
+   it is more load-bearing than in pass 2 (the report gate itself still only
+   needs the capture *started*).
+5. **hydra without `-l`** prints the fixture's own credentials
+   (`admin`/`Skynet2024!`) — engine behaviour read from the client
+   (`bugs.md` #25), first time exercised here.
+6. **`rootgrab /etc/passwd`** now finds the `root` user (`bugs.md` #26). Its log
+   line fires only when the shell flag is set, and nothing gates on it.
+7. **Ledger via DatabaseManager** (`Database.Connected`) — unchanged, still an
+   optional alternative to `sqlmap`.
+
+**Left alone on purpose.**
+- M4's `initialShellAccess` listens for `Metasploit.Meterpreter.Connected`,
+  which a plain `exploit` never raises (`bugs.md` #29). Untested and out of
+  scope for this change; fix it with M4's own pass.
+- Seven `//` lines (commented-out `Network.destroyNetwork` blocks) remain in
+  `m01-quest.ts` and `m02-quest.ts`; they break the zero-comment rule
+  (`implementation-rules.md` §9) but predate this change.
+- `docs/story.md`'s M2 chain still describes the 2026-09-20 shape (only the
+  money and the `open` step were patched); `docs/m02-playtest.md` is the
+  current M2 step-by-step.
+
+---
+
+**2026-09-29 (late) — M3 router rework: TP-Link panel, player-written
+forwarding rules (Option B).** Implemented after a live-test screenshot; the
+whole thing typechecks and has not been played. Superseded by this section:
+every earlier line in this file that has M3's pivot on `PFSense.Login` /
+`PFSense.Changes` (the 2026-09-28 pass 2 chain, the "change #1 = pivot"
+counting, `pfsenseLoggedIn`) — those listeners never fire on a `Router`.
+
+**What was wrong.** M3's gateway is a `Router`, whose admin page is the
+TP-Link panel: login raises nothing, Save raises `Network.PortChanges`
+(`bugs.md` #31). The Port Forwarding table it shows is the router's real port
+table (every child's ports are moved into it with the child's `lanIp`), which
+is why five rules were pre-filled and why the table cannot simply be hidden.
+
+**What it does now.**
+- `registerM03FinanceVlan`: router with only the locked port-80 rule; the four
+  devices without `ports`; `setVulnerabilities` for Coin-Drift (SQL_INJECTION)
+  and Vault-Line (RCE, banner version) unchanged. The 3306 `removePort`/
+  `addPort` workaround is gone.
+- `Network.PortChanges` on `M03_PFSENSE_IP` → `onRouterSaved(newPorts)`: first
+  Save traces `portal` (`portalReached`); `syncM03Forwards` finds every rule
+  whose `(Local IP, internal)` is in `M03_FORWARD_TARGETS` and rewrites it with
+  `service`/`version` when the banner is missing (`Network.removePort` then
+  `Network.addPort`, keeping the player's external port and active flag);
+  any *active* match → `natPivotDone`; the matches (active or not) are stored
+  in `forwards` and re-applied by `restoreM03Forwards` in `OnObjectivesStart`.
+- `natReverted`: prerequisites (ledger, capture, config) done, pivot done, and
+  `isVlanExposed(newPorts)` false (no active rule whose Local IP is not the
+  router's own `192.168.1.1`; an "Any" rule counts as exposed).
+- Hint before the gate (rule: `feedback-hint-placement-must-precede-its-own-gate`
+  — the rules cannot be typed without host, LAN IP and port): the tip mail says
+  the gateway forwards nothing inward; the site's Staff Access block and the
+  `lynx` fixture (`M03_SITE_ACCESS_NOTICE`, same words in `home.html`) name every
+  host with its service and port; `python3 net_tree.py` (NetTree window: type,
+  public IP, `LAN <ip>`, `<Type>: <name>`) maps the names to LAN IPs.
+
+**Decisions.**
+- `portal` traces on the first Save, not on a valid rule: a Save proves the
+  player is logged in, and the same action is the pivot attempt — one action,
+  one key (`implementation-rules.md` §13).
+- A rule the mission completes keeps the player's **external** port. `nmap`
+  shows `FORWARDED` instead of `OPEN` when external and internal differ, and
+  Metasploit's `RPORT` must equal the external port (the client compares
+  `external.toString() === RPORT`, then requires `internal` = the module's).
+- Rules that match nothing are left alone, not deleted and not flagged: the
+  engine has no notion of "listening", so a wrong rule is just an inert row.
+- Persistence is best-effort: a restart rebuilds the network, so only matched
+  rules come back; a junk or "Any" rule is dropped (the SDK's `addPort` always
+  tags the row with a real host's `lanIp`).
+- No `445` requirement anywhere: the only consumer of that port found in the
+  client is `nmap`; the accomplice route (`Terminal.Explorer`) does not read it.
+  The `445` rows exist so a curious player's `nmap` looks right.
+
+**Assumptions to verify in the game (in the order a run hits them).**
+1. `Network.PortChanges` reaches a quest-scoped `this.Events.on`. Read from
+   the client (`vt.Trigger("Network.PortChanges", {subnet, oldPorts, newPorts})`
+   is the last statement of the panel's Save), typed in the SDK, never seen.
+   Fallback: a module-level `Events.on` that checks the quest status and calls
+   the same logic, or `Browser.Meta` for a visit-only `portal`.
+2. The rewrite lands: `nmap -sV` right after the Save must show `mariadb` /
+   `FreeRDP 7.1.9`. The handler runs inside the panel's Save click, after the
+   panel's own `UpdateSubnet` (a synchronous redux dispatch, so
+   `GetSubnet` sees the saved rows).
+3. The panel's form keeps the player's un-bannered rows; the next Save copies
+   `service`/`version` back from a versioned twin (`ResolveForwardedService`),
+   and a `445` row (never versioned) is simply rewritten again by the next
+   `PortChanges`. So a second Save cannot lose the banner for good: at worst the
+   form's bare row overwrites the rewritten one for the instant before the
+   handler rewrites it again. If a live run shows a banner missing after a
+   second Save, read the log first — the handler traces nothing today, so add a
+   `trace()` line in `syncM03Forwards` before changing the design.
+4. `nmap` on a VLAN host before any rule: "Host is up … No ports found" (read
+   from the nmap command: host up = the subnet exists).
+5. The Staff Access text is enough for a player to write `3306 → 192.168.1.3`
+   and `3389 → 192.168.1.6`; NetTree supplies the LAN IPs. If playtesters get
+   stuck, add the LAN IPs to the notice or to the tip mail — never after the
+   gate.
+6. Old M3 saves: `pfsenseLoggedIn`/`pfsenseChangeCount` are ignored, a missing
+   `forwards` reads `[]` (`?? []`), `portalReached` starts falsy. Still, abandon
+   or `mods.reset` before the run.
+
+**Left alone on purpose.**
+- The constants keep their `M03_PFSENSE_*` names and `M03_PFSENSE_NMAP_RESULT`
+  fixture: a rename would touch content, quest and docs for no behaviour.
+  (The fixture is cleared by the panel's own first Save — the panel calls
+  `RemoveCommand("nmap", router)` — after which `nmap` is live.)
+- M1 and M2 keep `PFSense.*`: their targets are `Firewall` nodes.
+
+---
+
+**2026-09-29 (evening) — M3 round 2 after the first live run.** The router
+rework was played to the VPN config and the log confirms it (five keys, three
+personal logs; `bugs.md` #31). The owner's review then asked for three changes,
+implemented and typechecked, not played. Superseded by this section: the
+"network is rebuilt on every start" and `natReverted` lines in the section above.
+
+**Decisions.**
+- **Restart (`bugs.md` #32).** The VLAN is built only when `networkBuilt` is
+  false or the subnet is gone; the flag is set at the very end of
+  `OnObjectivesStart` so a `SetData` failure there cannot cost the listeners
+  (no other `OnObjectivesStart` in the project calls `SetData` in its body — the
+  first such use). `resetMissionNetworks` stays for the rebuild path only, so a
+  claim after `mods.reset`/abandon behaves as before. `forwards` is now only the
+  fallback for a rebuilt network. M1, M2 and M4 are untouched.
+- **Report gate.** `natReverted`, `isVlanExposed` and the revert wording are
+  gone (the owner: the rules are the player's freedom). The tip mail keeps the
+  audit warning as flavour. The objective text lost "cover your tracks".
+- **Faded-Ledger (`bugs.md` #33).** Key on `RemoteConnection.Established`
+  (`t: "SSH"`, `targetIp` = the typed public IP; a LAN IP cannot be typed from
+  outside an SSH session). The Reyes personal log moved to `Terminal.Cat` /
+  `open` of the note because it quotes the note; `Terminal.Explorer` still
+  fires key and log together. `22 ssh` has no version on purpose: a made-up
+  banner could accidentally satisfy a Metasploit module's version check, and
+  `ssh` reads no service or version.
+
+**Assumptions to verify.**
+1. A plain restart keeps the rules and the banners. The first run of this
+   build over an old save rebuilds once (no flag), which can still hit the
+   race; start from a fresh claim.
+2. `Network.getSubnet(M03_PFSENSE_IP)` is not null while the save is loading
+   (if it were, the network would be rebuilt and the race would come back).
+3. SSH into Faded-Ledger raises `RemoteConnection.Established` with the typed IP
+   (read from the client: `t: "SSH"`, `targetIp` = the address after `@`). The
+   login itself is confirmed in the log ("Sys log file not found for
+   62.210.183.77", 15:05).
+4. `cat` of the note over SSH raises `Terminal.Cat` with `name` and `extension`
+   split (`do_not_open_at_work` / `txt`), as M2's `deploy`/`log` does.
+5. The dev-mode reload ("Build output changed … Reloading", two loads in a
+   second) leaves the kept network alone; before this change it wiped it.
+
+**Parked (owner's call, not done).** Database Manager needs the public IP
+(`185.107.56.214`), not the LAN `db_host` in the `.conf`, and the app checks no
+port rule at all (`Database.find` on host + user + password); an optional
+comment line in the `.conf` was proposed and skipped. The engine's "Sys log file
+not found for <ip>" error on each connection to a mission device is harmless. The
+BACKTRACE app showed M2 "in progress": leftover state from the 27/09 M2 test in
+the same save (`backtrace m2 locked` clears it); the caseboard's TRACE label
+takes the first mission in progress, so it shows M2 while that is set. The
+"6/7" the owner mentioned was not identified.
+
+---
+
+**2026-09-29 (night) — M3 round 3 after the retest.** The retest (log 20:02–20:26)
+confirmed the restart fix (N1, N2), the new texts (N6) and a clean BACKTRACE
+(N7), and showed the report refused in silence (`bugs.md` #34). Implemented and
+typechecked, not played.
+
+**Decisions.**
+- **Wireshark out, not just optional.** The step was judged weird and was a
+  silent report gate; a merely optional capture would keep a dead thread. Removed:
+  handler, `.pcap` bridge, `internalTrafficCaptured`/`captureRead`, capture text,
+  the payroll decoy (its only source was the capture) and the `architectVpn` key.
+  `architectVpn` stays a fact in the snapshot (the report finding 05 and M4's
+  hand-off use it); 5 keys remain. Finding 05's "not payroll" became "not a
+  vendor". M4's tip mail (`M04_TIP_SUBJECT`/`CONTENT`) now names the gateway
+  config as the source; the quest matches on the constant, so nothing else moves.
+- **Where the player learns what the capture told them.** Ledger domain: the
+  Staff access notice (constant, `home.html`, the `lynx` fixture). Public IPs:
+  `python3 net_tree.py`. Which box is the tunnel gateway: the notice and the tip
+  mail. The tunnel endpoint: the config.
+- **No `download`.** `site_to_site_backup.conf` → `.txt` so the engine's `cat`
+  reads it where it lies. Assumption to verify: the base terminal commands
+  (`cat`, `ls`) are available at the `meterpreter >` prompt and `cat` reads the
+  terminal's current directory, which the exploit points at the target (the SSH
+  environment, which also lists only a few own commands, offers `cat` and `ls`, so
+  this is likely). `open` for the config stays as a second trigger for a
+  downloaded local copy.
+- **`open` line by line.** One `println` of a whole string collapses newlines;
+  `cat` returns the string as the command result. Fixed by printing per line;
+  leading spaces become non-breaking spaces so indented text keeps its shape.
+- **Diagnostics.** A `trace()` at the top of the `RemoteConnection.Established`
+  handler (`[FP][M03] remote connection <t> -> <ip>`) to explain why the SSH login
+  to Faded-Ledger traced nothing. Remove at FINAL LOCK.
+- **`CLAUDE.md`** added at the project root: an honest project context (a game
+  mod, fictional data, design-level work) for future sessions.
+
+**Assumptions to verify.**
+1. `cat` at `meterpreter >` (see above). Fallback: an SSH-reachable copy, or the
+   file explorer of the session.
+2. The `[FP][M03] remote connection …` line shows the SSH login; if it shows
+   `SSH -> 62.210.183.77` and still no `traced accomplice`, the fault is in
+   `markAccompliceReached`/`traceBacktraceFinding`, not in event delivery.
+3. The report completes with only the ledger and the config.
+
+---
+
+**2026-10-01 — M2/M3 migration notes (plan only, nothing implemented).**
+Written before touching M2 and M3, after M1 reached its LOCK. Everything below
+was read from the source, the SDK typings and the engine snapshot
+(`.reverse/extracted-1.3.13`); items marked *to verify* were not.
+
+**Decisions (owner, 2026-10-01).**
+- **i18n covers every mission, one subfolder per mission**: `i18n/m01` ..
+  `i18n/m04`, plus `i18n/global/` only for strings several missions share.
+  Languages `en` + `zh`, as in M01 (every `i18n/m01/*` file registers both).
+- **Site strings in `SharedVariables`.** `context/m01/site-strings.ts` now uses
+  `SharedVariables` under `flatline.m01.siteStrings` (was `Variables`,
+  namespace-sensitive, bugs #36). Done and typechecked. It is still session-only,
+  so `OnObjectivesStart` must keep refreshing it; `mods.reset` does not clear it.
+- **D1 chain shape (provisional)**: a spine with short parallel pairs joined by
+  the next step (`Gate.requires` is already an AND list). Parallel only where the
+  two steps give each other nothing.
+- **D2 M3 order**: strictly ledger, then gateway. The tip mail says so, the `root`
+  log line ("same owner as the money") presupposes the ledger, and the VPN config
+  carries the same `db_host`/`db_user`/`db_pass` as Coin-Drift, so gateway-first
+  hands out the database login (`Database.Connected` also counts as the ledger).
+- **D3 M3 forward rules**: a rule typed by the player stays inert until the mod
+  gives it a banner (`syncM03Forwards`). Only banner the targets whose step is
+  reached; Vault-Line 3389 only after `ledgerDumped`. The rule is never refused or
+  removed.
+- **D4 `Abandonable` only on M1.** M2-M4 never set it, so there is no Abandon
+  button and no `OnAbandon`; drop `OnAbandon` (and its `setBacktraceMission(.., "locked")`)
+  from the thin M2-M4 classes. Restarting M2-M4 is `mods.reset` only.
+- **D5** Database row text (ledger memos, `helpdesk_resets.note`) and the ledger
+  party names stay untranslated: they are system data and the reports match them.
+- **Recommendations adopted without a vote**: global `siteT` fed by the union of
+  every mission's site keys; drop `M03_LEGACY_PFSENSE_IP`; drop M2's 3306
+  `removePort`/`addPort` reconcile (confirm in the live test); keep M2/M3 backups
+  in git (commit `7386e09`), not as `.original.ts`; narrow `Gate.step` to
+  boolean-valued keys (the earlier "loosen `Gate.step`" note could not be tied to a
+  concrete need); dev-focus mail wipe (below).
+
+**Engine facts checked this session (1.3.13).**
+- `mods.reset` (`sDr`): unclaims the mod's quests (neither `OnComplete` nor
+  `OnAbandon` runs), removes only quest-bound mails, clears the mod's storage and
+  variables, closes and resets its apps. `SharedVariables` and the networks stay.
+  Because `SaveStorage` is cleared, mail ids tracked in it are lost: only a wipe by
+  sender survives a reset.
+- `Manager.Unclaim` releases listeners, drops the quest's tweets and messages and
+  its state. `OnAbandon` runs only from the quest's own `Abandon()`, i.e. the UI
+  button, which renders only when `Abandonable` is truthy.
+- `Variables` and `SharedVariables` are both in-memory and lost on exit.
+
+**Phase 0 - generic changes before M2 (core/components stay mission-blind).**
+- `DeviceKind` gains `splitter` and `printer` (M2 workstation LAN, M3 VLAN);
+  `toChild` in `components/topology.ts` handles them.
+- `DeviceSpec` gains `name` (codenames) and `vulnerabilities`; a pass after
+  `createSubnetNetwork` calls `Network.setVulnerabilities` (the SDK only accepts
+  vulnerabilities inside `domain`; the FreeRDP RCE on the M2 workstation, the
+  Closer-Rig and Vault-Line needs the call).
+- `DomainSpec` gains `vulnerabilities` and `registerDomains` passes it, so the
+  devbox and decoy subdomains can be registered by an unlock instead of at build.
+- `components/database.ts` and `WorldSpec.databases`: create once, then
+  `setTable` on every register (bugs.md #14); remove by host, never via a
+  private `databaseId` field (lost on reload).
+- A post-build restore hook for state the player authored (M3 `forwards`):
+  `core/rebuild.ts` rebuilds in a Scheduler job whose payload is only
+  `{ unlocked }`. M2 needs nothing here, its firewall breach is an `UnlockSpec`.
+- `Math.random` shuffle (`main/m02.ts:319`) becomes
+  `Random.pickMultiple(list, list.length)` in `controller/m02/world.ts` (content
+  never calls the SDK).
+- `websites/global/localize.ts` imports `context/m01/site-strings`; move the cache
+  to `context/global/site-strings.ts` and refresh it from
+  `i18n/global/site-keys.ts` (union of each mission's `site-keys.ts`) in every
+  mission's `OnObjectivesStart`. Reason: LedgerVault is a persistent M1 domain and
+  stays reachable while M2 runs; after a restart the cache is only filled by the
+  active mission, so M1's keys would render raw. *To verify:* `Localization.t` in
+  `OnModPackageLoaded` would also cover "no mission active".
+- Report: `ReportSpec` + `isReportSubmission` already fit. M3 currently drops a
+  correct but premature report in silence (`main/m03.ts:586`); answer it with
+  `sendReplacingMail` + `firstUnmetStep`, as `controller/m01/vault.ts`.
+- Personas: M3's `seedM03Persona` duplicates `components/persona.seedPersona`;
+  use `IntroSpec.personas`.
+- M1 uses all of this code: rerun the M1 smoke (still pending since the rename and
+  LOCK) after Phase 0.
+
+**M2 "The Maker".** Today: `main/m02.ts` 680 lines, `content/m02.ts` 266, no
+gate (the report is accepted without prerequisites), every domain registered at
+build, `OnAbandon` teardown.
+- Chain (flags in quest Data, all through `advanceStep`):
+  `tipReviewed` -> `rootProbed` (`Terminal.NmapScan` on the root IP) ->
+  `subdomainsEnumerated` (`Subfinder.Results`) -> [`adminsDumped` ||
+  `affiliatesDumped`] (`Sqlmap.DumpTable` on the devbox; keys `developer`,
+  `ransom`) -> `devboxAccessed` (`RemoteConnection.Established`, `t === "SSH"`,
+  *to verify* for the devbox) -> [`deployLogRead` || `homeLeadRead`]
+  (`Terminal.Cat`; keys `deployLog`, `homeLead`) -> `firewallLoggedIn`
+  (`PFSense.Login`; key `firewall`) -> `firewallBreached` (`PFSense.Changes`) ->
+  `workstationRooted` (Metasploit; key `workstation`) -> `shellCompanyFound`
+  (`open` of the pdf; key `shellCompany`) -> `reportSent` (requires
+  `shellCompanyFound` + `deployLogRead`). `aftermathShown` requires
+  `workstationRooted`. The NAS -> Closer-Rig thread stays optional, off the chain.
+- Unlocks: `subdomainLead` at `rootProbed` (the 40 subfinder domains: devbox and
+  two decoys with `SQL_INJECTION`, 37 noise domains with `needsSubnet`, plus the
+  devbox `nmap` fixture); `workstationRdp` at `firewallBreached`
+  (`removeFirewallRules` + `openPorts` on 3389), which replaces the manual restore
+  at `main/m02.ts:587-590`.
+- Databases: devbox (`admins`, `affiliates`) and the two decoys (empty tables).
+- `Terminal.Cat` matches file content exactly (`main/m02.ts:607`, `:617`); keep
+  that match but through the same lazy builder that produces the localized file,
+  or a language switch mid-mission breaks it.
+- *To verify in the live test*: sqlmap and nuclei still see the devbox and decoys
+  when their domain is registered by an unlock with `vulnerabilities`; the 3306
+  port declared on the device alone is enough; the `ssh` fixture is unused (the
+  playtest doc calls it cosmetic).
+- *Optional extra step, not decided*: `hashCracked` (`John.DecryptHash`) between
+  `adminsDumped` and `devboxAccessed`. The playtest lists `john` as step 7 and the
+  SDK has the event, but its payload was not checked, and bugs #13 limits which
+  hashes `john` can crack.
+
+**M3 "Money Trail".** Today: `main/m03.ts` 613 lines, `content/m03.ts` 410, one
+gate (`ledgerDumped && vpnConfigRead` on the report), `natPivotDone` and
+`gatewayRooted` recorded but gating nothing, domains registered at build.
+- Chain: `tipReviewed` -> `siteScouted` (`Terminal.Lynx.Lookup` or a scan of the
+  Skynet IP, pick at implementation) -> `portalReached` (`Network.PortChanges`,
+  first Save) -> `natPivotDone` (an active forward matching a target) ->
+  `ledgerDumped` (`Sqlmap.DumpTable` or `Database.Connected`) ->
+  `gatewayShellObtained` -> `gatewayRooted` -> `vpnConfigRead` -> `reportSent`
+  (requires `ledgerDumped` + `vpnConfigRead`). `accompliceReached` stays optional
+  and requires `natPivotDone`.
+- Unlocks: `gatewayLead` at `siteScouted` (domain
+  `remote.skynet-importexport.biz` -> the gateway, plus the gateway's `nslookup`,
+  `hydra` and `nmap` fixtures); `vaultLineForward` at `ledgerDumped`. On that
+  unlock re-read the router's port table and banner the stored Vault-Line rule
+  (*to verify*: reading the router ports at unlock time).
+- `forwards` (external ports are the player's choice) cannot be static: keep them
+  in quest Data and restore them through the Phase 0 hook, only when the network is
+  rebuilt. `syncM03Forwards` stays in the controller: `addPort`/`removePort` do not
+  re-raise `Network.PortChanges`.
+- `M03_LEGACY_PFSENSE_IP` goes away (see the decisions); `networkIps` is the
+  gateway and the public Skynet router.
+- Personas stay seeded at `OnStart`: reaching the handle already needs the
+  directory in the `lynx` fixture.
+
+**Cross-mission constants and imports.**
+- To `content/global/` (for example `entities.ts`): `M02_SHELL_COMPANY_NAME`
+  (M3, BACKTRACE) and `M03_PARENT_ENTITY_NAME` (M4, BACKTRACE). Drop
+  `M03_ARCHITECT_VPN_LEAD`, it only aliases `M04_ARCHITECT_VPN_IP`.
+- Re-point `applications/backtrace-facts.ts` (the one `applications -> content`
+  import), `websites/m02`, `websites/m03`. `content/global/mail-senders.ts` still
+  imports the flat `content/m04.ts` until M4 moves.
+- i18n keys for: quest title/description/objective, tip mail, report
+  subject/template/body, BACKTRACE log lines, device file contents, whois/lynx
+  text, M3 Twotter posts, the tr4c3404 and Skynet pages. Not translated: domains,
+  IPs, usernames, passwords, hashes, case ids, batch refs, nmap results, ledger
+  party names.
+
+**Order and verification.** Phase 0 -> M1 smoke -> M2 (content, i18n, controller,
+thin class; typecheck; harness with seeded random and a Database mock; live test
+by the owner; commit) -> M3 the same -> docs. Typecheck only, never esbuild;
+the owner runs `build-install.ps1`. After M3 `resetMissionNetworks` stays, M4
+still uses it. Docs to update at the end: `architecture.md` (restructure status),
+`implementation-rules.md` §11, `bugs.md`, `changelog.md`, `m02-playtest.md`,
+`m03-playtest.md`, `network-plan.md`.
+- Dev focus: `guard/flags.ts` has `DEV_FOCUS_QUEST.m01 = true` and
+  `TESTER_FOCUS_QUEST.m03 = true`; the M2 test needs `m02` in dev focus (only one
+  may be true).
+- Mail in dev focus: `onStartM01` does not run, so after `mods.reset` the old
+  Custodian mails stay. Wipe by sender in the `OnStart` of M2 and M3, only when
+  `isQuestDevFocus` is true. A normal run keeps M1's history, because the wipe stays
+  at `onStartM01`.
+
+---
+
+**2026-10-01 (later) — Phase 0 done (typechecked, harness-checked, not played).**
+Landed as planned in `core`, `components`, `middleware`, `context/global` and
+`i18n/global`; see `docs/changelog.md` and `docs/architecture.md`. Where it
+differs from the plan above:
+- `restore` is typed through a generic: `WorldSpec<R = never>` and
+  `WorldState<R = never>`; `register`, `bindWorld` and the rebuild payload carry
+  `R`. M1 keeps the default (no restore) and its rebuild payload is unchanged
+  (`{ unlocked }`).
+- Databases are applied inside `applyNetwork` (so after the awaited destroys on a
+  rebuild) and in the kept branch of `register`, and removed in `teardownWorld`
+  after the destroys. A `destroyNetwork` reply puts the whole store snapshot back
+  (bugs #35); whether that snapshot includes the Database table was not checked,
+  so the Database calls stay clear of it. *Not live-tested.*
+- `FlagKey<D>` narrows `Gate`, `Unlock`, `advanceStep` and `firstUnmetStep`
+  without touching M1's files (all of M1's data keys are boolean).
+- Left for the M2 pass: the `Random.pickMultiple` shuffle in
+  `controller/m02/world.ts`, personas through `IntroSpec`, the M3 forward banners.
+- Verification harness (it lived in the session scratchpad and will be gone): the
+  previous commit (`git archive HEAD`) and a copy of the working tree each run
+  against a CommonJS mock of the SDK placed in their own `node_modules`;
+  `tsx equiv.mts <root>` registers, unlocks and unregisters `M01_WORLD` in 5
+  scenarios and prints every SDK call. The two outputs must be identical (966
+  lines), and deleting `applyNetworkUnlocks` in the copy makes them differ. A
+  second script checks the new paths on a synthetic world (25 checks: splitter
+  and printer reach the SDK, no `vulnerabilities` key reaches
+  `createSubnetNetwork`, `setVulnerabilities` runs after its network, database
+  create-once and reconcile, restore after the build, sequential destroys, the
+  M1 payload shape, teardown order). Recreate it from this description if needed.
+- Next live check (owner): the M1 smoke again after `build-install`. The listing
+  pages and LedgerVault must show translated text, not raw keys.
+
+---
+
+**2026-10-01 (later) — M2 migrated to the pipeline (typechecked, harness-checked, not played).**
+`main/m02.ts` is a thin class over `controller/m02/`; the old 680-line quest and
+the flat `content/m02.ts` are gone (they live in commit `7386e09`). See
+`docs/changelog.md` and `docs/m02-playtest.md` §11 for the files and the live test.
+Choices made while writing it, which the plan above left open:
+- The two table dumps are a parallel branch that joins at the report, not at
+  `devboxAccessed`. The admins table is the only thing the SSH step needs; a join
+  there would make a correct SSH login before the affiliates dump silently not
+  count. `reportSent` requires `shellCompanyFound`, `deployLogRead` and
+  `affiliatesDumped`; `aftermathShown` requires `workstationRooted`.
+- `devboxAccessed` listens to `Terminal.SSH.Connected` (an IP string, which M1
+  already uses for `backendAccessed`), not `RemoteConnection.Established`.
+- The root probe is any of `Terminal.NmapScan` (IP or domain), `Terminal.Whois`
+  or `Terminal.Nslookup` on the root, so one missed payload shape cannot dead-end
+  the mission.
+- The `Math.random` shuffle is gone: all 40 subdomain records are sorted by name,
+  and since the labels are random hex the order carries nothing.
+- `M02_SHELL_COMPANY_NAME` moved to `content/global/entities.ts`; M3 (including
+  `content/m03.original.ts`), `main/m03.ts` and BACKTRACE import it there.
+- The report template and the freehand body are two i18n keys, as in M1: the
+  template keeps `{{developer_url}}` / `{{shellCompany}}` untouched for the Mail
+  template, and M1's template already relies on a placeholder it was not given
+  staying in place (the engine translates through i18next).
+- The engine's `Localization.t` returns the key itself when no mod context is
+  active (`translate`: no current mod, no lookup), which is why renders go through
+  the cache. The quest's `Title` / `Description` are read once at class load.
+- Not translated: BLACKLEDGER's page (global, not M2's), page `<title>`s and
+  descriptions (as in M1), domains, IPs, credentials, table and column names.
+- Dev focus: `onStartM02` wipes the Custodian's mails only when
+  `isQuestDevFocus("m02")`.
+- Old saves: the quest Data has new flags and lost `deployLogFound`; a save in the
+  middle of the old M2 needs `mods.reset`.
+To verify in the live test (also listed in `m02-playtest.md` §11 E): devbox and
+decoy domains registered by an unlock still count for `sqlmap` and `nuclei`; the
+3306 port declared on the device alone is enough; `Mail.Read` carries the tip's
+subject; the database calls do not collide with a `destroyNetwork` reply; the
+`ssh` fixture (kept, in the `subdomainLead` unlock) is harmless.
+Harness (session scratchpad, will be gone; recreate from this): the previous commit
+and a copy of the tree run against a CommonJS SDK mock that stores the registered
+`Localization` tables and interpolates `{{var}}`. (1) Old quest run vs the new
+`register` + full event chain, observations normalized and diffed: 21 texts, the
+router trees, domains, vulnerabilities, fixtures, database creates and tables, the
+tip mail, the report template and the firewall-breach port change are identical;
+the only difference is the six dropped 3306 `removePort`/`addPort` calls. (2) Gate
+checks: the 13 steps advance in order, an early report gets one replaced Custodian
+mail whose hint follows the first unmet step, nothing leaks before the root probe
+(one `registerDomain`, no devbox fixture), 41 domains after it in name order,
+reload keeps the network, a `mods.reset` replay destroys the six routers one at a
+time before building, completion removes the databases and routers, and 300
+random event orders (14 passes each) never break a gate or open the world early,
+all 300 eventually finish, while with the gate table emptied the same fuzz fails.
+(3) `en` / `zh` parity: 44 keys, same placeholders in both.
+
+---
+
+**2026-10-01 (later) — M3 migrated to the pipeline (typechecked, harness-checked, not played).**
+`main/m03.ts` is a thin class over `controller/m03/`; the old 613-line quest and
+the flat `content/m03.ts` are gone (they live in commit `7386e09`). See
+`docs/changelog.md` and `docs/m03-playtest.md` §11 for the files and the live
+test. M2 was live-tested first (log 19:26-19:53, all seven keys in gate order,
+no error from the mod). Choices made while writing M3, beyond the plan above:
+- **Withheld Vault-Line rule (D3), how.** Every saved rule that matches a
+  `M03_FORWARD_TARGETS` row is stored in the quest data (`forwards`, each with a
+  `bannered` flag). The banner (`removePort` + `addPort` on the device IP with
+  service and version) is written at once for every target except Vault-Line,
+  which carries `gatedBy: "ledgerDumped"`; on the ledger dump `releaseForwards`
+  rewrites the stored Vault-Line forward from the data, and a later save
+  banners it immediately. No read of the router's port table is needed, which
+  settles the "reading the router ports at unlock time" item of the plan.
+- **Saves before `portalReached` are inert.** Banners (and `natPivotDone`) only
+  happen once `portalReached` is set, so a save made before the tip is read and
+  the site scouted does nothing, and the next save after scouting carries the
+  whole rule table anyway (`newPorts` is the complete table). `natPivotDone` counts
+  only an active forward that actually got its banner.
+- **Restore.** `WorldSpec<readonly M03Forward[]>.restore` re-applies only the
+  bannered forwards after a rebuild; withheld ones are not recreated (a rebuild
+  gives the router a fresh table, so the player re-adds them).
+- **Gateway lead.** The portal domain, the ledger domain (with
+  `SQL_INJECTION`) and the gateway's `nslookup` / `nmap` / `hydra` fixtures
+  are the `gatewayLead` unlock at `siteScouted`. The device itself carries the
+  vulnerability at build (`DeviceSpec.vulnerabilities`), the domain gets it at
+  the unlock. The public recon fixtures (`lynx`, `mxlookup`, `nmap` of the
+  public IP, the two handles, `geoip` / `whois` of the Architect's endpoint)
+  stay at build, because they are the hints that precede the gate.
+- **Public-site probe.** `siteScouted` fires on `Terminal.Lynx.Lookup` or
+  `Terminal.Lynx.Search` of the domain, `Terminal.NmapScan` (IP or domain),
+  `Terminal.Whois`, `Terminal.Nslookup`, `Terminal.Mxlookup` or `Browser.Meta` on
+  it, so one payload shape that does not match cannot dead-end the mission.
+- **Personas** are seeded once from `OnStart` through `IntroSpec` (the old code
+  re-seeded them on every `OnObjectivesStart`); the handles stay reachable only
+  through the `lynx` directory.
+- **Cleanups.** `M03_LEGACY_PFSENSE_IP` and the `M03_ARCHITECT_VPN_LEAD` alias are
+  gone (BACKTRACE's `architectVpn` / `peerGateway` read `M04_ARCHITECT_VPN_IP`);
+  `M03_PARENT_ENTITY_NAME` moved to `content/global/entities.ts`, which
+  `content/m04.ts` (and `m04.original.ts`) now import it from; the `M03_PFSENSE_*`
+  names stay (the gateway is a TP-Link panel, but the names are established).
+- **Not translated:** the ledger rows and party names, the helpdesk row text
+  (D5), table and column names, the config keys (`label`, `remote_gw`, ...), the
+  IPs, handles and passwords, and the page `<title>` and description.
+- **The Reyes note log** is appended only after `accompliceReached`.
+- **Engine facts checked for M2/M3 texts (1.3.13).** The game's `i18next` is
+  initialised with `escapeValue: false` and the default `skipOnVariables`, so
+  variable values are not HTML-escaped and a placeholder that was not given a
+  value stays in the text; that is what the two-key report template (M2 and M3)
+  relies on. A mod translation without a current mod returns the key itself.
+- **Old saves** need `mods.reset`: the quest data has new flags and the shape of
+  `forwards` changed (`bannered`).
+To verify in the live test (also listed in `m03-playtest.md` §11 E): the public
+probe events match their real payloads; the ledger domain registered by the
+unlock still counts for `sqlmap`; a Vault-Line rule saved before the ledger
+really stays inert and works after the release; `mods.reset` replays the world
+without losing the finance database.
+Harness (session scratchpad, will be gone; recreate from this): the previous commit
+and a copy of the tree run against the same CommonJS SDK mock as M2.
+(1) Old quest run vs new `register` + the first two events, normalized and
+diffed: 21 texts, the router trees, domains, vulnerabilities, fixtures, database
+creates and tables, the tip mail, the report template and the personas' Twotter
+calls are identical; the only difference is the Vault-Line banner, which the old
+code wrote on the first save and the new code writes on the ledger dump with the
+same two calls. (2) Gate checks: the whole chain in order, nothing but the public
+domain after the build, saves and scouting out of order inert, the lynx probe
+opening the lead (3 domains, hydra fixtures), banners for the database and ssh
+rules only, the withheld rule remembered, an early shell not counting, the
+optional accomplice, the release on the ledger dump and on a later save,
+premature-report hints for recon / gateway / tunnel with a replaced reply,
+reload keeping the network, a `mods.reset` replay with two sequential destroys
+and the restore of the bannered forward only, completion removing routers,
+domains and the database, and 300 random event orders (14 passes each, the
+accomplice event included) that never break a gate, open the lead early or
+banner Vault-Line before the ledger, all 300 eventually finishing; with the gate
+table emptied, and separately with the Vault-Line gate removed, the same fuzz
+fails. (3) `en` / `zh` parity: 71 M3 keys, same placeholders in both. M1's 966
+recorded calls and the M2 gate checks are unchanged.
+
+---
+
+**2026-10-01 (night) — M3 live-tested; the gateway-config stall and the BACKTRACE scroll fixed.**
+Live test, log 21:13-21:42: `portal` 21:13:46, `parentEntity` + the ledger log
+21:18:04, `gateway` 21:21:40 (the Vault-Line shell only after the ledger, so the
+withheld banner worked), `accomplice` 21:29:34 + the Reyes log 21:30:05, the
+`root` log 21:38:19, `vpnPeer` + the tunnel log 21:38:28, the aftermath log and
+`m3 -> complete` with the facts snapshot 21:42:25; no error from the mod (only the
+harmless `Sys log file not found for <ip>`). The owner confirmed the checklist in
+`docs/m03-playtest.md` §11 by observation; Chinese was not played.
+- **What stalled the player for 17 minutes (21:21-21:38).** My migration made
+  `rootgrab` a prerequisite (`vpnConfigRead` required `gatewayRooted`). The
+  playtest and `docs/bugs.md` #26 had always called it optional ("Nothing depends
+  on it"), and the command is fragile: it takes exactly one argument, the path of
+  a hashed `passwd`, and answers "Invalid passwd file." for anything else. The
+  engine's default file system gives every device `/etc/passwd` with `hashed:
+  true`, so `rootgrab /etc/passwd` is the right call. The cat of the config, which
+  needs only the shell, now counts on its own; `gatewayRooted` stays as an optional
+  branch (requires the shell) that only adds the `root` log, and it is out of
+  `M03_STEP_ORDER`. The tunnel hint says "Get onto it" instead of "Root it" (en and
+  zh); the tip mail and the objective keep "root", which is narrative.
+- **Lesson for M4.** Before a step becomes a gate prerequisite, check
+  `bugs.md`, the playtest and the changelog for "optional", "nothing depends on
+  it" or an engine quirk on the command; a step the docs call optional or fragile
+  stays off the chain, even when the story reads better with it on.
+- **BACKTRACE scroll.** The in-progress card (`.locked` in
+  `applications/backtrace.html`) had no overflow inside the `.view{overflow:hidden}`
+  area, so a long card (M3 with five keys and eight log lines is 771 px against
+  584 px of view at a 640 px window) lost its bottom and could not be scrolled.
+  The fix is four CSS rules: `.locked` is a flex container with `overflow-y:auto`
+  and the scrollbar hidden like `.report-scroll`, and `.locked-card` uses
+  `margin:auto; flex:none`, which centers a short card and lets a tall one start
+  at the top and scroll. Checked in a browser against the real file with a
+  five-key, eight-line card: it scrolls to the bottom, a short card and M4's locked
+  card stay centered, a ready report still hides `.locked`. M1 and M2 cards were
+  affected too.
+- **Harness** (session scratchpad): the M3 gate script now has `rootgrab` as an
+  optional event (before the shell it does not count; after the shell it counts,
+  adds the root log and the config still needs nothing; the in-order run completes
+  with `gatewayRooted` false); the 300-order fuzz includes it and all 300 still
+  finish. M1's 966 calls, the M2 gate checks, the M3 old-vs-new comparison (only
+  the withheld Vault-Line banner differs) and the en/zh parity (71 keys) are
+  unchanged.
+
+---
+
+## 2026-10-01 — mission websites open only while their mission runs
+
+- **Symptom.** After M3 completed, `skynet-importexport.biz` still opened in the
+  browser. It was the only open item left from the M3 live test.
+- **Cause (engine 1.3.13, read from the bundle).** A mod `@RegisterWebsite` is
+  pushed into the global website list (`$vl` / `o7e()`) at mod load, and a
+  Firebear tab resolves through `_Qn(host)` = `o7e().find(w => w.Url === host)`.
+  Nothing on that path touches `Network.GetSubnetByDomain`, which is all
+  `Network.removeDomain` changes (it deletes `domain` from the subnet record). So
+  only the domain-based tools (`nslookup`, `nmap`, `sqlmap`, `nuclei`) see a
+  teardown; a website never does. The Database Manager has no list of databases
+  either: it is a host/user/password form that runs `Database.find` on the state,
+  so "no leftover database" means a new connection is refused, while a window
+  that is already connected keeps its copy until Disconnect.
+- **Fix.** `context/global/site-access.ts` keeps one `SharedVariables` value,
+  `flatline.activeMission`. Each controller calls `openMissionSites(id)` in
+  `OnObjectivesStart` (which also runs on every game load) and
+  `closeMissionSites(id)` in `OnComplete` (M1 also in `OnAbandon`, through its
+  `teardown`); M4 does the same inside its flat quest class. `close` only clears
+  the value when it is still that mission's, so M2's late `OnComplete` cannot shut
+  M3's sites. `gateMissionPages(id, pages)` in `websites/global/page-guards.ts`
+  wraps every page's `metadata` and answers `notFoundMetadata()` unless that
+  mission is the active one; it is applied to Blackwire, Frostgate, Obsidian,
+  ClearEscrow, PacificCare (M1), TR4C3404 (M2), Skynet (M3) and the C2 dashboard
+  (M4). PacificCare was a static `WebsitePageDefinition`; it is now a dynamic page
+  with the same title, description and HTML (both kinds render through the same
+  iframe path in the engine), because a static page has no `metadata` to gate.
+- **Single value, not a record per mission.** The missions are strictly
+  sequential, and `SharedVariables` is in memory and shared by every save in a
+  session. One value heals itself: the next `OnObjectivesStart` overwrites a stale
+  one, whereas a record would keep every old `true`.
+- **Known edge.** Switching to another save without quitting the game leaves the
+  previous save's value until a mission's `OnObjectivesStart` runs in the new save;
+  a save with every mission finished never runs one, so in that one case a stale
+  value from the earlier save can keep a site open until the game restarts.
+  `mods.reset` runs no `OnComplete` and keeps `SharedVariables`, but the restarted
+  M1 overwrites the value.
+- **Not gated, on purpose (owner to confirm).** LedgerVault: its domain is
+  permanent by the owner's standing decision and it already has its own seal
+  (`isM01VaultSealed`). BLACKLEDGER (`blkledger.dark`): a static story page with
+  no network, reached from M2's `deploy.log` and referenced by M3 and M4. Gating
+  either is one line (`gateMissionPages` around its pages, plus converting
+  BLACKLEDGER's static page to a dynamic one).
+- **Harness** (session scratchpad, copy of `src/` plus a generated CommonJS SDK
+  mock with a real Map-backed `SharedVariables`/`SaveStorage`): 95 checks, all
+  pass. For each of the eight sites: closed with no mission, closed over plain
+  http, closed while each other mission is active, open (no 404, https guard still
+  applies) while its own mission is active, closed again after its close. The
+  `close` semantics (idempotent, a late close of another mission is ignored), the
+  four controllers' open/close wiring (M1 also `OnAbandon`), the M2 to M3 hand-off,
+  and that LedgerVault (with its seal off) and BLACKLEDGER stay as they were.
+  Negative controls on the copy all fail as they should: gate wrapper no longer
+  gates (48 failures), M3 `OnComplete` without close (2), M4 start without open
+  (1), unconditional close (3). Typecheck and `--noUnusedLocals` clean. Not
+  live-tested.
+
+---
+
+## 2026-10-01 — commit split
+
+- **Five code commits**, each typechecked on its own staged tree (`git
+  checkout-index` into a temp folder, then `tsc --noEmit`): `6c8f9e7` Phase 0
+  (including the global site-string cache), `e01b7d1` M2, `d03a21a` M3,
+  `00d1642` BACKTRACE scroll, `5053585` the site gate. The steps share files, so
+  some files were staged in an intermediate form: the Phase 0 commit has an
+  M1-only `i18n/global/site-keys.ts`; the M2 commit adds M2 to it, carries a
+  `backtrace-facts.ts` with only the M2 imports, and re-points the old flat
+  `content/m03.ts` and `main/m03.ts` at `content/global/entities.ts` so they
+  still compile until the M3 commit deletes them; the gate lines in the three
+  controllers and the TR4C3404 and Skynet pages appear only in the site-gate
+  commit.
+- **Left out on purpose:** `docs/idea.md`, `docs/msflab-livetest-guide.md`,
+  `src/debug/rival-*` and its import line in `src/debug/index.ts`, and the
+  dev-focus toggle in `src/guard/flags.ts` (the working tree has
+  `DEV_FOCUS_QUEST.m03` true, HEAD has `m01`). `.gitignore` goes in its own
+  `chore` commit.
+- **Line endings.** The git index is LF everywhere (`core.autocrlf=true`); the
+  working tree is mixed, many files CRLF and many LF. In this session an Edit kept
+  each file's own ending (the earlier note that it rewrites to LF did not
+  reproduce), and only a file created with Write came out LF; a count per file
+  after a batch of edits is still cheap.
+- **Docs.** `rules.md` has two sections numbered 11 (the SDK-tools rule and the
+  step-gating pattern); renumbering was left to the owner, since other docs cite
+  section numbers.
+- **Next.** M4 migration (read `main/m04.ts`, `content/m04.ts`,
+  `websites/m04/architect-c2` and `docs/story.md`; look for optional or fragile
+  steps before chaining; `content/global/mail-senders.ts` and
+  `commands/attrcheck.ts` import from the flat `content/m04.ts`). M4's own
+  `OnObjectivesStart` / `teardown` already call `openMissionSites("m04")` /
+  `closeMissionSites("m04")`; keep those calls when it moves into
+  `controller/m04/`. Live-test the site gate (a mission's site 404s before and
+  after it runs) and the M3 `rootgrab` and BACKTRACE scroll fixes.
+
+## 2026-10-01 (sixth part): download and rootgrab off the gates, `open` at `meterpreter >`
+
+- **Audit.** M1 has no Metasploit, `rootgrab` or `download` step (SSH then `cat`).
+  M2's only hard dependency was `shellCompanyFound`: the PDF cannot be `cat`ed and
+  the stock path API cannot reach a Meterpreter target, so the route was
+  `download` then `open ~/downloads/...`, and the report needs the company name
+  that only that PDF carries. M3's `rootgrab` was already off the chain and only
+  wrote the `root` log. M4 (flat) still has `escalatePrivileges` (`Rootgrab`) and
+  `extractSafely` (`Files.Transfer` DOWNLOAD) as objectives; left for the M4
+  migration on purpose (the trap file is its core).
+- **Rejected: put the company name in a `.txt` (e.g. `errands.txt`) so `cat` could
+  read it.** The owner wants the PDF to stay, and a mission fact in a decoy text
+  file breaks the file tree design. Dropped.
+- **Engine read (v1.3.13, `index.js`).** `Got()` sets `isRemote = !!data.ssh_ip`;
+  the `exploit` handlers set `meterpreter` + `meterpreter_user` and
+  `setDirectory(Fr.GetById(<ip>))`, never `ssh_ip`; so `getByPath` stays on the
+  player's PC (bugs #30 was right about the path API). The SDK documents the
+  ID-based calls as not session-limited, and `RemoteConnection.Disconnected`
+  (`t: "METASPLOIT"`) is raised by `back` and by the environment's `onDestroy`.
+  That is enough for `open` to walk a target's tree from `Files.getById(<ip>)`.
+  A top-level `Events.on` is fine in a command module (the debug modules already
+  do it at import).
+- **Change.** New `src/commands/meterpreter-files.ts` (tracker + `findMeterpreterFile`),
+  `open.ts` calls it first when not on SSH, and falls back to `getByPath`; `~`
+  paths stay local so `open ~/downloads/<file>` keeps working. M3: removed
+  `gatewayRooted` (state, gate), the `Rootgrab` handler, `M03_LOG_ROOT` and its two
+  keys; `LOG_ROOT_2` became `LOG_TUNNEL_3` (en and zh), `LOG_ROOT_1` dropped. M2 gates
+  unchanged on purpose.
+- **Checks.** `tsc --noEmit` and `--noUnusedLocals` exit 0, no `//` comment and no
+  `console.log` in `src/`, line endings kept (CRLF files stayed CRLF, `open.ts` and
+  the new file are LF). Mocked-SDK harness (scratchpad `h`, a copy of `src/` and a
+  CommonJS SDK mock with a Map-backed file tree): 40 checks pass: no session gives
+  "No such file"; SSH `Established` is ignored; at the session a bare name,
+  absolute path, relative path and `..` resolve on the target; folders are
+  reported; a miss falls back to the local home; a `~` path stays local; a
+  disconnect of another IP or an SSH disconnect keeps tracking; `back` clears it;
+  over SSH only `getByPath` is called; a host without a root file falls back; M3
+  reads the config at the prompt (3 tunnel lines, `vpnPeer`, report reachable, a
+  `Rootgrab` event does nothing); M2 reads the PDF at the prompt (`shellCompany`,
+  3 aftermath lines, report reachable) and a stale local copy before the breach does
+  not advance. Negative controls (three broken copies): the old `open.ts` fails 19,
+  no Disconnected handler fails 1 (the after-`back` check), no root lookup fails 19.
+- **What the harness cannot show.** The tree walk (root id = device IP, children by
+  `name.extension`, `resolvePath` returning the target cwd at the prompt) is read
+  from the client, not run. The live test decides it; the `trace("OPEN", ...)`
+  lines name the tracked IP and every lookup.
+- **Next.** Live test: at `meterpreter >` on the M2 workstation `open
+  wire_authorization.pdf` (key `shellCompany` plus the aftermath log), after `back`
+  the same command must fail, `open ~/downloads/<file>` on a downloaded copy still
+  works; M3 `open site_to_site_backup.txt` and `cat` both trace `vpnPeer` with a
+  three-line `tunnel` log and `rootgrab` leaves no log. Then the M4 migration with the
+  same rules (shell on `RemoteConnection.Established`, `rootgrab` optional).
+
+---
+
+## 2026-10-02 — M07: the old M4 migrated as a walking skeleton (phase 1 of the M4-M7 run)
+
+### Why the migration comes first
+
+Id `m04` had to be free before the new M4 could exist (world-building README,
+"Batasan urutan implementasi" #2). The old finale moves to `m07` wholesale.
+`M04_ARCHITECT_VPN_IP` is the one constant deliberately **not** renamed: the
+locked M2 and M3 import it from `content/global/characters.ts`, and renaming it
+would be an edit to M1-M3, which the hook budget forbids (zero edits, DECIDED
+#31). `content/m04.original.ts` and `main/m04.original.ts` are untouched
+archives (D4) and nothing imports them.
+
+### Why the Firewall sits inside the Splitter
+
+`11-spec-m7.md` §E says to copy M2's live shape, and §B defect #3 says the old
+M4's arrangement (Firewall at router level, devices one level deeper inside the
+Splitter) was never tested. So: router → Splitter → [Firewall, C2, Null-Crown,
+Ash-Vector] as siblings.
+
+That raises a question the engine excerpt cannot answer: `GetFirewall(ip)`
+looks for a `FIREWALL` whose `parent` is the **router** of `ip`'s tree, and a
+Firewall nested in a Splitter plausibly has the Splitter as its `parent`. If
+so, the deny rules are inert for every device in the tree. Logged as
+`docs/bugs.md` #45 rather than guessed at. It does not block the mission: the
+gated 3389 port is `active: false` in production and the step's `UnlockSpec`
+calls `Network.openPort` as well as `removeFirewallRule`, so the `active` flag
+is the real gate — exactly what M2 relies on, and M2 passed its live test on
+this shape. `removeFirewallRule` is called with the **Firewall's own** IP,
+where `GetFirewall` resolves trivially, so the removal is safe either way.
+
+### Why the credential file names the panel host
+
+`ash-gate` is `isIpHidden`, and `net_tree.py` does not surface it, so the
+player needs another route to `194.60.38.12`. The node-status table on
+`/legacy-cms/` is phase 4's content, so for the skeleton the in-world route is
+`ash-gate_backup.txt` on Ash-Vector, which now carries the panel **host** as
+well as the `fw.admin` credential. That also satisfies the rule that every
+in-world hint is reachable before the mechanic it helps with: step 5 (read the
+backup) precedes step 6 (log into the panel).
+
+### Why 3389 is open from the build
+
+Phase 1 exists to prove four events fire in an RDP session. Making the owner
+walk the whole firewall chain first would couple that proof to the unresolved
+#45. `M07_RDP_OPEN_FROM_BUILD` in `content/m07/topology.ts` is a single named
+boolean so phase 4 flips it to `false` in one place. The chain still refuses to
+advance `shellObtained` without `firewallBreached`, so the shortcut buys access
+to the events, not progress.
+
+### Why the probes are unconditional
+
+`controller/m07/probes.ts` logs on the raw events, with no gate check, so a
+probe still fires when the owner reaches an event out of order — which is the
+situation the 3389 shortcut creates. A gated probe would have gone silent
+exactly when it was needed.
+
+### `trace` call locations (the owner removes these at FINAL LOCK)
+
+All of them are in **`src/controller/m07/probes.ts`** and nowhere else in the
+M07 source:
+
+| Line region | Call |
+|---|---|
+| `Scheduler.register` handler | `probe:tracking-expired` |
+| `armTrackingProbe` | `probe:tracking-armed` |
+| `disarmTrackingProbe` | `probe:tracking-disarmed` |
+| `RemoteConnection.Established` listener | `probe:metasploit-session` |
+| `Terminal.Cat` listener | `probe:manifest-cat` |
+| `ATTRCHECK_REVEALED_EVENT` listener | `probe:attrcheck-revealed` |
+| `Files.Transfer` listener | `probe:ledger-download` |
+
+The pre-existing `trace("OPEN", ...)` lines in
+`src/commands/meterpreter-files.ts` are untouched and belong to `docs/bugs.md`
+#30's follow-up, not to M07.
+
+Phase 4 deletes `probes.ts` and its `bindM07Probes` call in
+`controller/m07/index.ts` when the real 240-second tracking kit replaces it.
+
+### Why `open` and `attrcheck` now share one lookup
+
+Both need the Meterpreter-aware walk (`docs/bugs.md` #30 follow-up), and
+`01-canon-dan-hook.md` §E already lists `attrcheck` **and** `open` as part of
+the shared code change for the new missions. The three-line expression moved
+verbatim from `open.ts` into `findSessionFile` in `meterpreter-files.ts`, so
+`open`'s behaviour — and therefore M2's `shellCompanyFound` and M3's
+`vpnConfigRead` — is unchanged.
+
+### Why the evidence report field is the manifest's own classification string
+
+`11-spec-m7.md` §I wants an `evidence` column summarising "employee negligence
+staged, G. de Souza made the scapegoat". A free-text summary cannot be matched
+exactly, so the expected value is the classification **verbatim as
+`manifest.txt` prints it**: `employee negligence (G. de Souza)`. The player
+provably reads it, it is short enough to type, and the validator normalises
+case and whitespace on both fields rather than demanding an exact string the
+way M3's does.
+
+### Harness
+
+Kept outside the repo (scratchpad, not committed), three bundles against a
+mocked SDK, 214 checks total: 117 on the gate chain, unlocks, topology shape
+(every `lanIp`, every rule `destination`), `register`/rebuild idempotency, the
+unlock effects, the report validator and a dates audit of the rendered file
+contents; 64 driving the real listeners through in-order and out-of-order
+events, the honeypot and trap mail, the report flow and the probes; 10 on i18n
+coverage and M1-M3 en/zh parity. Plus 23 static checks (`node --check` on every
+HTML `<script>`, `{{t:KEY}}` registration, no clock-derived dates, reachability
+from `src/index.ts`). One bug found was in the **mock**, not the mod: it
+replaced a language bundle per `registerAll` call instead of merging, so the
+last mission's table wiped the earlier ones.
+
+---
+
+## 2026-10-02 — M06 skeleton (phase 2 of the M4-M7 run)
+
+**Why a 5-step subset and not the full 10.** Phase 2's job is the zero-network
+path, not M6's content. The subset keeps the spec's order
+(`tipReviewed → registryReached → nomineesRead → agentIdentified →
+hiddenFilingsFound`) and stops where the skeleton's content stops, so phase 7
+appends `snapshotsCompared`, `insurerLinked`, `infraLinked`, `identityProven`
+and re-points `reportSent` at `identityProven` without reordering anything.
+
+**Why the entity path is `/entity/r7k4/` and not a readable slug.** `dirhunter`
+prints every registered path (E-3). `/entity/skn-capital-nominees/` would name
+the answer in the output. E-3 suggests either opaque tokens or one dynamic
+pattern such as `/entity/:id`; `PageContext.params` exists in the SDK, but
+**nothing in this repo uses a dynamic path yet**, so it is unproven in this
+engine build. Opaque tokens are what M1 ships and live-tested, so the skeleton
+uses those. If phase 7 wants `/entity/:id` it needs its own live check first.
+
+**Why `register` returning `true` on a zero-network world is fine.** See
+`docs/bugs.md` #47. The harness asserts it rather than asserting `false`, which
+was my first (wrong) expectation.
+
+**`trace` call locations for M06** (the owner removes these at FINAL LOCK):
+`controller/m06/index.ts` — `probe:zero-network register built=<bool>`;
+`controller/m06/recon.ts` — `probe:registry-page`, `probe:agent-whois`,
+`probe:dirhunter-no-subnet`. The `probe:dirhunter-no-subnet` line prints the
+full path list so the owner can paste it into the finding.
+
+**Reward.** `components/reward.ts` is new and shared: `payReward` carries the
+D1 rule (pay in `OnComplete`, never `Quest.Rewards`, skip under focus with a
+`trace`) and `penalty` carries `min(balance, amount)` for the M4/M7 kit. M6 is
+1800, continuing 250 / 400 / 600 / 800 and staying under M7's 5000.
+
+---
+
+## 2026-10-02 — M07 full (phase 4 of the M4-M7 run)
+
+**Why the trace needed a `repellable` flag.** The 240-second trace reuses
+`components/intrusion.ts`, whose active strike is keyed on an IP, and `repel`
+severs the active strike when the IP matches. The trace's IP is the C2's, which
+the player knows, so without a flag `repel 203.0.113.161` would have cancelled
+the countdown. `StrikeSpec.repellable` defaults to true; M07 passes false, and
+`repel` reads `currentRepellableStrike()`.
+
+**Why the `.enc` is wiped rather than deleted.** See `docs/bugs.md` #49. The
+short version: `Files.create` has no parent **id**, and `parentPath` never
+resolves onto a Meterpreter target, so a deleted remote file could not be put
+back and the mission would dead-end. `Files.write` works in both directions on a
+file found through the id walk. The gate also checks the mission's own
+`ledgerWiped` flag, so correctness does not rest on the file write succeeding.
+
+**Why HoneyCheck's markers carry a default literal.** `var DATA = /*__X__*/;` is
+not parsable before injection, so `node --check` on the extracted script block
+failed. M1's proven form puts the marker **in front of** a real literal
+(`= /*__M01_SOLD_LOTS__*/[ ... ]`), and the injector replaces marker plus
+literal. HoneyCheck now does the same with `[]` and `{}`, which keeps the file
+valid JS at rest and after injection.
+
+**Why the ending runs from the report handler, not `OnComplete`.** The choice
+arrives in the report's own fields, and `OnComplete` has no access to it beyond
+quest data. `applyM07Ending` runs at the end of the `Mail.Sent` handler, so the
+`Mail.send` of Greta's letter is synchronous in the tick of its trigger
+(rules §5) and the `unregister` of the destroy ending goes through
+`core/unregister`'s sequential teardown (#35). `endingApplied` makes it
+idempotent.
+
+**`trace` call locations for M07** (the owner removes these at FINAL LOCK):
+`controller/m07/tracking.ts` (trace expired, window halved, payload wiped /
+restored, both "not reachable" misses) and `controller/m07/ending.ts` (ending
+applied, ledger removed, network torn down). The phase-1 `probes.ts` is deleted.
+
+**`frontend-design` is not installed in this environment.** Checked the skill
+list; only the Anthropic/general skills are present. Both new surfaces were
+designed by hand against the §6 brief: `/legacy-cms/` is a 2011-era admin panel
+(beveled title bar, fieldsets, gradient table headers, Verdana, pill states) and
+HoneyCheck is a single-focus checker (one card, large verdict word, confidence
+line, dashed empty state, warm-grey paper). Both carry viewport metas, no
+`<form>`, no external loads, `:focus-visible`, `prefers-reduced-motion`, and a
+narrow-window layout.
+
+**Harness.** 63 new checks for the full mission (shortcut removed, six keys
+traced once each by an in-order walk, the 240/120-second deadlines, the failure
+and recovery path end to end, all three endings with their letter-or-silence and
+teardown-or-not, the reward, and the HoneyCheck and node-table data), plus 25
+render checks that actually render the three new pages and assert no `{{t:}}` or
+data marker survives, no page carries a date past the M7 story day, http gets the
+400 page and an m07 page 404s while another mission runs. The phase-1 suites were
+updated rather than left contradicting phase 4.
+
+---
+
+## Phase 6 — M05 "The Door"
+
+**Why the chain has two parallel pairs.** The spec's §B reads as a line, but two
+pairs of steps have no reason to be ordered. The 2025 and 2026 captures are the
+same action twice on different URLs, so they are separate flags joining at
+`staffArchiveCompared`; that whole branch and Greta's `lynx` profile both hang
+off `vaultRevisited` and join at `edgeMapped`. The three incident documents hang
+off the archive session and join at the report. Twelve harness checks cover the
+joins and the refusals: skipping any step in the strictly sequential middle
+(`edgeMapped` through `archiveAccessed`) blocks everything after it, and either
+branch alone cannot open the edge.
+
+**The decoy is a second missing name, not a wrong name.** The later capture drops
+Gareth Lim as well as Greta, and the capture itself says his contract ended
+2026-07-31. So the comparison gives two candidates and the paperwork decides
+between them — which is why `Gareth Lim` is the report's rejected `door` answer
+and why his `lynx` profile exists at all.
+
+**LeakIndex hashes had to be real.** `docs/bugs.md` #13: `john` never consults
+`Shell.addCommandData`, so a hash resolves only if the engine already put it in
+its own registry from a device's `users` array. All four hashes in the table are
+the genuine MD5 of a password declared on a node in the M05 topology, so every
+record in the table is crackable and three of them lead to a decoy box with a
+readme. The harness asserts both halves: the MD5 identity, and that each password
+is declared somewhere in the topology.
+
+**`Exports` sends a number here.** M01's `flatlineOpenProject` passes a folder
+string; `flatlineOpenLeakRecord` passes `record.id`. The page builds its rows in
+JS from the injected array and binds a click handler per row, so the id never
+goes through the DOM as text. If the number does not survive the bridge live, the
+fallback is M01's exact shape — send `String(id)` and parse it in the controller.
+
+**A redundant fixture I removed.** `buildM05BreachLookupFixtures` registered
+`nmap <edge ip>` with a frozen port list. The edge is a real router in the
+topology, so that fixture would have printed over the live scan — the inverse of
+`docs/bugs.md` #2, where a print fixture succeeds with no device behind it at
+all. Dropped it, and `M05_EDGE_NMAP_RESULT` with it; the step now depends on the
+subnet actually existing, which is the thing worth testing live.
+
+**Three harness assertions that were wrong, not the code.** (1) A linear
+out-of-order sweep flagged `ticketRead` and `gretaProfiled` as leaks — both are
+parallel siblings, so the sweep now runs only over the sequential middle, with
+explicit checks for the two joins. (2) `M05_LOG_NOTES` writes two entries, not
+one, so the log-count checks were off by one from the start. (3)
+`appendBacktraceLogs` filters entries it has already written, which is worth its
+own check rather than something to work around.
+
+**`trace` call locations added for M05** (removed at FINAL LOCK):
+`controller/m05/recon.ts` (`probe:vault-revisited`, `probe:snapshot-seen`,
+`probe:edge-mapped`), `controller/m05/crack.ts` (`probe:leak-record-opened` with
+match/decoy, `probe:password-cracked`), `controller/m05/access.ts`
+(`probe:firewall-login`, `probe:archive-accessed`, `probe:bedside-bonus`).
+
+---
+
+## Phase 7 — M06 "Open Register"
+
+**The register had to become a search.** The skeleton linked its one record from
+the home page, which does not scale to eleven and makes the chain's gating
+visible as a list that grows. A search box over the records currently open reads
+as an ordinary companies registry, hides nothing behind a link the player has to
+notice, and turns "is Nordhaven in here yet?" into a question the player can ask
+the page directly. The injected payload holds only open records, so the search is
+also the progress gauge.
+
+**Why the paths are opaque.** `dirhunter` prints every registered path of a mod
+site and a mod cannot hide a page (`docs/bugs.md` #40), so `/officer/lindqvist/`
+would have named the answer in the output of the command the mission *wants* the
+player to run. Every record lives at a short code instead, and the harness
+asserts no path matches a company or a person's name.
+
+**One stage, not five booleans.** M05 gates its two sites with two booleans. M06
+has five page groups, so `context/m06/progress.ts` keeps a single monotonic
+number and each record declares the stage that opens it. `setM06Stage` refuses to
+go backwards, so an out-of-order event cannot close a page the player already
+reached. `stageForM06(data)` is pure and tested on its own.
+
+**The two-day gap is the whole puzzle.** The 2019 filing names Halvard Trust. The
+2024 filing withholds the owner. Neither page says who the owner is — the answer
+comes from a third record (Halvard, dissolved 2021-11-30), a fourth (Nordhaven
+Holdings, incorporated 2021-12-02) and the cross-reference line on the 2024
+filing saying the holding was declared by the counterparty rather than by the
+entity. That is why both filings have to be read before anything opens.
+
+**Lindqvist had to move.** `content/m06/records.ts` wanted `Conrad Lindqvist`,
+which lived in `content/m07/report.ts` — a mission-to-mission import the rules
+forbid. He now lives in `content/global/characters.ts` and M07 re-exports him
+under its old name, so nothing downstream changed. The static checks grew a
+scanner that walks every `src/{content,controller,i18n,context,websites}/m0N/`
+file and fails on an import from a different `m0N`, so the next one gets caught
+at the harness rather than in review.
+
+**A real bug the harness caught.** `agentIdentified` advanced the chain and
+traced its key but never called `unlock(M06_WORLD, "filingArchive")`, so the
+Echoline lookup fixtures were never registered — the mission would have reached
+the archive step with `nslookup echoline.net` still dead. One check
+("the agent unlock brings the archive lookup") is the only thing that noticed.
+
+**Four harness assertions that were wrong, not the code.** (1) A linear
+out-of-order sweep flagged `registryReached`: any register page counts as
+reaching the register, so visiting a record directly satisfies both steps in one
+action, which is correct and now has its own check. (2) Two scenarios called
+`walk(q, "snapshotsCompared")`, which is not one of the walk's own step names, so
+the walk ran to the end and the mission was already finished. (3) The log count
+is seven, not six — `infraLinked` writes the certificate beat as well. (4) Three
+M3-consequence checks set the `backtrace` state and then called a fixture that
+cleared storage; `freshQuest(true)` now sets it after the clear.
+
+**`trace` call locations added for M06** (removed at FINAL LOCK):
+`controller/m06/pages.ts` (`probe:registry-page`, `probe:archive-capture`,
+`probe:hosttrail-page`), `controller/m06/recon.ts` (`probe:agent-whois`,
+`probe:insurer-whois`, `probe:dirhunter-no-subnet`), `controller/m06/index.ts`
+(`probe:stage`, `probe:m3-consequence`, `probe:zero-network`).
+
+---
+
+## Phase 8 — the review pass
+
+**What the review actually found.** One behavioural bug and a handful of dead
+constants. The bug is the kind only a cross-check between spec and code finds:
+`M07_HONEYPOT_PENALTY = 500` existed, was never passed to `penalty()`, and
+`11-spec-m7.md` §F says touching Null-Crown costs both a warning mail *and*
+money. M04's equivalent (Paper-Moth) charges correctly, which is probably why it
+read as done. The harness had no check for it because the phase-4 suite only
+asserted the mail.
+
+**How the dead code was found.** A one-off script over `src/**/*.ts` that counts
+every reference to each exported symbol outside its own export line. It flags the
+`@RegisterWebsite` / `@RegisterQuest` classes (expected — the decorator is the
+only consumer) and the `*_REJECTED_*` report constants (used by the harness,
+which lives outside the repo), and after those, six genuinely unreferenced
+constants. Worth re-running before any future lock.
+
+**Three checks that are now permanent**, because each one caught something real
+during the run and would have caught it earlier:
+
+1. **No mission imports another mission's files.** `content/m06/records.ts`
+   reached into `content/m07/report.ts` for `Conrad Lindqvist`, and
+   `content/m04/fixtures.ts` reached into M03's i18n earlier in the run. The
+   scanner walks every `src/{content,controller,i18n,context,websites}/m0N/`
+   file and fails on an import from a different `m0N`. Global surfaces
+   (`websites/global/echoline/`, `applications/backtrace-facts.ts`) are outside
+   the scan by design — they are allowed to read mission content.
+2. **Every i18n key is registered in both `en` and `zh`.** A key present in one
+   bundle only falls back to English silently, which is exactly the failure a
+   Chinese playtest is supposed to catch and a reviewer never will.
+3. **No date in a mission's files is later than that mission's story day.** The
+   rule was already in the prompt and in `13-story-timeline.md` §A.3; now it is
+   enforced for all four new missions at once.
+
+**What the review did not touch.** The two things most likely to be wrong are
+still unverifiable from here: whether a `Firewall` nested in a `Splitter`
+protects its siblings (`docs/bugs.md` #45) and whether a `{realMs}` Scheduler job
+survives a live Meterpreter session (#46). Both are live-test questions, both are
+written up, and both have a fallback recorded in their own entry.
+
+---
+
+## 2026-10-04 — Remote Desktop Connection and Cipher Desk redesign (M5 debug lab)
+
+Scope: `src/debug/dashboard-preview.html` (the Monitor and Cipher sites only) and `src/debug/portal-lab.ts`. The portal,
+the dock and the puzzle logic do not change. Brief: the owner's words B-1 to B-8 (redesign Monitor and Cipher, model the
+Guacamole VNC screenshot, modern and not "AI slop", a real remote desktop, rename Monitor to Remote Desktop Connection, real
+animation at login, encrypt/decrypt and display assembly). This section holds the references, the two-pass plan and the
+"why" notes that cannot live in `src/` (zero comments rule).
+
+### Process notes
+
+- **frontend-design skill: not available here.** It is not in the session's skill list and the skill search finds nothing.
+  The plan below applies its principles as the brief restates them (D-3 two-pass plan, D-4 tells).
+- **The reference image could not be opened.** `guacamole.apache.org` (and `novnc.com`, `learn.microsoft.com`) are blocked
+  by this environment's egress policy, both for `curl` and for the fetch tool. The model below is taken from the brief's own
+  description of the screenshot (R-2). Web search worked, so the other references are from search results.
+- **Harness first.** A jsdom harness outside the repo (golden values, every refusal, the lock, the whole puzzle solved from
+  console output with three seeds, a 179-command transcript compared line by line against BASE, windows, reload, lab mode,
+  portal and dock text snapshots, BASE save fixtures) was green on the unmodified file: 748 checks.
+
+### References — Remote Desktop Connection
+
+1. **Apache Guacamole** (the owner's 0.8.3 VNC screenshot, as described; the 1.5/1.6 user guide). Took: the page is the
+   remote screen edge to edge; the connection is named `host:display (user)`; a client menu that stays hidden until asked
+   for (a control, or Ctrl+Alt+Shift) and holds the clipboard box, the zoom and Disconnect. Did not take: the GNOME 2 desktop,
+   the Debian logo and wallpaper, the menu's dated styling.
+2. **noVNC and the Proxmox VE console.** Took: two scaling modes in plain words (no scaling with scrollbars, or local scaling
+   to fit) and a clipboard box that shows what the remote copied. Did not take: the edge handle and toolbar look, and
+   "remote resizing" (the remote resolution is fixed here).
+3. **Windows Remote Desktop Connection, while it connects** ("Initiating remote connection", "Securing remote connection",
+   "Configuring remote session", "Estimating connection quality"). Motion reference only: one present-tense step at a time,
+   in a fixed order. Did not take: its words or its dialog.
+4. **Azure Bastion, the Windows App web client, Chrome Remote Desktop.** Took: a session menu that slides over the screen
+   from an edge and gets out of the way, a clipboard text area as the go-between, "scale to fit" as the default. Did not take:
+   Fluent materials or any Microsoft iconography.
+5. **Modern Linux shells for the remote screen**: COSMIC (one top panel of applets, a coherent set of native apps), KDE
+   Plasma 6 (windows drag from the header only), MATE (the Applications / Places / System menu bar). Debian 12 ships GNOME 43,
+   whose UI font is Cantarell. Took: a slim top panel with the three menus, a window list, host, user and a clock;
+   header-only dragging; Cantarell for the remote machine. Did not take: any shell's icons, logo, panel art or wallpaper.
+
+### References — Cipher Desk
+
+1. **CyberChef.** Took: input above output, live counters in the field headers. Did not take: the four-pane IDE density.
+2. **Cryptii.** Took: the transformation is a visible stage between what goes in and what comes out. Did not take: the brick
+   cards and the light theme.
+3. **ImHex and Hex Fiend.** Took: bytes shown as pairs with a wider gap every eight bytes, and an inspector that shows one
+   byte as bits. Did not take: offset columns and the ASCII side pane.
+4. **Kaitai Struct Web IDE.** Took: pointing at a byte highlights where it came from (result byte to input byte and
+   passphrase byte). Did not take: the object tree.
+5. **Martian Mono** (Evil Martians' specimen): a wide grotesque monospace made for interfaces and data.
+
+### Plan — Remote Desktop Connection, pass 1
+
+- **Palette (chrome).** Workbench `#121418` (workspace backdrop), Frame `#1b1d22` (windows, top bar), Rail `#262930`
+  (title bars, inputs, pipeline cells), Paper `#edeff2` (text and the primary button), Live `#6fdc8c` (connected, OK),
+  Fault `#ff6f6f` (refusals, HELD). Secondary text Fog `#a3a8b2`. The remote machine brings its own colour: a night sky
+  `#0e1733` to cobalt `#1b2f63` with a rose horizon `#e9849a`, its own accent Rose `#f08a9c`.
+- **Type.** Chrome: Segoe UI Variable (Text for UI, Display for the view titles), tabular numerals for timers. Data: Cascadia
+  Mono (fallback Consolas) for the token, host chips, console and status strip values. Remote machine: Cantarell 400/700,
+  embedded (OFL, Latin subset), so the remote screen reads as another operating system.
+- **Layout.** A quiet graphite workbench whose only bright thing is the remote machine: the login is one connect card with a
+  live route panel, the workspace floats the two windows, and the Remote Desktop Connection window shows the remote screen
+  edge to edge.
+
+```text
+LOGIN (idle)
++--------------------------------------------------------------------------+
+| [mark] Remote Desktop Connection                                         |
+|                                                                          |
+|      +---------------------------------------+------------------------+  |
+|      | Connect to a workstation              |  (o) This browser      |  |
+|      | Paste the access token issued for ... |    :                   |  |
+|      |                                       |    :  (route, dashed)  |  |
+|      | Access token                          |    :                   |  |
+|      | +-----------------------------------+ |    :                   |  |
+|      | | 2b0356534357584a52...             | |    :                   |  |
+|      | +-----------------------------------+ |  ( ) Remote host       |  |
+|      | error line (aria-live)    [ Connect ] |      Not connected     |  |
+|      +---------------------------------------+------------------------+  |
+|      Each token is issued for one host. Sessions are recorded ...         |
++--------------------------------------------------------------------------+
+
+LOGIN (connecting; stages appear only when reached)
+      | field read-only          [Connecting] |  (*) This browser      |
+      |                                       |   |-(v) Reading the token
+      |                                       |   |-(v) Checking the format
+      |                                       |   |-(~) Signing in       <- active
+      |                                       |   :                     |
+      |                                       |  ( ) Remote host        |
+      | failure: message, card nudges, field editable, focus back      |
+
+WORKSPACE
++--------------------------------------------------------------------------+
+| [mark] Remote Desktop Connection | Cold-Chart arc-ir-01 192.168.1.3 | 04:12 [Disconnect] |
+| +- Agent console ---------------+  +- Remote Desktop Connection  arc-ir-01:1 (g.desouza)  * signal received  [menu][fit] -+
+| | lease -- source -- link -- format -- sync |  |  remote screen, edge to edge (16:10)                |
+| | scrollback                    |  |                                                       |
+| | (agent)-[/] _                 |  |                                                       |
+| | hint line                     |  +-------------------------------------------------------+
+| +-------------------------------+  | arc-ir-01  link relay-a/raw  fps 24     1440x900 32bpp rgb |
+|                                    +-------------------------------------------------------+
++--------------------------------------------------------------------------+
+
+REMOTE SCREEN AFTER ATTACH (1280 x 800, scaled to fit)
++--------------------------------------------------------------------------+
+| (o) Applications  Places  System | Browser  Files        arc-ir-01  g.desouza  14:09 |
+| [PC] Computer      +- Clinical Incident Archive ---------------- _ [] x -+            |
+|                    | <  >  https://arc-ir-01.pacificcare-health.org/ir/archive |      |
+| [~]  g.desouza's   | Clinical Incident Archive        Legal hold L-2608-03 ... |      |
+|      Home          | /ir/2026-08-14   | decision record text ...               |      |
+| [x]  Trash         |   decision_memo  |                                        |      |
+| [@]  Browser       +------------------------------------------------------------+      |
+|                                                        ^ remote pointer               |
++--------------------------------------------------------------------------+
+SESSION MENU (slides in from the left edge of the screen, over it)
+| Connection: host, address, account, display, status | Scaling: Fit to window / Actual size |
+| Clipboard: text area | [Disconnect] |
+```
+
+- **Principles.** (1) The remote screen is the hero, the chrome recedes: neutral, thin, exact. (2) Everything that moves
+  reports real state: route stages are the six real checks, the first frame paints in tiles because frames arrive that
+  way, pipeline cells are `compStates`. (3) Two machines, two voices: Windows-native chrome, a Linux remote in Cantarell.
+  (4) Dense where the work is (console, status strip), airy where the decision is (login). (5) Nothing diagnoses before the
+  first frame: the bring-up is the same for every outcome.
+- **The memorable thing.** The first frame arrives: tiles paint across the black screen and reveal the remote desktop
+  through whatever is still broken in the pipeline; at attach, the frozen picture comes alive layer by layer.
+
+### Plan — Cipher Desk, pass 1
+
+- **Palette.** Ink `#0f1631` (page), Well `#0a1026` (the byte band), Slate `#18214a` (fields), Bone `#f3eee5` (text, primary
+  button, input bytes), Lime `#c4f06a` (passphrase bytes, focus), Ice `#8ed8ff` (hex bytes). Secondary text Haze `#aeb7d3`;
+  errors `#ff8f88` with an icon.
+- **Type.** Martian Mono 400/600 (wordmark, bytes, hex, counters) and Schibsted Grotesk 400/700 (labels, text, buttons),
+  both embedded (OFL, Latin subset). Different pairing, palette family and density from Remote Desktop Connection.
+- **Layout.** One column that reads top to bottom like the transformation itself: what you have, the passphrase, the band
+  that combines them byte by byte, and what you get.
+
+```text
++--------------------------------------------------------------------------+
+| Cipher Desk                                           ( Decrypt | Encrypt ) |
+| Everything runs in this page. The same passphrase decrypts what it encrypted.|
+|                                                                          |
+| Text to decrypt                                        57 bytes          |
+| +----------------------------------------------------------------------+ |
+| | 2b0356534357584a5276...                                              | |
+| +----------------------------------------------------------------------+ |
+| inline hint (odd digits, letters that are not hex)                       |
+| Passphrase  [ L-2608-03                                ]     [ Decrypt ] |
+|                                                                          |
+| +-- band ---------------------------------------------------------------+ |
+| | input  | 2b  03  56  53  43  57  58  4a  52 ...                       | |
+| | phrase |  L   -   2   6   0   8   -   0   3   L ...   [bit lens]     | |
+| | result |  g   .   d   e   s   o   u   z   a ...                       | |
+| +-----------------------------------------------------------------------+ |
+| Result                              [ Use result as input ] [ Copy result ] |
+| +----------------------------------------------------------------------+ |
+| | g.desouza:Marigold2019:...    (hex shown in byte pairs when encrypted)| |
+| +----------------------------------------------------------------------+ |
+| note (aria-live, space reserved)                                         |
++--------------------------------------------------------------------------+
+```
+
+- **Principles.** (1) Colour is provenance: Bone for your text, Lime for the passphrase, Ice for hex. (2) The page is the
+  tool: no card around a card. (3) Large targets, plain labels, errors that say what to fix. (4) Copy is exact: what you
+  select or copy is the plain lowercase hex, however it is drawn.
+- **The memorable thing.** The byte band: your own characters become byte cells, the passphrase cycles underneath, each
+  pair fuses into the result byte, and pointing at a result byte shows where it came from.
+
+### Pass 2 — the plans read against the brief and the D-4 tells (what changed and why)
+
+1. RDC accent: pass 1 had an azure accent for focus and the route. Blue on graphite is the default dark-SaaS look, and
+   Cipher Desk is already blue-based. Changed: the chrome is monochrome (Paper primary, Paper focus ring) and the colour comes
+   from the remote screen and from the two status colours.
+2. RDC login backdrop: a blurred crop of the remote wallpaper behind a frosted card was considered. It is decoration and the
+   glass-card cliché. Changed: flat Workbench, no image.
+3. Route panel: listing all seven stages before an attempt would show the order of the checks before the player has tried
+   anything. Changed: a stage row appears only when the sequence reaches it, so a failure shows exactly the stages reached.
+4. Pipeline chips: five identical rounded pills is the identical-cards tell. Changed: one strip of five joined cells, state
+   shown by a glyph plus the exact word, so colour is never the only signal.
+5. Window titles: "Remote Desktop Connection — arc-ir-01:1" is the "WORD — fragment" shape. Changed: separate elements
+   (name, connection in mono, a status dot with the status words), no dash or middle dot.
+6. Mono everywhere: pass 1 set small labels in mono on both sites. Changed: mono only for data (token, bytes, hex, console,
+   values); labels in the sans.
+7. Cipher "Lime": pass 1 made Lime the primary button colour. Lime on a dark page as the one accent is the acid-green tell.
+   Changed: the primary button is Bone; Lime is only the passphrase colour and the focus ring.
+8. Cipher card: pass 1 kept the tool in a rounded card with a shadow. Changed: fields sit on the page, separated by tone and
+   spacing; the band is the only inset surface.
+9. Cipher lead copy: the old headline described what the controls already show. Changed: wordmark plus one sentence that
+   says something the controls do not (it runs locally; the same passphrase reverses it).
+10. Remote desktop before attach: drawing the archive file list into the first frames would show file names earlier than
+    today (R-8). Changed: before attach the remote browser shows the archive page still loading (skeleton rows); the listing
+    loads at attach, which is when `archiveAccessed` fires.
+
+### Readings of ambiguous items (also in the final report)
+
+- **"Merangkai monitor"** is read literally as the display assembly (A-3): lease, signal set, the first apply and every
+  re-sync, calibrate, and attach. Building the token is animated on Cipher Desk (A-2).
+- **Branch.** The session's designated branch is `clouds-modify`, which the brief says never to push. The work goes to a new
+  branch derived from it, `claude/rdc-cipher-redesign`.
+- **A-3 commit timing.** The terminal commands are frozen (F-5): `agent lease clear`, `signal apply` and `agent attach` print
+  and commit at once, as today. Their animations present what was already committed; skipping or reloading changes nothing.
+  A-1 and A-2 decide at submit time and commit when the sequence resolves (AN-2).
+- **Toast timers** stay as they are (F-8, untouched). The new scheduler owns every timer and frame callback of the two
+  redesigned sites, including the old 1 s clock and the display loop.
+
+### Decisions taken while building
+
+- **Remote resolution 1280x800** (16:10, up from 1024x640). The DOM desktop after attach and the canvas framebuffer before
+  it share one set of metrics (`RK_DEF`, `RK_ICONS`, panel height) and one face (Cantarell), and the screen is scaled with
+  `transform` on `#rdfb`, so the frames before attach line up with the desktop the player then uses.
+- **One framebuffer (R-4).** `sceneCanvas()` paints the wallpaper, panel, icons and the browser window with the archive
+  still loading, the same scene `rkDeskHtml()` renders as live DOM after attach. Every symptom is a pass over that one frame
+  in `frameInto()`: black; the pointer only; a stale frame dimmed and displaced with a stalled marker; static tiles at about
+  12 fps; repeated columns or rows for width and height; banding for bpp; swapped channels for order; a skew for stride;
+  their combinations; a vertical roll. The roll runs on a compositor layer (`#rdroll`, a CSS transform animation) instead
+  of a per-frame repaint, which removed the long tasks the repaint caused at 4x CPU throttling. Format frames are composed
+  at 640x400, the size of BASE's whole canvas, and scaled up without smoothing: the picture stays as hard to read as at
+  BASE, stays crisp, and the colour passes cost a quarter of the full-size work.
+- **One scheduler (AN-5, AN-6).** `SCH` owns every timer and frame callback of the two sites: `wait`, `every`, `frame` and
+  `run` (a timeline with skip). Each callback has an owner element; `sweep()` on every clock tick drops callbacks whose
+  owner left the document, `every` skips while the page is hidden and the frame loop stops. Sequences resolve on timeouts,
+  so throttled frame callbacks only delay painting, never a commit. The old 1 s clock and `sigLoop` moved into it.
+- **Commit points.** A-1: `tokenCheck` runs at submit; the seven stages present the result and `rdFailCommit` or
+  `rdOkCommit` commit it at the end with the same statements and order as BASE's `monLogin`. A-2: `cipherCompute` (the
+  frozen logic) runs at submit; `ciPlay` animates the actual bytes (12 in detail, then fast-forward) and `cipherCommit`
+  writes `st.ci` at the end. A-3: the terminal commits at once (F-5); `afterCmd` compares the shown symptom and the attach
+  state before and after the command and plays the bring-up (first apply), a re-sync (later applies) or the finale
+  (attach). A reload mid-sequence therefore loses nothing that was committed and commits nothing that was not.
+- **Reduced motion (AN-4).** The blanket rule now skips `.rdc` and `.cdk`; both sites have calm variants (short, no large
+  movement, no flashing) measured at or under about 1 s.
+- **`PC_CFG.instant`** completes every sequence synchronously. Only the harness sets it.
+- **Interactive desktop (R-3).** Menus, icons, windows (focus, drag, resize, minimise, maximise, close, window list),
+  remote pointer layer with arrow, hand, text and resize shapes, a ticking remote clock, Files windows for Home and
+  Computer listing the seven archive files in their three folders, a Text Viewer. Every document open goes through
+  `openDoc` (`rkDocOpen` sets the viewer document and calls it), so the gates and events behave as in BASE. Delete,
+  typing in the viewer and the entries that do not exist open the remote machine's own dialogs ("Read-only session",
+  "<name> is not available on this host."). The Applications menu entry for a process viewer is named "Processes".
+- **Fonts.** Cantarell for the remote machine's interface; Martian Mono and Schibsted Grotesk 400 for Cipher Desk
+  (Schibsted 700 dropped to stay under 80 KB per site). Each site's fonts sit in their own `<style data-slot>` block and
+  `portal-lab.ts` strips the blocks of the other sites from each lab page.
+- **Hosts** are single constants: `MONITOR_LAB_DOMAIN` and `CIPHER_LAB_DOMAIN` in `portal-lab.ts`
+  (`rdcdesk-lab.io`, `cipherdesk-lab.io`) and the `MON_HOST` and `CIPHER_HOST` defaults in the HTML
+  (`rdcdesk.io`, `cipherdesk.io`). Both are third-party sites and not part of the hospital's web, so
+  neither host sits under `pacificcare-health.org` (changed after the cloud run, 2026-10-04).
+
+### Verification (2026-10-04, this container: headless Chromium 150 via Playwright, jsdom harness)
+
+- **Harness** (outside the repo): 748 checks green on BASE; 911 checks green in instant mode and 893 in timed mode on the
+  final file (golden values, every refusal and the lock, events and steps, the puzzle solved from console output with three
+  seeds, a 179-command transcript against BASE with only the renamed strings changed, windows, reload, lab mode and
+  cross-site storage, portal and dock text, A-1/A-2/A-3 timing and commit points, reduced motion, skip).
+- **Code rules**: `tsc --noEmit` exit 0; no comments, no `console.`, no `eval`/`new Function`/`document.write`, no
+  `<form>`; one `<body>`, one `</script>`; CSS braces balance; the script parses.
+- **Performance** (CPU throttling through the DevTools protocol, software rendering, so pessimistic): no long task during
+  any sequence at 1x and 2x (page load, login, bring-up on every format path, re-sync, attach finale, cipher run). At 4x
+  the format bring-up had tasks of 77, 54 and 108 ms; after the format path moved to half resolution (the size of BASE's
+  whole canvas, scaled up without smoothing) and was split into two invisible steps during the negotiation, most runs show
+  none and some show one task of 55 to 71 ms. The attach finale shows at most one task of 50 to 60 ms in some 4x runs, when
+  the remote desktop's DOM appears. Re-sync and the cipher run: none. Page load at 4x: tasks of 99 and 84 ms (BASE: one of
+  87 ms). A 298 ms task seen once at 2x did not come back in clean runs; another browser job was running in parallel.
+- **Screenshots**: before and after at 1600x900, 1280x720, 1100x800 and 800x900 for 23 states, in the session scratchpad
+  (not committed).
+- **Not verified in the game**: everything above ran in desktop Chromium, not in HackHub's Electron iframe (data-URI
+  fonts, `localStorage` sharing between the three lab iframes, pointer and drag inside the iframe, canvas speed on the
+  owner's machine, frame callbacks while the game window is unfocused, Segoe UI and Cascadia Mono, which this Linux
+  container does not have).
+
+### Independent review (V-6)
+
+A reviewer with fresh context (a subagent given only the brief, the diff against BASE and the harness output; read-only,
+no network) checked the diff against the requirement matrix in three passes.
+
+- **First pass:** 11 findings and one reduced-motion nit, all fixed in `c374c87`: the `cursor` symptom looked like `black`
+  until the mouse entered the screen; a skipped login left its marks undrawn and disabled the next attempt's animation;
+  "Copy result" during a run copied the previous result; no mouse cursor over the session menu; menu and dialog toggles
+  rebuilt the remote windows (scroll lost, focus dropped to the page); remote-desktop keys leaked to other sites; the A-3
+  sequences could be skipped only with Esc; the decrypt placeholder quoted the answer's ciphertext; the auto-fit was not
+  saved; buttons under 32 px and remote buttons without tooltips; long tasks on the first format frame at 4x CPU.
+- **Re-check 1:** 10 fixed, the pointer still missing in a window opened after a dock jump or reset; plus soft format
+  frames and the step-7 jump now fitting on load. All fixed in `2e19231`.
+- **Re-check 2 (last):** every item fixed, no regression. Still open in its words: "The archive window does not animate
+  during the attach finale (low, present since the first version)" — fixed afterwards in `bb60e3e` (the load step now
+  updates the browser's content in place; the window enters with its loading state), not re-checked by the reviewer;
+  "Performance on real hardware is unverified"; "The harness does not cover any of these fixes (still 911/893). The
+  evidence is my scripts in `scratchpad/review-check/`"; "Code-length nit (T-6 guideline is under 50 lines): `act` and the
+  scheduler block are each exactly 50 lines"; not checked at all: the rendered look (D-4 tells, contrast, layouts from
+  1280 down to 600 px), behaviour inside the game, and what lands on the OS clipboard after Ctrl+C.
+
+## 2026-10-05 — M5 v2 implementation (cloud Phases 0 to 2 merged, Phase 3 rest and Phase 4 done locally)
+
+Why things are the way they are. Real findings move to `docs/bugs.md` #66 and the spec notes when M5 reaches FINAL LOCK.
+
+- **Who built what.** The cloud run `claude/m05-door-v2` (tip `330657d`) did Phases 0 to 2 and the LeakIndex and Echoline part of Phase 3,
+  then stopped (credit). It never wrote the hospital page data or the portal data: those existed only in
+  `src/debug/dashboard-preview.html`. A local session wrote the hospital web, the portal, both tool sites, the docs and the
+  harness. The tool-site and portal pages were first generated from the lab by a scratchpad tool (TypeScript-compiler dependency
+  closure plus CSS pruning, kept outside the repo, now gone); the generated files in the repo are hand-owned and must not be
+  regenerated over.
+- **Why `.html` partials hold the page scripts.** Only `.html` has a text loader (`types.d.ts`), so a large script or style has to
+  be an `.html` file that TypeScript concatenates at render. Markers are `/*__NAME__*/{}` (`fillDataMarker`) and `{{t:KEY}}`.
+- **Written exception to the 800-line ceiling.** `websites/global/rdcdesk/script.html` is 1933 lines on purpose: the owner asked
+  on 2026-10-05 for one `script.html` and no partials ("jadikan 1 script.html saja. jangan dipisah"). It is generated page code
+  ported from a 3988-line lab file, so it follows the "generated files may exceed the ceiling" clause of the coding-style rule. The
+  portal (551 lines) and Cipher Desk (210 lines) scripts fit under it.
+- **Why the portal has no per-string `T()`.** The lab drawers build HTML from concatenated English literals, so a translation per
+  literal would not survive word order. The page keeps its English code and translates at the two places text enters the DOM
+  (`put(el, html)` for `innerHTML`, `Z(text)` for `textContent`) from one table (`i18n/m05/portal-zh.ts`), with `{x}`, `{#n}` and `{!w}`
+  placeholders for dynamic phrases. The table keys were taken by crawling every portal view in headless Chrome and removing the
+  strings already handled by data translation (`portal/payload.ts`). Data fields that code reads (`stt`, `state`, `key`) are never
+  translated on the mod side.
+- **Why `flatlineLogin` writes the mirror itself.** `Exports` may write `SharedVariables` (#65), so the page switches view from the
+  return value and a reload shows the same view; the controller still advances `portalLoggedIn` from the event and retries it on the
+  next observation (`settleM05`).
+- **Why the hospital pages skip the HTTPS check during a search.** The engine builds the search context as `{...t, searchStr}`
+  (E-13) and a Goagle call has no address, so a strict check would list the page as "400 Bad Request".
+- **Lab.** The cloud's Phase 0 already edited the lab (LAN shift +1, the sealed attachment on the CHG-2606-022 card, the
+  `exportslab` extension, commits `48e1b3b` and `7d4c90b`). This session did not touch `src/debug/`; the production code uses the shifted LAN
+  (192.168.1.3 to 192.168.1.8) and the sealed attachment.
+- **Mocked-SDK harness** (scratchpad only): an esbuild bundle of the real sites and controllers with the SDK stubbed (an in-memory
+  `SharedVariables`, `Localization` and event bus), a local HTTP server that serves rendered pages with the `Exports` as
+  synchronous requests into the real mod code, a 67-check chain test and a 16-check static test (reachability from
+  `src/index.ts`, `node --check` on every script block, en/zh key parity). All pass; they are not a substitute for the live test.
+- **Not built:** the 64-character chunk fallback for long `Exports` strings (R12), and M6 and M7 profile registration.
+
+### `trace()` locations added or kept for M5 (remove at FINAL LOCK)
+
+`controller/m05/`: `recon.ts` (vault-revisited, team-page-seen, staff-archive-compared), `crack.ts` (leak-record-opened match and decoy,
+password-cracked), `portal.ts` (portal-seen, portal-login contractor), `cipher.ts` (cipher-opened), `rdc.ts` (rdc-login cold,
+rdc-attached, rdc-read), `access.ts` (bedside-bonus, status-note). `websites/m05/portal/exports.ts` (`portal:login`).
+`websites/global/cipherdesk/exports.ts` (scope `CIPHER`: run, opened) and `websites/global/rdcdesk/exports.ts` (scope `RDC`: login, signal,
+attach, read, state). Cipher and RDC are shared with M6 and M7, so their traces go when the last of the three missions locks.
+
+### Puzzle architecture V2 (2026-10-05, same day, English only)
+
+- `controller/m05/crack.ts` is deleted (`probe:leak-record-opened` and `probe:password-cracked` are gone). `recon.ts` now traces
+  `vault-revisited`, `team-page-seen`, `change-record-seen`, `capture-seen early|late` and `greta-seen`; `staff-archive-compared` is
+  gone with its handler (the step settles in `controller/m05/evidence.ts`, which has no trace). `websites/m05/portal/exports.ts` adds
+  `portal:login retired`. `cipher.ts` still traces `cipher-opened` for the two new ids (`handoverNote`, `recoveryFormat`).
+- The mocked-SDK harness of the earlier session still describes the old chain (credential, `john`, a four-person capture); it was not
+  updated or run for V2, so only the typecheck and the baseline greps back this change. Rebuild it before trusting a green run.
+- Sealed texts must be printable ASCII (`readableText` rejects anything else), so the two new plaintexts in `content/m05/sealed.ts`
+  carry no em dash or accented letter.
+- Gareth Lim stays canon (nine months, contract to 2026-07), so the captures list him only from 2025-11-03 although the source
+  document listed him from 2024; Bianca Silva and Nadia Karim are on the 2026-08-18 capture but not on the live page (the source
+  document's roster of 14 omits them), so they read as ordinary churn after 2026-08-18.

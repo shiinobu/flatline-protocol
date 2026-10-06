@@ -7,7 +7,11 @@ import {
     type CommandTools,
 } from "@hotbunny/hackhub-content-sdk";
 
+import { findSessionFile } from "./meterpreter-files.js";
+
 export const OPEN_FILE_READ_EVENT = "flatline.open.fileRead";
+
+const ENTRY_LOG_EXTENSION = "log";
 
 @RegisterCommand({ default: true, scope: "both" })
 export class OpenCommand extends Command {
@@ -26,7 +30,7 @@ export class OpenCommand extends Command {
         }
 
         const target = args[0];
-        const file = await Files.getByPath(target);
+        const file = await findSessionFile(target);
         if (!file) {
             tools.printError(`No such file: ${target}`);
             return;
@@ -37,14 +41,25 @@ export class OpenCommand extends Command {
         }
 
         const content = Files.read(file.id);
-        if (content === undefined) {
+        const isEntryLog = content === undefined && file.extension === ENTRY_LOG_EXTENSION;
+        if (content === undefined && !isEntryLog) {
             tools.printError(`Could not read: ${target}`);
             return;
         }
 
         const label = file.extension ? `${file.name}.${file.extension}` : file.name;
         tools.println([{ text: label, color: "cyan", bold: true }]);
-        tools.println(content);
+        if (content === undefined) await tools.exec(`cat ${target}`);
+        else printLines(tools, content);
         Events.emit(OPEN_FILE_READ_EVENT, { id: file.id, name: file.name, extension: file.extension });
     }
 }
+
+const keepIndent = (line: string): string => line.replace(/^ +/, (spaces) => "\u00a0".repeat(spaces.length));
+
+const printLines = (tools: CommandTools, content: string): void => {
+    for (const line of content.split(/\r?\n/)) {
+        if (line === "") tools.newLine();
+        else tools.println(keepIndent(line));
+    }
+};

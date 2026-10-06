@@ -6,10 +6,11 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M01_ESCROW_DOMAIN } from "../../../content/m01.js";
-import { M01_LISTING_SLOTS, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
-import { localizeHtml } from "../../shared/localize.js";
-import { requireHttps } from "../../shared/page-guards.js";
+import { M01_ESCROW_DOMAIN } from "../../../content/m01/network.js";
+import { M01_LISTING_SLOTS } from "../../../content/m01/listing-pool.js";
+import { getM01ListingResolution } from "../../../context/m01/listing.js";
+import { localizeHtml } from "../../global/localize.js";
+import { gateMissionPages, requireHttps } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -28,8 +29,9 @@ const ROW_TIMESTAMPS: ReadonlyArray<readonly [string, string]> = [
     ["20:03", "ESC-88216"], ["19:47", "ESC-88217"], ["19:30", "ESC-88218"],
 ];
 
-const buildTransactionRows = (): unknown[][] => {
-    const resolution = ensureM01ListingResolution();
+const buildTransactionRows = (): unknown[][] | undefined => {
+    const resolution = getM01ListingResolution();
+    if (!resolution) return undefined;
 
     return M01_LISTING_SLOTS.map((slot, index) => {
         const resolved = resolution.slots[slot.id];
@@ -47,7 +49,7 @@ export class ClearEscrowWebsite extends Website {
     Host = M01_ESCROW_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         {
             path: "/",
             metadata: (context: PageContext): PageMetadata => {
@@ -55,10 +57,12 @@ export class ClearEscrowWebsite extends Website {
                 if (denied) return denied;
 
                 const rows = buildTransactionRows();
-                const html = homePage.replace(
-                    /const transactions = \/\*__M01_TRANSACTIONS__\*\/\[[\s\S]*?\];/,
-                    `const transactions = ${JSON.stringify(rows)};`,
-                );
+                const html = rows
+                    ? homePage.replace(
+                          /const transactions = \/\*__M01_TRANSACTIONS__\*\/\[[\s\S]*?\];/,
+                          `const transactions = ${JSON.stringify(rows)};`,
+                      )
+                    : homePage;
 
                 return {
                     title: "ClearEscrow — Public Transaction Board",
@@ -67,5 +71,5 @@ export class ClearEscrowWebsite extends Website {
                 };
             },
         },
-    ];
+    ]);
 }

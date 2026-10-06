@@ -1,31 +1,51 @@
-import { SaveStorage, Time, UI } from "@hotbunny/hackhub-content-sdk";
+import { SaveStorage, UI } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
-import { buildBacktraceFacts } from "./backtrace-facts.js";
+import { buildBacktraceFacts, buildBacktraceSkipped, isBacktraceKey, type BacktraceKey } from "./backtrace-facts.js";
+import {
+    fillBacktraceLogs,
+    mergeBacktraceLogs,
+    optionalBacktraceLogGroups,
+    optionalBacktraceLogs,
+    sourcesOfBacktraceLogs,
+} from "./backtrace-logs.js";
 
 export const BACKTRACE_STORAGE_KEY = "backtrace";
 
-export type BacktraceMissionId = "m1" | "m2" | "m3" | "m4";
+export type BacktraceMissionId = "m1" | "m2" | "m3" | "m4" | "m5" | "m6" | "m7";
 export type BacktraceMissionStatus = "locked" | "progress" | "complete";
 export type BacktraceFacts = Readonly<Record<string, string>>;
 
-export interface BacktraceMissionState {
-    readonly status: BacktraceMissionStatus;
-    readonly completedAt?: number;
-    readonly facts?: BacktraceFacts;
-    readonly logs?: readonly string[];
+export interface BacktraceSkipped {
+    readonly keys: readonly string[];
+    readonly logs: readonly string[];
 }
 
-export type BacktraceState = Readonly<Record<BacktraceMissionId, BacktraceMissionState>>;
+export interface BacktraceMissionState {
+    readonly status: BacktraceMissionStatus;
+    readonly facts?: BacktraceFacts;
+    readonly logs?: readonly string[];
+    readonly moments?: readonly string[];
+    readonly skipped?: BacktraceSkipped;
+    readonly sources?: Readonly<Record<string, string>>;
+}
+
+export interface BacktraceStoryState {
+    readonly applied: boolean;
+}
+
+export type BacktraceState = Readonly<Record<BacktraceMissionId, BacktraceMissionState>> & {
+    readonly story?: BacktraceStoryState;
+};
 
 const INITIAL_STATE: BacktraceState = {
     m1: { status: "locked" },
     m2: { status: "locked" },
     m3: { status: "locked" },
     m4: { status: "locked" },
+    m5: { status: "locked" },
+    m6: { status: "locked" },
+    m7: { status: "locked" },
 };
-
-const describeError = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
 const readBacktraceState = (): BacktraceState => ({
     ...INITIAL_STATE,
@@ -35,11 +55,13 @@ const readBacktraceState = (): BacktraceState => ({
 const writeBacktraceMission = (mission: BacktraceMissionId, missionState: BacktraceMissionState): void =>
     SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), [mission]: missionState });
 
+const writeBacktraceStory = (story: BacktraceStoryState): void =>
+    SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), story });
+
 const collectFacts = (mission: BacktraceMissionId): BacktraceFacts | undefined => {
     try {
         return buildBacktraceFacts(mission);
-    } catch (error: unknown) {
-        trace("Backtrace", `${mission} facts unavailable`, describeError(error));
+    } catch {
         return undefined;
     }
 };
@@ -48,59 +70,83 @@ const buildMissionState = (
     mission: BacktraceMissionId,
     status: BacktraceMissionStatus,
     current: BacktraceMissionState,
-): BacktraceMissionState =>
-    status === "complete"
-        ? { status, completedAt: Time.now(), facts: collectFacts(mission), logs: current.logs }
-        : { status };
+): BacktraceMissionState => {
+    if (status !== "complete") return { status };
+
+    const filled = fillBacktraceLogs(mission, current.logs ?? [], current.moments);
+    const skipped =
+        current.status === "complete"
+            ? current.skipped
+            : buildBacktraceSkipped(mission, current.facts ?? {}, current.logs ?? []);
+
+    return {
+        status,
+        facts: collectFacts(mission),
+        logs: filled.logs,
+        moments: filled.moments,
+        skipped,
+        sources: sourcesOfBacktraceLogs(mission, [...filled.logs, ...(skipped?.logs ?? [])]),
+    };
+};
 
 const applyMission = (mission: BacktraceMissionId, status: BacktraceMissionStatus): void => {
     const current = readBacktraceState()[mission];
     const missionState = buildMissionState(mission, status, current);
     writeBacktraceMission(mission, missionState);
-    trace("Backtrace", `${mission} -> ${status}`);
-    if (missionState.facts) trace("Backtrace", `${mission} facts`, JSON.stringify(missionState.facts));
 };
 
-const applyTrace = (mission: BacktraceMissionId, keys: readonly string[]): readonly string[] => {
-    const current = readBacktraceState()[mission];
-    if (current.status === "complete") return [];
+const applyFinding = (mission: BacktraceMissionId, key: string): boolean => {
+    if (!isBacktraceKey(mission, key)) return false;
 
-    const canon = collectFacts(mission) ?? {};
+    const current = readBacktraceState()[mission];
+    if (current.status === "complete") return false;
+
+    const value = (collectFacts(mission) ?? {})[key];
     const known = current.facts ?? {};
-    const fresh = keys.filter((key) => canon[key] !== undefined && known[key] !== canon[key]);
-    if (fresh.length === 0) return [];
+    if (value === undefined || known[key] === value) return false;
 
     const status: BacktraceMissionStatus = current.status === "locked" ? "progress" : current.status;
-    const facts = { ...known, ...Object.fromEntries(fresh.map((key) => [key, canon[key]])) };
-    writeBacktraceMission(mission, { ...current, status, facts });
-    trace("Backtrace", `${mission} traced ${fresh.join(", ")}`);
-    return fresh;
+    writeBacktraceMission(mission, { ...current, status, facts: { ...known, [key]: value } });
+    return true;
 };
 
-export const getBacktraceFact = (mission: BacktraceMissionId, key: string): string | undefined =>
-    readBacktraceState()[mission].facts?.[key];
-
-export const getBacktraceStatus = (mission: BacktraceMissionId): BacktraceMissionStatus =>
-    readBacktraceState()[mission].status;
+export const backtraceMissionStatus = (mission: BacktraceMissionId): BacktraceMissionStatus => {
+    try {
+        return readBacktraceState()[mission].status;
+    } catch {
+        return "locked";
+    }
+};
 
 export const setBacktraceMission = (mission: BacktraceMissionId, status: BacktraceMissionStatus): void => {
     try {
         applyMission(mission, status);
-    } catch (error: unknown) {
-        trace("Backtrace", `${mission} -> ${status} failed`, describeError(error));
+    } catch {
+        return;
     }
 };
 
-export const traceBacktraceFacts = (mission: BacktraceMissionId, keys: readonly string[]): readonly string[] => {
+export const setBacktraceApplied = (applied: boolean): void => {
     try {
-        return applyTrace(mission, keys);
-    } catch (error: unknown) {
-        trace("Backtrace", `${mission} trace ${keys.join(", ")} failed`, describeError(error));
-        return [];
+        writeBacktraceStory({ applied });
+    } catch {
+        return;
     }
 };
 
-const appendLogs = (mission: BacktraceMissionId, texts: readonly string[]): readonly string[] => {
+export const traceBacktraceKeyById = (mission: BacktraceMissionId, key: string): boolean => {
+    try {
+        return applyFinding(mission, key);
+    } catch {
+        return false;
+    }
+};
+
+export interface BacktraceLogOptions {
+    readonly moment?: boolean;
+}
+
+const appendLogs = (mission: BacktraceMissionId, texts: readonly string[], moment: boolean): readonly string[] => {
     const current = readBacktraceState()[mission];
     if (current.status === "complete") return [];
 
@@ -109,17 +155,91 @@ const appendLogs = (mission: BacktraceMissionId, texts: readonly string[]): read
     if (fresh.length === 0) return [];
 
     const status: BacktraceMissionStatus = current.status === "locked" ? "progress" : current.status;
-    writeBacktraceMission(mission, { ...current, status, logs: [...logs, ...fresh] });
-    trace("Backtrace", `${mission} logged`, fresh.join(" | "));
-    UI.toast(`BACKTRACE: ${fresh.length} new personal log ${fresh.length === 1 ? "entry" : "entries"} recorded.`, "info");
+    const moments = moment ? [...(current.moments ?? []), ...fresh] : current.moments;
+    writeBacktraceMission(mission, { ...current, status, logs: [...logs, ...fresh], moments });
     return fresh;
 };
 
-export const appendBacktraceLogs = (mission: BacktraceMissionId, texts: readonly string[]): readonly string[] => {
+const announce = (traced: boolean, fresh: readonly string[]): void => {
+    if (fresh.length === 0) return;
+
+    if (traced) {
+        UI.toast("BACKTRACE: new trace and log recorded.", "info");
+        return;
+    }
+
+    UI.toast(`BACKTRACE: ${fresh.length} new personal log ${fresh.length === 1 ? "entry" : "entries"} recorded.`, "info");
+};
+
+export const appendBacktraceLogs = (
+    mission: BacktraceMissionId,
+    texts: readonly string[],
+    options: BacktraceLogOptions = {},
+): readonly string[] => {
     try {
-        return appendLogs(mission, texts);
-    } catch (error: unknown) {
-        trace("Backtrace", `${mission} log failed`, describeError(error));
+        const moment = options.moment === true;
+        const fresh = appendLogs(mission, texts, moment);
+        if (!moment) announce(false, fresh);
+        return fresh;
+    } catch {
         return [];
+    }
+};
+
+export const traceBacktraceFinding = <M extends BacktraceMissionId>(
+    mission: M,
+    key: BacktraceKey<M>,
+    logs: readonly string[] = [],
+    options: BacktraceLogOptions = {},
+): boolean => {
+    const traced = traceBacktraceKeyById(mission, key);
+    if (logs.length === 0) return traced;
+
+    try {
+        const moment = options.moment === true;
+        const fresh = appendLogs(mission, logs, moment);
+        if (!moment) announce(traced, fresh);
+    } catch {
+        return traced;
+    }
+
+    return traced;
+};
+
+const rewriteSkippedLogs = (
+    mission: BacktraceMissionId,
+    current: BacktraceMissionState,
+    texts: readonly string[],
+    skip: boolean,
+): BacktraceSkipped | undefined => {
+    if (current.status !== "complete") return current.skipped;
+
+    const marked = (current.skipped?.logs ?? []).filter((text) => !texts.includes(text));
+    const wanted = skip ? [...marked, ...texts] : marked;
+
+    return {
+        keys: current.skipped?.keys ?? [],
+        logs: optionalBacktraceLogs(mission).filter((text) => wanted.includes(text)),
+    };
+};
+
+const applyOptionalLog = (mission: BacktraceMissionId, group: number, skip: boolean): boolean => {
+    const texts = optionalBacktraceLogGroups(mission)[group - 1];
+    if (texts === undefined) return false;
+
+    const current = readBacktraceState()[mission];
+    const kept = (current.logs ?? []).filter((text) => !texts.includes(text));
+    const logs = skip ? kept : mergeBacktraceLogs(mission, kept, texts);
+    const skipped = rewriteSkippedLogs(mission, current, texts, skip);
+    const sources = sourcesOfBacktraceLogs(mission, [...logs, ...(skipped?.logs ?? [])]);
+    writeBacktraceMission(mission, { ...current, logs, skipped, sources });
+    return true;
+};
+
+export const setBacktraceOptionalLog = (mission: BacktraceMissionId, group: number, skip: boolean): boolean => {
+    try {
+        return applyOptionalLog(mission, group, skip);
+    } catch {
+        return false;
     }
 };

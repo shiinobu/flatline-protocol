@@ -4,8 +4,8 @@ import {
     type DynamicWebsitePageDefinition,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { M03_SKYNET_DOMAIN } from "../../../content/m03.js";
-import { securePage as page } from "../../shared/page-guards.js";
+import { M03_SKYNET_DOMAIN } from "../../../content/m03/network.js";
+import { gateMissionPages, securePage as page } from "../../global/page-guards.js";
 
 import homePage from "./home.html";
 
@@ -15,7 +15,7 @@ export class SkynetImportExportWebsite extends Website {
     Host = M03_SKYNET_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m03", [
         page("/", homePage, "Skynet Import-Export Co.", "Logistics and trade consulting."),
-    ];
+    ]);
 }

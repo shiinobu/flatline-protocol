@@ -1,0 +1,150 @@
+function utf8Bytes(s) {
+    var u = unescape(encodeURIComponent(s)), out = [], i;
+    for (i = 0; i < u.length; i++) out.push(u.charCodeAt(i));
+    return out;
+  }
+function bytesText(b) {
+    var s = "", i;
+    for (i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    try { return decodeURIComponent(escape(s)); } catch (e) { return s; }
+  }
+function sealText(text, key) {
+    var b = utf8Bytes(text), k = utf8Bytes(key), out = "", i, v;
+    if (!k.length) return "";
+    for (i = 0; i < b.length; i++) {
+      v = (b[i] ^ k[i % k.length]).toString(16);
+      out += v.length < 2 ? "0" + v : v;
+    }
+    return out;
+  }
+function openText(hex, key) {
+    var h = String(hex).replace(/\s+/g, ""), k = utf8Bytes(key), b = [], i;
+    if (!k.length || !h.length || h.length % 2 || !/^[0-9a-fA-F]+$/.test(h)) return null;
+    for (i = 0; i < h.length; i += 2) b.push(parseInt(h.substr(i, 2), 16) ^ k[(i / 2) % k.length]);
+    return bytesText(b);
+  }
+function printable(s) {
+    var i, c;
+    for (i = 0; i < s.length; i++) { c = s.charCodeAt(i); if (c < 32 || c > 126) return false; }
+    return s.length > 0;
+  }
+var INSTANT = false;
+function calm() { try { return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) { return false; } }
+var SCH = (function () {
+    var jobs = [];
+    function drop(j) { var i = jobs.indexOf(j); if (i >= 0) jobs.splice(i, 1); j.live = false; }
+    function gone(j) { return !!(j.owner && j.owner.nodeType && !j.owner.isConnected); }
+    function mk(owner, kill) { var j = { owner: owner || null, live: true, h: 0 }; j.kill = function () { kill(j); drop(j); }; jobs.push(j); return j; }
+    function wait(ms, fn, owner) {
+      var j = mk(owner, function (x) { clearTimeout(x.h); });
+      j.h = setTimeout(function () { drop(j); if (!gone(j)) fn(); }, ms);
+      return j;
+    }
+    function every(ms, fn, owner) {
+      var j = mk(owner, function (x) { clearInterval(x.h); });
+      j.h = setInterval(function () { if (gone(j)) { j.kill(); return; } if (!document.hidden) fn(); }, ms);
+      return j;
+    }
+    function frame(fn, owner) {
+      var j = mk(owner, function (x) { cancelAnimationFrame(x.h); });
+      function tick(t) { if (!j.live) return; if (gone(j) || fn(t) === false) { drop(j); return; } j.h = requestAnimationFrame(tick); }
+      j.h = requestAnimationFrame(tick);
+      return j;
+    }
+    function run(owner, steps, onSkip) {
+      var j = mk(owner, function (x) { clearTimeout(x.h); }), list = steps.slice().sort(function (a, b) { return a.t - b.t; }), t0 = Date.now(), i = 0;
+      function step(fast) { var s = list[i++]; s.fn(fast); }
+      function next() {
+        if (!j.live) return;
+        if (i >= list.length) { drop(j); return; }
+        j.h = setTimeout(function () { j.h = 0; if (!j.live) return; if (gone(j)) { j.skip(); return; } step(false); next(); }, Math.max(0, t0 + list[i].t - Date.now()));
+      }
+      j.seq = true;
+      j.skip = function () {
+        if (!j.live || j.ff) return;
+        j.ff = true;
+        clearTimeout(j.h);
+        if (onSkip) onSkip();
+        while (i < list.length) step(true);
+        drop(j);
+      };
+      if (INSTANT) j.skip(); else next();
+      return j;
+    }
+    function settle(only) {
+      var hit = false;
+      jobs.slice().forEach(function (j) { if (j.seq && j.live && (!only || j === only)) { hit = true; j.skip(); } });
+      return hit;
+    }
+    function sweep() { jobs.slice().forEach(function (j) { if (gone(j)) { if (j.seq) j.skip(); else j.kill(); } }); }
+    function busy() { return jobs.some(function (j) { return j.seq && j.live; }); }
+    return { wait: wait, every: every, frame: frame, run: run, settle: settle, sweep: sweep, busy: busy };
+  })();
+var P = {
+    overview: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+    signins: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/>',
+    tickets: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    directory: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    config: '<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/>',
+    systems: '<rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 6.5h.01"/><path d="M6 17.5h.01"/>',
+    network: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+    flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    x: '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',
+    prev: '<path d="M15 18l-6-6 6-6"/>',
+    next: '<path d="M9 18l6-6-6-6"/>',
+    out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+    sort: '<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',
+    check: '<path d="M20 6L9 17l-5-5"/>',
+    term: '<path d="M4 17l6-6-6-6"/><path d="M12 19h8"/>',
+    lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/>',
+    pulse: '<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+    max: '<path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/>',
+    key: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3"/><path d="M16 7l3 3"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/>',
+    monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/>',
+    menu: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>',
+    reload: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'
+  };
+function $(id) { return document.getElementById(id); }
+function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function pad(n, w) { var s = String(n); while (s.length < (w || 2)) s = "0" + s; return s; }
+function ic(n, cls) { return '<svg class="ic' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + P[n] + "</svg>"; }
+var TOAST_MS = 4200;
+function dismissToast(el) {
+    if (!el || !el.parentNode) return;
+    el.classList.add("out");
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 240);
+  }
+function armToast(el) {
+    var left = TOAST_MS, started = 0, timer = 0;
+    function run() {
+      started = Date.now();
+      timer = setTimeout(function () { dismissToast(el); }, left);
+    }
+    el.addEventListener("mouseenter", function () {
+      clearTimeout(timer);
+      left -= Date.now() - started;
+      el.classList.add("hold");
+    });
+    el.addEventListener("mouseleave", function () {
+      el.classList.remove("hold");
+      run();
+    });
+    run();
+  }
+function pushToast(kind, title, detail) {
+    var host = $("toasts"), el = document.createElement("div");
+    el.className = "toast " + kind;
+    el.setAttribute("role", "status");
+    el.innerHTML = '<span class="ti">' + ic(kind === "game" ? "term" : "check") + '</span><div><b>' + esc(title) + "</b>" + (detail ? '<span class="td">' + esc(detail) + "</span>" : "") + '</div><button class="tx" data-act="toastx" aria-label="Dismiss">' + ic("x") + '</button><i class="tb" style="animation-duration:' + TOAST_MS + 'ms"></i>';
+    host.appendChild(el);
+    while (host.children.length > 3) host.removeChild(host.firstChild);
+    armToast(el);
+  }
+function toast(title, detail) { pushToast("web", title, detail); }

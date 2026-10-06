@@ -7,7 +7,7 @@ flatline-protocol`). Delete or archive this file once M01 reaches FINAL
 LOCK; it is not a permanent design doc (that's `docs/story.md`).
 
 This mission is **full mechanic, not full objective**: every step below is
-tracked internally (`this.Events.on(...)` in `m01-quest.ts`) and gates the
+tracked internally (`quest.Events.on(...)` in `controller/m01/`: `recon`, `breach`, `access`, `vault`) and gates the
 next step, but the player only ever sees **one** objective — "Track down
 the broker... then report what you find to the dead drop." Nothing below
 shows up as its own checkpoint in-game; this script exists so a tester can
@@ -15,13 +15,12 @@ verify the full chain still works end to end, not just the final mail.
 
 **This version is randomized per save.** Which of 18 SOLD listings (6 per
 marketplace) is "the real one" is picked once per playthrough
-(`src/content/m01-listing-pool.ts`, `Random.pick`, persisted via
+(`src/context/m01/listing.ts`, `Random.pick`, persisted via
 `SaveStorage` + mirrored to `Variables` — see `docs/bugs.md` entry 20 for
 why it has to work this way). Every listing's Category/Region/Code/Vendor
 label is regenerated too, not just the winner's. This script describes the
 *shape* of the flow — exact listing codes/domains will differ every test
-run. Use `scratchstorage` (from `src/debug/scratch.ts`, if still present)
-or just read the in-game log to see what got picked this run.
+run. Read the in-game log to see what got picked this run.
 
 ---
 
@@ -35,6 +34,12 @@ To test the real production entry point instead (GHOSTWIRE's HackHub feed
 post), flip to `isTester=true` + `TESTER_FOCUS_QUEST.m01=true` (or a full
 `isDev=false`/`isTester=false` production build) and claim the mission by
 opening the post in the HackHub feed.
+
+M1's market and company sites (Blackwire, Frostgate, Obsidian, ClearEscrow)
+answer the 404 page before M1 starts and after it completes or is
+abandoned; they are open only while M1 runs (`gateMissionPages`,
+`docs/architecture.md` "Website access"). LedgerVault stays open on purpose
+(permanent domain, its own seal).
 
 ---
 
@@ -65,7 +70,9 @@ opening the post in the HackHub feed.
    Six of the 18 are region-SEA (diluted, not just the real one), so SEA
    alone doesn't identify it — Vendor is the second, exclusive signal.
    The winning page also carries the full "hospital network, rush job"
-   narrative and `data-m1-canonical-listing="true"` on `<body>`.
+   narrative and `data-m1-canonical-listing="true"` on `<body>`. Opening it
+   → key **Broker identified** (`broker`) and the first personal-log entries
+   (one toast).
 6. `nslookup frostgate-exchange.mkt` → `geoip <ip>` → Iceland/Reykjavik.
    Rules out frostgate as a whole storefront (unrelated to which single
    listing on it might be the winner this run).
@@ -111,11 +118,19 @@ opening the post in the HackHub feed.
 
 16. `ssh X7xS3NTRY9@<be7 ip>`, password from step 15's hydra output.
 17. Explore `/home` (`ops_notes.txt`, `todo.txt`, `readme.txt` — flavor)
-    and `/logs` (`sales_ledger.log` → `ROW <winning listing code>`,
-    matches whatever code the winning slot resolved to this run;
-    `ops-relay.log` → `[ENCRYPTED]` + a base64 blob; `auth.log`/`cron.log`/
-    `system.log` are dummy noise).
-18. `cat ops-relay.log`, then decrypt the blob with `openssl` → plaintext
+    and `/logs` (every `.log` there is stored as Log Viewer entries: `cat`
+    prints `[date] TYPE text` per entry, the Files app opens the Log Viewer
+    after the file is downloaded). `sales_ledger.log` → three entries dated
+    2026-06-18, 2026-07-14 and 2026-08-03, the last one `ROW <winning listing
+    code>` (whatever code the winning slot resolved to this run); all name the
+    buyer `TR4C3#404` — reading it by `cat`, `open` or the Log Viewer → key
+    **Buyer linked** (`buyer`); `ops-relay.log` → one entry dated 2026-09-16
+    15:01 (see step 18); `auth.log`/`cron.log`/`system.log` are dummy noise.
+18. Read `ops-relay.log` (`cat`, `open` or the Log Viewer). The Log Viewer
+    shows only `[ENCRYPTED]`; the terminal prints
+    `[2026-09-16 15:01:00] <base64 blob> [ENCRYPTED]` (the blob rides in the
+    entry's `type`, which only `cat` prints), so copy the blob from the
+    terminal, then decrypt it with `openssl` → plaintext
     reveals IRC host `relay.blkledger.dark` and channel key `n0ledger`.
 
 ## 6. Confirm via IRC, find the vault
@@ -124,13 +139,29 @@ opening the post in the HackHub feed.
     chat history is the broker (`defc9`) talking directly to the buyer
     (`t404`, self-confirms as **TR4C3#404**), and leaks the LedgerVault
     mirror domain `x7k2m9vdlq4wnyt3.dark` across two separate lines.
-20. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault) → `case_id.txt`
-    (**CASE-A7X-0417**, fixed, independent of the random listing code),
-    `network_map.txt` (a static evidence image — deliberately generic,
-    doesn't cite a specific listing code so it can never go stale from
-    randomization), `found_note.txt`, and `Q3-2026-SEA` (this project
-    code is required for the report; `Q1-2026-NA`/`Q2-2026-EU` are
-    context/flavor). `associate_infra.txt` is an M2 teaser.
+20. Browser → `x7k2m9vdlq4wnyt3.dark` (LedgerVault) → key **Vault reached**
+    (`vault`) and the aftermath personal-log entries. The projects list has
+    `Q1-2020-NA`, `Q2-2023-EU` (context/flavor) and `Q3-2026-SEA` (this
+    project code is required for the report). **Clicking the `Q3-2026-SEA`
+    folder** → key **Case file opened** (`caseId`) — the folder click is
+    reported to the quest through the page's `Website.Exports`
+    (`flatlineOpenProject`) + `Events.emit`; that a quest-scoped
+    `this.Events.on` receives a website-emitted event is unverified until this
+    run. Inside the Q3 folder: `case_id.txt` (**CASE-A7X-0417**, fixed,
+    independent of the random listing code), `network_map.txt` (a static
+    evidence image — deliberately generic, doesn't cite a specific listing
+    code so it can never go stale from randomization), `found_note.txt` (a
+    hand-written sticky note, signed "-- R.a.N"), plus seven photographs in
+    this order: the ClearEscrow receipt (Aug 03), the annotated PacificCare
+    site recon (Jul 09), the ward corridor (Aug 15), the BLACKLEDGER notice
+    (Aug 14), the locked surgical scheduling screen (Aug 14), the access kit
+    (Aug 07) and the consultant visitor pass (Aug 03). Receipt, recon,
+    access kit and visitor pass are `.jpg`; corridor, notice and scheduling
+    are `.png` (`public/assets/m01/q3-*`; `q3-exterior.png` stays for the
+    login backdrops of the M5 portal and RDC). `associate_infra.txt` is an M2
+    teaser. The `Recent` sidebar view lists `found_note.txt`, `case_id.txt`,
+    `network_map.txt`, the corridor and the scheduling photograph, `Shared`
+    lists the receipt, but only the Q3 folder click traces `caseId`.
 
 ---
 
@@ -143,7 +174,7 @@ Compose a mail to `drop@drop.null` (the Custodian), either:
   `broker: X7xS3NTRY9`, `buyer: TR4C3#404`, `caseId: CASE-A7X-0417`,
   `project: Q3-2026-SEA`, `vaultUrl: x7k2m9vdlq4wnyt3.dark`, or
 - A freehand mail matching `buildM01ReportBody(<winning listing code>)`
-  exactly (see `src/content/m01.ts`).
+  exactly (see `src/content/m01/`).
 
 **[CHECKPOINT — hard gate]** Silently rejected if LedgerVault (step 20)
 hasn't been visited yet, regardless of report content correctness.
@@ -154,16 +185,30 @@ still in dev-focus or tester-focus mode).
 
 ---
 
-## Known follow-up (not fixed this pass)
+## 8. What BACKTRACE shows
 
-`src/content/m02.ts` / `src/main/m02-quest.ts` still reference
-`"MED-SEA-0417"` as flavor data in an affiliate database table (a
-historical case-code callback, not something the player types back /
-gets validated against). Since M01's listing code is now randomized per
-save, this specific string may not match what M01 actually resolved to
-in a given playthrough. Low severity (pure flavor, no validation
-depends on it) — worth a look whenever M02 is touched next, out of scope
-for this M01-focused pass.
+While the mission runs, the M1 card lists only the **keys** found so far
+("TRACED SO FAR // x OF 4", title + value, no descriptions), one per action:
+
+| Key | Title | Action |
+|---|---|---|
+| `broker` | Broker identified | open the winning listing (step 5) |
+| `buyer` | Buyer linked | read `sales_ledger.log` by `cat`, `open` or the Log Viewer (step 17) |
+| `vault` | Vault reached | open LedgerVault (step 20) |
+| `caseId` | Case file opened | click the `Q3-2026-SEA` folder (step 20) |
+
+At COMPLETE the M1 report opens with 5 Key Findings composed from those keys
+plus the extras that only exist in the snapshot (the winning listing code and
+the project code). `backtrace m1 keys` lists the keys in-game. The steps that
+keep a quest flag (the listing, the vault, the Q3 folder) are re-traced when
+the quest restarts; `buyer` has no flag and is not.
+
+## Known follow-up
+
+Resolved 2026-09-24: M2 used to reference `"MED-SEA-0417"` as flavor data in
+its affiliate table, which could not match M01's randomized listing code; the
+M2 redesign replaced it with `M01_CASE_ID` (`CASE-A7X-0417`, fixed). No
+open follow-up for M01.
 
 ---
 
@@ -231,7 +276,7 @@ M01_FIREWALL_ROUTER_IP   45.132.11.1    (Router)
 
 18 total SOLD listings = 6 per marketplace × 3 marketplaces combined, not per-site.
 
-### Layer 2 — listing pool (`src/content/m01-listing-pool.ts`, 18 slots)
+### Layer 2 — listing pool (slots in `src/content/m01/listing-pool.ts`, resolution in `src/context/m01/listing.ts`, 18 slots)
 
 6 SOLD listings per marketplace (blackwire/frostgate/obsidian), each with
 an opaque, non-semantic path (`/listings/a92d-3f21c/`-style — deliberately
@@ -248,3 +293,5 @@ Category/Region/Code/Vendor combination is regenerated once per save:
 
 The 12 still-ACTIVE listings (4 per marketplace) are unaffected —
 static content, opaque paths only for `dirhunter` consistency.
+
+---

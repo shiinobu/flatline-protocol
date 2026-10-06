@@ -6,11 +6,11 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { buildM01HomeSoldLots, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
-import { renderM01ListingPage } from "../../../content/m01-listing-templates.js";
-import { M01_DOMAIN } from "../../../content/m01.js";
-import { localizeHtml } from "../../shared/localize.js";
-import { requireHttps, securePage } from "../../shared/page-guards.js";
+import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/m01/listing.js";
+import { renderM01ListingPage } from "../listing-page.js";
+import { M01_DOMAIN } from "../../../content/m01/network.js";
+import { localizeHtml } from "../../global/localize.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import accPage52 from "./acc-52.html";
 import adminPage from "./admin.html";
@@ -34,10 +34,12 @@ const homeListing = (
         if (denied) return denied;
 
         const soldLots = buildM01HomeSoldLots("blackwire");
-        const injectedHtml = html.replace(
-            /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
-            `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
-        );
+        const injectedHtml = soldLots
+            ? html.replace(
+                  /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
+                  `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
+              )
+            : html;
 
         return { title, description, html: localizeHtml(injectedHtml) };
     },
@@ -49,8 +51,10 @@ const soldListing = (path: string, slotId: string): DynamicWebsitePageDefinition
         const denied = requireHttps(context);
         if (denied) return denied;
 
-        const resolution = ensureM01ListingResolution();
-        const resolved = resolution.slots[slotId];
+        const resolution = getM01ListingResolution();
+        const resolved = resolution?.slots[slotId];
+        if (!resolution || !resolved) return notFoundMetadata();
+
         const isWinner = resolution.winnerId === slotId;
         const slot = { id: slotId, site: "blackwire" as const, domain: M01_DOMAIN, path, nodeLabel: "BW-00" };
 
@@ -68,7 +72,7 @@ export class BlackwireNetworkWebsite extends Website {
     Host = M01_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         homeListing("/", homePage, "Blackwire Network — Storefront", "Verified network access, sold as-is."),
         page("/listings/h3k8-27ns/", lotPage88, "Blackwire Network — RETAIL-EU-2231", "Retail chain, EU region."),
         page("/listings/i6l2-50ot/", lotPage91, "Blackwire Network — ISP-APAC-6604", "Regional ISP, APAC."),
@@ -82,5 +86,5 @@ export class BlackwireNetworkWebsite extends Website {
         soldListing("/listings/u5x1-63fa/", "blackwire.opn102"),
         page("/admin/", adminPage, "Blackwire Network — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Blackwire Network — Vendor Portal", "Reseller access."),
-    ];
+    ]);
 }

@@ -6,11 +6,11 @@ import {
     type PageMetadata,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { buildM01HomeSoldLots, ensureM01ListingResolution } from "../../../content/m01-listing-pool.js";
-import { renderM01ListingPage } from "../../../content/m01-listing-templates.js";
-import { M01_OBSIDIAN_DOMAIN } from "../../../content/m01.js";
-import { localizeHtml } from "../../shared/localize.js";
-import { requireHttps, securePage } from "../../shared/page-guards.js";
+import { buildM01HomeSoldLots, getM01ListingResolution } from "../../../context/m01/listing.js";
+import { renderM01ListingPage } from "../listing-page.js";
+import { M01_OBSIDIAN_DOMAIN } from "../../../content/m01/network.js";
+import { localizeHtml } from "../../global/localize.js";
+import { gateMissionPages, notFoundMetadata, requireHttps, securePage } from "../../global/page-guards.js";
 
 import adminPage from "./admin.html";
 import eduPageApac6641 from "./edu-apac-6641.html";
@@ -29,10 +29,12 @@ const homeListing = (path: string, html: string, title: string, description: str
         if (denied) return denied;
 
         const soldLots = buildM01HomeSoldLots("obsidian");
-        const injectedHtml = html.replace(
-            /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
-            `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
-        );
+        const injectedHtml = soldLots
+            ? html.replace(
+                  /const SOLD_LOTS = \/\*__M01_SOLD_LOTS__\*\/\[[\s\S]*?\];/,
+                  `const SOLD_LOTS = ${JSON.stringify(soldLots)};`,
+              )
+            : html;
 
         return { title, description, html: localizeHtml(injectedHtml) };
     },
@@ -44,8 +46,10 @@ const soldListing = (path: string, slotId: string): DynamicWebsitePageDefinition
         const denied = requireHttps(context);
         if (denied) return denied;
 
-        const resolution = ensureM01ListingResolution();
-        const resolved = resolution.slots[slotId];
+        const resolution = getM01ListingResolution();
+        const resolved = resolution?.slots[slotId];
+        if (!resolution || !resolved) return notFoundMetadata();
+
         const isWinner = resolution.winnerId === slotId;
         const slot = { id: slotId, site: "obsidian" as const, domain: M01_OBSIDIAN_DOMAIN, path, nodeLabel: "OA-00" };
 
@@ -63,7 +67,7 @@ export class ObsidianAccessWebsite extends Website {
     Host = M01_OBSIDIAN_DOMAIN;
     Icon = "";
 
-    Pages: DynamicWebsitePageDefinition[] = [
+    Pages: DynamicWebsitePageDefinition[] = gateMissionPages("m01", [
         homeListing("/", homePage, "Obsidian Access", "Verified network access, mirror listings."),
         page("/listings/p7s3-61va/", ispPageNa2207, "Obsidian Access — ISP-NA-2207", "Regional ISP, NA region."),
         page("/listings/q0t6-94wb/", eduPageApac6641, "Obsidian Access — EDU-APAC-6641", "University network, APAC region."),
@@ -77,5 +81,5 @@ export class ObsidianAccessWebsite extends Website {
         soldListing("/listings/g7j5-49rm/", "obsidian.ispapac4420"),
         page("/admin/", adminPage, "Obsidian Access — Admin", "Restricted."),
         page("/vendor-portal/", vendorPortalPage, "Obsidian Access — Vendor Portal", "Reseller access."),
-    ];
+    ]);
 }

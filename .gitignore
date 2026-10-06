@@ -9,3 +9,5 @@ build-install.ps1
 .reverse/
 docs/basegame-reference/
 .vscode
+CLAUDE.md
+docs/draft.md

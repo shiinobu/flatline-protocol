@@ -1,0 +1,34 @@
+<h1>{{t:M05.SITE.HS.MAIL_TITLE}}</h1>
+<p class="lead">{{t:M05.SITE.HS.MAIL_PROMPT}}</p>
+<div class="form">
+<label for="mu">{{t:M05.SITE.HS.MAIL_USER}}</label>
+<input id="mu" name="username" type="text" autocomplete="off" spellcheck="false">
+<label for="mp">{{t:M05.SITE.HS.MAIL_PASS}}</label>
+<input id="mp" name="password" type="password" autocomplete="off">
+<div class="err" id="me" role="alert"></div>
+<button id="mgo" type="button">{{t:M05.SITE.HS.MAIL_BUTTON}}</button>
+</div>
+<p class="note">{{t:M05.SITE.HS.MAIL_NETWORK}}</p>
+<script>
+(function () {
+  var TEXT = /*__MAIL_TEXT__*/{};
+  var user = document.getElementById("mu");
+  var pass = document.getElementById("mp");
+  var err = document.getElementById("me");
+  function go() {
+    var verdict = "";
+    try {
+      if (typeof flatlineMailLogin === "function") verdict = flatlineMailLogin(user.value.trim(), pass.value);
+    } catch (e) {
+      verdict = "";
+    }
+    err.textContent = verdict === "disabled" ? TEXT.disabled : TEXT.failed;
+  }
+  document.getElementById("mgo").addEventListener("click", go);
+  [user, pass].forEach(function (field) {
+    field.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") go();
+    });
+  });
+})();
+</script>

@@ -1,0 +1,2070 @@
+Object.assign(P, {
+    term: '<path d="M4.5 7l4.5 4.5L4.5 16"/><path d="M12 17h7"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    max: '<rect x="5" y="5" width="14" height="14" rx="2.5"/>',
+    min: '<path d="M5 12h14"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    out: '<path d="M10 4H6a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 6 20h4"/><path d="M15 8l4 4-4 4M19 12H9"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.8v.1"/>',
+    alert: '<path d="M12 4l9 15.5H3z"/><path d="M12 10v4.5M12 17.2v.1"/>',
+    check: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.4"/>',
+    lock: '<rect x="5.5" y="10.5" width="13" height="9" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>',
+    monitor: '<rect x="3.5" y="5" width="17" height="11.5" rx="2.5"/><path d="M9 20h6M12 16.5V20"/>',
+    folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
+    file: '<path d="M6.5 3.5h7l4 4v13h-11z"/><path d="M13.5 3.5v4h4M9 12.5h6M9 16h6"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.3 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.3-3.8-8.5s1.2-6.1 3.8-8.5z"/>',
+    trash: '<path d="M5 7h14M9.5 7V4.5h5V7M7 7l.8 12.5h8.4L17 7"/>',
+    prev: '<path d="M14.5 6l-6 6 6 6"/>',
+    next: '<path d="M9.5 6l6 6-6 6"/>',
+    reload: '<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M19 4.5V8h-3.5"/>',
+    pulse: '<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',
+    config: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.5M12 18v2.5M3.5 12H6M18 12h2.5M6 6l1.8 1.8M16.2 16.2L18 18M18 6l-1.8 1.8M7.8 16.2L6 18"/>'
+  });
+var LOCK_AFTER = 3;
+var LOCK_SECONDS = 15;
+var HOME = "/root";
+var st = { mon: blankMon() };
+function blankMon() { return { view: "login", err: "", fails: 0, lock: 0, host: "", seed: 0, sh: {}, pz: null, win: null, top: "term", t0: 0 }; }
+var ui = { answers: false };
+var STORE = "flatline.rdcdesk.v1";
+function save() { try { localStorage.setItem(STORE, JSON.stringify({ mon: st.mon })); } catch (e) { return; } }
+function restore() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE) || "null");
+    if (raw && raw.mon) st.mon = Object.assign(blankMon(), raw.mon);
+  } catch (e) { return; }
+  st.mon.err = "";
+}
+function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+var TARGETS = [
+  { id: "cold", code: 1, name: "Cold-Chart", tag: "arc-ir-01", lan: "192.168.1.4", os: "Debian 12" },
+  { id: "bed", code: 2, name: "Bedside-17", tag: "PC-IT-017", lan: "192.168.1.5", os: "Windows 11" },
+  { id: "img", code: 3, name: "Lead-Apron", tag: "arc-img-02", lan: "192.168.1.6", os: "Ubuntu 22.04" },
+  { id: "bill", code: 4, name: "Pay-Station", tag: "bill-01", lan: "192.168.1.7", os: "Ubuntu 22.04" }
+];
+function targetById(id) { return TARGETS.filter(function (t) { return t.id === id; })[0]; }
+function tokenCheck(raw) {
+  var r = null, host;
+  try { r = typeof flatlineRdcLogin === "function" ? flatlineRdcLogin(String(raw)) : null; } catch (e) { r = null; }
+  if (!r) return { msg: "Token unreadable." };
+  if (!r.ok) return { msg: r.msg };
+  host = r.host ? targetByCode(r.host.code) : null;
+  return host ? { host: host } : { msg: "Token unreadable." };
+}
+var MODES = [
+    { w: 1366, h: 768, bpp: 32, order: "bgr", rate: 60 },
+    { w: 1440, h: 900, bpp: 24, order: "rgb", rate: 50 },
+    { w: 1680, h: 1050, bpp: 24, order: "bgr", rate: 60 },
+    { w: 1600, h: 900, bpp: 32, order: "rgb", rate: 75 },
+    { w: 1280, h: 1024, bpp: 32, order: "bgr", rate: 60 }
+  ];
+var FRAMINGS = ["raw", "rle", "tight", "zrle"];
+var HEADS = ["fb0", "fb1", "fb2"];
+var RELAYS = ["relay-a", "relay-b", "relay-c"];
+var runCache = { seed: -1, run: null };
+var fsCache = { key: "", T: null };
+function pickIdx(r, n) { return Math.floor(r() * n); }
+function shuffled(arr, r) {
+    var a = arr.slice(), i, j, t;
+    for (i = a.length - 1; i > 0; i--) { j = Math.floor(r() * (i + 1)); t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+function stride(w, bpp) { return Math.ceil(w * bpp / 8 / 64) * 64; }
+function pixFmt(m) { return (m.order === "bgr" ? "B8G8R8" : "R8G8B8") + (m.bpp === 32 ? "X8" : ""); }
+function makeRun(seed) {
+    var r = rng(seed), R = {}, roles, rr, fr;
+    R.truth = MODES[pickIdx(r, 3)];
+    R.old = MODES[3 + pickIdx(r, 2)];
+    roles = shuffled(["active", "blank", "cursor"], r);
+    R.heads = {};
+    R.role = {};
+    HEADS.forEach(function (h, i) { R.heads[h] = roles[i]; R.role[roles[i]] = h; });
+    rr = shuffled(["valid", "expired", "wrong"], r);
+    R.relays = {};
+    R.relayOf = {};
+    RELAYS.forEach(function (n, i) { R.relays[n] = rr[i]; R.relayOf[rr[i]] = n; });
+    fr = shuffled(FRAMINGS, r);
+    R.fv = fr[0];
+    R.fx = fr[1];
+    R.fw = fr[2];
+    R.fo = fr[3];
+    R.deadPid = 4000 + pickIdx(r, 900);
+    R.livePid = 3000 + pickIdx(r, 900);
+    return R;
+  }
+function getRun() {
+    var s;
+    if (!st.mon.seed) st.mon.seed = 1 + Math.floor(Math.random() * 2000000000);
+    s = st.mon.seed;
+    if (runCache.seed !== s) runCache = { seed: s, run: makeRun(s) };
+    return runCache.run;
+  }
+function staleCfg(R) {
+    var o = R.old;
+    return { source: R.role.blank, relay: R.relayOf.expired, framing: R.fo, width: o.w, height: o.h, bpp: o.bpp, order: o.order, stride: stride(o.w, o.bpp), rate: o.rate };
+  }
+function newPz(R) {
+    return { cfg: staleCfg(R), set: {}, cal: "", lease: false, applied: false, shown: null, shownCal: "", attached: false, fit: false, docs: {}, doc: "", mb: false, mbp: null, log: [], clock: 0 };
+  }
+function PZ() {
+    var M = st.mon;
+    if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+    if (!M.pz) M.pz = newPz(getRun());
+    return M.pz;
+  }
+function solved(R) {
+    var T = R.truth;
+    return { source: R.role.active, relay: R.relayOf.valid, framing: R.fv, width: T.w, height: T.h, bpp: T.bpp, order: T.order, stride: stride(T.w, T.bpp), rate: T.rate };
+  }
+function upSig(c) { return [c.source, c.relay, c.framing, c.width, c.height, c.bpp, c.order, c.stride].join("|"); }
+function fullSig(c) { return upSig(c) + "|" + c.rate; }
+function syncState(P) {
+    if (!P.cal) return "UNSET";
+    return P.cal === fullSig(P.cfg) ? "LOCKED" : "STALE";
+  }
+function groupState(P, keys) {
+    var n = keys.filter(function (k) { return P.set[k]; }).length;
+    return n === keys.length ? "SET" : n ? "PARTIAL" : "STALE";
+  }
+function compStates(P) {
+    if (P.attached) return [["lease", "OK"], ["source", "OK"], ["link", "OK"], ["format", "OK"], ["sync", "OK"]];
+    return [
+      ["lease", P.lease ? "CLEAR" : "HELD"],
+      ["source", groupState(P, ["source"])],
+      ["link", groupState(P, ["relay", "framing"])],
+      ["format", groupState(P, ["width", "height", "bpp", "order", "stride"])],
+      ["sync", syncState(P)]
+    ];
+  }
+function symptoms(c, cal, R) {
+    var role = R.heads[c.source], T = R.truth, fmt = [];
+    if (role === "blank") return { first: "black", fmt: fmt };
+    if (role === "cursor") return { first: "cursor", fmt: fmt };
+    if (R.relays[c.relay] !== "valid") return { first: "frozen", fmt: fmt };
+    if (c.framing !== R.fv) return { first: "noise", fmt: fmt };
+    if (c.width !== T.w) fmt.push("width");
+    if (c.height !== T.h) fmt.push("height");
+    if (c.bpp !== T.bpp) fmt.push("bpp");
+    if (c.order !== T.order) fmt.push("order");
+    if (c.stride !== stride(T.w, T.bpp)) fmt.push("stride");
+    if (fmt.length) return { first: "format", fmt: fmt };
+    if (cal !== fullSig(c) || c.rate !== T.rate) return { first: "roll", fmt: fmt };
+    return { first: "clear", fmt: fmt };
+  }
+function curSym() {
+    var P = st.mon.pz;
+    if (!P || !P.shown) return null;
+    return symptoms(P.shown, P.shownCal, getRun());
+  }
+function stamp(P) {
+    var s;
+    P.clock = (P.clock || 0) + 7;
+    s = 31 + P.clock;
+    return "2026-09-27 14:" + pad(7 + Math.floor(s / 60)) + ":" + pad(s % 60);
+  }
+function applyLogs(P, c, sym, R) {
+    var out = [];
+    if (sym.first === "black") out.push("capture: " + c.source + " returned no frame (dpms off)");
+    else if (sym.first === "cursor") out.push("capture: " + c.source + " exposes the cursor plane only");
+    else if (sym.first === "frozen") out.push(R.relays[c.relay] === "expired" ? "link: " + c.relay + " certificate expired 2026-08-31, session stalled" : "link: " + c.relay + " rejected arc-ir-01 (not in allow list)");
+    else if (sym.first === "noise") out.push("link: peer rejected framing " + c.framing + ", retrying");
+    else if (sym.first === "format") {
+      sym.fmt.forEach(function (k) {
+        out.push({ stride: "decode: scanline pitch mismatch", order: "decode: channel layout mismatch", bpp: "decode: sample depth mismatch", width: "decode: row width mismatch", height: "decode: row count mismatch" }[k]);
+      });
+    } else if (sym.first === "roll") out.push(P.cal ? "sync: frame interval drifts from the source refresh" : "sync: timing not calibrated, frames are free running");
+    else out.push("display: signal clean, ready to attach");
+    out.forEach(function (l) { P.log.push(stamp(P) + " " + l); });
+  }
+function pdir(p) { var i = p.lastIndexOf("/"); return i <= 0 ? "/" : p.slice(0, i); }
+function bname(p) { return p === "/" ? "/" : p.slice(p.lastIndexOf("/") + 1); }
+function norm(p) {
+    var parts = p.split("/"), out = [], i;
+    for (i = 0; i < parts.length; i++) {
+      if (!parts[i] || parts[i] === ".") continue;
+      if (parts[i] === "..") out.pop(); else out.push(parts[i]);
+    }
+    return "/" + out.join("/");
+  }
+function ensureDirs(T) {
+    Object.keys(T).forEach(function (p) {
+      var up = pdir(p);
+      while (up !== "/" && !T[up]) { T[up] = { t: "d", own: "root", at: "Aug  9 06:00", mod: "drwxr-xr-x", c: "" }; up = pdir(up); }
+    });
+    T["/"] = { t: "d", own: "root", at: "Aug  9 06:00", mod: "drwxr-xr-x", c: "" };
+  }
+function buildDecoyFs(hostId) {
+    var T = {}, h = targetById(hostId);
+    function file(p, c, own, at) { T[p] = { t: "f", own: own || "root", at: at || "Aug  9 06:00", mod: "-rw-r--r--", c: c }; }
+    file("/etc/hostname", h.tag + "\n");
+    file("/etc/agent/agent.conf", "[agent]\nhost = " + h.tag + "\nconsole = enabled\ndisplay = stopped\ndisplay_module = absent\n");
+    file("/root/README", "Agent console\n\nThe display module is not installed on this host.\n");
+    file("/var/log/agent/agent.log", "2026-08-15 11:03:12 agent: display module removed by rbautista (CHG-2608-016)\n2026-08-15 11:03:12 agent: console ready\n", "root", "Aug 15 11:03");
+    file("/home/rbautista/todo.txt", "- retire the vendor agent on bill-01 and arc-img-02 (done)\n- check the new firewall rules next week\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
+    file("/home/rbautista/.bash_history", "cd /opt/vendorcare\nsudo systemctl disable --now vendorcare-agent\nsudo vi /etc/vendorcare/gateway.conf\nexit\n", "rbautista", "Aug 15 11:04");
+    ensureDirs(T);
+    return T;
+  }
+function buildColdFs() {
+    var T = {}, R = getRun(), tr = R.truth, od = R.old, act = R.role.active, blk = R.role.blank, cur = R.role.cursor;
+    function dir(p, own, at, mod, extra) { T[p] = { t: "d", own: own || "root", at: at || "Aug  9 06:00", mod: mod || "drwxr-xr-x", c: "" }; if (extra) T[p].sealed = true; }
+    function file(p, c, own, at) { T[p] = { t: "f", own: own || "root", at: at || "Aug  9 06:00", mod: "-rw-r--r--", c: c }; }
+    file("/etc/hostname", "arc-ir-01\n");
+    file("/etc/os-release", 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\n');
+    file("/etc/hosts", "127.0.0.1 localhost\n192.168.1.4 arc-ir-01\n192.168.1.3 fw-edge\n");
+    file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\nsvc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Rafael Surya Bautista:/home/rbautista:/bin/bash\n");
+    file("/etc/agent/agent.conf", "[agent]\nhost = arc-ir-01\nconsole = enabled\ndisplay = stopped\ndisplay_module = installed\nprofile = /etc/agent/profile.bak\nlease_dir = /run/agent\nlog = /var/log/agent/agent.log\n", "root", "Aug 14 02:58");
+    file("/etc/agent/policy.conf", "[policy]\ndisplay.attach = operator\ndisplay.record = on\ndisplay.read_only = true\nlog.retention_days = 60\n");
+    file("/etc/agent/profile.bak", "# agent 4.2.1 profile, written 2026-08-14 02:12\n[display]\ncapture = " + blk + "\nrelay = " + R.relayOf.expired + "\nframing = " + R.fo + "\nwidth = " + od.w + "\nheight = " + od.h + "\nbpp = " + od.bpp + "\norder = " + od.order + "\nrate = " + od.rate + "\n", "root", "Aug 14 02:12");
+    RELAYS.forEach(function (n) {
+      var role = R.relays[n], fr = role === "valid" ? R.fv : role === "expired" ? R.fx : R.fw;
+      file("/etc/agent/relays.d/" + n + ".conf", "[relay]\nname = " + n + "\nhost = " + n + ".ir.pacificcare-health.org\nallow = " + (role === "wrong" ? "arc-img-02" : "arc-ir-01") + "\ncert_not_after = " + (role === "expired" ? "2026-08-31" : "2027-03-14") + "\naccept_framing = " + fr + "\n", "root", "Aug  9 06:20");
+    });
+    file("/usr/share/doc/agent/README", "agent 4.2.1, endpoint console and display agent\n\nThe console and the display are separate. The console runs as a system\nservice. The display is attached on request through a signal chain:\n\n  lease    the display lock must be free\n  source   capture head to read frames from\n  link     relay and framing used to carry the frames\n  format   how the frames are laid out (see format.txt)\n  sync     frame timing, calibrated last\n\nHeads are listed under /sys/class/graphics, relays under /etc/agent/relays.d,\nand the display's own history is kept in /var/log.\n\nWhen the picture is wrong, read troubleshooting.txt and the agent log.\n");
+    file("/usr/share/doc/agent/format.txt", "Framebuffer format\n\n  width, height   visible size in pixels\n  bpp             bits per pixel: 16, 24 or 32\n  order           channel order of one pixel: rgb or bgr\n  stride          bytes per row: width x (bpp / 8), rounded up to the\n                  next multiple of 64\n\nThe kernel does not report the stride. Compute it.\n");
+    file("/usr/share/doc/agent/troubleshooting.txt", "Symptoms and the stage that causes them\n\n  black screen .................. the capture head has no frame to give\n  only a pointer ................ the head is the cursor plane\n  frozen picture ................ the relay is not talking to us\n  snow .......................... relay and agent disagree on framing\n  slanted picture ............... row length (stride) is wrong\n  swapped colours ............... channel order is wrong\n  banded colours ................ bpp is lower than the framebuffer\n  smeared colour edges .......... bpp is 24 against 32, or the reverse\n  repeated or squeezed columns .. width is wrong\n  repeated or stretched rows .... height is wrong\n  rolling picture ............... sync is stale, or the rate is wrong\n\nRemote Desktop Connection shows the earliest stage that fails. Fix that one first.\nChanging an earlier stage makes the calibration stale.\n");
+    file("/usr/share/doc/agent/signal.txt", "signal show                  print the current profile\nsignal sources               list capture heads\nsignal relays                list relays\nsignal set <key> <value>     keys: source relay framing width height\n                             bpp order stride rate\nsignal apply                 push the profile and show it in Remote Desktop Connection\nsignal calibrate             lock frame timing to the current chain\nsignal reset                 go back to profile.bak\n");
+    file("/run/agent/display.lock", "pid=" + R.deadPid + "\ncmd=agent-display\nstarted=2026-08-14 02:57:44\n", "root", "Aug 14 02:57");
+    file("/run/agent/session.lock", "pid=" + R.livePid + "\ncmd=agent-console\nstarted=2026-09-27 14:03:02\n", "root", "Sep 27 14:03");
+    file("/var/log/agent/agent.log", function () {
+      return "2026-08-13 03:00:02 agent: console ready (agent 4.2.1)\n2026-08-13 07:55:10 display: attach by sibrahim (source=" + blk + ", relay=" + R.relayOf.expired + ")\n2026-08-13 18:02:41 display: detach by sibrahim\n2026-08-14 02:57:41 display: attach requested by it.ops\n2026-08-14 02:57:44 display: lease acquired, pid " + R.deadPid + "\n2026-08-14 02:58:03 display: containment IR-3389 raised, link dropped\n2026-08-14 02:58:03 display: lease not released, owner process died\n2026-08-14 02:58:05 display: stopped\n" + PZ().log.join("\n") + (PZ().log.length ? "\n" : "");
+    }, "root", "Sep 27 14:07");
+    file("/var/log/agent/session.log", "2026-09-01 00:00:03 log rotated\n", "root", "Sep  1 00:00");
+    file("/var/log/agent/session.log.1", "2026-08-13 07:55:10 attach user=sibrahim source=" + blk + " relay=" + R.relayOf.expired + " framing=" + R.fo + " mode=" + od.w + "x" + od.h + " bpp=" + od.bpp + " order=" + od.order + " rate=" + od.rate + "\n2026-08-13 18:02:41 detach user=sibrahim\n", "root", "Aug 31 23:59");
+    file("/var/log/kern.log", "2026-08-09 06:00:11 arc-ir-01 kernel: Linux version 6.1.0-23-amd64\n2026-08-09 06:00:13 arc-ir-01 kernel: " + blk + ": registered, vesafb\n2026-08-09 06:00:13 arc-ir-01 kernel: " + act + ": registered, i915drmfb\n2026-08-09 06:00:14 arc-ir-01 kernel: " + cur + ": cursor plane registered\n2026-08-14 02:58:03 arc-ir-01 kernel: nf_conntrack: containment rule IR-3389 loaded\n2026-08-15 03:02:11 arc-ir-01 kernel: " + act + ": mode change " + od.w + "x" + od.h + " -> " + tr.w + "x" + tr.h + " (" + tr.bpp + "bpp, " + pixFmt(tr) + ", " + tr.rate + " Hz)\n2026-08-15 03:02:11 arc-ir-01 kernel: " + blk + ": dpms off\n2026-09-01 00:00:02 arc-ir-01 kernel: random: crng reseeded\n", "root", "Sep  1 00:00");
+    file("/var/log/Xorg.0.log", "[    12.401] (II) Module drm: vendor=\"X.Org Foundation\"\n[    12.552] (II) " + act + ": depth " + tr.bpp + ", " + pixFmt(tr) + ", " + tr.w + "x" + tr.h + "@" + tr.rate + "\n[    12.553] (II) " + blk + ": no output connected\n[    12.560] (WW) " + cur + ": cursor plane only, skipping\n[    12.610] (==) Using config directory: \"/etc/X11/xorg.conf.d\"\n", "root", "Sep 27 06:00");
+    file("/var/log/syslog", "Sep 27 06:00:01 arc-ir-01 systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 arc-ir-01 CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 arc-ir-01 CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 arc-ir-01 systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: console session opened by Remote Desktop Connection relay\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: display lease check: held by " + R.deadPid + "\n", "root", "Sep 27 14:03");
+    file("/var/log/auth.log", "Jul  9 03:20:11 arc-ir-01 sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 arc-ir-01 sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 arc-ir-01 sshd[2301]: Accepted publickey for rbautista from 10.8.0.14 port 51422\nAug 14 02:57:40 arc-ir-01 sudo: rbautista : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 arc-ir-01 sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 arc-ir-01 sshd[2480]: Accepted publickey for rbautista from 10.8.0.14 port 51500\nAug 15 11:04:02 arc-ir-01 sshd[2480]: Received disconnect from 10.8.0.14\n", "root", "Aug 15 11:04");
+    HEADS.forEach(function (h) {
+      var role = R.heads[h], base = "/sys/class/graphics/" + h + "/", md = role === "active" ? tr : od;
+      if (role === "cursor") {
+        file(base + "name", "virt_cursor\n");
+        file(base + "state", "cursor plane only\n");
+        file(base + "virtual_size", "64,64\n");
+        file(base + "bits_per_pixel", "32\n");
+        file(base + "pixelformat", "B8G8R8X8\n");
+        file(base + "modes", "U:64x64p-60\n");
+      } else {
+        file(base + "name", role === "active" ? "i915drmfb\n" : "vesafb\n");
+        file(base + "state", role === "active" ? "active\n" : "blank (dpms off)\n");
+        file(base + "virtual_size", md.w + "," + md.h + "\n");
+        file(base + "bits_per_pixel", md.bpp + "\n");
+        file(base + "pixelformat", pixFmt(md) + "\n");
+        file(base + "modes", "U:" + md.w + "x" + md.h + "p-" + md.rate + "\n");
+      }
+    });
+    file("/root/README", "Agent console for arc-ir-01\n\nType help for the commands. The console reads the host; the display is\nchanged only through the agent and signal commands.\n", "root", "Sep 27 14:03");
+    file("/home/rbautista/todo.txt", "- arc-ir-01: display stopped by IR-3389, the lease is still held. Find out who owns the pid before clearing it\n- profile.bak is from before the mode change on the 15th, do not reuse it as is\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
+    file("/home/rbautista/.bash_history", "cd /etc/agent\nless profile.bak\nsudo systemctl stop agent-display\nls /run/agent\nexit\n", "rbautista", "Aug 15 11:04");
+    dir("/var/ir", "svc-ir", "Aug 14 05:21", "drwx------", true);
+    dir("/tmp");
+    ensureDirs(T);
+    return T;
+  }
+function fsFor(host) {
+    var key = host + ":" + st.mon.seed;
+    if (fsCache.key !== key) fsCache = { key: key, T: host === "cold" ? buildColdFs() : buildDecoyFs(host) };
+    return fsCache.T;
+  }
+function mfs() { return fsFor(st.mon.host); }
+function S() {
+    var M = st.mon;
+    if (!M.sh[M.host]) M.sh[M.host] = { cwd: "/", hist: [], scroll: [] };
+    return M.sh[M.host];
+  }
+function nodeText(n) { return typeof n.c === "function" ? n.c() : n.c; }
+function sealedAt(p) {
+    var T = mfs(), up = p;
+    while (true) {
+      if (T[up] && T[up].sealed) return true;
+      if (up === "/") return false;
+      up = pdir(up);
+    }
+  }
+function resolvePath(arg) {
+    var a = arg;
+    if (a === "~") return HOME;
+    if (a.indexOf("~/") === 0) a = HOME + a.slice(1);
+    return norm(a.charAt(0) === "/" ? a : S().cwd + "/" + a);
+  }
+function kids(p) {
+    var pre = p === "/" ? "/" : p + "/";
+    return Object.keys(mfs()).filter(function (k) { return k !== p && k.indexOf(pre) === 0 && k.slice(pre.length).indexOf("/") < 0; }).sort();
+  }
+function tokenize(s) {
+    var out = [], re = /"([^"]*)"|'([^']*)'|(\S+)/g, m;
+    while ((m = re.exec(s))) out.push(m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[3]);
+    return out;
+  }
+function splitPipe(line) {
+    var out = [], cur = "", q = "", i, ch;
+    for (i = 0; i < line.length; i++) {
+      ch = line.charAt(i);
+      if (q) { cur += ch; if (ch === q) q = ""; continue; }
+      if (ch === '"' || ch === "'") { q = ch; cur += ch; continue; }
+      if (ch === "|") { out.push(cur); cur = ""; continue; }
+      cur += ch;
+    }
+    out.push(cur);
+    return out;
+  }
+function plain(s) {
+    if (typeof s !== "string") return s.box === "diag" ? diagPlain() : s.text;
+    return s.replace(/[\u0001\u0002]/g, "");
+  }
+function promptHtml(cwd) { return '<span class="p-a">(agent)</span><span class="p-b">-[</span><span class="p-c">' + esc(cwd) + '</span><span class="p-b">]</span>'; }
+var DA = "\u0001";
+var DB = "\u0002";
+var SEALED = "Volume sealed (legal hold L-2608-03)";
+var CMDS = ["agent", "cat", "cd", "clear", "cut", "date", "echo", "exit", "find", "grep", "head", "help", "history", "hostname", "id", "less", "ls", "man", "ps", "pwd", "signal", "sort", "stat", "tail", "uname", "uniq", "uptime", "wc", "who", "whoami"];
+function lsName(k, n) { return n.t === "d" ? DA + bname(k) + DB : bname(k); }
+function lsLine(k, n, long, label) {
+    var nm = label === undefined ? lsName(k, n) : DA + label + DB, own = (n.own + "        ").slice(0, 8);
+    if (!long) return nm;
+    return n.mod + " 1 " + own + " " + own + " " + ("      " + (n.t === "d" ? 4096 : nodeText(n).length)).slice(-6) + " " + n.at + " " + nm;
+  }
+function cmdLs(args) {
+    var T = mfs(), flags = "", paths = [], out = [], showAll, long;
+    args.forEach(function (a) { if (a.charAt(0) === "-" && a.length > 1) flags += a.slice(1); else paths.push(a); });
+    showAll = flags.indexOf("a") >= 0;
+    long = flags.indexOf("l") >= 0;
+    if (!paths.length) paths = ["."];
+    paths.forEach(function (a, idx) {
+      var p = resolvePath(a), n = T[p], names, rows;
+      if (sealedAt(p)) { out.push("ls: cannot open directory '" + a + "': " + SEALED); return; }
+      if (!n) { out.push("ls: cannot access '" + a + "': No such file or directory"); return; }
+      if (n.t === "f") { out.push(lsLine(p, n, long)); return; }
+      if (paths.length > 1) out.push((idx ? "\n" : "") + a + ":");
+      names = kids(p).filter(function (k) { return showAll || bname(k).charAt(0) !== "."; });
+      rows = (showAll ? [lsLine(p, n, long, "."), lsLine(pdir(p), T[pdir(p)], long, "..")] : []).concat(names.map(function (k) { return lsLine(k, T[k], long); }));
+      if (long) out.push("total " + rows.length * 4);
+      out.push(long ? rows.join("\n") : rows.join("  "));
+    });
+    return out.join("\n");
+  }
+function cmdCd(args) {
+    var T = mfs(), a = args[0] || "~", p = resolvePath(a), n = T[p];
+    if (sealedAt(p)) return "bash: cd: " + a + ": " + SEALED;
+    if (!n) return "bash: cd: " + a + ": No such file or directory";
+    if (n.t !== "d") return "bash: cd: " + a + ": Not a directory";
+    S().cwd = p;
+    return "";
+  }
+function cmdCat(args) {
+    var T = mfs(), out = [];
+    args.forEach(function (a) {
+      var p = resolvePath(a), n = T[p];
+      if (sealedAt(p)) out.push("cat: " + a + ": " + SEALED);
+      else if (!n) out.push("cat: " + a + ": No such file or directory");
+      else if (n.t === "d") out.push("cat: " + a + ": Is a directory");
+      else out.push(nodeText(n).replace(/\n$/, ""));
+    });
+    return out.join("\n");
+  }
+function linesOf(text) { return text === "" ? [] : text.replace(/\n$/, "").split("\n"); }
+function cmdHeadTail(c, args, input) {
+    var T = mfs(), cnt = 10, files = [], out = [], i;
+    for (i = 0; i < args.length; i++) {
+      if (args[i] === "-n" && args[i + 1]) cnt = +args[++i] || 10;
+      else if (/^-\d+$/.test(args[i])) cnt = +args[i].slice(1);
+      else files.push(args[i]);
+    }
+    if (!files.length && input !== undefined) {
+      var ls = linesOf(input);
+      return (c === "head" ? ls.slice(0, cnt) : ls.slice(-cnt)).join("\n");
+    }
+    files.forEach(function (a, k) {
+      var p = resolvePath(a), n = T[p], lines;
+      if (sealedAt(p)) { out.push(c + ": cannot open '" + a + "' for reading: " + SEALED); return; }
+      if (!n) { out.push(c + ": cannot open '" + a + "' for reading: No such file or directory"); return; }
+      if (n.t === "d") { out.push(c + ": error reading '" + a + "': Is a directory"); return; }
+      lines = linesOf(nodeText(n));
+      if (files.length > 1) out.push((k ? "\n" : "") + "==> " + a + " <==");
+      out.push((c === "head" ? lines.slice(0, cnt) : lines.slice(-cnt)).join("\n"));
+    });
+    return out.join("\n");
+  }
+function collect(p, files) {
+    var T = mfs();
+    kids(p).forEach(function (k) {
+      if (T[k].sealed) return;
+      if (T[k].t === "d") collect(k, files); else files.push(k);
+    });
+  }
+function cmdGrep(args, input) {
+    var T = mfs(), fl = "", rest = [], out = [], files = [], re, pat, ci, rec, num, inv, cnt, lst, multi;
+    args.forEach(function (a) { if (a.charAt(0) === "-" && a.length > 1 && !rest.length) fl += a.slice(1); else rest.push(a); });
+    if (!rest.length) return "Usage: grep [OPTION]... PATTERNS [FILE]...";
+    pat = rest.shift();
+    ci = fl.indexOf("i") >= 0;
+    rec = /[rR]/.test(fl);
+    num = fl.indexOf("n") >= 0;
+    inv = fl.indexOf("v") >= 0;
+    cnt = fl.indexOf("c") >= 0;
+    lst = fl.indexOf("l") >= 0;
+    try { re = new RegExp(pat, ci ? "i" : ""); } catch (e) { re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), ci ? "i" : ""); }
+    function scan(label, text, showLabel) {
+      var n = 0, hit = false;
+      linesOf(text).forEach(function (line, i) {
+        var m = re.test(line);
+        if (inv ? m : !m) return;
+        n++;
+        hit = true;
+        if (!cnt && !lst) out.push((showLabel ? label + ":" : "") + (num ? (i + 1) + ":" : "") + line);
+      });
+      if (cnt) out.push((showLabel ? label + ":" : "") + n);
+      else if (lst && hit) out.push(label);
+    }
+    if (!rest.length) {
+      if (input !== undefined) { scan("(standard input)", input, false); return out.join("\n"); }
+      if (!rec) return "grep: no input file";
+      rest = ["."];
+    }
+    multi = rec || rest.length > 1;
+    rest.forEach(function (a) {
+      var p = resolvePath(a), n = T[p];
+      if (sealedAt(p)) { out.push("grep: " + a + ": " + SEALED); return; }
+      if (!n) { out.push("grep: " + a + ": No such file or directory"); return; }
+      if (n.t === "f") { files.push(p); return; }
+      if (!rec) { out.push("grep: " + a + ": Is a directory"); return; }
+      collect(p, files);
+    });
+    files.forEach(function (p) { scan(p, nodeText(T[p]), multi); });
+    return out.join("\n");
+  }
+function cmdFind(args) {
+    var T = mfs(), start = ".", name = "", type = "", out = [], i, base, pre, re;
+    for (i = 0; i < args.length; i++) {
+      if (args[i] === "-name") name = args[++i] || "";
+      else if (args[i] === "-type") type = args[++i] || "";
+      else if (args[i].charAt(0) !== "-") start = args[i];
+    }
+    base = resolvePath(start);
+    pre = base === "/" ? "/" : base + "/";
+    if (sealedAt(base) && base !== "/var") return "find: '" + start + "': " + SEALED;
+    if (!T[base]) return "find: '" + start + "': No such file or directory";
+    re = name ? new RegExp("^" + name.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$") : null;
+    Object.keys(T).sort().forEach(function (k) {
+      if (k !== base && k.indexOf(pre) !== 0) return;
+      if (k !== base && sealedAt(pdir(k))) return;
+      if (type === "f" && T[k].t !== "f") return;
+      if (type === "d" && T[k].t !== "d") return;
+      if (re && !re.test(bname(k))) return;
+      out.push(start.charAt(0) === "/" ? k : (start === "." ? "." : start) + k.slice(base.length));
+    });
+    return out.join("\n");
+  }
+function cmdWc(args, input) {
+    var T = mfs(), flag = "", file = "", text = input, n;
+    args.forEach(function (a) { if (a.charAt(0) === "-" && a.length > 1) flag += a.slice(1); else file = a; });
+    if (file) {
+      n = T[resolvePath(file)];
+      if (!n || n.t !== "f") return "wc: " + file + ": No such file or directory";
+      text = nodeText(n);
+    }
+    if (text === undefined) return "wc: no input";
+    var ln = linesOf(text).length, words = (text.match(/\S+/g) || []).length, chars = text.length;
+    if (flag === "l") return String(ln);
+    if (flag === "w") return String(words);
+    if (flag === "c") return String(chars);
+    return ln + " " + words + " " + chars + (file ? " " + file : "");
+  }
+function cmdSort(args, input) {
+    var rev = args.indexOf("-r") >= 0, ls;
+    if (input === undefined) return "sort: no input";
+    ls = linesOf(input).sort();
+    return (rev ? ls.reverse() : ls).join("\n");
+  }
+function cmdUniq(args, input) {
+    var count = args.indexOf("-c") >= 0, out = [], prev = null, n = 0;
+    if (input === undefined) return "uniq: no input";
+    linesOf(input).forEach(function (l) {
+      if (l === prev) { n++; return; }
+      if (prev !== null) out.push(count ? ("      " + n).slice(-6) + " " + prev : prev);
+      prev = l;
+      n = 1;
+    });
+    if (prev !== null) out.push(count ? ("      " + n).slice(-6) + " " + prev : prev);
+    return out.join("\n");
+  }
+function cmdCut(args, input) {
+    var d = "\t", f = [], i;
+    if (input === undefined) return "cut: no input";
+    for (i = 0; i < args.length; i++) {
+      if (args[i] === "-d" && args[i + 1] !== undefined) d = args[++i];
+      else if (args[i].indexOf("-d") === 0) d = args[i].slice(2);
+      else if (args[i] === "-f" && args[i + 1]) f = args[++i].split(",").map(Number);
+      else if (args[i].indexOf("-f") === 0) f = args[i].slice(2).split(",").map(Number);
+    }
+    if (!f.length) return "cut: you must specify a list of fields";
+    return linesOf(input).map(function (l) {
+      var p = l.split(d);
+      return f.map(function (k) { return p[k - 1] === undefined ? "" : p[k - 1]; }).join(d);
+    }).join("\n");
+  }
+function cmdStat(args) {
+    var T = mfs(), a = args[0], p, n;
+    if (!a) return "stat: missing operand";
+    p = resolvePath(a);
+    n = T[p];
+    if (sealedAt(p)) return "stat: cannot statx '" + a + "': " + SEALED;
+    if (!n) return "stat: cannot statx '" + a + "': No such file or directory";
+    return "  File: " + a + "\n  Size: " + (n.t === "d" ? 4096 : nodeText(n).length) + "\nModify: " + n.at + "\n Owner: " + n.own;
+  }
+function psText() {
+    var R = getRun();
+    return "  PID TTY          TIME CMD\n    1 ?        00:00:09 systemd\n  412 ?        00:00:02 sshd\n  655 ?        00:01:14 agent-sync\n 1180 ?        00:00:00 cron\n " + R.livePid + " ?        00:00:03 agent-console\n " + (R.livePid + 41) + " pts/0    00:00:00 bash\n " + (R.livePid + 58) + " pts/0    00:00:00 ps";
+  }
+function pad2(s, n) { while (s.length < n) s += " "; return s; }
+var HELP = [
+    ["files", "ls [-la]  cd  pwd  cat  head  tail  stat"],
+    ["search", "grep [-irnvcl]  find  wc  sort  uniq  cut"],
+    ["system", "ps  date  uptime  hostname  uname  id"],
+    ["agent", "agent diag"],
+    ["", "agent lease list | clear <pid>"],
+    ["", "agent attach"],
+    ["signal", "signal show | sources | relays"],
+    ["", "signal set <key> <value>"],
+    ["", "signal apply | calibrate | reset"],
+    ["docs", "man agent | signal | format | troubleshooting"],
+    ["pipes", "cmd | grep | head | tail | wc | sort"]
+  ];
+var HELP_RGB = { files: "92,184,255", search: "171,140,255", system: "79,216,208", agent: "255,191,90", signal: "240,138,156", docs: "143,168,255", pipes: "166,173,185" };
+function helpBox() {
+    var cur = "", rows = HELP.map(function (r) {
+      var chips = r[1].split(/ {2,}/).map(function (c) {
+        var i = c.indexOf(" ");
+        return '<span class="kc">' + (i < 0 ? "<b>" + esc(c) + "</b>" : "<b>" + esc(c.slice(0, i)) + "</b>" + esc(c.slice(i))) + "</span>";
+      }).join("");
+      if (r[0]) cur = r[0];
+      return '<div class="tbx-r' + (r[0] ? "" : " cont") + '" style="--c:' + HELP_RGB[cur] + '"><span class="tbx-k">' + esc(cur) + '</span><span class="tbx-v">' + chips + "</span></div>";
+    }).join("");
+    return '<div class="tbox"><div class="tbx-h"><span class="tbx-tile">' + ic("term") + '</span>agent console</div><div class="tbx-b">' + rows + "</div></div>";
+  }
+function manText(topic, isCold) {
+    var T = mfs(), map = { agent: "README", format: "format.txt", signal: "signal.txt", troubleshooting: "troubleshooting.txt" }, n;
+    if (!isCold || !map[topic]) return topic ? "No manual entry for " + topic : "What manual page do you want?";
+    n = T["/usr/share/doc/agent/" + map[topic]];
+    return nodeText(n).replace(/\n$/, "");
+  }
+function diagRows() {
+    var P = PZ(), det = {};
+    det.lease = P.attached ? "released" : P.lease ? "released" : "display.lock held";
+    det.source = P.attached || P.set.source ? P.cfg.source : "from profile.bak";
+    det.link = P.attached || (P.set.relay && P.set.framing) ? P.cfg.relay + ", " + P.cfg.framing : P.set.relay || P.set.framing ? "relay or framing still from profile.bak" : "from profile.bak";
+    det.format = groupState(P, ["width", "height", "bpp", "order", "stride"]) === "SET" || P.attached ? P.cfg.width + "x" + P.cfg.height + " " + P.cfg.bpp + "bpp " + P.cfg.order : "from profile.bak";
+    det.sync = P.attached || syncState(P) === "LOCKED" ? "rate " + P.cfg.rate : syncState(P) === "STALE" ? "chain changed since calibration" : "not calibrated";
+    return compStates(P).map(function (r) { return [r[0], r[1], det[r[0]]]; });
+  }
+function diagBox() {
+    var P = PZ(), rows = diagRows().map(function (r) {
+      return '<div class="dg" data-s="' + r[1] + '"><svg class="rd-cg" viewBox="0 0 16 16" aria-hidden="true">' + CELL_G[r[1]] + '</svg><span class="n">' + r[0] + '</span><span class="s">' + r[1] + '</span><span class="d">' + esc(r[2]) + "</span></div>";
+    }).join("");
+    return '<div class="tbox"><div class="tbx-h"><span class="tbx-tile">' + ic("pulse") + '</span>agent diag</div><div class="tbx-b">' + rows + '<div class="dgf"><span>display</span><span class="s' + (P.attached ? " on" : "") + '">' + (P.attached ? "ATTACHED" : "stopped") + "</span></div></div></div>";
+  }
+function diagPlain() {
+    var P = PZ();
+    return diagRows().map(function (r) { return pad2(r[0], 8) + pad2(r[1], 8) + r[2]; }).concat(["", "display   " + (P.attached ? "ATTACHED" : "stopped")]).join("\n");
+  }
+function leaseCmd(args) {
+    var P = PZ(), R = getRun(), pid;
+    if (args[0] === "list") {
+      return "lease           pid    command          since\n" + (P.lease ? "" : "display.lock    " + R.deadPid + "   agent-display    2026-08-14 02:57\n") + "session.lock    " + R.livePid + "   agent-console    2026-09-27 14:03";
+    }
+    if (args[0] === "clear") {
+      pid = +args[1];
+      if (!pid) return "usage: agent lease clear <pid>";
+      if (pid === R.livePid) return "refusing: pid " + pid + " (agent-console) is running";
+      if (pid === R.deadPid && !P.lease) { P.lease = true;  return "lease display.lock released (pid " + pid + " is not running)"; }
+      return "no lease held by pid " + pid;
+    }
+    return "usage: agent lease list | agent lease clear <pid>";
+  }
+function agentCmd(args) {
+    var sub = args[0] || "";
+    if (sub === "diag" || sub === "status") return { box: "diag" };
+    if (sub === "lease") return leaseCmd(args.slice(1));
+    if (sub === "attach") return attachCmd();
+    return "usage: agent diag | lease list | lease clear <pid> | attach";
+  }
+function signalShow() {
+    var c = PZ().cfg;
+    return ["source", "relay", "framing", "width", "height", "bpp", "order", "stride", "rate"].map(function (k) { return pad2(k, 9) + c[k]; }).join("\n");
+  }
+function signalSet(args) {
+    var P = PZ(), k = args[0], v = args[1], c = P.cfg, n;
+    if (!k || v === undefined) return "usage: signal set <key> <value>";
+    if (k === "source") { if (HEADS.indexOf(v) < 0) return "signal: no such head: " + v; c.source = v; }
+    else if (k === "relay") { if (RELAYS.indexOf(v) < 0) return "signal: no such relay: " + v; c.relay = v; }
+    else if (k === "framing") { if (FRAMINGS.indexOf(v) < 0) return "signal: unknown framing: " + v; c.framing = v; }
+    else if (k === "order") { if (v !== "rgb" && v !== "bgr") return "signal: order must be rgb or bgr"; c.order = v; }
+    else if (k === "bpp") { n = +v; if (n !== 16 && n !== 24 && n !== 32) return "signal: bpp must be 16, 24 or 32"; c.bpp = n; }
+    else if (k === "width" || k === "height") { n = +v; if (!(n >= 320 && n <= 7680) || n % 1) return "signal: " + k + " out of range"; c[k] = n; }
+    else if (k === "stride") {
+      n = +v;
+      if (!(n > 0) || n % 1) return "signal: stride must be a whole number of bytes";
+      if (n % 64) return "signal: stride must be a multiple of 64";
+      if (n < c.width * c.bpp / 8) return "signal: stride is too small for width x bpp";
+      c.stride = n;
+    } else if (k === "rate") { n = +v; if (!(n >= 24 && n <= 144) || n % 1) return "signal: rate must be 24 to 144 Hz"; c.rate = n; }
+    else return "signal: unknown key: " + k;
+    P.set[k] = true;
+    return k + " = " + c[k];
+  }
+function signalApply() {
+    var P = PZ(), R = getRun(), sym;
+    if (!P.lease) return "apply failed: display lease held (see agent lease list)";
+    P.shown = JSON.parse(JSON.stringify(P.cfg));
+    P.shownCal = P.cal;
+    P.applied = true;
+    sym = curSym();
+    applyLogs(P, P.shown, sym, R);
+    reportSignal();
+    return "pushed 9 parameters. The Remote Desktop Connection window shows the result.";
+  }
+function signalCalibrate() {
+    var P = PZ();
+    if (!P.lease) return "calibrate failed: display lease held (see agent lease list)";
+    P.cal = fullSig(P.cfg);
+    return "timing locked against the current chain (rate " + P.cfg.rate + "). Changing any stage unlocks it again.";
+  }
+function signalReset() {
+    var P = PZ();
+    P.cfg = staleCfg(getRun());
+    P.set = {};
+    P.cal = "";
+    return "profile reset to profile.bak";
+  }
+function signalCmd(args) {
+    var sub = args[0] || "";
+    if (sub === "show") return { text: signalShow(), kind: "kv" };
+    if (sub === "sources") return HEADS.join("  ");
+    if (sub === "relays") return RELAYS.join("  ");
+    if (sub === "set") return signalSet(args.slice(1));
+    if (sub === "apply") return signalApply();
+    if (sub === "calibrate") return signalCalibrate();
+    if (sub === "reset") return signalReset();
+    return "usage: signal show | sources | relays | set <key> <value> | apply | calibrate | reset";
+  }
+function attachCmd() {
+    var P = PZ(), sym, same;
+    if (!P.lease) return "attach refused: display lease held (see agent lease list)";
+    if (!P.applied) return "attach refused: no signal. Run signal apply first.";
+    same = fullSig(P.cfg) === fullSig(P.shown) && P.cal === P.shownCal;
+    if (!same) return "attach refused: the profile changed since the last apply. Run signal apply again.";
+    sym = curSym();
+    if (sym.first !== "clear") return "attach refused: signal not clean. Look at the Remote Desktop Connection window.";
+    P.attached = true;
+    return "display: lease acquired\ndisplay: attaching arc-ir-01\ndisplay: attached";
+  }
+function runStage(c, args, input) {
+    var piped = input !== undefined, isCold = st.mon.host === "cold";
+    if (c === "grep") return cmdGrep(args, input);
+    if (c === "head" || c === "tail") return cmdHeadTail(c, args, input);
+    if (c === "wc") return cmdWc(args, input);
+    if (c === "sort") return cmdSort(args, input);
+    if (c === "uniq") return cmdUniq(args, input);
+    if (c === "cut") return cmdCut(args, input);
+    if (c === "cat" || c === "less") return piped && !args.length ? input : cmdCat(args);
+    if (piped) return c + ": cannot read from a pipe";
+    if (c === "pwd") return S().cwd;
+    if (c === "cd") return cmdCd(args);
+    if (c === "ls") return cmdLs(args);
+    if (c === "find") return cmdFind(args);
+    if (c === "stat") return cmdStat(args);
+    if (c === "ps") return psText();
+    if (c === "history") return S().hist.map(function (x, i) { return ("    " + (i + 1)).slice(-5) + "  " + x; }).join("\n");
+    if (c === "echo") return args.join(" ").replace("$HOME", HOME).replace("$USER", "root");
+    if (c === "whoami") return "root";
+    if (c === "id") return "uid=0(root) gid=0(root) groups=0(root)";
+    if (c === "hostname") return targetById(st.mon.host).tag;
+    if (c === "uname") return "Linux " + targetById(st.mon.host).tag + " 6.1.0-23-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.99-1 x86_64 GNU/Linux";
+    if (c === "uptime") return " 14:07:31 up 49 days,  8:04,  1 user,  load average: 0.04, 0.06, 0.05";
+    if (c === "date") return "Sun Sep 27 14:07:31 UTC 2026";
+    if (c === "who") return "root     pts/0        2026-09-27 14:03 (relay)";
+    if (c === "man") return manText(args[0], isCold);
+    if (c === "agent") return isCold ? agentCmd(args) : "agent: the display module is not installed on this host";
+    if (c === "signal") return isCold ? signalCmd(args) : "signal: the display module is not installed on this host";
+    if (c === "sudo") return "sudo: this console already runs as root";
+    if (/^(rm|mv|cp|chmod|chown|touch|mkdir|kill|vi|vim|nano|tee|systemctl|reboot|shutdown)$/.test(c)) return "bash: " + c + ": the console is read only. Changes go through the agent command";
+    if (/^(ssh|scp|curl|wget|nc|telnet)$/.test(c)) return "bash: " + c + ": not permitted from the agent console";
+    return "bash: " + c + ": command not found";
+  }
+function execLine(line) {
+    var segs = splitPipe(line), text, i, tk, out;
+    for (i = 0; i < segs.length; i++) {
+      tk = tokenize(segs[i]);
+      if (!tk.length) return "bash: syntax error near unexpected token `|'";
+      out = runStage(tk[0], tk.slice(1), i === 0 ? undefined : text);
+      text = i < segs.length - 1 ? plain(out) : out;
+    }
+    return text;
+  }
+var DOCS = [
+    { name: "decision_memo.txt", dir: "/ir/2026-08-14", gate: 2, key: "Decision memo", text: ["CONFIDENTIAL — OFFICE OF THE CHIEF RISK OFFICER", "Incident CASE-A7X-0417 — decision record", "Prepared by Vivien Orchid, CRO", "", "Timeline (UTC, 2026-08-14):", "  02:41  systems locked", "  02:55  theatre scheduling and records offline", "  03:20  crisis team convened", "  03:58  insurer notified", "  04:35  appointed negotiator engaged (Brightwater Resolutions)", "  05:12  Clinical incident logged, Operating Theatre 3. Escalated to Legal.", "         Excluded from external statement.", "  06:10  demand confirmed at $2,850,000", "  07:30  insurer agreed to settle", "  08:40  CRO authorised payment", "  09:02  payment released", "", "Decision: the incident is to be classified as employee negligence.", "Rationale: a classification of external attack leaves the policy's", "cyber endorsement open to dispute. A negligence classification keeps", "the claim inside cover and closes the matter within the quarter.", "", "Attachment A (finding draft v1) is superseded. Do not circulate it."].join("\n") },
+    { name: "finding_draft_v1.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — DRAFT v1 — 2026-08-15", "Incident CASE-A7X-0417", "", "Probable cause: a third-party remote support tool with a standing", "connection into the records network.", "Classification: external attack.", "", "Note: no evidence of staff action has been identified at this time.", "", "STATUS: SUPERSEDED. See the decision record."].join("\n") },
+    { name: "finding_final.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — FINAL — 2026-08-19", "Incident CASE-A7X-0417", "", "Cause: unauthorised USB media introduced to PC-IT-017 by R. Natnaree,", "contrary to IT policy 7.2.", "Classification: employee negligence. Retained risk.", "", "Personnel: R. Natnaree separated from the organisation 2026-08-19.", "Investigation closed 2026-08-24."].join("\n") },
+    { name: "acknowledgement_rnatnaree.txt", dir: "/ir/2026-08-14", gate: 1, key: "Acknowledgement", text: ["ACKNOWLEDGEMENT — 2026-08-18", "", "I acknowledge that on 2026-08-11 I connected personal USB media to", "PC-IT-017, contrary to IT policy 7.2, and that this is recorded as the", "cause of incident CASE-A7X-0417.", "", "Signed: R. Natnaree", "Drafted by: Office of the Chief Risk Officer"].join("\n") },
+    { name: "usb_ticket_PC-IT-017.txt", dir: "/ir/tickets", gate: 3, key: "USB ticket", text: ["TICKET IR-PC-IT-017 — opened 2026-08-18", "", "Asset: PC-IT-017", "Reported by: Office of the Chief Risk Officer", "", "Removable media connected 2026-08-11 00:12 UTC by account rnatnaree.", "Device label as recorded by the user: Q3-2026-SEA", "An unsigned binary on the device executed on connection.", "", "Resolution: recorded as cause. No technical remediation requested."].join("\n") },
+    { name: "asset_register.txt", dir: "/ir/tickets", gate: 0, text: ["IT ASSET REGISTER — extract", "", "PC-IT-017   assigned   R. Natnaree   Systems Administrator", "PC-IT-014   assigned   G. Teoh   IT Contractor (contract ended 2026-07-31)", "PC-IT-021   spare      -"].join("\n") },
+    { name: "notes.txt", dir: "/home/rnatnaree", gate: 0, text: ["I keep writing this out and deleting it.", "", "It was on my desk. It said Q3-2026-SEA on the side in marker, which looked like", "one of our project codes, and I wanted to know what it was. That is the whole", "reason. I plugged it into my own machine to read the label properly.", "", "I told them exactly that. What came back written down says I introduced", "unauthorised media, which is true, and leaves out why, which is the only part", "that was mine.", "", "They keep saying the systems came back. Theatre 3 is not a system."].join("\n") }
+  ];
+var DESK_W = 1280;
+var DESK_H = 800;
+var FB_W = 1280;
+var FB_H = 800;
+var FMT_W = FB_W / 2;
+var FMT_H = FB_H / 2;
+var WIN_MIN = { term: [380, 260], scr: [420, 0] };
+var dskScale = 1;
+var dragSt = null;
+var hpos = -1;
+function docByName(n) { return DOCS.filter(function (d) { return d.name === n; })[0]; }
+function scrH(w) { return Math.round(w * DESK_H / DESK_W) + 76; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+var ERR_RE = /^(bash: |usage: |Usage: |(ls|cat|cd|head|tail|grep|find|wc|sort|uniq|cut|stat|sudo|agent|signal): |[a-z]+: cannot read from a pipe|apply failed|calibrate failed|attach refused|refusing: |no lease held|No manual entry|What manual page)/;
+var OK_RE = /^(display: (lease acquired|attaching|attached)|lease display\.lock released|timing locked|pushed \d|profile reset)/;
+var SET_RE = /^[a-z]+ = /;
+var WARN_RE = /(rejected|expired|died|mismatch|drifts|not released|returned no frame|cursor plane only|free running|stalled|dropped|stopped)/;
+var LOG_RE = /^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d) ([a-z_.-]+:)(.*)$/;
+function cmdEcho(raw) {
+    var m = raw.match(/^(\s*)(\S+)(.*)$/);
+    return m ? m[1] + '<span class="cm">' + esc(m[2]) + '</span><span class="ar">' + esc(m[3]) + "</span>" : "";
+  }
+function blockHtml(cwd, raw, body, cls) {
+    return '<div class="tblk' + (cls ? " " + cls : "") + '"><div class="ml"><span class="pr">' + promptHtml(cwd) + '</span><span class="cmdt">' + cmdEcho(raw) + "</span></div>" + (body ? '<div class="tout">' + body + "</div>" : "") + "</div>";
+  }
+function bannerHtml(it) {
+    return '<div class="tbanner"><div class="tt">Agent console, <b>' + esc(it.h) + "</b></div><p>" + (it.c ? "This console reads the host. The display is changed only through the agent and signal commands." : "The display module is not installed on this host.") + "</p><p>Type <code>help</code> for the commands.</p></div>";
+  }
+function itemHtml(it) {
+    if (it.k === "b") return '<div class="tblk">' + bannerHtml(it) + "</div>";
+    if (it.k === "x") return blockHtml(it.p, it.t, it.h, it.c);
+    if (it.k === "c") return '<div class="tblk"><div class="ml"><span class="pr">' + esc(it.p) + '</span><span class="cmdt">' + esc(it.t) + "</span></div></div>";
+    return '<div class="tblk"><div class="tout"><div class="ol">' + it.h + "</div></div></div>";
+  }
+function tintLine(raw, kind) {
+    var m;
+    if (kind === "kv" && (m = raw.match(/^(\S+)\s{2,}(.*)$/))) return '<span class="kv-k">' + esc(m[1]) + '</span><span class="kv-v">' + esc(m[2]) + "</span>";
+    m = raw.match(LOG_RE);
+    if (m) return '<span class="lg-t">' + m[1] + '</span> <span class="lg-g">' + esc(m[2]) + "</span>" + (WARN_RE.test(m[3]) ? '<span class="w">' + esc(m[3]) + "</span>" : esc(m[3]));
+    return esc(raw).replace(/\u0001([^\u0002]*)\u0002/g, '<span class="td">$1</span>');
+  }
+function lineClass(l, one) { return ERR_RE.test(l) ? " e" : OK_RE.test(l) || (one && SET_RE.test(l)) ? " k" : ""; }
+function outBody(out) {
+    var text = typeof out === "string" ? out : out.text, kind = typeof out === "string" ? "" : out.kind, lines = text.split("\n"), one = lines.length === 1;
+    return {
+      html: lines.map(function (l, i) { return '<div class="ol' + lineClass(l, one) + '" style="--i:' + Math.min(i, 14) + '">' + tintLine(l, kind) + "</div>"; }).join(""),
+      cls: ERR_RE.test(lines[0]) ? "err" : OK_RE.test(lines[lines.length - 1]) || (one && SET_RE.test(lines[0])) ? "ok" : ""
+    };
+  }
+function monFocus() { var i = $("mcmd"); if (i) i.focus(); }
+function renderScroll() {
+    var el = $("mscroll");
+    if (!el) return;
+    el.innerHTML = '<div id="mlines">' + S().scroll.map(itemHtml).join("") + '</div><div class="mprompt"><span class="pr" id="mpr">' + promptHtml(S().cwd) + '</span><input id="mcmd" name="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Agent console input"></div>';
+    el.scrollTop = el.scrollHeight;
+  }
+function pushLines(items) {
+    var Sx = S(), box = $("mlines");
+    items.forEach(function (it) { Sx.scroll.push(it); });
+    if (Sx.scroll.length > 120) Sx.scroll = Sx.scroll.slice(-120);
+    if (!box) return;
+    box.insertAdjacentHTML("beforeend", items.map(itemHtml).join(""));
+    $("mpr").innerHTML = promptHtml(Sx.cwd);
+    $("mscroll").scrollTop = $("mscroll").scrollHeight;
+  }
+var lastHint = "";
+function hintState() {
+    var M = st.mon, P = M.pz, sym;
+    if (M.host !== "cold") return ["dim", "info", "The display module is not installed on this host."];
+    if (P.attached) return ["ok", "check", "Display attached. Use the Remote Desktop Connection window."];
+    if (!P.lease) return ["bad", "lock", "The display is busy. Something may still be holding its lease."];
+    if (!P.applied) return ["warn", "alert", "Nothing is being shown yet. Push the profile with signal apply."];
+    sym = curSym();
+    if (sym.first === "clear") return ["ok", "check", "The signal is clean. Attach the display."];
+    return ["info", "info", "Remote Desktop Connection shows the earliest failing stage. Read it, then the agent log."];
+  }
+function hintSync() {
+    var h = hintState(), el = $("thint");
+    if (!el) return;
+    el.setAttribute("data-t", h[0]);
+    el.querySelector(".rd-hi").innerHTML = ic(h[1]);
+    $("thtxt").textContent = h[2];
+    if (lastHint && lastHint !== h[2]) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+    lastHint = h[2];
+  }
+var CELL_G = {
+    HELD: '<rect x="3" y="7.2" width="10" height="6.8" rx="1.6"/><path class="sh" d="M5.4 7.2V5.3a2.6 2.6 0 0 1 5.2 0v1.9"/>',
+    CLEAR: '<rect x="3" y="7.2" width="10" height="6.8" rx="1.6"/><path class="sh" d="M5.4 7.2V5.3a2.6 2.6 0 0 1 5-.9"/>',
+    STALE: '<circle cx="8" cy="8" r="5.4" stroke-dasharray="2.1 2.1"/>',
+    PARTIAL: '<circle cx="8" cy="8" r="5.4"/><path d="M8 2.6a5.4 5.4 0 0 1 0 10.8z" fill="currentColor" stroke="none"/>',
+    SET: '<circle cx="8" cy="8" r="5.4"/><path d="M5.6 8.2l1.7 1.7 3.2-3.5"/>',
+    UNSET: '<circle cx="8" cy="8" r="5.4" opacity=".65"/>',
+    LOCKED: '<circle cx="8" cy="8" r="5.4"/><circle cx="8" cy="8" r="2.1" fill="currentColor" stroke="none"/>',
+    OK: '<path d="M3.6 8.4l2.8 2.8 5.9-6.2"/>',
+    NONE: '<path d="M4.5 8h7"/>'
+  };
+function cellHtml(r) { return '<span class="rd-cell" data-k="' + r[0] + '" data-s="' + r[1] + '"><svg class="rd-cg" viewBox="0 0 16 16" aria-hidden="true">' + CELL_G[r[1]] + "</svg><span class=\"rd-ck\">" + r[0] + "</span><em>" + r[1] + "</em></span>"; }
+function cellRows() { return st.mon.host !== "cold" ? [["display", "NONE"]] : compStates(PZ()); }
+function cellAnim(c, cls) {
+    var again = c.classList.contains(cls);
+    c.classList.remove("chg", "unlock", "lockin");
+    if (again) void c.offsetWidth;
+    c.classList.add(cls);
+    SCH.wait(650, function () { c.classList.remove(cls); }, c);
+  }
+var LAMP_OK = { CLEAR: 1, SET: 1, LOCKED: 1, OK: 1 };
+function lampsSync(rows) {
+    var box = $("tlamps"), n = 0, txt;
+    if (!box) return;
+    rows.forEach(function (r, i) {
+      var on = !!LAMP_OK[r[1]], l = box.children[i];
+      if (on) n++;
+      if (l && l.classList.contains("on") !== on) l.classList.toggle("on", on);
+    });
+    txt = rows.length === 1 ? "Display module not installed" : "Signal chain: " + n + " of " + rows.length + " stages clear";
+    box.setAttribute("aria-label", txt);
+    box.setAttribute("title", txt);
+  }
+function chipsSync() {
+    var box = $("tstat"), rows = cellRows(), cur;
+    if (!box) return;
+    cur = Array.prototype.slice.call(box.children);
+    if (cur.length !== rows.length || cur.some(function (c, i) { return c.getAttribute("data-k") !== rows[i][0]; })) {
+      box.innerHTML = rows.map(cellHtml).join("");
+      box.classList.toggle("one", rows.length === 1);
+    } else rows.forEach(function (r, i) {
+      var c = cur[i], was = c.getAttribute("data-s");
+      if (was === r[1]) return;
+      c.setAttribute("data-s", r[1]);
+      c.querySelector("em").textContent = r[1];
+      c.querySelector(".rd-cg").innerHTML = CELL_G[r[1]];
+      cellAnim(c, was === "HELD" && r[1] === "CLEAR" ? "unlock" : r[1] === "LOCKED" ? "lockin" : "chg");
+    });
+    lampsSync(rows);
+  }
+function pulse() { var p = $("tstat"); if (!p) return; p.classList.remove("pulse"); void p.offsetWidth; p.classList.add("pulse"); }
+function refreshTerm() {
+    chipsSync();
+    hintSync();
+  }
+function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (rnatnaree)"; }
+function rdStatus() { var P = st.mon.pz; return !P || !P.shown ? ["off", "no signal"] : P.attached ? ["on", "attached"] : ["rx", "signal received"]; }
+function rdMenuHtml() {
+    var M = st.mon, t = targetById(M.host), fit = M.scale !== "one";
+    return '<aside class="rd-menu" id="rdmenu" aria-label="Session menu" aria-hidden="true"><div class="rd-mh"><b>Session</b><button class="rd-ib" data-act="rdmenu" aria-label="Close the session menu" title="Close">' + ic("x") + "</button></div>" +
+      '<div class="rd-mb"><h3>Connection</h3><dl class="rd-dl"><dt>Connection</dt><dd class="m">' + esc(rdConnName()) + "</dd><dt>Host</dt><dd>" + esc(t.name) + '</dd><dt>Address</dt><dd class="m">' + esc(t.lan) + '</dd><dt>Status</dt><dd id="rdms">' + rdStatus()[1] + "</dd></dl>" +
+      '<h3 id="rdsh">Scaling</h3><div class="rd-seg" role="radiogroup" aria-labelledby="rdsh"><button role="radio" data-act="rdscale" data-v="fit" aria-checked="' + fit + '">Fit to window</button><button role="radio" data-act="rdscale" data-v="one" aria-checked="' + !fit + '">Actual size</button></div>' +
+      '<h3><label for="rdclip">Clipboard</label></h3><textarea id="rdclip" class="rd-clip" data-f="rdclip" spellcheck="false" aria-describedby="rdcn">' + esc(M.clip || "") + '</textarea><p class="rd-note" id="rdcn">Text copied on the remote computer appears here.</p></div>' +
+      '<div class="rd-mf"><button class="rd-ghost out" data-act="monout">' + ic("out") + "Disconnect</button></div></aside>";
+  }
+function rdMenuOpen() { var m = $("rdmenu"); return !!(m && m.classList.contains("open")); }
+function rdMenu(open) {
+    var m = $("rdmenu"), b = document.querySelector('#w-scr [data-act="rdmenu"]');
+    if (!m) return;
+    if (open === undefined) open = !rdMenuOpen();
+    m.classList.toggle("open", open);
+    m.setAttribute("aria-hidden", open ? "false" : "true");
+    if (b) b.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { var f = m.querySelector('[aria-checked="true"]'); if (f) f.focus(); } else if (b && m.contains(document.activeElement)) b.focus();
+  }
+function rdScale(v) {
+    st.mon.scale = v === "one" ? "one" : "fit";
+    all('#rdmenu [data-act="rdscale"]').forEach(function (b) { b.setAttribute("aria-checked", b.getAttribute("data-v") === st.mon.scale ? "true" : "false"); });
+    if ($("mv")) $("mv").classList.toggle("one", st.mon.scale === "one");
+    fitDesk();
+    refreshSignal();
+  }
+function lampsHtml(id, random) {
+    return '<span class="rd-lamps' + (random ? " rnd" : "") + '" id="' + id + '"' + (random ? ' aria-hidden="true"' : ' role="img" aria-label="Signal chain: 0 of 5 stages clear" title="Signal chain: 0 of 5 stages clear"') + "><i></i><i></i><i></i><i></i><i></i></span>";
+  }
+function termWinHtml(t) {
+    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term"><span class="rd-tile">' + ic("term") + '</span><span class="rd-wt">Agent console</span><span class="rd-wh"><b>' + esc(t.tag) + "</b>" + esc(t.lan) + '</span><span class="sp"></span>' + lampsHtml("tlamps", false) + '</div><div class="rd-pipe on" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint" data-t="info"><span class="rd-hi"></span><span id="thtxt"></span></div><i class="rd-rz" data-rz="term"></i></section>';
+  }
+function monWinHtml() {
+    var s = rdStatus();
+    return '<section class="win pop" id="w-scr" data-id="scr" data-s="' + s[0] + '" aria-label="Remote Desktop Connection"><div class="rd-tb" data-win="scr"><span class="rd-tile">' + ic("monitor") + '</span><span class="rd-wt">Remote Desktop Connection</span>' + lampsHtml("mlamps", true) + '<span class="sp"></span>' +
+      '<button class="rd-ib" data-act="rdmenu" aria-label="Session menu" aria-expanded="false" title="Session menu (Ctrl+Alt+Shift)">' + ic("menu") + '</button><button class="rd-ib" data-act="winmax" aria-label="Fit to workspace" title="Fit to workspace">' + ic("max") + "</button></div>" +
+      '<div class="rd-scr' + (st.mon.scale === "one" ? " one" : "") + '" id="mv">' + rdScreenHtml() + '</div><div class="rd-foot" id="mhud"><div class="fl"><span class="rd-ws" id="mws" data-s="' + s[0] + '" role="status"><i></i><span id="mwh">' + s[1] + '</span></span></div><div class="fc"><span class="ft ft-res" id="hr" hidden></span><span class="ft ft-fps" id="hf" hidden></span><span class="ft ft-bpp" id="hb" hidden></span></div><div class="fr"><span class="ft ft-link" id="hl" hidden></span><span class="ft ft-sc" id="hs"></span></div></div><i class="rd-rz" data-rz="scr"></i></section>';
+  }
+function clearCand() { var c = $("tcand"); if (c) { c.classList.remove("on"); c.textContent = ""; } }
+function showCand(list) {
+    var c = $("tcand");
+    if (!c) return;
+    c.innerHTML = list.map(function (x) { return '<span class="cc">' + esc(x) + "</span>"; }).join("");
+    c.classList.add("on");
+  }
+function afterCmd(prev, line) {
+    var P = st.mon.host === "cold" ? PZ() : null;
+    if (P && P.applied && /^signal\s+(apply|calibrate)\b/.test(line)) pulse();
+    if (P && P.applied && !$("w-scr")) openMonitorWindow();
+    else if (P && prev && P.shown !== prev.shown) rdBring(false);
+    refreshTerm();
+    if (P && P.attached && prev && !prev.attached && $("w-scr")) { P.fitDue = true; rdFinale(); }
+    else { refreshSignal(); if (P && P.attached) rdAutoFit(true); }
+  }
+function monExec(raw) {
+    var Sx = S(), line = raw.trim(), cwd = Sx.cwd, out = "", body = "", cls = "", tk, c, r, Pz = st.mon.host === "cold" ? st.mon.pz : null, prev = Pz ? { shown: Pz.shown, attached: Pz.attached } : null;
+    if (line) {
+      Sx.hist.push(line);
+      tk = tokenize(line);
+      c = tk[0] || "";
+      if (c === "exit" || c === "logout") { monOut(); return; }
+      if (c === "clear") { Sx.scroll = []; renderScroll(); monFocus(); return; }
+      out = c === "help" && tk.length === 1 ? { box: "help" } : execLine(line);
+    }
+    if (out.box === "help") body = helpBox();
+    else if (out.box === "diag") body = diagBox();
+    else if (out !== "") { r = outBody(out); body = r.html; cls = r.cls; }
+    pushLines([{ k: "x", p: cwd, t: raw, h: body, c: cls }]);
+    afterCmd(prev, line);
+  }
+function tabPool(words, tok) {
+    var T = mfs(), sp, dirPart = "", base = tok, sl, dp, dn, keys = ["source", "relay", "framing", "width", "height", "bpp", "order", "stride", "rate"], pool = null;
+    if (!words.length) return { pool: CMDS.filter(function (c) { return c.indexOf(tok) === 0; }), lead: "" };
+    if (words[0] === "agent") pool = words.length === 1 ? ["diag", "lease", "attach"] : words[1] === "lease" && words.length === 2 ? ["list", "clear"] : [];
+    else if (words[0] === "signal") {
+      if (words.length === 1) pool = ["show", "sources", "relays", "set", "apply", "calibrate", "reset"];
+      else if (words[1] === "set" && words.length === 2) pool = keys;
+      else if (words[1] === "set" && words.length === 3) pool = { source: HEADS, relay: RELAYS, framing: FRAMINGS, order: ["rgb", "bgr"], bpp: ["16", "24", "32"] }[words[2]] || [];
+      else pool = [];
+    } else if (words[0] === "man") pool = ["agent", "signal", "format", "troubleshooting"];
+    if (pool) return { pool: pool.filter(function (c) { return c.indexOf(tok) === 0; }) };
+    sl = tok.lastIndexOf("/");
+    if (sl >= 0) { dirPart = tok.slice(0, sl + 1); base = tok.slice(sl + 1); }
+    dp = resolvePath(dirPart || ".");
+    dn = T[dp];
+    if (!dn || dn.t !== "d" || sealedAt(dp)) return { pool: [] };
+    return { pool: kids(dp).filter(function (k) { var nm = bname(k); return nm.indexOf(base) === 0 && (nm.charAt(0) !== "." || base.charAt(0) === "."); }).map(function (k) { return dirPart + bname(k) + (T[k].t === "d" ? "/" : ""); }) };
+  }
+function monTab(inp) {
+    var v = inp.value, sp = v.lastIndexOf(" "), lead = v.slice(0, sp + 1), tok = v.slice(sp + 1), words = lead.trim() ? lead.trim().split(/\s+/) : [], res = tabPool(words, tok), pool = res.pool, pre;
+    if (!pool.length) { clearCand(); return; }
+    if (pool.length === 1) { inp.value = lead + pool[0] + (pool[0].slice(-1) === "/" ? "" : " "); clearCand(); return; }
+    pre = pool[0];
+    pool.forEach(function (x) { while (x.indexOf(pre) !== 0) pre = pre.slice(0, -1); });
+    if (pre.length > tok.length) inp.value = lead + pre;
+    showCand(pool);
+  }
+function monKey(e) {
+    var inp = e.target, H = S().hist;
+    if (e.key !== "Tab") clearCand();
+    if (e.key === "Enter") { e.preventDefault(); var v = inp.value; inp.value = ""; hpos = -1; monExec(v); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); if (!H.length) return; hpos = hpos < 0 ? H.length - 1 : Math.max(0, hpos - 1); inp.value = H[hpos]; return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); if (hpos < 0) return; hpos++; if (hpos >= H.length) { hpos = -1; inp.value = ""; } else inp.value = H[hpos]; return; }
+    if (e.key === "Tab") { e.preventDefault(); monTab(inp); return; }
+    if (e.ctrlKey && (e.key === "l" || e.key === "L")) { e.preventDefault(); S().scroll = []; renderScroll(); monFocus(); }
+  }
+function hudSeg(id, html) {
+    var el = $(id);
+    if (!el || el.getAttribute("data-h") === html) return;
+    el.setAttribute("data-h", html);
+    el.hidden = !html;
+    el.innerHTML = html;
+  }
+function hudSync() {
+    var P = st.mon.pz, sym = curSym(), c = P && P.shown, fps;
+    if (!$("mhud")) return;
+    if (!c) { hudSeg("hr", ""); hudSeg("hf", ""); hudSeg("hb", ""); hudSeg("hl", ""); }
+    else if (P.attached) { hudSeg("hr", "<b>" + c.width + " x " + c.height + "</b>"); hudSeg("hf", '<b class="g">30</b> fps'); hudSeg("hb", "<b>" + c.bpp + "</b> bpp"); hudSeg("hl", ""); }
+    else {
+      fps = sym.first === "black" || sym.first === "cursor" || sym.first === "frozen" ? 0 : 24;
+      hudSeg("hr", "<b>" + c.width + " x " + c.height + "</b>");
+      hudSeg("hf", '<b class="' + (fps ? "" : "r") + '">' + fps + "</b> fps");
+      hudSeg("hb", "<b>" + c.bpp + "</b> bpp " + esc(c.order));
+      hudSeg("hl", "link <b>" + esc(c.relay) + "/" + esc(c.framing) + "</b>");
+    }
+    hudSeg("hs", rdScaleLabel());
+  }
+function rdScaleLabel() { return st.mon.scale === "one" ? "100%" : "fit " + Math.round(dskScale * 100) + "%"; }
+function rdStatusSync() { var s = rdStatus(); rdWords(s[0], s[1]); }
+function fakeClock() {
+    var s = 14 * 3600 + 7 * 60 + Math.max(0, Math.floor((Date.now() - (st.mon.t0 || Date.now())) / 1000));
+    return pad(Math.floor(s / 3600) % 24) + ":" + pad(Math.floor(s / 60) % 60);
+  }
+function openDoc(name) {
+    var P = PZ(), d = docByName(name);
+    if (!d || !P.attached) return;
+    P.doc = name;
+    if (d.gate && !P.docs[name]) {
+      P.docs[name] = true;
+      reportRead(d.gate);
+    }
+    drawDesk();
+  }
+var RK_SANS = '"RdCantarell", Cantarell, sans-serif';
+var RK_DEF = { mb: { x: 176, y: 62, w: 900, h: 640 }, fl: { x: 300, y: 118, w: 740, h: 480 }, tv: { x: 372, y: 84, w: 660, h: 590 } };
+var RK_MIN = { mb: [560, 380], fl: [480, 320], tv: [420, 300] };
+var RK_ICONS = [["computer", "Computer", 24, 58], ["home", "Home", 24, 170], ["trash", "Trash", 24, 282], ["browser", "Browser", 24, 394]];
+var RK_URL = "https://arc-ir-01.pacificcare-health.org/ir/archive";
+var RK_LOGO = [["M9 1.5l7.5 7.5L9 16.5 1.5 9z", "#f08a9c"], ["M6.6 9a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0-4.8 0z", "#2a0f17"]];
+function rr(x, y, w, h, r) { return "M" + (x + r) + " " + y + "h" + (w - 2 * r) + "a" + r + " " + r + " 0 0 1 " + r + " " + r + "v" + (h - 2 * r) + "a" + r + " " + r + " 0 0 1 -" + r + " " + r + "h-" + (w - 2 * r) + "a" + r + " " + r + " 0 0 1 -" + r + " -" + r + "v-" + (h - 2 * r) + "a" + r + " " + r + " 0 0 1 " + r + " -" + r + "z"; }
+function circ(cx, cy, r) { return "M" + (cx - r) + " " + cy + "a" + r + " " + r + " 0 1 0 " + 2 * r + " 0a" + r + " " + r + " 0 1 0 -" + 2 * r + " 0z"; }
+var RK_ART = {
+    computer: [[rr(6, 9, 44, 31, 5), "#3c4a6e"], [rr(10, 13, 36, 23, 2.5), "#7cc4f5"], ["M12 33l9-9 6 6 4-4 13 10v0H12z", "#4f8fe8"], ["M22 40h12l2 6H20z", "#2b3552"], [rr(15, 45, 26, 4, 2), "#2b3552"]],
+    home: [["M5 15a4 4 0 0 1 4-4h12l4 4h22a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z", "#c75870"], [rr(5, 19, 46, 26, 4), "#f08a9c"], ["M28 24l-8.5 7.2V39h5.5v-5.5h6V39h5.5v-7.8z", "#fff1f4"]],
+    trash: [[rr(23, 7, 10, 5, 2), "#b9c1d4"], [rr(13, 11, 30, 5, 2.5), "#b9c1d4"], ["M15.5 18h25l-2.3 27.4a3 3 0 0 1-3 2.6H20.8a3 3 0 0 1-3-2.6z", "#8e97ad"], ["M23 23v19M28 23v19M33 23v19", null, "#646d88", 2]],
+    browser: [[circ(28, 28, 21), "#4f8fe8"], ["M7 28h42M28 7c-8 6-8 36 0 42M28 7c8 6 8 36 0 42M10.5 18h35M10.5 38h35", null, "#e6f1ff", 2]]
+  };
+var RK_PTR = {
+    arrow: ["M2 1.5v18l4.7-4.5 3.1 7.1 3.2-1.4-3.1-7 6.5-.2z", 2, 1.5, 1],
+    hand: ["M9 3.5a1.6 1.6 0 0 1 3.2 0V11l.6-.1V8.6a1.6 1.6 0 0 1 3.2 0v2.9l.5-.1V10a1.5 1.5 0 0 1 3 0v6c0 3.6-2.4 6.5-6.2 6.5h-1.2c-2.2 0-3.6-.9-4.9-2.6L4 15.3a1.6 1.6 0 0 1 2.4-2l2.6 2.4z", 10, 3, 1],
+    text: ["M8.5 3h7M8.5 21h7M12 3v18", 12, 12, 0],
+    nwse: ["M5 5l14 14M5 5h6M5 5v6M19 19h-6M19 19v-6", 12, 12, 0]
+  };
+var WALL = null;
+var SCENE = null;
+var FX = { full: null, fmt: null, fmtKey: "", cb: null, cbKey: "", noise: null, loop: null, ni: 0 };
+var DSP = { seq: null, desk: false, hold: false };
+function mkCanvas(w, h) { var c = document.createElement("canvas"); c.width = w || FB_W; c.height = h || FB_H; return c; }
+function ctx2(c) { try { return c && c.getContext ? c.getContext("2d") : null; } catch (e) { return null; } }
+function pathFill(g, d, fill, stroke, sw) {
+    var p;
+    if (typeof Path2D === "undefined") return;
+    p = new Path2D(d);
+    if (fill) { g.fillStyle = fill; g.fill(p); }
+    if (stroke) { g.strokeStyle = stroke; g.lineWidth = sw; g.lineCap = "round"; g.lineJoin = "round"; g.stroke(p); }
+  }
+function artSvg(k) { return '<svg viewBox="0 0 56 56" aria-hidden="true">' + RK_ART[k].map(function (p) { return '<path d="' + p[0] + '" fill="' + (p[1] || "none") + '"' + (p[2] ? ' stroke="' + p[2] + '" stroke-width="' + p[3] + '" stroke-linecap="round"' : "") + "/>"; }).join("") + "</svg>"; }
+function artPaint(g, list, x, y, s) {
+    g.save();
+    g.translate(x, y);
+    g.scale(s, s);
+    list.forEach(function (p) { pathFill(g, p[0], p[1], p[2], p[3]); });
+    g.restore();
+  }
+function ptrSvg(k) {
+    var p = RK_PTR[k] || RK_PTR.arrow;
+    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (p[3] ? '<path d="' + p[0] + '" fill="#fff" stroke="#10131c" stroke-width="1.3" stroke-linejoin="round"/>' : '<path d="' + p[0] + '" fill="none" stroke="#10131c" stroke-width="4" stroke-linecap="round"/><path d="' + p[0] + '" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>') + "</svg>";
+  }
+function star(g, x, y, s) {
+    g.beginPath();
+    g.moveTo(x, y - s);
+    g.quadraticCurveTo(x, y, x + s, y);
+    g.quadraticCurveTo(x, y, x, y + s);
+    g.quadraticCurveTo(x, y, x - s, y);
+    g.quadraticCurveTo(x, y, x, y - s);
+    g.fill();
+  }
+function ridge(g, r, base, amp, fill) {
+    var x, y = base;
+    g.beginPath();
+    g.moveTo(0, FB_H);
+    g.lineTo(0, y);
+    for (x = 0; x <= FB_W + 80; x += 80) { y = base - amp * (0.35 + r() * 0.65); g.quadraticCurveTo(x - 40, y + amp * 0.3, x, y); }
+    g.lineTo(FB_W, FB_H);
+    g.closePath();
+    g.fillStyle = fill;
+    g.fill();
+  }
+function wallCanvas() {
+    var c, g, r = rng(51608), i, sky, glow, beam, s;
+    if (WALL) return WALL;
+    c = mkCanvas();
+    g = ctx2(c);
+    if (!g) return null;
+    sky = g.createLinearGradient(0, 0, 0, FB_H);
+    sky.addColorStop(0, "#0a1230"); sky.addColorStop(0.48, "#172c63"); sky.addColorStop(0.76, "#38407f"); sky.addColorStop(1, "#1c1f4a");
+    g.fillStyle = sky; g.fillRect(0, 0, FB_W, FB_H);
+    glow = g.createRadialGradient(860, 600, 10, 860, 600, 560);
+    glow.addColorStop(0, "rgba(246,160,176,.78)"); glow.addColorStop(0.38, "rgba(232,128,154,.3)"); glow.addColorStop(1, "rgba(232,128,154,0)");
+    g.fillStyle = glow; g.fillRect(0, 0, FB_W, FB_H);
+    g.save(); g.translate(300, -140); g.rotate(0.62);
+    beam = g.createLinearGradient(-280, 0, 280, 0);
+    beam.addColorStop(0, "rgba(160,205,255,0)"); beam.addColorStop(0.5, "rgba(160,205,255,.17)"); beam.addColorStop(1, "rgba(160,205,255,0)");
+    g.fillStyle = beam; g.fillRect(-280, 0, 560, 1800); g.restore();
+    for (i = 0; i < 38; i++) { s = 1.2 + r() * (i < 6 ? 5 : 2.4); g.fillStyle = "rgba(255,255,255," + (0.45 + r() * 0.5).toFixed(2) + ")"; star(g, r() * FB_W, 40 + r() * 420, s); }
+    ridge(g, r, 640, 120, "rgba(32,38,88,.92)");
+    ridge(g, r, 700, 90, "#151a42");
+    ridge(g, r, 762, 70, "#0c1030");
+    WALL = c;
+    return c;
+  }
+function textW(g, t) { return g.measureText(t).width; }
+function rrFill(g, x, y, w, h, r, fill) { pathFill(g, rr(x, y, w, h, Math.min(r, h / 2, w / 2)), fill); }
+function paintPanel(g) {
+    var x = 42, right = FB_W - 16;
+    g.fillStyle = "rgba(9,13,26,.88)"; g.fillRect(0, 0, FB_W, 34);
+    g.fillStyle = "rgba(255,255,255,.08)"; g.fillRect(0, 33, FB_W, 1);
+    artPaint(g, RK_LOGO, 14, 8, 1);
+    g.textBaseline = "middle";
+    g.font = "400 15px " + RK_SANS; g.fillStyle = "#f1f3f8";
+    ["Applications", "Places", "System"].forEach(function (t) { g.fillText(t, x + 11, 17); x += textW(g, t) + 26; });
+    x += 14; g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(x, 6, 1, 22); x += 14;
+    g.font = "400 14px " + RK_SANS;
+    g.textAlign = "right"; g.fillStyle = "#e2e6ef";
+    g.fillText(fakeClock(), right, 17); right -= textW(g, fakeClock()) + 16;
+    g.fillText("arc-ir-01", right, 17); right -= textW(g, "arc-ir-01") + 16;
+    g.font = "700 14px " + RK_SANS; g.fillText("rnatnaree", right, 17);
+    g.textAlign = "left";
+  }
+function paintIcon(g, d) {
+    var x = d[2], y = d[3], tw;
+    g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 8; g.shadowOffsetY = 4;
+    artPaint(g, RK_ART[d[0]], x + 20, y + 6, 1);
+    g.restore();
+    g.font = "400 14px " + RK_SANS; tw = textW(g, d[1]);
+    rrFill(g, x + 48 - tw / 2 - 7, y + 68, tw + 14, 23, 5, "rgba(8,12,26,.62)");
+    g.fillStyle = "#f4f6fb"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d[1], x + 48, y + 79.5); g.textAlign = "left";
+  }
+function paintPtr(g, k, x, y) {
+    var p = RK_PTR[k];
+    g.save(); g.translate(x - p[1], y - p[2]);
+    if (p[3]) { pathFill(g, p[0], "#fff", "#10131c", 1.3); } else { pathFill(g, p[0], null, "#10131c", 4); pathFill(g, p[0], null, "#fff", 1.8); }
+    g.restore();
+  }
+function sceneCanvas() {
+    var c, g, w;
+    if (SCENE) return SCENE;
+    w = wallCanvas();
+    c = mkCanvas();
+    g = ctx2(c);
+    if (!g || !w) return null;
+    g.drawImage(w, 0, 0);
+    paintPanel(g);
+    RK_ICONS.forEach(function (d) { paintIcon(g, d); });
+    paintPtr(g, "arrow", 652, 452);
+    SCENE = c;
+    return c;
+  }
+function colorPass(g, swap, low, ghost) {
+    var W = g.canvas.width, H = g.canvas.height, im = g.getImageData(0, 0, W, H), u = new Uint32Array(im.data.buffer), s = ghost ? new Uint32Array(u) : null, o = Math.round(10 * W / FB_W), q = [], x, y, i, row, v, r, b, t, n = W * H;
+    if (swap && !low && !ghost) {
+      for (i = 0; i < n; i++) { v = u[i]; u[i] = (v & 0xff00ff00) | ((v & 0xff) << 16) | ((v >>> 16) & 0xff); }
+      g.putImageData(im, 0, 0);
+      return;
+    }
+    for (i = 0; i < 256; i++) q.push(low ? Math.round(i / 255 * 3) * 85 : i);
+    for (y = 0; y < H; y++) {
+      row = y * W;
+      for (x = 0; x < W; x++) {
+        i = row + x;
+        v = u[i];
+        r = ghost ? s[x < o ? i + W - o : i - o] & 255 : v & 255;
+        b = ghost ? (s[x + o < W ? i + o : i + o - W] >>> 16) & 255 : (v >>> 16) & 255;
+        if (swap) { t = r; r = b; b = t; }
+        u[i] = (v & 0xff000000) | (q[b] << 16) | (q[(v >>> 8) & 255] << 8) | q[r];
+      }
+    }
+    g.putImageData(im, 0, 0);
+  }
+function colorBase(base, swap, low, ghost) {
+    var key = [swap, low, ghost].join(), c, g;
+    if (FX.cb && FX.cbKey === key) return FX.cb;
+    c = mkCanvas(FMT_W, FMT_H);
+    try { g = c.getContext("2d", { willReadFrequently: true }); } catch (e) { g = null; }
+    if (!g) return base;
+    g.drawImage(base, 0, 0, FMT_W, FMT_H);
+    colorPass(g, swap, low, ghost);
+    FX.cb = c;
+    FX.cbKey = key;
+    return c;
+  }
+function fmtSrc(base, fmt, c) {
+    var bpp = fmt.indexOf("bpp") >= 0, swap = fmt.indexOf("order") >= 0;
+    return swap || bpp ? colorBase(base, swap, bpp && c.bpp === 16, bpp && c.bpp !== 16) : base;
+  }
+function rdPrep(k) {
+    var P = st.mon.pz, sym = curSym(), base = sceneCanvas();
+    if (!P || !P.shown || !sym || !base || sym.first !== "format") return;
+    if (k) fmtCanvas(base, sym.fmt, P.shown, getRun().truth);
+    else fmtSrc(base, sym.fmt, P.shown);
+  }
+function fmtCanvas(base, fmt, c, T) {
+    var key = fmt.join(",") + "|" + upSig(c) + "|" + T.w, out, g, kW, kH, skew = 0, tw, th, x, y, src;
+    if (FX.fmt && FX.fmtKey === key) return FX.fmt;
+    out = mkCanvas(FMT_W, FMT_H); g = ctx2(out);
+    if (!g) return base;
+    src = fmtSrc(base, fmt, c);
+    kW = fmt.indexOf("width") >= 0 ? c.width / T.w : 1;
+    kH = fmt.indexOf("height") >= 0 ? c.height / T.h : 1;
+    if (fmt.indexOf("stride") >= 0) { skew = clamp((c.stride - stride(T.w, T.bpp)) / (T.bpp / 8) * (640 / T.w) / 8, -3, 3); if (Math.abs(skew) < 0.6) skew = skew < 0 ? -0.6 : 0.6; }
+    tw = FMT_W / kW; th = FMT_H / kH;
+    g.fillStyle = "#000"; g.fillRect(0, 0, FMT_W, FMT_H);
+    g.setTransform(1, 0, -skew, 1, 0, 0);
+    for (y = 0; y < FMT_H; y += th) for (x = -3 * FMT_W; x < 4 * FMT_W; x += tw) if (x + tw > -skew * y - FMT_W && x < FMT_W + Math.abs(skew) * FMT_H) g.drawImage(src, x, y, tw, th);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    FX.fmt = out; FX.fmtKey = key;
+    return out;
+  }
+function noiseTiles() {
+    var r, t, g, im, d, i, v, out = [];
+    if (FX.noise) return FX.noise;
+    r = rng(90210);
+    for (t = 0; t < 3; t++) {
+      var c = document.createElement("canvas");
+      c.width = FB_W / 2; c.height = FB_H / 2;
+      g = ctx2(c);
+      if (!g) return null;
+      im = g.createImageData(c.width, c.height); d = im.data;
+      for (i = 0; i < d.length; i += 4) { if (r() < 0.6) { v = 40 + Math.floor(r() * 170); d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255; } }
+      g.putImageData(im, 0, 0);
+      out.push(c);
+    }
+    FX.noise = out;
+    return out;
+  }
+function frameInto(g, t) {
+    var P = st.mon.pz, sym = curSym(), base = sceneCanvas(), off, nz;
+    if (!g || !P || !P.shown || !sym || !base) return;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    if (sym.first === "black" || sym.first === "cursor") { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); return; }
+    if (sym.first === "frozen") { g.drawImage(base, 0, 0); g.drawImage(base, 0, 480, FB_W, 96, 52, 480, FB_W, 96); g.fillStyle = "rgba(3,8,12,.52)"; g.fillRect(0, 0, FB_W, FB_H); return; }
+    if (sym.first === "noise") { g.drawImage(base, 0, 0); nz = noiseTiles(); if (nz) { g.imageSmoothingEnabled = false; g.drawImage(nz[FX.ni % 3], 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; } return; }
+    if (sym.first === "format") { g.imageSmoothingEnabled = false; g.drawImage(fmtCanvas(base, sym.fmt, P.shown, getRun().truth), 0, 0, FB_W, FB_H); g.imageSmoothingEnabled = true; return; }
+    if (sym.first === "roll") {
+      off = Math.floor(0.3 * FB_H);
+      g.drawImage(base, 0, FB_H - off, FB_W, off, 0, 0, FB_W, off);
+      g.drawImage(base, 0, 0, FB_W, FB_H - off, 0, off, FB_W, FB_H - off);
+      g.fillStyle = "#000"; g.fillRect(0, off, FB_W, 18);
+      return;
+    }
+    g.drawImage(base, 0, 0);
+  }
+function paintFrame(t) { frameInto(ctx2($("msig")), t || 0); }
+function stopLoop() { if (FX.loop) { FX.loop.kill(); FX.loop = null; } rollLayer(false); }
+function rollLayer(on) {
+    var fb = $("rdfb"), c = $("rdroll"), g, base;
+    if (!on) { if (c) c.parentNode.removeChild(c); return; }
+    if (!fb || !(base = sceneCanvas())) return;
+    if (!c) { fb.insertAdjacentHTML("beforeend", '<canvas class="rd-roll" id="rdroll" width="' + FB_W + '" height="' + 2 * FB_H + '" aria-hidden="true"></canvas>'); c = $("rdroll"); }
+    g = ctx2(c);
+    if (!g) return;
+    g.drawImage(base, 0, 0);
+    g.drawImage(base, 0, FB_H);
+    g.fillStyle = "#000";
+    g.fillRect(0, FB_H - 18, FB_W, 18);
+  }
+function startLoop() {
+    var sym = curSym(), cv = $("msig"), last = 0;
+    stopLoop();
+    rollLayer(!!(cv && sym && !st.mon.pz.attached && sym.first === "roll" && !calm()));
+    if (!cv || !sym || st.mon.pz.attached || calm() || sym.first !== "noise") return;
+    FX.loop = SCH.frame(function (t) { if (t - last < 83) return true; last = t; FX.ni++; paintFrame(t); return true; }, cv);
+  }
+function rdWords(s, w) {
+    if ($("w-scr")) $("w-scr").setAttribute("data-s", s);
+    if ($("mws")) $("mws").setAttribute("data-s", s);
+    if ($("mwh")) $("mwh").textContent = w;
+    if ($("rdms")) $("rdms").textContent = w;
+  }
+function rdStallSync() { var sym = curSym(), P = st.mon.pz; if (P && P.shown && !P.attached && sym && sym.first === "frozen") rdWords("stall", "signal received"); }
+function rdLive() {
+    var P = st.mon.pz;
+    paintFrame(0);
+    rdStatusSync();
+    rdStallSync();
+    hudSync();
+    if (P && !P.attached) startLoop();
+    rkPtrMode();
+  }
+function tilesStep(k, n) {
+    var g = ctx2($("msig")), src = FX.full, tw = FB_W / 16, th = FB_H / 10, ix, iy;
+    if (!g || !src) return;
+    for (iy = 0; iy < 10; iy++) for (ix = 0; ix < 16; ix++) {
+      if (Math.floor((ix + iy) * n / 25) !== k) continue;
+      g.drawImage(src, ix * tw, iy * th, tw, th, ix * tw, iy * th, tw, th);
+      g.strokeStyle = "rgba(237,239,242,.55)"; g.lineWidth = 2; g.strokeRect(ix * tw + 1, iy * th + 1, tw - 2, th - 2);
+    }
+  }
+function rdBring(first) {
+    var cv = $("msig"), neg = $("rdneg"), slow = !calm(), steps = [], k, T0, n = 8;
+    if (!cv) return;
+    SCH.settle(DSP.seq);
+    stopLoop();
+    DSP.hold = true;
+    rkPtrMode();
+    function negOn(txt) { if (!neg) return; $("rdnegt").textContent = txt; neg.classList.add("on"); }
+    function negOff() { if (neg) neg.classList.remove("on"); }
+    function black() { var g = ctx2(cv); cv.classList.remove("blank"); if (g) { g.fillStyle = "#000"; g.fillRect(0, 0, FB_W, FB_H); } }
+    if (first) rdWords("off", "no signal");
+    else cv.classList.add("blank");
+    T0 = first ? (slow ? 250 : 80) : (slow ? 300 : 120);
+    steps.push({ t: T0, fn: function (fast) { if (!first) black(); negOn(first ? "Negotiating the display" : "Re-synchronising"); if (!fast) sceneCanvas(); } });
+    [0, 1].forEach(function (i) { steps.push({ t: T0 + (first ? (slow ? 250 : 70) : (slow ? 110 : 45)) * (i + 1), fn: function (fast) { if (!fast) rdPrep(i); } }); });
+    steps.push({ t: first ? (slow ? 950 : 330) : (slow ? 640 : 260), fn: function () { var g; if (first) negOn("Waiting for the first frame"); FX.full = mkCanvas(); g = ctx2(FX.full); frameInto(g, 0); } });
+    steps.push({ t: first ? (slow ? 1250 : 520) : (slow ? 900 : 420), fn: function () { negOff(); } });
+    if (slow) for (k = 0; k < n; k++) (function (i) { steps.push({ t: (first ? 1300 : 940) + i * 55, fn: function (fast) { if (!fast) tilesStep(i, n); } }); })(k);
+    steps.push({ t: first ? (slow ? 1760 : 700) : (slow ? 1460 : 640), fn: function () { negOff(); cv.classList.remove("blank"); DSP.hold = false; rdLive(); } });
+    DSP.seq = SCH.run($("mv"), steps, function () { negOff(); });
+  }
+var RK_MENUS = {
+    apps: ["Applications", [["Browser", "open:mb", "globe"], ["Files", "open:fl", "folder"], ["Text Viewer", "open:tv", "file"], 0, ["Terminal", "na", "term"], ["Processes", "na", "pulse"], ["Settings", "na", "config"]]],
+    places: ["Places", [["Home", "loc:home", "folder"], ["Computer", "loc:computer", "monitor"], 0, ["2026-08-14", "loc:/ir/2026-08-14", "folder"], ["tickets", "loc:/ir/tickets", "folder"], 0, ["Trash", "loc:trash", "trash"]]],
+    system: ["System", [["About this computer", "loc:computer", "monitor"], ["Settings", "na", "config"], 0, ["Lock screen", "na", "lock"], ["Log out", "na", "out"]]]
+  };
+var RK_DIRS = { home: "/home/rnatnaree", "/home/rnatnaree": "/home/rnatnaree", "/ir/2026-08-14": "/ir/2026-08-14", "/ir/tickets": "/ir/tickets" };
+var rkPop = "";
+var rkDlg = null;
+var rkBack = null;
+var rkPtrXY = [FB_W / 2, FB_H / 2];
+var RK_SCROLL = "#rkwins .rk-arv,#rkwins .rk-arl,#rkwins .rk-list,#rkwins .rk-side";
+function rkState() {
+    var P = PZ();
+    if (!P.rw) P.rw = {};
+    if (!P.rz) P.rz = [];
+    if (!P.ro) P.ro = [];
+    if (!P.rw.mb) P.rw.mb = Object.assign({ open: !!P.mb, min: false, max: false }, P.mbp || RK_DEF.mb);
+    return P.rw;
+  }
+function rkW(id) { var R = rkState(); if (!R[id]) R[id] = Object.assign({ open: false, min: false, max: false }, RK_DEF[id]); return R[id]; }
+function rkOpenIds() { var R = rkState(), P = PZ(); return P.rz.concat(Object.keys(R).filter(function (k) { return P.rz.indexOf(k) < 0; })).filter(function (k) { return R[k].open; }); }
+function rkTaskIds() {
+    var R = rkState(), P = PZ(), ro = P.ro.filter(function (k) { return R[k] && R[k].open; });
+    return ro.concat(Object.keys(R).filter(function (k) { return R[k].open && ro.indexOf(k) < 0; }));
+  }
+function rkTitle(id) { var W = rkW(id); return id === "mb" ? "Clinical Incident Archive" : id === "tv" ? (W.doc || "Text Viewer") : rkLocName(W.loc || "home"); }
+function rkLocName(loc) { return loc === "home" || loc === "/home/rnatnaree" ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
+function rkGlyph(id) { return ic(id === "mb" ? "globe" : id === "tv" ? "file" : "folder"); }
+function rkSize(n) { return n < 1000 ? n + " bytes" : (n / 1000).toFixed(1) + " kB"; }
+function rkFileRows(dir) {
+    var P = PZ();
+    return DOCS.filter(function (d) { return d.dir === dir; }).map(function (d) {
+      var read = d.gate && P.docs[d.name];
+      return '<button class="rk-arf' + (P.doc === d.name ? " on" : "") + (ui.answers && d.gate ? " ans" : "") + '" data-act="adoc" data-v="' + d.name + '" data-cur="hand"' + (read ? ' data-read="1"' : "") + ">" + ic("file") + "<span>" + d.name + "</span>" + (read ? "<em>read</em>" : "") + "</button>";
+    }).join("");
+  }
+function rkBrowserHtml() {
+    var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
+    return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/rnatnaree</h6>" + rkFileRows("/home/rnatnaree") +
+      '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
+  }
+function rkRows(loc) {
+    var W = rkW("fl"), dir = RK_DIRS[loc];
+    if (loc === "trash") return '<div class="rk-empty"><b>Trash is empty</b></div>';
+    if (loc === "computer") {
+      var t = targetById("cold");
+      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + ["/ir/2026-08-14", "/ir/tickets", "/home/rnatnaree"].map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
+    }
+    return DOCS.filter(function (d) { return d.dir === dir; }).map(function (d) { return '<button class="rk-row' + (W.sel === d.name ? " sel" : "") + '" data-act="rkfsel" data-v="' + d.name + '" data-dbl="1" data-cur="hand">' + ic("file") + "<span>" + d.name + "</span><small>" + rkSize(d.text.length) + "</small><small>Text document</small></button>"; }).join("");
+  }
+function rkFilesHtml() {
+    var W = rkW("fl"), loc = W.loc || "home", P2 = function (l, n, g) { return '<button class="rk-place' + (loc === l || RK_DIRS[loc] === l ? " on" : "") + '" data-act="rkloc" data-v="' + l + '" data-cur="hand">' + ic(g) + n + "</button>"; };
+    return '<div class="rk-fl"><nav class="rk-side" aria-label="Places"><h6>Places</h6>' + P2("home", "Home", "folder") + P2("computer", "Computer", "monitor") + P2("trash", "Trash", "trash") + "<h6>Archive</h6>" + P2("/ir/2026-08-14", "2026-08-14", "folder") + P2("/ir/tickets", "tickets", "folder") + "</nav>" +
+      '<div class="rk-main"><div class="rk-path"><span>' + esc(RK_DIRS[loc] || rkLocName(loc)) + '</span><button class="rk-btn" data-act="rkro" data-cur="hand">New folder</button><button class="rk-btn" data-act="rkro" data-cur="hand">Move to Trash</button></div><div class="rk-list" role="listbox" aria-label="Files">' + rkRows(loc) + "</div></div></div>";
+  }
+function rkViewerHtml() { var W = rkW("tv"), d = W.doc ? docByName(W.doc) : null; return '<div class="rk-arv" tabindex="0" data-cur="text">' + (d ? esc(d.text) : '<div class="rk-empty"><b>No file open</b>Open a text file from Files.</div>') + "</div>"; }
+function rkWinHtml(id) {
+    var W = rkW(id), P = PZ(), z = P.rz.indexOf(id), r = W.max ? { x: 0, y: 34, w: FB_W, h: FB_H - 34 } : W, t = rkTitle(id);
+    return '<section class="rk-win' + (P.rf === id ? " focus" : "") + (W.min ? " mini" : "") + '" id="' + (id === "mb" ? "mbw" : "rkw-" + id) + '" data-rw="' + id + '" style="left:' + r.x + "px;top:" + r.y + "px;width:" + r.w + "px;height:" + r.h + "px;z-index:" + (6 + Math.max(0, z)) + '" role="dialog" aria-label="' + esc(t) + '">' +
+      '<div class="rk-tb" data-rwd="' + id + '">' + rkGlyph(id) + "<span>" + esc(t) + '</span><button class="rk-wb" data-act="rkmin" data-v="' + id + '" aria-label="Minimise" title="Minimise" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button><button class="rk-wb" data-act="rkmax" data-v="' + id + '" aria-label="Maximise" title="Maximise" data-cur="hand"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" rx="1.5"/></svg></button><button class="rk-wb x" data-act="rkclose" data-v="' + id + '" aria-label="Close" title="Close" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button></div>' +
+      '<div class="rk-body" tabindex="-1">' + (id === "mb" ? rkBrowserHtml() : id === "fl" ? rkFilesHtml() : rkViewerHtml()) + '</div><i class="rk-rz" data-rwr="' + id + '" data-cur="nwse"></i></section>';
+  }
+function rkTasksHtml() { var P = PZ(); return rkTaskIds().map(function (id) { var W = rkW(id); return '<button class="rk-task' + (P.rf === id && !W.min ? " on" : "") + (W.min ? " min" : "") + '" data-act="rktask" data-v="' + id + '" data-cur="hand">' + (id === "mb" ? "Browser" : id === "fl" ? "Files" : "Text Viewer") + "</button>"; }).join(""); }
+function rkPanelHtml() {
+    return '<nav class="rk-panel" aria-label="Remote panel"><svg class="rk-logo" viewBox="0 0 18 18" aria-hidden="true">' + RK_LOGO.map(function (p) { return '<path d="' + p[0] + '" fill="' + p[1] + '"/>'; }).join("") + "</svg>" +
+      ["apps", "places", "system"].map(function (k) { return '<button class="rk-m" id="rkm-' + k + '" data-act="rkmenu" data-v="' + k + '" aria-haspopup="menu" aria-expanded="' + (rkPop === k) + '" data-cur="hand">' + RK_MENUS[k][0] + "</button>"; }).join("") +
+      '<div class="rk-tasks" id="rktasks">' + rkTasksHtml() + '</div><div class="rk-right"><b>rnatnaree</b><span>arc-ir-01</span><span id="dclk">' + fakeClock() + "</span></div></nav>";
+  }
+function rkPopHtml() {
+    var m = RK_MENUS[rkPop], b = $("rkm-" + rkPop);
+    if (!m) return "";
+    return '<div class="rk-pop" role="menu" tabindex="-1" aria-label="' + m[0] + '" style="left:' + (b ? b.offsetLeft : 40) + 'px;top:36px">' + m[1].map(function (it) { return it ? '<button class="rk-mi" role="menuitem" data-act="rkitem" data-v="' + it[1] + '" data-n="' + it[0] + '" data-cur="hand">' + ic(it[2]) + it[0] + "</button>" : '<div class="rk-sep"></div>'; }).join("") + "</div>";
+  }
+function rkDlgHtml() { return rkDlg ? '<div class="rk-scrim"></div><div class="rk-dlg" role="alertdialog" aria-modal="true" aria-labelledby="rkdt"><b id="rkdt">' + esc(rkDlg[0]) + "</b><p>" + esc(rkDlg[1]) + '</p><div><button class="rk-btn pri" data-act="rkok" data-cur="hand">OK</button></div></div>' : ""; }
+function rkDeskHtml() {
+    return '<canvas class="rk-wall" id="rkwall" width="' + FB_W + '" height="' + FB_H + '"></canvas>' + rkPanelHtml() + RK_ICONS.map(function (d) { return '<button class="rk-ico" id="rki-' + d[0] + '" style="left:' + d[2] + "px;top:" + d[3] + 'px" data-act="rkicon" data-v="' + d[0] + '" data-dbl="1" data-cur="hand">' + artSvg(d[0]) + "<span>" + d[1] + "</span></button>"; }).join("") +
+      '<div id="rkwins">' + rkOpenIds().map(rkWinHtml).join("") + '</div><div id="rkpop">' + rkPopHtml() + '</div><div id="rkdlg">' + rkDlgHtml() + "</div>";
+  }
+function rkFocusKey() {
+    var a = document.activeElement, w;
+    if (!a || !$("dsk") || !$("dsk").contains(a)) return null;
+    w = a.closest("[data-rw]");
+    return [a.getAttribute("data-act"), a.getAttribute("data-v"), a.id, w ? w.getAttribute("data-rw") : "", a.classList[0] || ""];
+  }
+function rkRestoreFocus(k) {
+    var el = null;
+    if (k && k[0]) el = document.querySelector('#dsk [data-act="' + k[0] + '"]' + (k[1] ? '[data-v="' + k[1] + '"]' : ""));
+    if (!el && k && k[2]) el = $(k[2]);
+    if (!el && k && k[3]) el = document.querySelector('#rkwins [data-rw="' + k[3] + '"] .' + (k[4] || "rk-body")) || document.querySelector('#rkwins [data-rw="' + k[3] + '"] .rk-body');
+    if (el) el.focus({ preventScroll: true });
+  }
+function rkScrollKey(el) { return '#rkwins [data-rw="' + el.closest("[data-rw]").getAttribute("data-rw") + '"] .' + el.classList[0]; }
+function drawDesk() {
+    var d = $("dsk"), k, w = $("rkwins"), keep;
+    if (!d || !DSP.desk) return;
+    if (!w) { rkDeskRender(); return; }
+    k = rkFocusKey();
+    keep = all(RK_SCROLL).map(function (el) { return [rkScrollKey(el), el.scrollTop, el.textContent]; });
+    w.innerHTML = rkOpenIds().map(rkWinHtml).join("");
+    keep.forEach(function (x) { var el = document.querySelector(x[0]); if (el && x[1] && el.textContent === x[2]) el.scrollTop = x[1]; });
+    $("rktasks").innerHTML = rkTasksHtml();
+    rkRestoreFocus(k);
+    rkUi();
+  }
+function rkUi() {
+    if (!$("rkpop") || !DSP.desk) return;
+    $("rkpop").innerHTML = rkPopHtml();
+    $("rkdlg").innerHTML = rkDlgHtml();
+    all("#dsk .rk-m").forEach(function (b) { b.setAttribute("aria-expanded", b.getAttribute("data-v") === rkPop ? "true" : "false"); });
+    if (rkDlg && $("rkdlg").querySelector("button")) $("rkdlg").querySelector("button").focus({ preventScroll: true });
+  }
+function rkDlgOpen(t, x) { rkBack = rkFocusKey(); rkPop = ""; rkDlg = [t, x]; rkUi(); }
+function rkDlgClose() {
+    var b;
+    rkDlg = null;
+    rkUi();
+    rkRestoreFocus(rkBack);
+    rkBack = null;
+    if ($("dsk") && $("dsk").contains(document.activeElement)) return;
+    b = document.querySelector('#rkwins [data-rw="' + PZ().rf + '"] .rk-body') || $("rkm-apps");
+    if (b) b.focus({ preventScroll: true });
+  }
+function rkDeskRender(lazy) {
+    var d = $("dsk");
+    if (!d) return;
+    d.setAttribute("data-on", "1");
+    d.classList.remove("hide");
+    d.innerHTML = rkDeskHtml();
+    if (!lazy) rkWall();
+  }
+function rkWall() { var g = ctx2($("rkwall")); if (g && wallCanvas()) g.drawImage(wallCanvas(), 0, 0); }
+function rkFocus(id) {
+    var P = PZ(), W = rkW(id);
+    if (!W.open || P.ro.indexOf(id) < 0) P.ro = P.ro.filter(function (k) { return k !== id; }).concat([id]);
+    P.rz = P.rz.filter(function (k) { return k !== id; }).concat([id]);
+    P.rf = id;
+    W.open = true;
+    W.min = false;
+    if (id === "mb") P.mb = true;
+  }
+function rkIn(id) { var w = document.querySelector('#dsk [data-rw="' + id + '"]'); if (w) w.classList.add("rk-in"); }
+function rkOpen(id) {
+    var fresh = !rkW(id).open, b;
+    rkFocus(id);
+    rkPop = "";
+    drawDesk();
+    if (fresh) rkIn(id);
+    b = document.querySelector('#dsk [data-rw="' + id + '"] .rk-body');
+    if (b) b.focus({ preventScroll: true });
+  }
+function rkLoc(loc) { var W = rkW("fl"); W.loc = loc; W.sel = ""; rkOpen("fl"); }
+function rkNa(n) { rkDlgOpen("Not available", n + " is not available on this host."); }
+function rkRo() { rkDlgOpen("Read-only session", "Files on this computer cannot be changed in this session."); }
+function rkItem(v, n) { if (v === "na") rkNa(n); else if (v.indexOf("open:") === 0) rkOpen(v.slice(5)); else if (v.indexOf("loc:") === 0) rkLoc(v.slice(4)); }
+function rkIcon(id, open) {
+    all("#dsk .rk-ico").forEach(function (b) { b.classList.toggle("sel", b.getAttribute("data-v") === id); });
+    if (!open) return;
+    if (id === "browser") rkOpen("mb"); else rkLoc(id === "computer" ? "computer" : id === "trash" ? "trash" : "home");
+  }
+function rkDocOpen(name) {
+    var W = rkW("tv"), fresh = !W.open;
+    W.doc = name;
+    rkFocus("tv");
+    openDoc(name);
+    if (fresh) rkIn("tv");
+  }
+function rkFile(v, open) {
+    var W = rkW("fl");
+    W.sel = v;
+    if (!open) { all("#rkw-fl .rk-row").forEach(function (r) { r.classList.toggle("sel", r.getAttribute("data-v") === v); }); return; }
+    if (v.charAt(0) === "/") { W.loc = RK_DIRS[v] ? v : W.loc; W.sel = ""; rkOpen("fl"); return; }
+    rkDocOpen(v);
+  }
+function rkWinBtn(a, id) {
+    var W = rkW(id), P = PZ(), ids;
+    if (a === "rkmin") { W.min = true; ids = rkOpenIds().filter(function (k) { return !rkW(k).min; }); P.rf = ids.length ? ids[ids.length - 1] : ""; }
+    if (a === "rkmax") { W.max = !W.max; rkFocus(id); }
+    if (a === "rkclose") { W.open = false; W.max = false; if (id === "mb") P.mb = false; if (P.rf === id) P.rf = ""; }
+    drawDesk();
+  }
+function rkTask(id) { var W = rkW(id), P = PZ(); if (P.rf === id && !W.min) { rkWinBtn("rkmin", id); return; } rkOpen(id); }
+function rkMenuBtn(k, kb) {
+    var f;
+    rkPop = rkPop === k ? "" : k;
+    rkUi();
+    f = document.querySelector(kb ? "#rkpop .rk-mi" : "#rkpop .rk-pop");
+    if (f && rkPop) f.focus({ preventScroll: true });
+  }
+function rkKey(e) {
+    var t = e.target, list, i, W, rows, back = rkPop;
+    if (e.key === "Escape" && rkDlg) { e.preventDefault(); rkDlgClose(); return true; }
+    if (e.key === "Escape" && rkPop) { e.preventDefault(); rkPop = ""; rkUi(); if ($("rkm-" + back)) $("rkm-" + back).focus(); return true; }
+    if (rkPop && /^Arrow(Up|Down|Left|Right)$/.test(e.key)) {
+      e.preventDefault();
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { list = ["apps", "places", "system"]; i = (list.indexOf(rkPop) + (e.key === "ArrowLeft" ? 2 : 1)) % 3; rkMenuBtn(list[i], true); return true; }
+      list = all("#rkpop .rk-mi"); i = list.indexOf(t);
+      i = i < 0 ? (e.key === "ArrowDown" ? 0 : list.length - 1) : (i + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length;
+      list[i].focus();
+      return true;
+    }
+    if (t.classList && t.classList.contains("rk-ico") && e.key === "Enter") { e.preventDefault(); rkIcon(t.getAttribute("data-v"), true); return true; }
+    W = t.closest && t.closest("[data-rw]");
+    if (!W) return false;
+    if (W.getAttribute("data-rw") === "fl") {
+      if (e.key === "Delete") { e.preventDefault(); rkRo(); return true; }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); rows = all("#rkw-fl .rk-row"); i = rows.indexOf(t); if (i < 0) i = rows.map(function (r) { return r.classList.contains("sel"); }).indexOf(true); i = clamp(i + (e.key === "ArrowDown" ? 1 : -1), 0, rows.length - 1); if (rows[i]) { rows.forEach(function (r) { r.classList.toggle("sel", r === rows[i]); }); rkW("fl").sel = rows[i].getAttribute("data-v"); rows[i].focus(); } return true; }
+      if (e.key === "Enter" && t.classList.contains("rk-row")) { e.preventDefault(); rkFile(t.getAttribute("data-v"), true); return true; }
+    }
+    if (W.getAttribute("data-rw") === "tv" && ((e.ctrlKey && (e.key === "s" || e.key === "S")) || (!e.ctrlKey && !e.altKey && e.key.length === 1) || e.key === "Delete" || e.key === "Backspace")) { e.preventDefault(); rkRo(); return true; }
+    return false;
+  }
+function rkPtrMode() {
+    var mv = $("mv"), ptr = $("rdptr"), P = st.mon.pz, sym = curSym(), on = !!(P && !DSP.hold && (P.attached ? DSP.desk : sym && sym.first === "cursor"));
+    if (mv) mv.classList.toggle("live", on);
+    if (ptr && !on) ptr.classList.remove("on");
+    if (ptr && on && !ptr.classList.contains("on")) rkPtrAt(rkPtrXY[0], rkPtrXY[1], "arrow");
+    return on;
+  }
+function rkPtrAt(x, y, k) {
+    var ptr = $("rdptr"), p = RK_PTR[k] || RK_PTR.arrow;
+    if (!ptr) return;
+    if (ptr.getAttribute("data-k") !== k) { ptr.innerHTML = ptrSvg(k); ptr.setAttribute("data-k", k); }
+    rkPtrXY = [x, y];
+    ptr.style.transform = "translate(" + Math.round(x - p[1]) + "px," + Math.round(y - p[2]) + "px)";
+    ptr.classList.add("on");
+  }
+function rkPtrMove(e) {
+    var fb = $("rdfb"), r, cur, k;
+    if (!fb || !e.target.closest || !e.target.closest("#rdpan") || !rkPtrMode()) return;
+    r = fb.getBoundingClientRect();
+    cur = st.mon.pz.attached ? e.target.closest("[data-cur]") : null;
+    k = cur ? cur.getAttribute("data-cur") : "arrow";
+    if (dragSt && dragSt.rk) k = dragSt.mode === "size" ? "nwse" : "arrow";
+    rkPtrAt(clamp((e.clientX - r.left) / (dskScale || 1), 0, FB_W), clamp((e.clientY - r.top) / (dskScale || 1), 0, FB_H), k);
+  }
+function rkFocusDom(id) {
+    var P = PZ();
+    rkFocus(id);
+    all("#dsk .rk-win").forEach(function (w) { var k = w.getAttribute("data-rw"); w.classList.toggle("focus", k === id); w.style.zIndex = 6 + Math.max(0, P.rz.indexOf(k)); });
+    if ($("rktasks")) $("rktasks").innerHTML = rkTasksHtml();
+  }
+function rkDragStart(e, el) {
+    var id = el.getAttribute("data-rwd") || el.getAttribute("data-rwr"), W = rkW(id), p = ptOf(e), r = W.max ? { x: 0, y: 34, w: FB_W, h: FB_H - 34 } : { x: W.x, y: W.y, w: W.w, h: W.h };
+    rkFocusDom(id);
+    dragSt = { rk: id, mode: el.getAttribute("data-rwr") ? "size" : "move", x0: p.x, y0: p.y, r0: r };
+    if (e.cancelable) e.preventDefault();
+  }
+function rkDragMove(d, p) {
+    var W = rkW(d.rk), el = document.querySelector('#dsk [data-rw="' + d.rk + '"]'), s = dskScale || 1, dx = (p.x - d.x0) / s, dy = (p.y - d.y0) / s, m = RK_MIN[d.rk];
+    W.max = false;
+    if (d.mode === "move") { W.x = Math.round(clamp(d.r0.x + dx, 120 - d.r0.w, FB_W - 120)); W.y = Math.round(clamp(d.r0.y + dy, 34, FB_H - 40)); W.w = d.r0.w; W.h = d.r0.h; }
+    else { W.x = d.r0.x; W.y = d.r0.y; W.w = Math.round(clamp(d.r0.w + dx, m[0], FB_W - W.x)); W.h = Math.round(clamp(d.r0.h + dy, m[1], FB_H - W.y)); }
+    if (d.rk === "mb") PZ().mbp = { x: W.x, y: W.y, w: W.w, h: W.h };
+    if (el) { el.style.left = W.x + "px"; el.style.top = W.y + "px"; el.style.width = W.w + "px"; el.style.height = W.h + "px"; }
+  }
+function rdDeskOn(keep) {
+    var cv = $("msig");
+    DSP.desk = true;
+    rkState();
+    if (!PZ().rf && rkW("mb").open) rkFocus("mb");
+    if (!keep || !$("rkwins")) rkDeskRender();
+    if (cv) { cv.classList.add("off"); cv.classList.remove("dim", "lock"); }
+    stopLoop();
+    rkPtrMode();
+    fitDesk();
+    rdStatusSync();
+    hudSync();
+  }
+function rdFinale() {
+    var P = PZ(), cv = $("msig"), d = $("dsk"), slow = !calm(), steps = [];
+    if (!cv || !d) { rdDeskOn(); return; }
+    SCH.settle(DSP.seq);
+    stopLoop();
+    rkState();
+    DSP.hold = true;
+    steps.push({ t: 0, fn: function () { cv.classList.remove("off", "blank"); paintFrame(0); cv.classList.add("lock"); rdWords("on", "attached"); hudSync(); } });
+    steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; P.fitDue = false; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow);  save(); } } });
+    steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; d.classList.add("rd-finale"); rkDeskRender(true); } });
+    steps.push({ t: slow ? 560 : 140, fn: function () { rkWall(); } });
+    steps.push({ t: slow ? 2450 : 500, fn: function () { DSP.hold = false; rkPtrMode(); } });
+    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(true); reportAttach(); save(); } });
+    DSP.seq = SCH.run($("mv"), steps, function () { d.classList.remove("rd-finale"); });
+  }
+function rdAutoFit(now) {
+    var P = PZ();
+    if (P.fit || !(now || P.fitDue)) return;
+    P.fit = true;
+    P.fitDue = false;
+    if ($("w-scr") && !st.mon.win.scr.max) winMax("scr");
+    save();
+  }
+function rdFit(instant) {
+    var el = $("w-scr"), a, b;
+    if (!el) return;
+    a = el.getBoundingClientRect();
+    winMax("scr");
+    b = el.getBoundingClientRect();
+    if (instant || !el.animate || !a.width || !b.width) return;
+    el.animate([{ transform: "translate(" + (a.left - b.left) + "px," + (a.top - b.top) + "px) scale(" + a.width / b.width + "," + a.height / b.height + ")", transformOrigin: "0 0" }, { transform: "none", transformOrigin: "0 0" }], { duration: 460, easing: "cubic-bezier(.16,.84,.24,1)" });
+  }
+function rdScreenHtml() {
+    return '<div class="rd-pan" id="rdpan"><div class="rd-fb" id="rdfb"><canvas id="msig" width="' + FB_W + '" height="' + FB_H + '" role="img" aria-label="Remote screen"></canvas><div class="rdk hide" id="dsk"></div><div id="rdptr" aria-hidden="true"></div></div></div><div class="rd-neg" id="rdneg" aria-live="polite"><span id="rdnegt"></span><i></i></div>' + rdMenuHtml();
+  }
+function rdDisplayInit() {
+    var P = st.mon.pz;
+    DSP.desk = false;
+    DSP.hold = false;
+    rkPop = "";
+    rkDlg = null;
+    rkBack = null;
+    fitDesk();
+    if (P && P.attached) { rdDeskOn(); rdAutoFit(false); return; }
+    if (P && P.shown) rdLive();
+    else { rdWords("off", "no signal"); hudSync(); }
+  }
+function fitDesk() {
+    var mv = $("mv"), fb = $("rdfb");
+    if (!mv || !fb) return;
+    dskScale = st.mon.scale === "one" ? 1 : (mv.clientWidth || FB_W * 0.62) / FB_W;
+    fb.style.transform = st.mon.scale === "one" ? "" : "scale(" + dskScale + ")";
+    hudSync();
+  }
+function refreshSignal() {
+    var P = st.mon.pz;
+    if (!P || !$("msig") || (DSP.seq && DSP.seq.live)) return;
+    if (P.attached && DSP.desk) { rdStatusSync(); hudSync(); return; }
+    rdLive();
+  }
+function ensureWin() {
+    var M = st.mon, w = $("wsp"), W = w ? w.clientWidth : 0, H = w ? w.clientHeight : 0, tw, sw;
+    W = W || 1200;
+    H = H || 700;
+    if (!M.win) {
+      tw = Math.min(560, Math.max(400, Math.round(W * 0.43)));
+      sw = Math.max(420, W - tw - 60);
+      M.win = { term: { x: 20, y: 20, w: tw, h: Math.min(620, H - 40) }, scr: { x: tw + 40, y: 20, w: sw, h: scrH(sw) } };
+    }
+    return M.win;
+  }
+function placeWin(id) {
+    var el = $("w-" + id), r = st.mon.win && st.mon.win[id];
+    if (!el || !r) return;
+    el.style.left = r.x + "px";
+    el.style.top = r.y + "px";
+    el.style.width = r.w + "px";
+    el.style.height = r.h + "px";
+  }
+function front(id) {
+    st.mon.top = id;
+    ["term", "scr"].forEach(function (k) {
+      var el = $("w-" + k);
+      if (!el) return;
+      el.style.zIndex = k === id ? 3 : 2;
+      el.classList.toggle("front", k === id);
+    });
+  }
+function narrow() { var w = $("wsp"); return !!w && w.clientWidth > 0 && w.clientWidth <= 900; }
+function ptOf(e) { var t = e.touches && e.touches[0]; return { x: t ? t.clientX : e.clientX, y: t ? t.clientY : e.clientY }; }
+function startDrag(e, id, mode) {
+    var p = ptOf(e), r, el, b;
+    r = st.mon.win && st.mon.win[id];
+    el = $("w-" + id);
+    if (!r || !el) return;
+    dragSt = { id: id, mode: mode, x0: p.x, y0: p.y, r0: { x: r.x, y: r.y, w: r.w, h: r.h } };
+    el.classList.add("drag");
+    if (e.cancelable) e.preventDefault();
+  }
+function moveDrag(e) {
+    var d = dragSt, p, dx, dy, r, W, H, el, mw, mh;
+    if (!d) return;
+    p = ptOf(e);
+    if (d.rk) { rkDragMove(d, p); return; }
+    r = st.mon.win[d.id];
+    W = $("wsp").clientWidth || 1200;
+    H = $("wsp").clientHeight || 700;
+    dx = p.x - d.x0;
+    dy = p.y - d.y0;
+    if (d.mode === "move") {
+      r.x = Math.round(clamp(d.r0.x + dx, 90 - r.w, W - 90));
+      r.y = Math.round(clamp(d.r0.y + dy, 0, H - 38));
+    } else {
+      mw = WIN_MIN[d.id][0];
+      mh = WIN_MIN[d.id][1];
+      r.w = Math.round(Math.max(mw, d.r0.w + dx));
+      r.h = d.id === "scr" ? scrH(r.w) : Math.round(Math.max(mh, d.r0.h + dy));
+    }
+    r.max = false;
+    placeWin(d.id);
+    if (d.id === "scr") fitDesk();
+  }
+function endDrag() {
+    var d = dragSt, el;
+    if (!d) return;
+    dragSt = null;
+    el = $("w-" + d.id);
+    if (el) el.classList.remove("drag");
+    save();
+  }
+function winMax(id) {
+    var r = st.mon.win[id], W = $("wsp").clientWidth || 1200, H = $("wsp").clientHeight || 700, w;
+    if (r.max) { Object.assign(r, r.prev, { max: false, prev: null }); }
+    else {
+      r.prev = { x: r.x, y: r.y, w: r.w, h: r.h };
+      w = Math.min(W, Math.floor((H - 76) * DESK_W / DESK_H));
+      r.x = Math.round((W - w) / 2);
+      r.y = 0;
+      r.w = w;
+      r.h = scrH(w);
+      r.max = true;
+    }
+    placeWin(id);
+    front(id);
+    fitDesk();
+  }
+function openMonitorWindow() {
+    var wsp = $("wsp");
+    if (!wsp || $("w-scr")) return;
+    ensureWin();
+    wsp.insertAdjacentHTML("beforeend", monWinHtml());
+    placeWin("scr");
+    front("scr");
+    DSP.desk = false;
+    fitDesk();
+    if (st.mon.pz.attached) { rdDisplayInit(); return; }
+    hudSync();
+    rdBring(true);
+  }
+function drawWork() {
+    var M = st.mon, t = targetById(M.host), P = M.host === "cold" ? PZ() : null;
+    $("stage").innerHTML = '<div class="rdc rd-work">' + rdTop('<div class="rd-sess"><i class="rd-live"></i><b>' + esc(t.name) + '</b><span class="rd-chip">' + esc(t.tag) + " <i>" + esc(t.lan) + '</i></span></div><span class="rd-clk" id="mclk">00:00</span><button class="rd-ghost out" data-act="monout">' + ic("out") + "Disconnect</button>") + '<div class="rd-wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
+    ensureWin();
+    placeWin("term");
+    front(M.top || "term");
+    renderScroll();
+    lastHint = "";
+    refreshTerm();
+    SCH.wait(1100, function () { var p = $("tstat"); if (p) p.classList.remove("on"); }, $("tstat"));
+    if (P && P.applied) restoreMonitorWindow();
+    tickClock();
+    monFocus();
+    if (rdEnter) rdEntrance();
+    if (M.host === "cold" && !SCENE) SCH.wait(1200, function () { if (!SCENE && !(DSP.seq && DSP.seq.live)) sceneCanvas(); }, $("wsp"));
+  }
+function restoreMonitorWindow() {
+    var wsp = $("wsp");
+    wsp.insertAdjacentHTML("beforeend", monWinHtml());
+    $("w-scr").classList.remove("pop");
+    placeWin("scr");
+    front(st.mon.top || "term");
+    rdDisplayInit();
+  }
+function lockText() {
+    var s = Math.max(1, Math.ceil((st.mon.lock - Date.now()) / 1000));
+    return "Too many attempts. Try again in " + s + " s.";
+  }
+function drawMonitor() {
+    var M = st.mon;
+    if (M.view === "work" && !targetById(M.host)) M.view = "login";
+    if (M.view === "work") { drawWork(); return; }
+    $("stage").innerHTML = monLoginHtml();
+  }
+var RD_STEPS = ["Reading the token", "Checking the format", "Signing in", "Locating the host", "Matching the device", "Confirming the approval", "Opening the session"];
+var RD_FAILS = ["Token unreadable.", "Token format not recognised.", "Sign-in failed.", "Address is not on the monitoring network.", "Address and device tag do not match.", "Approval does not cover this address."];
+var RD_MARK = '<svg class="rd-mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="1.8" y="2.8" width="15.4" height="11.4" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="9" width="16.2" height="12.6" rx="3" fill="currentColor"/><path d="M13.2 12.6v6.2l1.7-1.6 1.2 2.6 1.4-.6-1.2-2.6 2.3-.1z" fill="#1c1f24"/></svg>';
+var RD_GLYPH = '<svg class="rd-g" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path class="g-arc" d="M7 1a6 6 0 0 1 6 6"/><path class="g-ok" d="M4.1 7.3l2 2 3.9-4.2"/><path class="g-no" d="M4.8 4.8l4.4 4.4M9.2 4.8l-4.4 4.4"/></svg>';
+var rdSeq = null;
+var rdEnter = false;
+function rdTop(right) { return '<header class="rd-top"><div class="rd-brand">' + RD_MARK + '<span>Remote Desktop Connection</span></div>' + (right || "") + "</header>"; }
+function rdRouteHtml() {
+    return '<aside class="rd-route" id="rdroute" aria-hidden="true"><div class="rd-pt rd-from"><i class="rd-dot">' + ic("globe") + '</i><div><b>This browser</b><span>Ready</span></div></div><div class="rd-track"><ol class="rd-steps" id="rdsteps"></ol></div>' +
+      '<div class="rd-pt rd-end" id="rdhost"><i class="rd-dot">' + ic("monitor") + '</i><div><b id="rdhn">Remote host</b><span id="rdhs">Awaiting token</span></div></div></aside>';
+  }
+function rdWave(y, cls, col) {
+    var d = "M-40 " + y, x;
+    for (x = -40; x < 1640; x += 320) d += " H" + (x + 110) + " l8 -6 l8 6 H" + (x + 170) + " l6 10 l9 -58 l9 72 l6 -24 H" + (x + 250) + " l14 -14 l14 14 H" + (x + 320);
+    return '<g class="' + cls + '" stroke="' + col + '"><path class="base" d="' + d + '"/><path class="run" pathLength="1000" d="' + d + '"/></g>';
+  }
+function rdTraces() { return '<svg class="rd-traces" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">' + rdWave(150, "t1", "#5cb8ff") + rdWave(470, "t2", "#5be39b") + rdWave(790, "t3", "#ab8cff") + "</svg>"; }
+function rdErrHtml(t) { return ic("alert") + "<span>" + esc(t) + "</span>"; }
+function monLoginHtml() {
+    var M = st.mon, locked = M.lock > Date.now(), msg = locked ? lockText() : M.err;
+    return '<div class="rdc rd-login">' + rdTop("") + '<main class="rd-lg">' + rdTraces() + '<section class="rd-card" id="rdcard"><div class="rd-form"><h1>Connect to a workstation</h1><p class="rd-lead">Paste the access token issued for the host you want to open.</p><label class="rd-lab" for="mtok">Access token</label>' +
+      '<div class="rd-tokw"><textarea id="mtok" class="rd-tok" name="token" rows="4" autocomplete="off" spellcheck="false" placeholder="Paste the token here" aria-describedby="mlerr"></textarea><i class="rd-scan"></i></div><div class="rd-act"><p class="rd-err" id="mlerr" aria-live="polite">' + (msg ? rdErrHtml(msg) : "") + '</p><span class="sp"></span>' +
+      '<button class="rd-btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '><span class="rd-bl">Connect</span><i class="rd-bar" id="rdbar"></i></button></div></div>' + rdRouteHtml() + '</section><p class="rd-fine">Each token is issued for one host. Remote Desktop Connection is an independent service.</p></main></div>';
+  }
+function rdBusy() { return !!(rdSeq && rdSeq.live); }
+function rdBusyUi(on) {
+    var b = $("mbtn"), t = $("mtok"), c = $("rdcard");
+    if (c) c.classList.toggle("busy", on);
+    if (t) t.readOnly = on;
+    if (!b) return;
+    b.classList.toggle("busy", on);
+    b.setAttribute("aria-busy", on ? "true" : "false");
+    b.querySelector(".rd-bl").textContent = on ? "Connecting" : "Connect";
+    b.disabled = !on && st.mon.lock > Date.now();
+    if (!on) $("rdbar").style.transform = "";
+  }
+function rdStep(k, state) {
+    var ol = $("rdsteps"), li, bar = $("rdbar");
+    if (!ol) return;
+    li = ol.children[k - 1];
+    if (!li) { ol.insertAdjacentHTML("beforeend", '<li class="rd-st">' + RD_GLYPH + "<span>" + RD_STEPS[k - 1] + "</span></li>"); li = ol.children[k - 1]; }
+    li.setAttribute("data-s", state);
+    if (bar) bar.style.transform = "scaleX(" + ((state === "on" ? k - 0.5 : k) / 7).toFixed(3) + ")";
+  }
+function rdResetRoute() {
+    var ol = $("rdsteps"), h = $("rdhost"), r = $("rdroute");
+    if (ol) ol.innerHTML = "";
+    if (h) h.classList.remove("on");
+    if (r) r.classList.remove("rd-fail");
+    if ($("rdhn")) $("rdhn").textContent = "Remote host";
+    if ($("rdhs")) { $("rdhs").textContent = "Connecting"; $("rdhs").className = ""; }
+    if ($("mtok")) $("mtok").classList.remove("bad");
+  }
+function rdHostReveal(h) {
+    var el = $("rdhost");
+    if (!el) return;
+    el.classList.add("on");
+    $("rdhn").textContent = h.name;
+    $("rdhs").textContent = h.tag;
+    $("rdhs").className = "rd-id";
+  }
+function rdFailRoute() {
+    var r = $("rdroute"), s = $("rdhs");
+    if (r) r.classList.add("rd-fail");
+    if (s) s.textContent = "Not reached";
+  }
+var LEAVE_MS = 360;
+function rdTiming() { return calm() ? { a: 30, gap: 105, res: 75, host: 110, rej: 160 } : { a: 200, gap: 960, res: 760, host: 640, rej: 420 }; }
+function rdFailCommit(r) {
+    var M = st.mon, now;
+    now = Date.now();
+    M.fails++;
+    if (M.fails >= LOCK_AFTER) { M.lock = now + LOCK_SECONDS * 1000; M.fails = 0; }
+    M.err = r.msg;
+    if ($("mlerr")) $("mlerr").innerHTML = rdErrHtml(M.lock > now ? lockText() : M.err);
+    if ($("mbtn")) $("mbtn").disabled = M.lock > now;
+    save();
+  }
+function rdOkCommit(h) {
+    rdEnter = true;
+    startSession(h);
+    save();
+  }
+function rdLeave() {
+    var lg = document.querySelector("#stage > .rd-login");
+    if (lg && !calm()) lg.classList.add("rd-leave");
+  }
+function rdLoginSteps(r) {
+    var n = r.host ? 7 : Math.max(1, RD_FAILS.indexOf(r.msg) + 1), T = rdTiming(), out = [], k, end = T.a + (n - 1) * T.gap + T.res;
+    for (k = 1; k <= n; k++) (function (i) {
+      var at = T.a + (i - 1) * T.gap;
+      out.push({ t: at, fn: function () { rdStep(i, "on"); } });
+      out.push({ t: at + T.res, fn: function () { rdStep(i, i === n && !r.host ? "bad" : "ok"); if (i === n && !r.host) { rdFailCommit(r); rdFailRoute(); } } });
+    })(k);
+    if (r.host) {
+      out.push({ t: end + 10, fn: function () { rdHostReveal(r.host); } });
+      out.push({ t: end + T.host, fn: rdLeave });
+      out.push({ t: end + T.host + (calm() ? 0 : LEAVE_MS), fn: function () { rdOkCommit(r.host); } });
+      return out;
+    }
+    out.push({ t: end + 5, fn: function (fast) { var c = $("rdcard"), t = $("mtok"); if (t) t.classList.add("bad"); if (c && !fast && !calm()) { c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); } } });
+    out.push({ t: end + T.rej, fn: function () { var t = $("mtok"); rdBusyUi(false); if ($("rdcard")) $("rdcard").classList.remove("nudge"); if (t) t.focus(); } });
+    return out;
+  }
+function monLogin() {
+    var M = st.mon, box = $("mtok"), r;
+    if (M.lock > Date.now() || rdBusy()) return;
+    r = tokenCheck(box ? box.value : "");
+    rdResetRoute();
+    if ($("mlerr")) $("mlerr").textContent = "";
+    rdBusyUi(true);
+    rdSeq = SCH.run($("rdcard"), rdLoginSteps(r));
+  }
+function rdEntrance() {
+    var root = document.querySelector("#stage > .rd-work");
+    rdEnter = false;
+    if (!root || INSTANT) return;
+    root.classList.add("rd-enter");
+    SCH.wait(1150, function () { root.classList.remove("rd-enter"); }, root);
+  }
+function startSession(h) {
+    var M = st.mon, Sx;
+    M.view = "work";
+    M.host = h.id;
+    M.err = "";
+    M.fails = 0;
+    M.lock = 0;
+    M.t0 = Date.now();
+    M.top = "term";
+    if (h.id === "cold") ensureSeed(M);
+    else if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+    if (h.id === "cold") PZ();
+    Sx = S();
+    if (!Sx.scroll.length) Sx.scroll = bannerItems(h);
+    if (h.id === "cold") {}
+    drawMonitor();
+  }
+function monOut() {
+    var M = st.mon;
+    SCH.settle();
+    M.view = "login";
+    M.err = "";
+    drawMonitor();
+  }
+function lockTick() {
+    var M = st.mon, el = $("mlerr"), b = $("mbtn");
+    if (!el || !M.lock) return;
+    if (M.lock > Date.now()) { el.innerHTML = rdErrHtml(lockText()); if (b) b.disabled = true; return; }
+    M.lock = 0;
+    M.err = "";
+    el.textContent = "";
+    if (b) b.disabled = false;
+  }
+function tickClock() {
+    var M = st.mon, el = $("mclk"), t = M.t0, s, d = $("dclk");
+    if (el && t) {
+      s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+      el.textContent = pad(Math.floor(s / 60)) + ":" + pad(s % 60);
+    }
+    if (d) d.textContent = fakeClock();
+    if (M.view === "login") lockTick();
+    SCH.sweep();
+  }
+function bannerItems(h) { return [{ k: "b", h: h.tag, c: h.id === "cold" }]; }
+function act(a, d) {
+  if (a === "monlogin") { monLogin(); return; }
+  if (a === "rdmenu") { rdMenu(); return; }
+  if (a === "rdscale") { rdScale(d.v); return; }
+  if (a === "monout") { monOut(); return; }
+  if (a === "winmax") { winMax("scr"); return; }
+  if (a === "mbopen") { rkOpen("mb"); return; }
+  if (a === "rkmenu") { rkMenuBtn(d.v, d.kb); return; }
+  if (a === "rkitem") { rkItem(d.v, d.el.getAttribute("data-n")); return; }
+  if (a === "rkicon") { rkIcon(d.v, false); return; }
+  if (a === "rktask") { rkTask(d.v); return; }
+  if (a === "rkmin" || a === "rkmax" || a === "rkclose") { rkWinBtn(a, d.v); return; }
+  if (a === "rkloc") { rkLoc(d.v); return; }
+  if (a === "rkfsel") { rkFile(d.v, false); return; }
+  if (a === "rkro") { rkRo(); return; }
+  if (a === "rkok") { rkDlgClose(); return; }
+  if (a === "rkreload") { drawDesk(); return; }
+  if (a === "adoc") { openDoc(d.v); return; }
+}
+function dragStart(e) {
+    var w = e.target.closest ? e.target.closest(".win") : null, bar, rz, rw;
+    if (w) front(w.getAttribute("data-id"));
+    rw = e.target.closest ? e.target.closest("[data-rw]") : null;
+    if (rw && st.mon.pz && st.mon.pz.attached) {
+      bar = e.target.closest("[data-rwd],[data-rwr]");
+      if (bar && !e.target.closest("button")) rkDragStart(e, bar); else rkFocusDom(rw.getAttribute("data-rw"));
+      return;
+    }
+    if (narrow()) return;
+    bar = e.target.closest("[data-win]");
+    rz = e.target.closest("[data-rz]");
+    if (bar && !e.target.closest("button")) startDrag(e, bar.getAttribute("data-win"), "move");
+    else if (rz) startDrag(e, rz.getAttribute("data-rz"), "size");
+  }
+function reportPending() {
+  var P = st.mon.host === "cold" && st.mon.pz ? st.mon.pz : null;
+  if (!P || !P.attached) return;
+  reportAttach();
+  DOCS.forEach(function (d) { if (d.gate && P.docs[d.name]) reportRead(d.gate); });
+}
+function reportRead(gate) { try { if (typeof flatlineRdcRead === "function") flatlineRdcRead(gate); } catch (e) { return; } }
+function reportAttach() { try { if (typeof flatlineRdcAttach === "function") flatlineRdcAttach(1); } catch (e) { return; } }
+function reportSeed(seed) { try { if (typeof flatlineRdcSeed === "function") flatlineRdcSeed(seed); } catch (e) { return; } }
+function ensureSeed(M) {
+  var m = modState();
+  if (m && m.seed > 0) {
+    if (M.seed !== m.seed) { M.seed = m.seed; M.pz = null; }
+    return;
+  }
+  if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+  reportSeed(M.seed);
+}
+function restoreFromMod() {
+  var m = modState(), M = st.mon, P;
+  if (!m) return;
+  if (!m.loggedIn) { if (M.view === "work") st.mon = blankMon(); return; }
+  if (M.view !== "work" || M.host !== "cold") enterWork(M);
+  else ensureSeed(M);
+  P = PZ();
+  if (m.attached && !P.attached) attachedState();
+  if (!P.attached) return;
+  (m.docs || []).forEach(function (n) { DOCS.forEach(function (d) { if (d.gate === n) P.docs[d.name] = true; }); });
+}
+function attachedState() {
+  var R = getRun(), c = solved(R), P = PZ();
+  P.lease = true;
+  P.cfg = c;
+  Object.keys(c).forEach(function (k) { P.set[k] = true; });
+  P.cal = fullSig(c);
+  P.shown = JSON.parse(JSON.stringify(c));
+  P.shownCal = P.cal;
+  P.applied = true;
+  P.attached = true;
+}
+function enterWork(M) {
+  M.view = "work";
+  M.host = "cold";
+  M.err = "";
+  M.fails = 0;
+  M.lock = 0;
+  M.t0 = Date.now();
+  M.top = "term";
+  ensureSeed(M);
+  PZ();
+  S().scroll = bannerItems(targetById("cold"));
+}
+function modState() { try { return typeof flatlineRdcState === "function" ? flatlineRdcState() : null; } catch (e) { return null; } }
+function targetByCode(code) { return TARGETS.filter(function (t) { return t.code === code; })[0]; }
+function reportSignal() {
+  var P = PZ();
+  if (P.signalSent) return;
+  P.signalSent = true;
+  try { if (typeof flatlineRdcSignal === "function") flatlineRdcSignal(1); } catch (e) { return; }
+}
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-act]");
+  if (rdMenuOpen() && !e.target.closest('#rdmenu,[data-act="rdmenu"]')) rdMenu(false);
+  if (rkPop && !e.target.closest("#rkpop,.rk-m")) { rkPop = ""; rkUi(); }
+  if (!b) {
+    if (e.target.closest("#mscroll") && !String(window.getSelection()).length) monFocus();
+    return;
+  }
+  act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), el: b, kb: e.detail === 0 });
+  save();
+});
+document.addEventListener("input", function (e) {
+  if (e.target.getAttribute("data-f") === "rdclip") st.mon.clip = e.target.value;
+  save();
+});
+document.addEventListener("keydown", function (e) {
+  var id = e.target.id;
+  if (e.key === "Escape" && rdMenuOpen()) { e.preventDefault(); rdMenu(false); return; }
+  if (e.ctrlKey && e.altKey && e.shiftKey && /^(Control|Alt|Shift)$/.test(e.key) && $("rdmenu")) { e.preventDefault(); rdMenu(); return; }
+  if (st.mon.pz && st.mon.pz.attached && e.target.closest && e.target.closest("#dsk") && rkKey(e)) { save(); return; }
+  if (id === "mcmd") { monKey(e); save(); return; }
+  if (e.key === "Enter" && !e.shiftKey && id === "mtok") { e.preventDefault(); monLogin(); save(); return; }
+});
+document.addEventListener("mousedown", dragStart);
+document.addEventListener("touchstart", dragStart, { passive: false });
+document.addEventListener("mousemove", moveDrag);
+document.addEventListener("mousemove", rkPtrMove);
+document.addEventListener("dblclick", function (e) {
+  var b = e.target.closest ? e.target.closest("[data-dbl]") : null;
+  if (!b || !st.mon.pz || !st.mon.pz.attached) return;
+  if (b.getAttribute("data-act") === "rkicon") rkIcon(b.getAttribute("data-v"), true);
+  if (b.getAttribute("data-act") === "rkfsel") rkFile(b.getAttribute("data-v"), true);
+  save();
+});
+document.addEventListener("copy", function () {
+  var sel = window.getSelection ? window.getSelection() : null, txt = sel ? String(sel) : "", dk = $("dsk");
+  if (!txt || !dk || !sel.anchorNode || !dk.contains(sel.anchorNode)) return;
+  st.mon.clip = txt;
+  if ($("rdclip")) $("rdclip").value = txt;
+  save();
+});
+if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('400 15px "RdCantarell"'), document.fonts.load('700 14px "RdCantarell"')]).then(function () { SCENE = null; FX.fmt = null; FX.fmtKey = ""; FX.cb = null; FX.cbKey = ""; refreshSignal(); }, function () { return null; });
+document.addEventListener("touchmove", moveDrag, { passive: false });
+document.addEventListener("mouseup", endDrag);
+document.addEventListener("touchend", endDrag);
+window.addEventListener("resize", fitDesk);
+SCH.every(1000, tickClock);
+restore();
+restoreFromMod();
+drawMonitor();
+reportPending();

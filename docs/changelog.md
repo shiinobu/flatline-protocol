@@ -16,13 +16,1340 @@ duplicated here — this file is an index, not the source of truth:
 Categories: `bug`, `mechanic`, `docs`, `milestone`, or a new one if none
 fit. Full detail: `docs/architecture.md` (src/ structure), `docs/bugs.md`
 (bugs — inherited SDK facts plus this project's own findings),
-`docs/mechanics-reference.md` (tools/commands), `docs/implementation-rules.md`
-(process/structure standards).
+`docs/mechanics.md` (tools/commands), `docs/rules.md` (process/structure
+standards). Older entries keep the file names they were written with:
+`mechanics-reference.md`, `implementation-rules.md` and `network-plan.md` are
+now `mechanics.md`, `rules.md` and `network.md`. The Indonesian live-test
+checklists they point to (§11 of the M2 and M3 playtests, §9-10 of M1's) were
+removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-06
+
+- **[milestone] M6 "Open Register" is FINAL and LOCKED** (README #72, `docs/m06-playtest.md` §16.9, `docs/bugs.md` #72). The owner declared the lock on 2026-10-06. The 14 M6 `trace()` calls were removed (`controller/m06/{cipher,index,pages,recon}.ts` and `websites/m06/door/exports.ts`; the `Terminal.Dirhunter` handler existed only to trace, so it went with them), `DEV_FOCUS_QUEST.m06` is back to `false`, typecheck is clean and `src/` has no comments. The `[FP][M06] probe:` and `door:` log lines quoted in the M6 playtest no longer print. Not live-tested as a whole in the game, and the final code review was not run. Accepted as is: the owner's report that the door square's letters do not animate in the game (cause not found, not reproduced in headless Chrome); the ambient flick still returns to the original letter.
+- **[ui] M6: the minutes page is now an organisational document** (`docs/m06-playtest.md` §16.2 item 9). Letterhead with the Nordhaven logo, brand, unit and company no. `PC-061845`; a control strip (reference `NMA/RC/2023/Q4`, meeting date, status `Approved`, classification `Restricted`); an Attendees table (Conrad Lindqvist Chair, Vivien Orchid Head of Cyber Risk, committee secretary Minute-taker) and an Agenda table split into Matter, Discussion and Outcome (`The Chair confirmed that neither event will be minuted again.` is now the Outcome of item 2, word for word); two signatures, Conrad Lindqvist (`Approved and signed`) and Vivien Orchid (`Countersigned`, a new story fact: she co-signed the minutes); a big tilted `RESTRICTED` watermark at 16% opacity over the sheet; at phone width the agenda rows stack as cards. The signatures are SVG outlines of two script fonts from the `ofl/` folder of google/fonts (Herr Von Muellerhoff for Conrad, Mrs Saint Delafield for Vivien), so no font file ships; the licence texts were not read one by one. `html lang` now follows the page language (key `MIN_LANG`). About 30 new `MIN_*` keys, `MIN_PRESENT_LABEL` and `MIN_PRESENT` removed, `M06_MINUTES_REFERENCE` added to `content/m06/minutes.ts`. The reference number, status `Approved`, the minute-taker and the countersignature are invented for the page. zh is a draft; not seen in game.
+- **[mechanic] M6: the Architect key reads the minutes, and the minutes get an evidence card** (`docs/m06-playtest.md` §12, §16.1 step 12). BACKTRACE `architect` was already traced by opening `/minutes/` on the door host; its finding 8 and its personal log now describe what the minutes show (the Chair declared the Holdings directorship, kept the chair, and confirmed two settlements would not be minuted again) instead of the registry officer record. New board card `EV-M6-03 Risk Committee minutes` (chair, interest declared, settlements, minuting, meeting) is pinned to the Architect and the insurer; the `officer` row moved there from `EV-M6-02`, which is now certificate-only. New facts `minutesInterest`, `minutesSettlements`, `minutesMeeting`; the two minutes dates are now constants in `content/m06/minutes.ts` (English page text only, the zh date stays literal). zh is a draft; not seen in game.
+- **[mechanic] M6 door: help for finding the four keys, a found-counter and a centred frame** (`docs/m06-playtest.md` §16.8). The Registry record note now says historic filings sit in an archive that is not listed in the index; the door's `Reading a pair` card says a right key turns the sentence into plain English; slot 2 reads `incorporated two days after the first one was dissolved`; a `{{n}} of {{total}} found` counter sits next to `Key words` (new SharedVariables mirror `flatline.m06.keysFound`, +1 at `filing2019Opened`, `filing2024Opened` and `insurerLinked`; the second factor is not counted); a dead-drop mail `the agent files what it is told` arrives after the agent `whois`. The tip mail no longer says the door `belongs to the insurer` (the door is anonymous). The corner brackets of the square are 3 px bars centred on the thin frame line. The minutes line `neither event will be minuted again` stays. zh is a draft.
+- **[ui] M6 door: the wait text drops the seconds, and a reload under a wait no longer scrambles the square under the countdown** (`docs/m06-playtest.md` §16.2 item 4). `Too many attempts. Try again in {{s}} s.` is now `Too many attempts.` (zh `尝试次数过多。`) because the big digit over the square already shows the seconds, and the status line is set once instead of every second. After a wait the failure count now starts over (two free tries, the 3rd failure locks 10 s again; before, every failure after the first wait locked at once). A page loaded during a wait used to run its boot scramble dimmed under that digit and read as broken: it now settles the square at once and plays the boot scramble when the wait ends, and the boot has a 1.8 s guard so it cannot leave random letters behind. Owner report after a live test; a fresh load, three failures and the expiry all behaved in headless Chrome, so the cause is read from the code, not reproduced. Not seen in game.
+- **[mechanic] M5: LeakIndex is a mission-gated decoy again** (`docs/m05-playtest.md`). `Popular` is removed and the icon is empty again; the site moved from `src/websites/global/leakindex/` back to `src/websites/m05/leakindex/` behind `gateMissionPages("m05")` and registers from `main/m05.ts` instead of `main/global.ts`. The host stays in the tool-site fixtures and the site still gates nothing. Its in-world pointer is a new Roxanne post (`GRETA_POST_19`, right after the password-policy one) that names `leakindex.net`, so the decoy is easy to stumble into from her feed; it replaces the v1 `edgeMapped` lead mail (`6f25f9b`), and a mail at `gretaProfiled` that was tried first the same day was dropped (`m05-playtest.md` §6, §8). Her profile now has 19 posts. zh is a draft; not seen in game.
+
+- **[mechanic] M06 v2 installed: the investigation now ends at a Playfair door** (README #70, `docs/m06-playtest.md` §16). The 10-step chain
+  became 13 gated steps (`doorSeen`, `filing2019Opened`, `filing2024Opened`, `holdingsRead`, `doorOpened` are new; `filing2019Seen`,
+  `filing2024Seen` and `snapshotsCompared` are gone). The new anonymous host `x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion` (the page carries no Nordhaven branding) shows a scrambled Playfair sentence (`BEHIND THE WALL`, 7 pairs)
+  and a live 5x5 square built from three key-word slots; the mod checks the decoded sentence plus a second factor (`5d86`, the end of the
+  certificate fingerprint shared by `vpn.skn-central.net` and `portal.nordhaven-mutual.com`) through `Exports.flatlineDoorTry`, with a
+  10 s cooldown after two free tries and no lockout. A correct answer sweeps the page blank and shows a note from the author and the decoded phrase before the link to the minutes. The 2019 and 2024 filings are sealed and chained (Cipher Desk, mission `m06`; keys `PC-114772-2019`
+  and `PC-098431-2021-11-30`), the Holdings record gained a company secretary as a decoy, and one evidence page (the Risk Committee
+  minutes signed by Conrad Lindqvist) sits behind the door. Stages are now closed 0, register 1, archive 2, filings 3, ownership 4,
+  door 5, identity 6; the door, HostTrail and the insurer `whois` fixtures all open at `insurerLinked` (unlock renamed `infraRecords`).
+  The insurer `whois` (`infraLinked`) is off the door chain: `doorOpened` needs `doorSeen` and `insurerLinked`, and the report needs
+  `identityProven` and `infraLinked`; `registryReached` needs only the tip. All four M6 sites were restyled (Registry and HostTrail with
+  shared chrome, the door and the minutes new). Every step has a hint in the "not yet" reply (13 hints, en and zh). Typecheck clean;
+  never built or seen in game. The Playfair ciphertext was computed by hand and checked in both directions; the code reviewer
+  re-derived it independently and agreed.
+- **[bug] M06 v2 review fixes** (`docs/m06-playtest.md` §16): the code reviewer found that a `<form>` submit does nothing in a mod page
+  (`docs/app-asar-reference.md` E-10), so the door's Unlock button was dead. It is now a plain button with a click handler and an Enter
+  handler on both fields (the pattern the Registry and HostTrail already use). The automatic jump after unlocking (`location.assign`,
+  not the in-game navigation path) was removed; the `Open the minutes` link, an anchor like the Registry links, stays. A correct
+  answer is no longer rejected before the insurer `whois` (the trap above), and the second factor ignores separators (`5d:86` works).
+  Other pages still using a `<form>` (not touched, M5 is locked): `websites/m05/hospital/frame.html` and
+  `websites/global/echoline/index-page.html`; whether they work in game was not checked here.
+- **[milestone] M06 "Open Register" passes its first live test, and the zero-network path is proven** (`docs/bugs.md` #47 and #51,
+  `docs/m06-playtest.md` §15). The owner walked the full chain under `DEV_FOCUS_QUEST.m06` on a save with M3 complete (08:48 to 09:11,
+  `hackhub-2026-10-06.log`): `probe:zero-network register built=true` at the start and `built=false` after a mod reload, `probe:stage`
+  0 → 5 in step order, `dirhunter pcr-registry.org` printed `/filings/archive/` with no subnet anywhere (owner's screen), both `whois`
+  gates, the two-filing join, the two-branch gate before `/officer/c9m2/`, the Echoline capture, HostTrail and the report, ending with
+  `reward skipped under focus: 4000`; no error entry in the log. Not confirmed in this run: the screen checks (first search, the 404s,
+  the M3 consequence text), the early-report reply and the Voss rejection, the BACKTRACE card and the Chinese pass. No code changed;
+  `src/guard/flags.ts` still carries the local `m06: true` and must go back to `false` before any commit. Open observation:
+  `onObjectivesStartM06` ran twice at the first start (#47).
+- **[milestone] M5 "The Door" is FINAL and LOCKED; the Remote Desktop Connection (RDC) finish is installed** (README #69). The owner declared M5
+  final and its live test passed; unchecked items of `docs/m05-playtest.md` are accepted, not bugs. The last piece of M5 is the RDC
+  redesign: a mockup was reviewed in five rounds, then ported to `src/websites/global/rdcdesk/style.html` and `script.html` (no other
+  file of the page changed). Look: new graphite palette with one colour per state, tiles and lamps in the window title bars, a
+  single-rail login route with icons on the browser and host circles, a console with `.tbox` panels for `help` and `agent diag`
+  (the ASCII boxes are gone), `.tblk` command blocks with tinted output, a five-lamp signal chain, a hint bar with an icon and a
+  state colour, and a monitor footer in the style of the remote panel (status left, size | fps | bpp centred, link and fit right).
+  Behaviour: **no skips anywhere** (login route click, display-negotiation click and the global Escape are removed); the login runs
+  at 200 / 960 / 760 / 640 / 420 ms and cannot be fast-forwarded, the login card leaves for 360 ms before the workspace enters (1150 ms);
+  a failed login paints the route solid red down to the remote host and the host reads "Not reached" (idle "Awaiting token", running
+  "Connecting"); after `agent attach` the desktop shows directly and no browser window opens by itself (the finale, the restored state and
+  the pre-attach picture lost the browser); the Applications menu no longer pre-highlights its first item (mouse focuses the popover,
+  keyboard the first item, ArrowUp from the popover goes to the last item); the taskbar keeps open order (new `ro` list) while windows
+  keep focus order; new remote windows animate in once. Fixes found while porting: the shell's `.chg{margin}` and `.fl{column}` rules
+  leaked into the console cells and the monitor footer (neutralised in the RDC rules), and a focused console input showed the shell's
+  input ring. Decoy hosts (`PC-IT-017` and the others) get a single-column pipe, dark lamps and a dim hint. The console prompt starts
+  at `(agent)-[/]` (the page already did; the mockup said `/root`). Verified on the real page in headless Chrome (harness in the
+  session scratchpad): 41 + 34 + 27 checks (login, fail route and hit-tests at 1280, 900 and 520 px, terminal, attach finale, menus,
+  taskbar), non-cold host, disconnect and lock, restore from the mod mirror, reduced motion, and a computed-style comparison against
+  the mockup (only intended differences); `tsc` clean, zero comments, not built, not seen in HackHub itself. Next: M6.
+- **[mechanic] M1 LedgerVault folder Q3-2026-SEA has seven new photographs** (README #67). `public/assets/m01/q3-receipt.jpg`,
+  `q3-recon.jpg`, `q3-accesskit.jpg` and `q3-visitorpass.jpg` are the owner's friend's JPGs, kept as delivered; `q3-notice.png`,
+  `q3-corridor.png` and `q3-scheduling.png` came from Creative Claw (gpt-image-2.5-sunburst, 13 + 13 + 16 credits). `q3-receipt.png`
+  and `q3-foundnote.png` are deleted; `q3-exterior.png` stays for the login backdrops of the portal, RDC and the dashboard preview.
+  Rows in `websites/m01/ledgervault/home.html`: receipt Aug 03, recon Jul 09, corridor Aug 15, notice Aug 14, scheduling Aug 14,
+  access kit Aug 07, visitor pass Aug 03; Recent lists `found_note.txt`, `case_id.txt`, `network_map.txt`, corridor and scheduling;
+  Shared lists the receipt. New names `NAME_Q3_RECON`, `NAME_Q3_ACCESSKIT` and `NAME_Q3_VISITORPASS` (en and zh) in
+  `i18n/m01/ledgervault.ts`.
+- **[mechanic] `found_note.txt` is signed "-- R.a.N"** (the base64 SVG in `home.html` was decoded and re-encoded).
+- **[fix] M1's eight `pacificcare-health.org` records and `M01_HOSPITAL_DOMAIN` / `M01_HOSPITAL_IP` are gone from
+  `content/m01/network.ts`** (owner's permission to edit locked M1: M5 owns the domain with other addresses; README #58 and #67).
+- **[mechanic] The hospital home has eight photographs** (`public/assets/m05/hospital-*.jpg`, 1248 x 832, the owner's files; the hero is
+  the photo, the care cards and the specialty and about panels use `url("./assets/m05/…")` with the old gradient as a fallback) and a
+  phone-width fix for the hero chip. Headless Chrome only, not seen in the game (`docs/m05-playtest.md` section 21).
+- **[fix] The service-notice image on the hospital home is a flat BLACKLEDGER screen capture** (`public/assets/m05/pacificcare-lockscreen.jpg`,
+  1536 x 864, Creative Claw, 13 credits), not the operating-theatre photo: the notice talks about the Patient Portal and scheduling, and
+  the photo spelled out "Operating Theatre 3" on a public page. The alt text is "cached lock screen: SYSTEM UNAVAILABLE, Q3-2026-SEA"
+  (en and zh), the note under it is unchanged, and the old `.png` is gone.
+- **[bug] Found and fixed: `docs/bugs.md` #69.** `M05_REPORT_DOOR_TERMS` (`greta`, `souza`; rejected `gareth`) and
+  `M07_REPORT_EVIDENCE_PERSON_TERMS` (`souza`) still held the old surname after the rename, so the M5 `door` answer and the M7 `evidence`
+  answer could not match the names the player reads. They are now `roxanne` / `natnaree` (rejecting `gideon`) and `natnaree`
+  (`content/m05/report.ts`, `content/m07/report.ts`). Typecheck and a matcher check only; the reports were not re-tested in the game.
+- **[docs] Docs brought up to date for the rename and the images.** Names, accounts and the password are swept through
+  `docs/m05-playtest.md`, `m07-playtest.md`, `network.md`, `architecture.md` and world-building 01 to 13; new
+  `docs/world-building/14-rename-m5.md` and README #66 and #67; the Echoline gate, the token hex prefix, the vault and the
+  BACKTRACE thumbnails are described where they live. `npx tsc -p tsconfig.json --noEmit` is clean and all 18 inline `<script>` blocks
+  under `src/websites` parse (node `new Function`, which also shows the `frame.html` search script no longer has a missing `)`).
+  Nothing was built with esbuild or run in the game.
+- **[mechanic] Echoline redesigned for the player (README #68).** The owner could not read the archive: nine captures that looked alike,
+  a five-column table 880 px wide, the people who left struck through at the bottom, and a different logo, number and icon style on
+  every page. A capture page now opens with a sticky bar (Older, "Capture N of 9" with date and ref, Newer), a strip of nine numbered
+  boxes with year-month, the title, a "What changed since the previous capture" card (No longer listed and Newly listed, compared with
+  the capture before; capture 1 says there is nothing earlier) and a two-column list of everyone on that capture with a New chip. The
+  index has one row per capture: number, date, "Most recent", ref and "4 added, 2 removed since the capture before". Gone: the Status
+  and Date columns, the staff filter, the Left block, the +n/-n chips and the decorative meta cards. "Previous" and "Next" are now
+  "Older" and "Newer"; the word "capture" stays. One logo (`websites/global/echoline/brand.ts`), SVG icons only, dates always
+  `YYYY-MM-DD`, text at 13, 15 and 17 px with mono only for addresses and ref codes. Capture 9 is 1587 px tall at 1000 px wide (it was
+  about 2330) and nothing overflows sideways from 360 to 1200 px. 17 new `M05.SITE.EL.*` keys (English only), 14 old keys removed.
+  Typecheck, a stub-SDK render of every page and headless Chrome only; not seen in the game.
+- **[mechanic] Site icons.** Echoline gets an icon, the header logo (a fading echo line in a circle) on a dark tile; it is not `Popular`.
+  RDC and Cipher Desk swap their generic icons for the logo each page shows in its own header (two windows with a cursor; the 3 x 3
+  colour grid), on tiles in that page's own dark colour. The M06 record page (`snapshot-record.html`) takes the new logo and name in its
+  header only; its banner, type and body are unchanged.
+- **[fix] The RDC puzzle seed survives a lost page storage, and `help` lists `man troubleshooting`** (`docs/bugs.md` #70). The seed
+  behind the heads, relays, pids and true display mode was kept only in the page's `localStorage`; it is now also stored in the quest
+  data (`rdcSeed`, first seed wins) and carried by the `flatlineRdcState()` mirror, so a restart between RDC login and `agent attach`
+  returns the same puzzle. New export `flatlineRdcSeed` and event `flatline.rdc.seed`. The agent README (`man agent`) also gains a
+  line saying where heads, relays and the display logs live. Typecheck and a seven-case check of the page
+  logic only; not seen in the game.
+- **[mechanic] The portal's first puzzle becomes a visible chain with two aids** (`docs/bugs.md` #71). Opening the USB ticket HD-4481 is now a gate
+  (`usbFound`, between the foothold and the separation ticket), so the portal has five findings (Config opens at Min 3, Systems and Network at Min 5) and
+  the chain is 22 steps. The dead drop sends a "you're in" mail when the portal login counts, and the Overview alarms became instructions that turn
+  "Acknowledged" as each step counts. `docs/m05-playtest.md` §8 to §10 and the later step numbers were updated. Typecheck, a 32-case run of the real
+  controller code with a stub SDK and a headless Chrome run of the rendered portal in en and zh; not seen in the game.
+- **[docs] Every missing Simplified Chinese string of M5 is written** (owner order, "remote is final"). 43 registered keys had no zh (32 Echoline page keys,
+  four premature hints, three logs, four Twotter posts) and five older zh strings lacked a new sentence or code (`INCIDENT_1_BODY`, `INCIDENT_2_BODY`,
+  `NEWS_3_BODY`, `COMP_OT1` to `COMP_OT3`). A survey of all registered keys now finds none without zh, every `{{t:key}}` marker (500) has both languages,
+  and a click-through of the zh portal found no English prose. Remote Desktop Connection and Cipher Desk stay English only (K15). The zh was not read by the owner.
+
+## 2026-10-05
+
+- **[milestone] M5 "The Door" v2 is built in code: the cloud run's Phases 0 to 2 were merged and the rest of Phase 3 and all of
+  Phase 4 were finished in a local session.** The cloud run (`claude/m05-door-v2`, tip `330657d`) stopped when the owner's credit
+  ran out, before it wrote the hospital web pages or the portal data. Typecheck, the baseline greps and a mocked-SDK harness
+  (67 checks plus 16 static checks, kept outside the repo) pass; nothing was built with esbuild, committed or run in the game.
+  See `docs/m05-playtest.md` (rewritten for the 20-step chain), `docs/bugs.md` #66 and `docs/scratch.md` (2026-10-05).
+- **[mechanic] The hospital web is eight hosts and one renderer.** `pacificcare-health.org` (home and the gated `/it/team`),
+  `news.`, `careers.`, `status.`, `patientportal.`, `mail.` (the webmail decoy answers "This account was disabled on
+  2026-08-19." through `flatlineMailLogin`), `gateway.` and the portal on `remote.`. Code: `websites/m05/hospital/` and
+  `websites/m05/portal/`; data in `content/m05/hospital.ts`, `portal-data.ts` and `portal-signins.ts`; en and zh in
+  `i18n/m05/hospital.ts` and `portal-zh.ts`. Home, Newsroom, Careers, Status and Patient Portal are `seo` pages.
+- **[mechanic] The portal on `remote.` is the lab portal with the game wiring.** `flatlineLogin(user, password)` returns
+  `portal`, `contractor` or `denied`; `flatlinePortalSeen(kind, ref)` returns the current Min; `flatlinePortalState()` lets the
+  page re-read it (on focus and 700 ms after each report). No password or key is in the page source. The sign-in rows are the lab's
+  seeded generator ported to TypeScript and checked row for row against the lab (261 rows, 0 differences). The zh layer is one table
+  (`M05_PORTAL_ZH`) applied to the data on the mod side and to the rendered HTML in the page; it was written without owner review.
+- **[mechanic] `gateMissionPages` hides a closed `seo` page from Goagle** with the `searchStr` pattern of `docs/bugs.md` #63 (404
+  by address, `null` for a search); pages without `seo` still answer the 404 page. The Echoline index is now a `seo` page named
+  "Echoline Web Archive", so Goagle finds it once the team page has been seen.
+- **[mechanic] New SharedVariables mirror `flatline.m05.teamOpen`** (set by `vaultRevisited`, restored at mission start, cleared at
+  completion) opens `/it/team` and the `remote.` login. `settleM05` now retries `portalLoggedIn` when the mirror says Greta is signed
+  in, so a login that arrived before `john` is not lost.
+- **[docs] The M1 hospital site moved to M5** (README #58): the import line in `main/m01.ts` and `websites/m01/pacificcare-health/`
+  are gone, `pacificcare-lockscreen.png` is now `public/assets/m05/` (a `.jpg` screen capture since 2026-10-06), M1's eight domain records were untouched then and were removed on 2026-10-06.
+- **[docs] BACKTRACE `MISSION_LOGS` gained six optional NOTE logs for M5** (portal foothold, separation, controls, hold, the Theatre 3
+  status note and Greta's sealed note); the six required keys and the app are unchanged.
+- **[docs] The Remote Desktop Connection page script is one file** (`websites/global/rdcdesk/script.html`, 1933 lines) by owner
+  instruction; it is the one exception to the 800-line ceiling in `src/websites` (the lab file it came from is 3988 lines).
+- **[docs] Phase 4 documents:** `docs/m05-playtest.md` rewritten, `docs/network.md`, `docs/architecture.md`, `docs/m01-playtest.md`,
+  README #58 to #64, implementation notes in `08-spec-m5-m6.md`, a v2 note in `09-konten-m5-m6.md` and `04-web-layer.md`.
+- **[milestone] M5 puzzle architecture V2: steps 1 to 9 are an evidence chain on the hospital web, and the password is reconstructed,
+  not cracked** (owner's first live test and `FLATLINE_PROTOCOL_Puzzle_Architecture_V2.txt`; English only, zh deferred). The chain is
+  now 21 flags: `tipReviewed`, `vaultRevisited`, `teamPageSeen`, `changeRecordRead`, `staffArchiveCompared`, `gretaProfiled`,
+  `handoverOpened`, `policyRead`, `portalLoggedIn`, then the unchanged portal, RDC and document steps. `credentialFound` and
+  `passwordCracked` are gone with `controller/m05/crack.ts`.
+- **[mechanic] `/it` replaces `/it/team` and carries the story.** Fourteen current staff (Greta is not on it and nothing says anyone
+  left), a four-thread **IT notices** board between Tara and Ruben that hints without naming, a site-wide **Search PacificCare** box
+  (a word at the start of a title or keyword; two characters at least), and two document pages the search finds:
+  `/it/change/:id` (only `SA-0826`) and `/it/policy/:id` (only `IT-DEPT-77`, exact query). Both are registered as patterns so
+  `dirhunter` prints no token. Careers, Status (OT1 to OT3 codes) and Newsroom gained the sentences the chain reads.
+- **[mechanic] Cipher Desk is two layers of the hospital puzzle.** The change record holds a sealed *handover note* (key: the previous
+  holder's account name, `g.desouza`); it names `IT-DEPT-77`. The policy holds a sealed *recovery validation format* (key: the closing
+  change reference, `SA-0826`): `<account local-part>-<affected system code>-<incident date>`. Both open through
+  `SEALED_OPENED_EVENT` (`handoverNote`, `recoveryFormat`) and are held and settled like the portal observations
+  (`controller/m05/evidence.ts`).
+- **[mechanic] Echoline holds nine dated captures of the IT page** (2024-05-14 to 2026-08-18) with real staff churn and four red
+  herrings; the index opens when the change record has been read, and `staffArchiveCompared` needs the 2026-08-18 capture plus any
+  other. Gareth Lim keeps his canon (contractor to 2026-07, from 2025-11-03) and is gone on 2026-08-18 like Greta; the role Careers
+  reopens tells them apart.
+- **[mechanic] Greta's password is `g.desouza-OT3-2026-08-14`.** `Marigold2019` stays as the old, leaked one (LeakIndex record 1, `john`);
+  the portal answers it with "This password was retired during recovery." and it still opens Greta's sealed Twotter post, so
+  LeakIndex is an optional side path with a payoff and gates nothing. Her Twotter gained "OT3 again", "0814 was the night nobody in IT
+  will forget" and two posts about legacy access; `lynx` accepts `g.desouza` as well as the handle and the full name.
+- **[fix] Goagle results of dynamic pages linked to `<host>/search` and opened a 404** (`docs/bugs.md` #67). The five seo hospital
+  sites and the Echoline index register a `/search` alias that renders the same page.
+- **[docs] `docs/bugs.md` #67 and #68** (the `/search` address, `lynx` and emails), `docs/m05-playtest.md` sections 1 to 8 rewritten
+  and the later steps renumbered (21 steps). Typecheck only; nothing was built, run in the game or committed.
+- **[mechanic] M5 rename (README #66, `docs/world-building/14-rename-m5.md`).** Greta de Souza became Roxanne Anindita Natnaree
+  (`rnatnaree`, signature "R.a.N"), Gareth Lim became Gideon Bayu Teoh (`gteoh`) and 30 more names changed, with a random email
+  local-part per person. The password is now `rnatnaree-OT3-2026-08-14` and the Cipher key `rnatnaree` (the Cold-Chart token is still
+  138 hex digits, now starting `3e4353425e595f55`); `Marigold2019` stays the old password. Internal ids (`GRETA_*`, `gretaSeen`, the
+  BACKTRACE key `greta`) are unchanged. The lowercase report-match terms were missed and fixed on 2026-10-06 (`docs/bugs.md` #69).
+- **[mechanic] Echoline redesigned (README #66).** Nine captures on the master timeline (C1 2024-05-14 to C9 2026-08-18; live page
+  stamp 2026-09-02). A capture page shows "Capture N of 9", Status and Date columns, a Left block, the shared mailboxes `servicedesk@`
+  and `it.ops@`, a per-capture "Page last updated" stamp, an archivist note, a late-capture line and +n/-n chips. Step 5 now needs
+  capture `8fq2` and capture `4ec9` (it was the 2026-08-18 capture plus any other).
+- **[mechanic] Hospital web UI pass.** `frame.html` CSS polish, a duplicate `/*__NAV__*/` marker fixed with `NAV_MOBILE`, and the home
+  and frame chrome moved to 77 new i18n keys with a first zh pass (not yet read by the owner).
+
+## 2026-10-04
+
+- **[design] M5 debug lab: the Monitor site is renamed Remote Desktop Connection and rebuilt as an interactive remote
+  desktop on one framebuffer, Cipher Desk is redesigned, and login, encrypt/decrypt and display assembly get real
+  animation.** Puzzle logic and player text are unchanged and none of it has been tested in game yet; see
+  `docs/scratch.md` (2026-10-04 Remote Desktop Connection and Cipher Desk redesign) and `docs/font-licenses.md`. Remote
+  Desktop Connection and Cipher Desk are third-party sites, not part of the hospital's web, so the lab serves them on
+  `rdcdesk-lab.io` and `cipherdesk-lab.io` instead of `*.pacificcare-health.org`.
+- **[milestone] The weblab passed its live test: all six probes behave as the M5 foundation needs.** Run by the owner on
+  2026-10-04 with three debug sites in `src/debug/`: `portallab` (the three lab sites, the Popular grid and Goagle
+  search), `seolab` (a closed `seo` page in four modes) and `exportslab` (website `Exports`). Proven in the running game:
+  `Popular` lists a site in "Goagle apps"; `search` keywords match only on static pages, and a gated page is found through
+  its title or site name; a closed `seo` page can be hidden from Goagle and still answer a visit by address with the 404
+  page (`searchStr` pattern); `Exports` carry strings and numbers to the mod, return values to the page, and let a
+  `SharedVariables` mirror be written and read back after a reload. Not covered: page JS calling `HackhubSDK` (`04-web-layer.md`
+  §C3 and §C4). This is a test result, not a decision to use the features: the M5 foundation of `docs/draft.md` (K1-K9)
+  still waits for the owner. See `docs/bugs.md` #62-#65, `docs/app-asar-reference.md` E-13 to E-16 and
+  `docs/world-building/README.md` #57.
+- **[bug] The lab sites ignored their Goagle keywords and showed no icon.** `portal-lab.ts` registered dynamic pages with
+  `search` inside `metadata()`, which Goagle never reads (only "endpoint monitor" matched, through the title), and left
+  `Icon` empty, so the Popular grid drew the pale default globe. The pages are static now and the three sites carry
+  `data:` SVG icons (`docs/bugs.md` #62 and #64). The lab also logs the subnet state of its three addresses on every
+  `portallab` run, because an `up` after an older build refused with "already up" while the third address had no subnet.
+- **[doc] Engine facts E-13 to E-16 and bugs #62-#65 written down; stale "untested" notes updated.** The excerpts were taken
+  from `.reverse/extracted-1.3.13/index.js` and checked against it (14 excerpt lines verbatim, 13 offsets). Updated:
+  `docs/world-building/04-web-layer.md` (§C rows 5 and 6, new rows 11-13, tiers, §G results), `08-spec-m5-m6.md` (the numeric
+  `Exports` deviation), `docs/m05-playtest.md` §15, `docs/architecture.md` (the `debug/` list) and `docs/draft.md` (§3.5,
+  §4.2, §4.4, §6.1, §6.2, §6.6, §7.3, §8, §10).
+
+- **[milestone] BACKTRACE passed the owner's live test and is FINAL LOCK.** Declared by the owner on 2026-10-04 after testing the
+  post-lock batch in game (`docs/world-building/README.md` #56, now LOCKED): the Personal Log filled at COMPLETE, the source
+  captions, the pinned header and hidden scrollbar of the log sheet, and `backtrace-log`. It also answers the live test that #55
+  was waiting for, so the whole app (#49, #52-#56) is final. The closing-letter Mandarin is still the owner's, six slots empty, so the
+  letter shows English until they are filled. The owner declared BACKTRACE only: the Log Viewer items still owed for the M1, M2
+  and M5 files (#50, #51) are not covered by it.
+- **[mechanic] The Personal Log sheet names the source of every log.** Each run of lines gets a caption: `TRACE n · label`
+  (n is the key's position in the mission's trace list, so the optional M3 Accomplice is `TRACE 6`) or `NOTE` for a side note;
+  a moment log of its own is captioned `MOMENT` (M4's breach keeps its flag), a line with no known source `OTHER`.
+  `backtrace-logs.ts` names the source of each group and COMPLETE stores the text-to-source map in the new `sources` field of
+  the mission state, so the app can caption without knowing the language; a save with no `sources` yet shows no captions.
+  The caption is English interface text. Passed the owner's live test (lock entry above). See
+  `docs/architecture.md` (Applications: BACKTRACE) and `docs/rules.md` §13.
+
+- **[mechanic] A mission completes with its whole Personal Log, and the Moment flag no longer depends on how the log was written.**
+  New `src/applications/backtrace-logs.ts` holds every personal log of each mission in play order, marked optional and/or
+  moment. `setBacktraceMission(mission, "complete")` now fills in every required log the player never recorded (at its
+  play-order position, keeping the recorded order), leaves the optional ones Skipped, and adds the logs of a moment group
+  to `moments`, which repairs a save whose M3 aftermath was stored without the flag. Completing a mission that is already
+  complete repairs it the same way (`backtrace m1 complete` ... `backtrace m6 complete`) and is idempotent. Checked with a
+  stubbed-SDK harness: 11 checks (partial and empty saves, all seven missions from nothing, idempotence). Passed the owner's
+  live test (lock entry above). See `docs/architecture.md` (Applications: BACKTRACE) and `docs/rules.md` §13.
+
+- **[mechanic] New dev command `backtrace-log`.** `backtrace-log <mission>` lists the optional personal logs with their
+  status, `backtrace-log <mission> <number>` records one, `backtrace-log <mission> <number> skip` skips it (Skipped flag once
+  the mission is complete). Same file and dev gate as `backtrace`; the owner deletes both after production. See
+  `docs/mechanics.md`.
+
+- **[bug] The BACKTRACE lightbox (Personal Log, documents) showed the browser's white scrollbar and its header scrolled away.**
+  `.sheet` now hides the scrollbar with `scrollbar-width: none` and `::-webkit-scrollbar { display: none }`, the pattern
+  `.nav-list` and `.report-main` already use, and `.sheet-top` is `position: sticky; top: 0; z-index: 2`. The sheet still
+  scrolls (measured in headless Chrome: gutter 15 px before, 0 px after, `scrollTop` still moves; header top 33 px after a
+  250 px scroll, it was -207 px).
+
+- **[milestone] BACKTRACE app reached FINAL LOCK and final.** Declared by the owner on 2026-10-04 (`docs/world-building/README.md` #55),
+  together with the trace, log and report rule (#52, #53), the localization scope (#54) and the clean-up below. Never run in
+  game; the M5 playtest is the first live test of it. The closing-letter Mandarin is the owner's and its six slots are
+  still empty, so the letter shows English until they are filled.
+
+- **[refactor] Every `trace()` is gone from the BACKTRACE files and the dev command is now `backtrace`.** `backtrace-state.ts`
+  lost its 13 `trace()` calls, the logger import and `describeError`; each `catch` still swallows the error so a failed
+  write never reaches a quest, it is just no longer logged. The playtests of M4-M7 no longer quote `[FP][Backtrace] ...`
+  lines: they check the BACKTRACE app instead. `backtrace-debug.ts` became `backtrace-command.ts` (class
+  `BacktraceCommand`) and the command `scratchbt` became `backtrace`; it is still dev only (`isDev`) and a temporary helper
+  the owner deletes after production. `tsc` clean.
+
+- **[mechanic] BACKTRACE: only the prose that is read is localized; the rest of the app stays English.**
+  Owner decision of 2026-10-04 (`docs/world-building/README.md` #54, `docs/rules.md` §13, `docs/architecture.md`
+  "Localization of the app"). The interface (titles, labels, buttons, toasts, trace values) is English only;
+  the personal logs keep their English and Mandarin text, and `backtrace.html` now localizes 7 mission
+  summaries, 53 Key findings, The story and the closing letter through `data-i18n` keys. English stays inline;
+  the Mandarin is `src/i18n/global/backtrace.ts` (61 texts) and the letter is `src/i18n/global/backtrace-letter.ts`
+  (4 paragraphs, the thanks line and the "Warm regards" greeting only, written by the owner; "— the author"
+  stays English). The page reads `HackhubSDK.Localization` and falls back to the inline English when the
+  bridge is missing, throws or returns the key. The earlier plan to make the logs English only is cancelled.
+  Not run in game.
+
+- **[mechanic] BACKTRACE: required traces, a personal log per trace, and every required trace in the report.**
+  Owner rules, discussed and approved on 2026-10-04 (`docs/world-building/README.md` #52 and #53). A mission needs
+  at least 5 required traces (M1, locked at 4, is the one exception); a trace is required when its value is a
+  field of the report, optional otherwise (M3 `accomplice`, M4 `probe`). M3 gets the fifth required trace
+  `pivot` ("4 hosts behind the gateway", at `natPivotDone`). Every trace now has its own personal log, written
+  in the same call (`traceBacktraceFinding(mission, key, logs, options)`) with one combined toast; 23 new
+  entries (two lines each, English and Mandarin): M1 `buyer`, `caseId`; M2 `developer`, `ransom`, `homeLead`,
+  `firewall`, `workstation`, `shellCompany`; M3 `portal`, `pivot`, `gateway`, `accomplice`; M4 `relay1`,
+  `relay2`, `control`; M5 `greta`, `decisionMemo`, `usbTicket`; M6 `registeredAgent`; M7 `credential`,
+  `firewall`, `c2`, `ledger`. A log written as a story moment (M3 aftermath, M4 breach, M7 ending) raises no
+  toast and is flagged "Moment" in the finished card. The state keeps `moments` and, at COMPLETE, `skipped`
+  (optional keys and logs never reached); the app counts found over required ("3 OF 5", "7 OF 5" is
+  intentional), shows hatched slots up to the required count, and lists skipped items in a Skipped block and
+  under a divider in the personal-log sheet, flagged "Skipped". Report fields added so every required trace is
+  asked for: M2 `ransom`, `payload`, `homePath`; M3 `entry`; M5 `archive`; M6 `agent`; M7 `path` (template
+  and freehand body, English and Mandarin; M2's pre-filled ransom amount and M3's pre-filled gateway name are
+  no longer interpolated into the template). `tsc` clean, zero comments; not yet played in the game. See
+  `docs/architecture.md` (Required traces, personal logs and the report) and `docs/rules.md` §13.
+- **[mechanic] M1, M2 and M5 `.log` files are Log Viewer entries, and every way of reading a clue counts.** Same
+  shape as M4 (`components/log-file.ts`, `onFileRead`): the five M1 backend logs (`sales_ledger`, `ops-relay`, `auth`,
+  `cron`, `system`), M2's `deploy.log` and M5's `usb_history.log` are stored as `{id, date, type, description}`
+  entries and keep their `.log` names, so the Files app opens them in the Log Viewer while `cat` and `open` print the
+  engine's own line per entry. The M1 `buyer` trace, the M1 `suspiciousFileFound` gate and the M2 `deployLogRead`
+  gate no longer compare the file's text (an array never equals it, so they would have stalled silently): they match
+  the name and extension through `onFileRead`, so `cat`, `open` and the Log Viewer all pass. The `cat` and `open`
+  commands and `file-reads.ts` are untouched (M3, M6 and M7 have no `.log`). `parseLog` now also
+  reads the month and day of syslog lines (M4's 56 log lines parse identically) and ISO `YYYY-MM-DD HH:MM UTC`
+  lines, and takes an optional fixed `type`; `DeviceSpec.rootLogDay`, `neutralLogs` and `typedLogs` convert a device's `.log`
+  root files (the keyword typing would have shown "escrow released" as Disconnected). Story dates chosen by the owner:
+  `sales_ledger` rows 2026-06-18, 2026-07-14 and 2026-08-03, `ops-relay` 2026-09-16 15:01 (`docs/world-building/
+  13-story-timeline.md` B, README #50). `deploy.log` lost its two header lines (the build name moved into the first
+  entry) and the ledger its title and ruler. `ops-relay` shows only `[ENCRYPTED]` in the Log Viewer: its single entry keeps the base64 blob in the `type` field,
+  which the viewer never prints and `cat` does (`[2026-09-16 15:01:00] <blob> [ENCRYPTED]`). `tsc` clean, zero
+  comments; not yet tested in-game: that terminal line and the viewer row, and `open usb_history.log` at a
+  Meterpreter prompt (it falls back to `cat`). See `docs/bugs.md` #56 and `docs/architecture.md` (Tracing checkpoints).
+- **[mechanic] Every file checkpoint counts through `cat`, `open` and a double-click in the Files app (GUI gap
+  closed).** A double-click raises `Files.Open`, which only M4, M1's two `.log` gates and M2's `deploy.log` heard, so a
+  player who transferred a clue file and opened it in the Files app read it without advancing anything. M2
+  (`sync-home.txt`, the workstation files, `wire_authorization.pdf`), M3 (`site_to_site_backup`, the Reyes note), M5
+  (statement, memo, ticket, Greta notes, found note) and M7 (`manifest.txt`, `ash-gate_backup.txt`) now listen
+  through `onFileRead` and match the name and extension, ignoring a ` (n)` copy suffix. Side effect: M2
+  `sync-home.txt` also passes by `open` (it counted only `cat`, with an exact content match that is gone), and the
+  M2 workstation files also pass by `cat`. The M7 ledger trap still fires only on `open`. `tsc` clean, zero
+  comments; not yet tested in the game. See `docs/bugs.md` #56, `docs/architecture.md` and
+  `docs/world-building/README.md` #50 and #51.
+- **[milestone] BACKTRACE design reached FINAL LOCK.** Declared by the owner on 2026-10-04 after the last spine and
+  header changes were approved in a scratchpad preview: the evidence-board caseboard, the hop-route spine, the centred
+  header counters and the 2 px operator ring. Never run in the game yet. See `docs/world-building/README.md` #49 and
+  `docs/architecture.md` (Applications: BACKTRACE).
+- **[mechanic] The BACKTRACE sidebar spine is a hop route with a travelling light packet.**
+  `src/applications/backtrace.html`: each mission is a diamond node (outline = locked, amber with a pulsing ring = in
+  progress, red with a dark core = traced) and each link says its stage (dotted = not reached, dashed dim red = next
+  hop, flowing amber dashes = running, solid red = traced); the finish node is a spinning target. The per-mission
+  zigzag, the travelling amber blip and the `.has-blip` z-index fix are gone (`setSpine` no longer toggles it). A light
+  packet with a short tail runs down the red line from The story through every traced node, stops on the last one (or
+  on the target once M7 is complete) and repeats every 4.8 s; it is not shown under `prefers-reduced-motion`. The dash
+  pattern is locked to the spine's coordinates, so a link that crosses two rows no longer breaks (the owner saw a
+  seam between a traced and a running node). The `hpTail` gradient sits in the sprite `<defs>`. `tsc` clean, zero
+  comments in `src/`; not yet tested in-game. See `docs/architecture.md` (Applications: BACKTRACE).
+- **[bug] The header counters were left-aligned and the operator photo ring broke into dashes.** The TRACED /
+  EVIDENCE / ENTITIES cells now centre label and number on one axis (the label's trailing letter-spacing is
+  compensated). The photo's `1px` border and the faint `1px` outer ring showed as dashes on a curved line (the owner's
+  screenshot); they became one 2 px ring (`#8f2536`) plus a 2 px black moat drawn with `box-shadow`, so the 44 px photo
+  is no longer clipped by a border. Checked at 100% and 125% display scale in headless Chrome.
+- **[milestone] BACKTRACE caseboard rebuilt as an evidence board.** `src/applications/backtrace.html`: entities are
+  portraits, folders, screens, a boss card and an envelope on a fixed layout; evidence documents sit on straight red
+  threads drawn centre to centre; hovering or selecting an object dims the rest and lights its threads. A decorative
+  `FILL` layer adds an analyst note per mission (names bound to facts through `{key}` tokens), a Key card and evidence
+  props (bag, clipping, barcode, red string, UNDER REVIEW stamp, two photographs). The header scope now fills the header
+  height; its corner ticks and the hover mission marks under it are gone. The zoom range is 50-200% (was 50-150%) and
+  `will-change: transform` is removed from the board canvas, which had blurred the zoomed board. Two 480 px photographs,
+  `backtrace-receipt.jpg` and `backtrace-corridor.jpg`, are added under `public/assets/global/`. `tsc` clean, zero
+  comments in `src/`; not yet tested in-game. See `docs/architecture.md` (Applications: BACKTRACE).
+- **[mechanic] Clicking the open caseboard card again closes the right panel.** `src/applications/backtrace.html`: the
+  click handler now closes the drawer when the clicked board node is the one already selected, instead of reopening it.
+  Other cards, the drawer links, the X button and the sidebar dock behave as before.
+
+## 2026-10-03
+
+- **[docs] Every `.original` reference copy moved to `src/archive/`.** The eight `*.original.ts` mission backups
+  went from `src/content/` and `src/main/` to `src/archive/content/` and `src/archive/main/` (`git mv`, no content
+  change except one extra `../` on the 12 imports that reach live code; `tsc` clean). The pre-redesign BACKTRACE UI
+  was restored from `3a7474c` as `src/archive/applications/backtrace.original.html` after it had been deleted by
+  mistake. Question X-e in `docs/world-building/06-pertanyaan.md` is closed as ARCHIVED (README #48). See
+  `docs/architecture.md` (Layering).
+- **[milestone] BACKTRACE v3 redesign installed.** `src/applications/backtrace.html` was rebuilt as a "forensic
+  oscilloscope" in a void-black and red signal palette: a header with a heartbeat scope and TRACED / EVIDENCE /
+  ENTITIES counters, a sidebar spine whose amber node follows the mission in progress, report views with a fixed
+  head, a scrolling Key findings column and compact Evidence / Entities / Personal log cards that open a detail
+  sheet, glitching titles, and a Folder-trail app icon (`public/assets/global/backtrace-icon.*`). Big Shoulders
+  Display ships as base64 faces in the new `src/applications/backtrace-fonts.ts`. Dates in the reports are fixed story
+  days (`STORY_DATES`), never the in-game clock, so `completedAt` and its `Time.now()` stamp left
+  `backtrace-state.ts`. The pre-redesign copy is kept at
+  `src/archive/applications/backtrace.original.html` (the `HEAD` from before the redesign). See `docs/architecture.md` (Applications: BACKTRACE). Never run in the game yet.
+- **[mechanic] BACKTRACE gets a closing page, "Signing off".** After M7 is complete a last sidebar item appears with the
+  author's thank-you letter (it names Flatline Protocol), a "SIGNED OFF" stamp and the font credit; the spine's finish
+  node moves onto it. Hidden until M7 is complete, no new state. See `docs/architecture.md`.
+- **[mechanic] The HackHub Post claim is no longer M1.** The claim is the start of the story, so `onStartM01` now writes
+  `story.applied` (`setBacktraceApplied`) instead of setting M1 to `progress`; M1 turns `progress` on its first traced
+  finding or log, and abandoning M1 clears the flag. Until the claim the amber node sits on "The story"; after it the
+  trail reaches M1 and waits. Saves from before the flag still read as applied when any mission is not `locked`.
+  `scratchbt applied [on|off]` drives it by hand. `tsc` clean. See `docs/architecture.md`.
+- **[docs] `docs/font-licenses.md` added** with the source, cut and full SIL OFL 1.1 text for Big Shoulders Display.
+  `docs/world-building/13-story-timeline.md` §F.3 (the stale `completedAt` sample date) is marked done.
+- **[docs] The mod cover follows the asset layout.** `cover.png` had moved to `public/cover.png` while `manifest.json`
+  still said `"cover": "cover.png"`. It now lives in `public/assets/global/cover.png` and the manifest reads
+  `"cover": "assets/global/cover.png"`; the SDK build copies `public/` into `dist/`, so the path resolves from the mod
+  root. Not built and not seen in the mod list yet: the engine code that loads the cover was not found in the
+  extracted client, so check the mod list after the next build.
+- **[bug] The travelling blip under the amber sidebar node was covered by the next item's dashed line.** The blip is
+  drawn in its own item's spine SVG and overflows into the item below, whose spine paints later in the DOM and
+  overdrew it. Spines that carry a blip now get `.has-blip` (`z-index: 1`) through the new `setSpine` helper in
+  `backtrace.html`. Seen in the owner's screenshot on The story to M1; checked on frozen frames for The story to M1 and
+  M3 to M4.
+- **[bug] The three Twotter banners pointed at `assets/global/` while the files live in `public/assets/m01/`.**
+  `src/content/m01/assets.ts` now references `./assets/m01/twotter-*-banner.png`, next to the avatars.
+- **[bug] `msflab` printed a load trace outside debug mode.** `src/debug/msf-lab.ts` traced `loaded ...` at
+  module level, so every mod load wrote `[FP][MSFLAB] loaded ... debug=false` to the game console (one line per
+  load in `hackhub-2026-10-03.log`, and none of the gated listener lines). The trace now sits inside
+  `if (isDebug)`. See `docs/architecture.md` (debug/).
+- **[refactor] `src/debug/` cut down to its core.** Removed `rival-hacker-lab`, `rival-breach`, `rival-banner`
+  (+ `.html`), `quiet-start` and `css-inject` at the owner's request: the generic parts of the rival lab already
+  live in `components/` and `controller/m04`, `components/` has its own `css-inject`, and `quiet-start` was a dev
+  convenience. Nothing outside `debug/` imported them. Kept: `index.ts`, `debug-gate.ts`, `msf-lab.ts`. They stay
+  in git history (last present at `3a7474c`); `registerDebugQuest` in `debug-gate.ts` has no caller now. `tsc`
+  clean.
+- **[mechanic] `scratchbt` covers m1-m7 and is a dev command.** `src/applications/backtrace-debug.ts` accepted
+  only m1-m4 although the state, the facts and the report views go to m7. It now takes every mission and
+  registers only while `isDev`, through its own private `registerDevCommand` (not `isDebug`, which is off in normal
+  dev runs, and with no import from `debug/`). See `docs/architecture.md` (Applications: BACKTRACE). `tsc` clean.
+- **[refactor] Two layering slips of the M4 work fixed.** `content/m04/server-files.ts` no longer imports
+  `components/log-file`: a device spec now carries `userLogDay` and `components/topology` converts its users'
+  `.log` files when it builds the network, while the controller converts `firewall.log`. `playFlatline` takes
+  its labels as arguments instead of importing `i18n/global/kit`. Behaviour is unchanged; `tsc` clean.
+- **[milestone] M4 "Burn Notice" reached FINAL LOCK.** Declared by the owner after the live run of the
+  whole hunt. Removed with it: the 20 `trace()` calls in `controller/m04`, the dev skip of the breach
+  (`M04_DEV_SKIP_BREACH` and its job, plus the unused `seedIncidentLog`), the finished recovery spike
+  in `src/debug/`, and the dev focus (every `DEV_FOCUS_QUEST` entry is `false` again). The generic
+  dev-focus plumbing in `spec.ts` and `index.ts` stays, as in M1-M3, and the shared kit keeps its
+  traces for M07. `tsc` clean, zero comments. See `docs/world-building/README.md` #47 and
+  `docs/rules.md` §11.7.
+- **[docs] M4 lock pass.** The M4 sections of `docs/scratch.md` were filtered into `docs/bugs.md` #56-#61
+  (Log Viewer and `Files.Open`, the `Files.write` duplicate, the full-screen widget, `UI.toast`, no
+  session-end event, ports behind a router) and `docs/story.md` ("Mission 4 — Burn Notice"), and the file's
+  scope note was updated. `docs/app-asar-reference.md` E-4, `docs/bugs.md` #44 and #46 and the
+  implementation prompt now say `mods.reset` clears `Storage` and `Variables`, **not** `SaveStorage`,
+  `Scheduler` jobs or widgets. `docs/architecture.md` lists the kit components and two known layering
+  deviations. The owner approved the zh strings written for the redesign.
+- **[mechanic] The cut-off command is now `flatline` and plays an animation.** Renamed from `repel`
+  (`commands/flatline.ts`, internal ids kept). A successful cut prints a locking line, five `beacon`
+  pulse lines that shrink and go red then flat, and the "severed" line, about 3.8 s, with `println` and
+  `tools.sleep` only so the terminal history survives (`components/flatline-sequence.ts`; instant under
+  `reduceFlashing`). The event fires after the animation. `watchdog.conf` now ends with a teardown line
+  naming the command, and the command refuses to cut Night-Shift before `originLinked`. Never run in
+  the game. See `docs/world-building/README.md` #46 and `docs/m04-playtest.md` §7, §12.
+- **[mechanic] M4 clue logs are Log Viewer entries and every way of reading one counts.** The incident
+  log, `~/logs/firewall.log` and Static-Hop's `auth.log` are stored as `{id, date, type, description}`
+  entries (new `components/log-file.ts`, still `.log`), so the Files app opens them in the Log Viewer;
+  `cat`, `open` and the viewer (`Files.Open`) all advance the step through one `onFileRead` listener
+  (`components/file-reads.ts`). `open` falls back to `cat` for array logs, the recovery console reads a
+  text copy kept in the breach save. `firewall.log` is now written after the rebuild and sweeps the old
+  `firewall (n).log` copies; the `relayLead` unlock now runs at runtime. Dates are the story day
+  2026-09-24 in local time. Verified live by the owner the same day (the whole hunt ran end to end).
+  See `docs/world-building/README.md` #45 and `docs/m04-playtest.md` §6, §12.
+- **[mechanic] M4 attack 1 can no longer be repelled.** A 60 s `broadcast` countdown now runs straight
+  into the breach: no calm moment at 00:00, no money penalty, `intruderRepelled` and the "nice desktop"
+  mail removed. The Custodian mails 4 s after a successful rebuild (after the restore toast), the
+  BACKTRACE key `probe` comes from reading `~/logs/firewall.log`, and `repel` is refused with its own
+  message during the countdown. M7 and the lab banner are unchanged. See
+  `docs/world-building/README.md` #44 and the 2026-10-03 note in `docs/world-building/10-spec-m4.md`.
+- **[docs] `docs/m04-playtest.md` rewritten** for the new attack, the recovery console puzzle and the
+  kernel files; the parts that described `~/compositor`, `incident.txt`, the expiry penalty and
+  `rivallab breach` are gone. README #42 wording fixed (Tab shows a fixed hint slot).
+- **[mechanic] The M4 desktop breach became a recovery console on real kernel files.** A full-screen widget
+  (`components/recovery-console.html`) with its own shell and puzzle replaced the locked Terminal; the
+  compositor is the kernel module `flcomp` with real files under `/lib/modules`, `/etc`, `/boot` and
+  `/var/log`; the strike banner and the desktop glitch got a redesign; `session-guard` removes every mod
+  visual when the desktop leaves the DOM and re-applies it from state. See `docs/world-building/README.md`
+  #42 and #43, and `docs/bugs.md` #58 and #60.
+- **[bug] `Files.write` duplicates the record and `createTree` leaves `name (n)` copies.** The kit never calls
+  `Files.write` and sweeps old copies before writing (`components/kernel-files.ts`); see `docs/bugs.md` #57.
+  The widget iframe also swallowed ESC and F1, so the console forwards both to the parent document
+  (`docs/bugs.md` #58).
+- **[bug] M4 live-test fixes (2026-10-02 report).** `onStartM04` clears the stored strike, the strike and breach
+  jobs and any breach left by `mods.reset`; the repeated strike mail replaces itself (`sendReplacingMail`); a
+  money loss shows a toast (`UI.toast` has no duration option, `docs/bugs.md` #59); `docs/bugs.md` #44 and E-4
+  were corrected in the lock pass above.
+
+## 2026-10-02
+
+- **[milestone] Audit fix pass for the M4-M7 run** (branch `fix/phases2-8-m04-m07-audit`, from
+  `origin/phases2-8-m04-m07` at `6d9cf29`). The owner's audit of the cloud run found defects that
+  `tsc`, the baseline and the harness cannot see: a mission that a player could not finish, sites no
+  player could find, and dropped ending logs. Each is fixed below or recorded in `docs/bugs.md`
+  #52-#55. M1-M3, `src/debug/` and the locked files are unchanged (the §4 diff guard is empty). The
+  live test is still owed (`docs/m04-playtest.md` to `docs/m07-playtest.md`).
+- **[bug] The M4-M7 reports could not be sent.** The templates pre-filled every field, so the compose
+  window had no `{{token}}` left to type into and Send stayed disabled (M07 also lacked `{{choice}}`
+  in English). The templates now leave the tokens open as M3 does, the validators match keywords and
+  numbers in en and zh and still reject the decoys, and M07 accepts the template only
+  (`ReportSpec.body` is optional; `components/report-match.ts` is new).
+- **[bug] M04 step 7 was unreachable.** `incident.txt` named the intruder instead of Static-Hop, the R1
+  address appeared in no player-visible text, and hydra could only return `admin` where SSH needs
+  `svc`. The breach carries the Static-Hop address, the incident log line names the NAT gateway, and
+  the R1 panel user is `svc`. Reward 800 -> 2400.
+- **[bug] M05 and M06 sites were never named in-world, and no mod site is searchable** (mod pages
+  default to `seo: false`, `docs/bugs.md` #52). Added: three Custodian follow-up mails (M05 at
+  `vaultRevisited` and `edgeMapped`, M06 at `snapshotsCompared`), a remote-access line on the Echoline
+  captures, a Customer portal field on the Mutual record, HoneyCheck named in the M07 tip and
+  `attrcheck` in the manifest. M05 also: `lynx` accepts the full name (#53), the Twotter personas are
+  stored without `@` (#54), LeakIndex prints a hash prefix until a record is opened, Echoline and
+  LeakIndex go through `gateMissionPages`, and the Echoline fixtures register with their step.
+  Rewards: M05 1200 -> 3200, M06 1800 -> 4000.
+- **[bug] M06 rendered the registry one visit late and kept a stale stage** (#55). The stage now comes
+  from the tip, is synced on `Mail.Read` and is reset at mission start; registry links stay hidden
+  until their target opens, and the Mutual record links to the architect.
+- **[bug] M07 dropped the ending logs and always tore the C2 down.** `completeObjective` runs
+  `OnComplete` synchronously, so the logs and Greta's letter came after completion and were lost; they
+  are written before it, and only `destroy` unregisters the network. The `/legacy-cms/` dashboard needs
+  the edge scan, `dirhunter` only traces, the watchdog mail is sent once, and the halved trace window
+  is capped by what is left (`Scheduler.remaining` is in-game ms, so `strikeRemainingRealMs` goes
+  through `Time.toRealMs`, #46).
+- **[bug] The M05 incident documents sat under `/ir/`**, while `09-konten-m5-m6.md` B5 and
+  `13-story-timeline.md` put them at `/var/ir/2026-08-14/` and `/var/ir/tickets/`. The folder tree is
+  `var/ir/...` now (`M05_VAR_FOLDER`, nested `rootFiles` folders as in M2); no gate depends on the path.
+- **[bug] BACKTRACE M4-M7 report views** used classes with no CSS and no `.report-scroll` wrapper
+  (static text beside the locked card, no scrolling); they now use M3's structure.
+- **[mechanic] Mission sites fill their data markers through `fillMarker`, `fillDataMarker` and
+  `fillMarkers`** (`websites/global/localize.ts`), so no `/*` literal is left in `.ts` (§2.3 baseline)
+  and a `$` in a value is safe. The exports, the one state flag and the one site key that nothing
+  used were removed.
+- **[docs]** `docs/bugs.md` #52-#55 added and #45, #46, #47, #50 and #51 corrected (stale probes and
+  shortcut, the nonexistent Network Map app, the 13 registry paths); the four playtests,
+  `docs/network.md` and `docs/architecture.md` brought in line with the code; the personal-log beat counts
+  above corrected; world-building README #38-#41 and implementation notes in specs `08`, `10` and `11`;
+  `docs/rules.md` now says that a report template must leave its `{{field}}` tokens open.
+
+- **[milestone] Phase 8 of the M4-M7 run: wrap-up.** One review pass over the whole M4-M7 diff, the
+  findings fixed, and the three documents that describe the result brought in line with it.
+- **[bug] M07's honeypot cost nothing.** `M07_HONEYPOT_PENALTY` was declared and never charged, so
+  touching Null-Crown sent the watchdog mail and took no money — `11-spec-m7.md` §F requires both.
+  `controller/m07/deadbox.ts` now charges `min(balance, 500)` once, guarded by the same flag as the
+  mail, and six harness checks cover it.
+- **[bug] Dead constants removed** after a scan for exported symbols nothing imports:
+  `M04_HUNTER_ALIAS`, `M05_LOCKED_AT`, `M05_LEAK_SOURCE_YEARS`, `M06_SKN_APEX_DOMAIN` and
+  `M07_C2_CMS_BUILD` (the last duplicated a literal already in `/legacy-cms/`).
+- **[mechanic] M06's resignation note is data-driven.** It interpolated nothing and hard-coded the
+  name and the date that `content/m06/network.ts` already holds; `siteT` takes vars, so the note now
+  uses them and `M06_BRANDT_RESIGNED` is the single source for that date.
+- **[docs] `manifest.json` now says "across seven missions"** instead of four.
+- **[docs] `docs/architecture.md` synced:** the restructure is finished (all seven missions on the
+  pipeline, M04-M07 not yet live-tested), the BACKTRACE shape is `m1..m7`, nothing shows "REPORT
+  PENDING" any more, and the checkpoint table gained the 24 M4-M7 rows.
+- **[docs] `docs/network.md` synced:** M4's four one-device subnets, M5's hospital subnet, M6's
+  zero-network domain list, and M7's section corrected now that the 3389 shortcut is gone.
+- **[mechanic] Three new permanent static checks:** no mission imports another mission's files, every
+  i18n key is registered in both `en` and `zh`, and no date in a mission's files is later than that
+  mission's story day.
+
+- **[milestone] Phase 7 of the M4-M7 run: M06 is complete.** The phase-2 five-step subset is now the
+  ten-step chain of `08-spec-m5-m6.md` §C, with two parallel pairs (the 2019/2024 filings joining at
+  `snapshotsCompared`, and the insurer page joining the insurer `whois` at `identityProven`). Added:
+  the register as a searchable index over eleven records opened in five stages, Alexander Voss as the
+  faced-nominee decoy, the conflicting ownership filings and the two-day gap that resolves them, the
+  Nordhaven Holdings and Nordhaven Mutual records with Vivien Orchid's position, HostTrail
+  (`websites/m06/hosttrail/`) and the shared certificate, the insurer `whois` landing on M3's own
+  registrant, Conrad Lindqvist's record behind a two-branch gate, the five-column report, the six m6
+  BACKTRACE keys with a report card and six personal-log beats (eight lines), and the full Chinese text.
+  See `docs/m06-playtest.md`.
+- **[mechanic] M1-M3 consequences are mirrored out of the `backtrace` state** at
+  `OnObjectivesStart` (`docs/bugs.md` #36 — a website render has no mod context, so it cannot read
+  `SaveStorage`). A completed M3 makes the shell company read "struck off" on the live register and
+  delists the finance analyst as the filing contact in the archived capture.
+- **[mechanic] A page gate held as a numeric stage in `SharedVariables`.** `context/m06/progress.ts`
+  keeps one monotonic stage 0-5; each record declares the stage that opens it, and the register's
+  search publishes only what is open, so the search itself is the progress gauge.
+- **[mechanic] Every registry path is opaque** (`/entity/r7k4/`, `/officer/c9m2/`) because
+  `dirhunter` prints every registered path and a mod cannot hide one (`docs/bugs.md` #40).
+- **[mechanic] The Echoline Archive now serves two missions.** Its index groups captures by the page
+  they are of, and each group is gated by its own mission's progress.
+- **[bug] A missing unlock call, caught by the harness:** `agentIdentified` advanced the chain but
+  never called `unlock(M06_WORLD, "filingArchive")`, so the archive lookup fixtures were never
+  registered. Fixed in `controller/m06/recon.ts`.
+- **[mechanic] `Conrad Lindqvist` moved to `content/global/characters.ts`** so M06 and M07 can both
+  name him without importing each other; the static checks now fail on any mission-to-mission import.
+- **[docs] `docs/m06-playtest.md` rewritten as the full 14-section walkthrough**, keeping the four
+  zero-network engine questions the skeleton existed to answer.
+
+- **[milestone] Phase 6 of the M4-M7 run: M05 is complete.** The 13-step chain of `08-spec-m5-m6.md` §B,
+  with two parallel pairs (the 2025/2026 captures joining at `staffArchiveCompared`, and the archive
+  branch joining the `lynx` profile at `edgeMapped`) and the three archive documents parallel off the
+  session. Added: the Echoline Archive with two dated captures of the same hospital IT page (two names
+  gone from the later one, only one of them pushed), the LeakIndex breach lookup with ten records and
+  three shared decoy hashes, the hospital subnet behind `remote.pacificcare-health.org`, the pfSense
+  step with one account and two LAN-addressed deny rules, Cold-Chart's incident folder (decision memo,
+  draft and filed finding, acknowledgement, USB ticket, asset register), the optional Bedside-17 beat
+  that puts the M01 vault note back where it came from, the five-column report, the six m5 BACKTRACE
+  keys with a report card and five personal-log beats (seven lines), the 1200 payout (3200 since the
+  audit fix pass), and the full Chinese text.
+  See `docs/m05-playtest.md`.
+- **[mechanic] A website `Exports` function used as a mission gate for the second time in the project.**
+  `leakindex.net` calls `flatlineOpenLeakRecord(id)`; the mission counts record 1 and traces every
+  other id as a decoy. M01 passes a string, M05 a number — untested live (`docs/m05-playtest.md` §15).
+- **[mechanic] M05 reads M01's vault event without importing M01.** `src/content/global/vault-hook.ts`
+  re-declares `flatline.m01.projectOpened` and the `q3` folder id, so the locked M01 content stays
+  untouched and the no-cross-mission-import rule holds.
+- **[mechanic] Every crackable hash in M05 is the genuine MD5 of a password declared on a device.**
+  `docs/bugs.md` #13 — `john` never consults the `Shell` fixture system, so a hash only resolves if the
+  engine put it in its registry from a device's `users` array. All four are now asserted in the harness.
+- **[bug] Dropped a redundant `nmap` fixture on the hospital edge address.** The edge is a real router,
+  so the fixture would have printed a frozen port list over the live scan, which is the trap
+  `docs/bugs.md` #2 describes from the other side: an `nmap` print fixture succeeds whether or not any
+  real device exists behind it.
+- **[docs] `docs/m05-playtest.md` written as the full 15-section walkthrough**, including the capture
+  comparison, the decoy records, the john step and the Chinese pass.
+
+- **[milestone] Phase 5 of the M4-M7 run: M04 is complete.** The 15-step chain of `10-spec-m4.md` §C,
+  with steps 5 and 6 deliberately parallel and joining at 7 so repairing the desktop without reading
+  the incident log cannot stall the mission. Added: the scripted second strike and the desktop breach
+  as a story beat, the relay hunt (R1 panel cracked with `hydra`, Static-Hop, `auth.log` whose single
+  `ESTABLISHED` session at 03:14:06 is the only hop matching the breach minute, Quiet-Mirror,
+  `watchdog.conf`, `old_targets.txt`), the Night-Shift control host and its Bulletproof VPN Ltd.
+  registrant, the Paper-Moth honeypot penalty outside the chain, the five-column report, the six m4
+  BACKTRACE keys with a report card and three personal-log beats, and the full Chinese text.
+- **[mechanic] A failed first strike re-arms instead of stalling:** the penalty is charged, the firewall
+  log is rewritten and a new strike is scheduled, so there is no dead end (`10` §C).
+- **[mechanic] `repel` gained a second, mission-registered target.** `registerRepelTarget` lets M04 use
+  the same command to end the hunt at step 14 against the control host, with no active strike involved.
+- **[bug] A dynamic `await import()` slipped into `controller/m04/breach.ts`** and was replaced with a
+  static import: an async boundary there is exactly the mod-context loss `docs/bugs.md` #19 records.
+- **[docs] `docs/m04-playtest.md` extended into the full 12-section walkthrough**, including the
+  timestamp puzzle, the honeypot cost and the Chinese pass.
+
+- **[milestone] Phase 4 of the M4-M7 run: M07 is complete.** The phase-1 shortcut (3389 open from the
+  build) and the five bare probes are gone. Added: the 240-second real-time tracking on the phase-3
+  kit (re-armed on every new session to the C2 until `fileExtracted`, halved by opening the `.enc`),
+  HoneyCheck (`websites/global/honeycheck/`, verdicts deliberately wrong on both dead boxes), the
+  designed `/legacy-cms/` node-status table, the `choice` field with all three ending effects, Greta's
+  two epilogue letters (and deliberate silence on `destroy`), the 5000 payout, the six m7 BACKTRACE
+  keys with a full report card in `backtrace.html`, and the complete Chinese text. See
+  `docs/m07-playtest.md` and `docs/bugs.md` #49.
+- **[mechanic] The M07 trace is not repellable.** `components/intrusion.ts` grew a `repellable` flag
+  so `repel` ignores a strike that is a trace rather than an intruder; without it a player could have
+  typed `repel <C2 ip>` and cancelled their own countdown.
+- **[mechanic] The ledger payload is wiped in place, not deleted** (`docs/bugs.md` #49). `Files.create`
+  takes only a `parentPath` and path resolution never reaches a Meterpreter target (#30), so a deleted
+  root file could not be restored and the mission would dead-end. Failure writes a cleared marker and a
+  new session writes the real blob back, both through the id-based walk; `fileExtracted` additionally
+  requires `ledgerWiped` to be false, so downloading a wiped file never counts.
+- **[mechanic] The banner's text is localized before it reaches the widget**, which is what makes the
+  Chinese pass work for the countdown: a widget loaded by `Desktop.addWidget({ src })` never passes
+  through `localizeHtml`.
+- **[docs] No `frontend-design` pass was possible.** That plugin is not available in the build
+  environment (prompt §6 requires saying so rather than skipping silently); `/legacy-cms/` and
+  HoneyCheck follow the briefs in §6 by hand — self-contained HTML, no `<form>`, every string through
+  `{{t:KEY}}`, system fonts, inline CSS only, responsive from 360 px, `:focus-visible` and
+  `prefers-reduced-motion`, and designed empty and unknown states.
+
+- **[milestone] Phase 3 of the M4-M7 run: the rival-hacker kit becomes generic, and M04 gets a
+  walking skeleton.** New mission-blind components: `components/intrusion.ts` (scripted strikes
+  through `Scheduler`, no `Math.random`), `components/desktop-breach.ts`, `components/desktop-lock.ts`,
+  `components/incident-banner.ts` (+ its widget HTML) and `components/css-inject.ts`. New global
+  commands `repel`, `sysdiag`, `sysrepair`, imported in `main/global.ts`; `sysdiag` and `sysrepair`
+  are `scope: "local"`. `src/debug/rival-*` is untouched (D5). See `docs/m04-playtest.md` and
+  `docs/bugs.md` #48.
+- **[mechanic] Six changes from the lab** (`10` §B): scripted strikes instead of a heat loop; one
+  fixed alias `sentry@darknull.io` instead of three random identities (the Custodian is deliberately
+  empty and GHOSTWIRE is the player); the penalty is `min(Bank.getBalance(), amount)` through
+  `components/reward.ts`; incident and firewall-log timestamps are constants inside the
+  `13-story-timeline.md` §E window for M4 (`Sep 24 02:20`-`03:05`) instead of `Time.now()`; the
+  banner's labels are passed in already localized through its `Variables` view, because a widget
+  loaded by path never sees `{{t:KEY}}`; and the breach lives under one mission-blind key so
+  `sysdiag`/`sysrepair` serve any mission's breach, which M07 needs.
+- **[mechanic] M04 skeleton:** four Routers each holding one Device (`10` §E), all `lanIp` values
+  `192.168.1.x` (E-7), a 3-step subset of the spec's 15-step chain in the spec's order, the scripted
+  first strike with its 120-second real-time deadline, and a 2-column report. Night-Shift is
+  `203.0.113.159` — next to the M3 endpoint `.160` and neither `.160` nor `.161` (README #26) — and
+  its `whois` registrant is Bulletproof VPN Ltd., the same contact M3 gives for `.160`.
+- **[bug] The M04 repel listener only checked the strike id, not the address.** A synthetic event
+  carrying a decoy IP with the right prefix and strike id would have advanced `intruderRepelled`.
+  Found by the harness; the listener now verifies the IP too. The shipped `repel` command could not
+  actually emit such an event, so this was defence in depth rather than a live defect.
+
+- **[milestone] Phase 2 of the M4-M7 run: the M06 walking skeleton, the project's first mission with
+  no network at all.** `content/m06/*`, `i18n/m06/` (en + zh), `controller/m06/*`, `main/m06.ts` and
+  the Port Calder Companies Registry site (`websites/m06/registry/`, three pages). `networkIps: []`
+  and `networks: () => []`: nothing reaches `createSubnetNetwork` or `registerDomain`. A 5-step
+  subset of the spec's 10-step chain, in the spec's order, ending in a 2-column report; phase 7
+  extends both. See `docs/m06-playtest.md` and `docs/bugs.md` #47.
+- **[mechanic] The register's entity record uses an opaque token path** (`/entity/r7k4/`) and the
+  filings archive is registered but linked from nowhere, because `dirhunter` prints every registered
+  path and a readable slug would hand over the answer (`docs/app-asar-reference.md` E-3).
+  `marlowepryce.biz` and `vpn.skn-central.net` exist only as `whois` / `nslookup` fixtures, never as
+  registered domains (E-1).
+- **[mechanic] `components/reward.ts`:** `payReward` pays with `Bank.transaction` and skips under
+  dev or tester focus with a `trace`, `penalty` charges `min(Bank.getBalance(), amount)`. One place
+  for the rule in prompt §8 D1 and README #34, shared by the remaining missions. M6 pays 1800.
+- **[docs] `docs/bugs.md` #47:** what the `networkIps: []` path does according to the code and the
+  harness, what the live test still has to confirm, and why the mission is completable even if
+  `dirhunter` turns out to need a subnet.
+
+- **[docs] Phase 1 merged into `clouds-modify`; the implementation prompt now drives one run for
+  phases 2-8.** `phase1-m07-skeleton` (4 commits, reviewed read-only: diff guard empty, §2.3
+  baseline clean on SDK 0.25.0) was fast-forwarded into `clouds-modify`.
+  `12-implementation-prompt.md` §0 lists `PHASE: 2, 3, 4, 5, 6, 7, 8` with run-mode notes (a phase
+  is a checkpoint, dependency skips, PARTIAL handling, story days M4 2026-09-24, M5 2026-09-27,
+  M6 2026-09-30 and M7 2026-10-03 accepted for the run); §2.1, §2.2, §2.6, §5, §7 and §9 follow it
+  (push after each phase, bugs numbering after the last entry, one report block per phase;
+  the initial check also stops the run if the checkout lacks Phase 1).
+  README gets decision #37 (all phases in one run, live tests after the run, "Batasan urutan
+  implementasi" #3 and #4 waived for it). The prompt's SDK version check used
+  `require('@hotbunny/hackhub-content-sdk/package.json')`, which the package does not export
+  (`ERR_PACKAGE_PATH_NOT_EXPORTED` on 0.24.0 and 0.25.0); it now reads the file with `fs`.
+  `docs/m07-playtest.md` §2 no longer asserts that `net_tree.py` hides the Firewall: in the
+  1.3.13 engine `isIpHidden` is consulted only by `whois` and `nslookup`, and M2's hidden Firewall
+  was found with `net_tree.py` live.
+- **[milestone] Phase 1 of the M4-M7 implementation run: the old M4 is migrated to mission id
+  `m07` as a walking skeleton.** `content/m04.ts` and `main/m04.ts` are replaced by the pipeline
+  shape M1-M3 use: `content/m07/*`, `i18n/m07/core.ts`, `controller/m07/*` and a thin
+  `main/m07.ts`; `websites/m04/architect-c2/` moves to `websites/m07/` with its history. `M04_*`
+  constants become `M07_*` except `M04_ARCHITECT_VPN_IP`, which the locked M2 and M3 import. Id
+  `m04` is now free for the new M4. See `docs/network.md` (M7 topology),
+  `docs/m07-playtest.md` (owner test script) and `docs/world-building/11-spec-m7.md`
+  ("Catatan implementasi").
+- **[mechanic] Six old-M4 defects fixed in the migration** (`11-spec-m7.md` §B #1-#4, #6, #11):
+  the shell gate listens to `RemoteConnection.Established` with `t === "METASPLOIT"` instead of
+  the reverse-TCP-only `Metasploit.Meterpreter.Connected` (#29); the C2 is taken over the live
+  bluekeep RDP path (`FreeRDP 5.2.1`, one online user `svc-cms`) instead of a banner no module
+  accepts; the Firewall sits inside the Splitter as a sibling of the devices, M2's live shape;
+  `attrcheck` resolves its target through the Meterpreter-aware walk and its event is now
+  `flatline.m07.attrcheckRevealed` (#30); `rootgrab` is out of the chain; and the firewall rules
+  use the C2's `lanIp` as `destination` with the whole LAN re-addressed to `192.168.1.x` (#41,
+  `docs/app-asar-reference.md` E-7, E-8).
+- **[mechanic] `open` and `attrcheck` now share `findSessionFile`** in
+  `src/commands/meterpreter-files.ts`; the expression moved verbatim out of `open.ts`, so its
+  behaviour is unchanged.
+- **[docs] Two new UNVERIFIED engine findings, each with a live probe shipped in the skeleton.**
+  `docs/bugs.md` #45: whether a `Firewall` nested in a `Splitter` protects its sibling devices
+  (`GetFirewall` matches on `parent === router.ip`; M2 ships the same shape and neither mission
+  rests its progression on it). #46: whether a `{ realMs }` Scheduler job of tens of seconds
+  survives a live Meterpreter session, `cancelKind` and `mods.reset`.
+- **[mechanic] Mission ids m05-m07 registered across the global surfaces:** `guard/flags.ts`
+  focus maps (all `false`), `BacktraceMissionId` and the initial BACKTRACE state, `BACKTRACE_KEYS`
+  (empty for m5-m7), and the BACKTRACE app's sidebar and locked cards for M4-M7 with the working
+  titles. `MISSION_TITLES` in `backtrace.html` is now the single source for a mission's name.
+
+- **[docs] Implementation prompt for the cloud agent:
+  `docs/world-building/12-implementation-prompt.md` (English).** One phase per run: 1 M7 walking
+  skeleton, 2 M6 walking skeleton, 3 generic rival-hacker kit + M4 skeleton, 4 M7 full, 5 M4 full,
+  6 M5 full, 7 M6 full, 8 wrap-up, each ending in an owner live test. The kit (3) precedes full M7
+  (4) because M7 reuses it; the M6 zero-network skeleton (2) follows the M7 skeleton. The prompt
+  restates the project context of the uncommitted `CLAUDE.md`, names `clouds-modify` as the base
+  (`origin/main` was 18 commits behind), fixes the editing boundaries with a diff guard over the
+  locked M1-M3 files, requires the `frontend-design` skill for every new website and visual
+  surface within the engine limits (self-contained HTML, no `<form>`, `{{t:KEY}}` text, zero
+  comments), uses SDK 0.25.0, points the agent to `docs/app-asar-reference.md` (engine facts) and
+  `13-story-timeline.md` (dates), and pays rewards in money only. See
+  `docs/world-building/README.md` ("Penyerahan implementasi").
+- **[mechanic] SDK pinned to 0.25.0.** `package.json` and `package-lock.json` pin
+  `@hotbunny/hackhub-content-sdk` to exactly 0.25.0 (it was 0.24.0 through `"latest"`; five lines
+  changed, the rest of both files is byte-identical). 0.25.0 only adds `incognito` to
+  `HttpRequest`, the `ModManifest.apiVersion` comment and the default `apiVersion` in `build.mjs`;
+  `tsc` is clean on the unchanged sources. Run `npm ci` locally to pick it up. README #35.
+- **[docs] `docs/app-asar-reference.md` added.** Twelve engine facts read from the 1.3.13
+  `index.js` with verbatim excerpts and exact offsets (`registerDomain`, `subfinder`, `dirhunter`,
+  `mods.reset`, quest `Rewards`, files without timestamps, `IsLocalIp`, firewall rules,
+  `PFSense.Login`, iframe sandboxes, the bluekeep module, `geoip` and `nmap`), so a cloud agent
+  without `.reverse/` can check them. `docs/bugs.md` #39-#44 record the findings.
+- **[bug] The old M4 firewall rules could never match (found by reading the engine, `bugs.md`
+  #41).** The engine compares a rule's `destination` with the target's `lanIp`, and the pfSense
+  panel's Save rejects any destination that is not `192.168.1.x` (`IsLocalIp`). The old M4 used the
+  C2's public IP and `172.16.0.x` LANs; M7 must use the C2's `lanIp` and `192.168.1.x`. The M4,
+  M5 and M6 specs wrote "192.168.x.x"; corrected in `08`, `10` and `11` (new defect #11 in `11`
+  §B) and in `docs/network.md`. Not changed in code yet.
+- **[docs] Story timeline for file dates: `docs/world-building/13-story-timeline.md`.** Fixed dates
+  read from the locked M1-M3 code and the specs, a proposed story day for M2-M7 (`06-pertanyaan.md`
+  T-d), file date formats, the dated files of M4-M7, and four anomalies in locked content (the M1
+  kernel `audit` epoch is in 2025, the kernel uptime counters, a preview sample date, the
+  `story.md` premise). Files have no timestamps (`bugs.md` #43), so dates live in names and
+  contents. README #36.
+- **[docs] Mission rewards are money only (README #34).** The "200 xp" reward is removed from `02`,
+  `10` §A and `11` §A; money is paid with `Bank.transaction`, `Rewards` stays unset, nothing is paid
+  under dev or tester focus. The SDK `Bank` has no XP and `Quest.Rewards` did not pay in the
+  rival-hacker lab (`bugs.md` #42).
+- **[docs] World-building design for M1-M7 written in `docs/world-building/` (specs only,
+  nothing in code).** Twelve files: README (decision log), `01-canon-dan-hook.md`,
+  `02-peta-misi.md`, `03-karakter.md`, `04-web-layer.md`, `05-ending.md`,
+  `06-pertanyaan.md`, `07-arsitektur-misi-baru.md` (rules and spec-sheet template for the
+  new missions), `08-spec-m5-m6.md` and `09-konten-m5-m6.md` (spec sheets and final content
+  for M5 and M6), `10-spec-m4.md` (M4) and `11-spec-m7.md` (M7). Decisions logged: the
+  reverse-TCP / d.reyes callback idea (`docs/idea.md` section 2) is dropped; M1-M3 are locked
+  with a hook budget of zero edits; three new missions (M4-M6) are planned and the
+  finale (old M4) becomes M7; G in the LedgerVault `found_note.txt` is Greta de Souza, the
+  hospital IT staffer (G1), dismissed and officially blamed, reached only through documents in
+  M5 and a one-way epilogue letter after M7; the hospital decision-maker is Vivien Orchid, CRO
+  of PacificCare, formerly at the fictional insurer Nordhaven Mutual; the Custodian stays
+  blank; the Architect is renamed Conrad Lindqvist (59, an actuary who priced the risk he
+  created); M5 and M6 sites are mission sites (Tier 1 baseline), M5 is Very Hard across page,
+  crack and network layers (its Firewall has a single valid user because `PFSense.Login`
+  carries only the IP and fires only on success), M6 is Very Hard with no network (verified in
+  code only, tested first); M4 "Burn Notice" reuses the rival-hacker kit with scripted strikes
+  and a four-router counter-trace, the Sentinel app is on hold; M7 fixes ten defects of the
+  old M4 (RDP route instead of an unmatched banner, the proven Splitter shape, a fallible
+  HoneyCheck, a real-time trace, the phone-call dialog replaced by a mail and a `choice` field,
+  real ending effects, reward 5000); the hook budget is zero edits (audit of M4-M7 against
+  the locked M1-M3 text) and the whois registrant of the M4 control host and the M6 insurer
+  domain is aligned with M3's existing "Bulletproof VPN Ltd."; permanent browser tool sites
+  wait for a `weblab` in
+  `src/debug/`. No world-building decision is synced into `docs/story.md` until the lock.
+  Implementation is planned for a cloud agent (its prompt is not written yet); the old M4
+  must be migrated to M7 before the new M4 exists. `docs/idea.md` got an update note for its dropped section 2. See
+  `docs/world-building/README.md`.
+
+## 2026-10-01
+
+- **[mechanic] `open` reads a Meterpreter target's files, so no step needs
+  `download` any more (NOT yet live-tested).** M2's `shellCompanyFound` needs
+  `wire_authorization.pdf`, which `cat` refuses and which the stock path API
+  cannot reach at a `meterpreter >` prompt, so the only route was `download` then
+  `open ~/downloads/<file>`. `src/commands/meterpreter-files.ts` tracks the
+  session target from `RemoteConnection.Established` / `.Disconnected` (`t:
+  "METASPLOIT"`) and `open` walks the path from the target's root file with the
+  ID-based `Files` calls; a miss, a `~` path or no session falls back to the
+  player's own PC, so the download route still counts. The event payload is
+  unchanged, so no gate changed in M2 (`shellCompanyFound` stays on the chain; the
+  report needs the company name from the PDF). Checked in a mocked-SDK harness (40
+  checks, three broken copies fail as they should). See `docs/bugs.md` #30
+  (follow-up), `docs/mechanics.md`, `docs/architecture.md`, `docs/m02-playtest.md`
+  step 20.
+- **[mechanic] M3 no longer reacts to `rootgrab`.** `gatewayRooted`, its
+  `Metasploit.Rootgrab` handler and the `root` personal log are gone (the step was
+  already off the chain). The log's second line (the shell company and the address
+  off the map are the same hand) moved to the `vpnConfigRead` step as the third
+  `tunnel` line; the first line (it duplicated the tunnel log and said "root") was
+  dropped, en and zh. The tip mail, the objective and the report prose still say
+  "root"; that is narrative, not a gate. M4's flat `main/m04.ts` still listens to
+  `Rootgrab` and to a `Files.Transfer` download until its migration. See
+  `docs/m03-playtest.md` step 22.
+- **[milestone] The day's work is committed as five code commits and two docs
+  commits.** In order: Phase 0 generic pipeline pieces (`6c8f9e7`), M2
+  migration (`e01b7d1`), M3 migration (`d03a21a`), BACKTRACE card scroll
+  (`00d1642`), mission websites gated by the active mission (`5053585`); then
+  the doc renames and the doc sync. Each code commit typechecks on its own.
+  Left out on purpose: the idea plan (`docs/idea.md`), the msflab guide, the
+  rival-hacker prototype (`src/debug/rival-*` and its import in
+  `src/debug/index.ts`), and the per-test dev-focus toggle in
+  `src/guard/flags.ts`.
+- **[docs] Three docs were renamed and their pointers fixed.**
+  `implementation-rules.md` is now `rules.md`, `mechanics-reference.md` is
+  `mechanics.md`, `network-plan.md` is `network.md`. Pointers in
+  `architecture.md`, `bugs.md`, `story.md`, `rules.md` and this file's header
+  follow; dated entries keep the names they were written with. `rules.md` §11
+  gained the rule that a mission's sites are open only while it runs, and
+  `story.md`'s live-test bullet records the 2026-10-01 M2 and M3 passes.
+- **[mechanic] Mission websites are now open only while their mission is
+  running.** After M3 completed, `skynet-importexport.biz` still opened in
+  Firebear: the engine finds a mod `@RegisterWebsite` by host name alone, so
+  `Network.removeDomain` and the destroyed router never reached it. Every
+  mission site now goes through `gateMissionPages(mission, pages)`
+  (`websites/global/page-guards.ts`) and answers the 404 page unless the
+  mission is the active one (`flatline.activeMission`, written by the
+  controllers: set in `OnObjectivesStart`, cleared in `OnComplete` /
+  `OnAbandon`). Covers M1 (Blackwire, Frostgate, Obsidian, ClearEscrow,
+  PacificCare; PacificCare's static page became a dynamic one), M2 TR4C3404, M3
+  Skynet and M4's C2 dashboard. Left open on purpose: LedgerVault (permanent
+  domain, its own seal) and BLACKLEDGER (static story page). Checked against a
+  mocked SDK (95 checks, four negative controls) and typecheck; not yet
+  live-tested. See `docs/architecture.md` (Website access).
+- **[bug] M3 stalled at the gateway config: `rootgrab` had become a gate
+  prerequisite.** In the live test the config read traced nothing, because the
+  chain required `gatewayRooted` before `vpnConfigRead` and `rootgrab` had
+  answered "Invalid passwd file" (it takes exactly one argument, `rootgrab
+  /etc/passwd`, `docs/bugs.md` #26). `rootgrab` is optional again, as in the
+  playtest: `vpnConfigRead` needs only `gatewayShellObtained`, `gatewayRooted`
+  is an optional branch that adds the `root` personal log, and the early-report
+  hint no longer says "root it". The gate table is code only, so a save in
+  progress continues after a rebuild. See `docs/m03-playtest.md` §11.
+- **[bug] BACKTRACE's in-progress card was cut off and could not be scrolled.**
+  The card (TRACED SO FAR + PERSONAL LOG, up to 5 keys and 8 log lines in M3)
+  lives in `.locked`, which had no overflow inside the `overflow:hidden` view, so
+  the bottom was clipped on a short window. `.locked` now scrolls like the
+  finished report (`overflow-y:auto`, scrollbar hidden), and the card centers
+  with `margin:auto` when it fits. Checked in a browser against the real CSS
+  with a 5-key, 8-line card at 640 px height: it scrolls to the bottom, a short
+  card and M4's locked card stay centered, a ready report still hides `.locked`.
+- **[milestone] M3 migrated to the mission pipeline and live-tested the same
+  day (English; the Chinese texts were not played).** The 21:13-21:42 run
+  reached `m3 -> complete` with all five BACKTRACE keys and every personal log
+  in order (the Vault-Line shell came only after the ledger, as designed), and
+  the gateway-config stall above was fixed afterwards. `main/m03.ts` is a thin
+  class over
+  `controller/m03/` (`recon`, `pivot`, `gateway`, `forwards`, `report`, `world`,
+  `spec`); `content/m03.ts` became `content/m03/` (`state`, `gates`, `network`,
+  `topology`, `ledger`, `database`, `fixtures`, `scan`, `server-files`, `twotter`,
+  `mail`, `report`, `quest`, `intro`), the parent entity name moved to
+  `content/global/entities.ts` (M4 and BACKTRACE import it there), and every
+  player-facing text has an `en` + `zh` key (`i18n/m03/core.ts`, the Twotter
+  personas in `i18n/m03/twotter.ts`, the Skynet page in `i18n/m03/site.ts`). The
+  mission is a gated chain (`tipReviewed` -> `siteScouted` -> `portalReached` ->
+  `natPivotDone` -> `ledgerDumped` -> `gatewayShellObtained` -> `vpnConfigRead` ->
+  `reportSent`; `gatewayRooted` and `accompliceReached` stay optional): the
+  ledger now comes before the gateway, the portal domain, the ledger domain and
+  the gateway's `nslookup` / `nmap` / `hydra` fixtures appear only after the
+  public site is scouted (`gatewayLead`), a rule the player saves before that
+  stays inert, and the Vault-Line rule only gets its RDP banner after the ledger
+  is dumped (the rule is never refused; it is banner-released on the dump or on
+  the next save). The player-written forwards live in the quest data and are
+  restored after a rebuild through `WorldSpec.restore`. M3 is not `Abandonable`;
+  a correct report that comes too early gets a Custodian reply with a hint
+  instead of silence. Same networks, fixtures, database, texts, mail, template and
+  personas as before (compared against the previous commit over a mocked SDK);
+  the only difference is the withheld Vault-Line banner. See
+  `docs/m03-playtest.md` §11, `docs/scratch.md`.
+- **[milestone] M2 migrated to the mission pipeline and live-tested the same
+  day (English; the Chinese texts were not played).** The 19:26-19:53 run reached
+  `m2 -> complete` with all seven BACKTRACE keys traced in gate order, the log
+  held no error from the mod, and the owner confirmed the hidden-until-probe
+  subdomains, the early-report reply, `nuclei`, the `mods.reset` replay and the
+  teardown. `main/m02.ts` is a thin class over
+  `controller/m02/` (`recon`, `devbox`, `home`, `report`, `world`, `spec`);
+  `content/m02.ts` became `content/m02/` (`state`, `gates`, `network`, `topology`,
+  `database`, `fixtures`, `scan`, `server-files`, `mail`, `report`, `quest`,
+  `intro`), the shell company name moved to `content/global/entities.ts`, and
+  every player-facing text has an `en` + `zh` key (`i18n/m02/core.ts`, the two
+  tr4c3404 pages in `i18n/m02/site.ts`). The mission is now a gated chain
+  (`tipReviewed` -> `rootProbed` -> `subdomainsEnumerated` -> `adminsDumped` /
+  `affiliatesDumped` -> `devboxAccessed` -> `deployLogRead` / `homeLeadRead` ->
+  `firewallLoggedIn` -> `firewallBreached` -> `workstationRooted` ->
+  `shellCompanyFound` -> `reportSent`): the 40 subdomains and the devbox `nmap`
+  appear only after the root probe, the home RDP opens at the breach, the
+  report needs the dumped panel, the deploy log and the pdf, and an early
+  correct report gets a Custodian reply with a hint. BACKTRACE keys trace from
+  the gate step. M2 is not `Abandonable` (only M1 is). The subdomain build order
+  is now the label order instead of `Math.random`; the 3306 `removePort` /
+  `addPort` reconcile is gone. Same networks, fixtures, databases, texts, mail
+  and template as before (compared against the previous commit over a mocked
+  SDK); the new chain was fuzzed over 300 random event orders. See
+  `docs/m02-playtest.md` §11, `docs/scratch.md`.
+- **[milestone] Phase 0 of the M2/M3 migration: generic pipeline additions, M1
+  unchanged.** `core/types.ts` gained `splitter` / `printer` device kinds,
+  `name` and `vulnerabilities` on `DeviceSpec` (set with
+  `Network.setVulnerabilities` right after the build), `vulnerabilities` on
+  `DomainSpec`, `WorldSpec.databases` (new `components/database.ts`, applied after
+  a build and removed after the awaited teardown) and `WorldSpec.restore`
+  (carried through the rebuild job's payload), and gates typed on boolean flags
+  (`FlagKey`). The site-string cache moved from `context/m01/site-strings.ts` to
+  `context/global/site-strings.ts` (`SharedVariables`, key `flatline.siteStrings`,
+  fed by the union in `i18n/global/site-keys.ts`). Typecheck clean; against a
+  mocked SDK the previous commit and the new tree record the same 966 calls for
+  `M01_WORLD` in 5 scenarios (a removed unlock is detected), and 25 checks cover
+  the new paths. Not played in the game yet. See `docs/architecture.md`,
+  `docs/scratch.md` (M2/M3 migration notes).
+- **[milestone] M1 FINAL LOCK; the pipeline is ready for M2-M4.** Live test
+  2026-10-01 passed (network, mail, listing, jump-step gating). Investigation
+  `trace()` calls were removed from `core/`, `middleware/`, `context/m01/` and
+  the M1 websites; the "why" notes live in `docs/bugs.md` #35-#38. The `state/`
+  folder is now `context/`. See `docs/architecture.md`,
+  `docs/implementation-rules.md` §11.
+- **[mechanic] M1 step order is enforced end to end.** `content/m01/gates.ts`
+  is a 13-step transitive chain and every listener goes through
+  `middleware/advanceStep`; the broker domains (`x7xsentry9.tech`, `be7.`,
+  `fw7.`) are registered only on the `brokerLead` unlock; the LedgerVault page
+  is a 404 until the IRC step; a correct report sent too early gets a short
+  "not yet" reply from the Custodian (one mail, replaced, with a hint for the
+  first missing stage). BACKTRACE's M1 report now shows the Personal Log. See
+  `docs/bugs.md` #38, `docs/m01-playtest.md` §10.
+- **[bug] Mod mails piled up after `mods.reset`.** `mods.reset` does not remove
+  mail sent with `Mail.send`, and `Mail.getInbox().subject` is blank for it, so
+  matching by subject never worked. `onStartM01` now withdraws everything from
+  the mod's sender addresses; the early-report reply is tracked by id. See
+  `docs/bugs.md` #37.
+- **[bug] The listing winner flipped and pages disagreed with the quest.** A
+  website render runs with no mod context, so its own roll went to a different
+  namespace. The roll now happens in mod context, is mirrored to
+  `SharedVariables`, and renders only read it. See `docs/bugs.md` #36.
+- **[bug] `be7`/`fw7` appeared and vanished after `mods.reset`.** Concurrent
+  `destroyNetwork` calls overwrite each other; M1 rebuilds through a sequential
+  awaited job (`core/rebuild.ts`). Follow-up to #32; see `docs/bugs.md` #35.
+- **[docs] `helpers/network.ts` folded into `components/topology.ts`.** M2-M4
+  import `networksExist` / `resetMissionNetworks` from there until they are
+  migrated.
+
+- **[mechanic] `src/` restructure phase B: M01 migrated to the mission
+  pipeline, behavior unchanged.** `main/m01.ts` (1053 lines) is now a thin
+  quest class that delegates to `controller/m01/` (`index`, `spec`, `report`,
+  `irc`, and the listeners grouped as `recon`, `breach`, `access`, `vault`).
+  Generic, mission-blind code is new: `core/` (`register`, `unregister`,
+  `unlock`, `seed`, `types`), `components/` (`topology`, `domains`,
+  `fixtures`, `persona`, `report`) and `middleware/gate.ts` (`canAdvance`,
+  `reachedUnlocks`); M01's world, intro and gate tables are data in
+  `content/m01/` (`world`, `intro`, `gates`, `topology`, `fixtures`, `state`).
+  `content/m01.ts` (440 lines) was split by line range into
+  `content/m01/*` (zero lines lost, same 149 exports plus 4 helper
+  constants), the ten M01 i18n files moved to `i18n/m01/` without the `m01-`
+  prefix, `characters`, `finance` and `blackledger` moved to
+  `content/global/` with the new `content/global/case.ts` (`M01_CASE_ID`), and
+  `websites/shared/` became `websites/global/`. Import paths changed in M02/M03
+  content, `main/m02.ts`, `backtrace-facts.ts`, the websites and the four
+  `.original.ts` backups; none of their logic changed. Verification:
+  `tsc --noEmit` clean at every step, and the HEAD version of M01 and the new
+  one were run against a mocked SDK and compared call by call over 17 scenarios
+  (fields, `OnStart`, four `OnObjectivesStart` variants, a 12-step event
+  walkthrough including the gates and both report paths, `OnComplete`,
+  `OnAbandon`): identical. Not live-tested in HackHub yet. Open items: the
+  data/state split of `listing-pool.ts` and `site-strings-cache.ts`, the 100-line
+  `renderM01ListingPage` (pre-existing), M02-M04, and docs sync for
+  `implementation-rules.md`. See `docs/architecture.md` ("Mission pipeline").
+- **[mechanic] `src/` restructure phase B follow-up: M01 data made pure,
+  state split out, `index.ts` reduced to `main/` + `debug/`.**
+  `content/m01/topology.ts` is now plain data (`RouterSpec`/`DeviceSpec` in
+  `core/types.ts`; `components/topology` calls `Network.createUser` and maps
+  the kinds to `NetworkDeviceType`). `listing-pool.ts` was split into the data
+  file (slots, categories, regions, types) and the new `context/m01/listing.ts`
+  (resolution, getters, `buildM01HomeSoldLots`); `site-strings-cache.ts` became
+  `i18n/m01/site-keys.ts` (key list) plus `context/m01/site-strings.ts`
+  (`refreshM01SiteStrings`, `siteT`); `M01_WORLD` moved to
+  `controller/m01/world.ts`; the 100-line `renderM01ListingPage` moved to
+  `websites/m01/listing-page.ts` and is split into section renderers. The
+  mocked-SDK comparison against HEAD was re-run (network definitions now
+  compared with sorted keys): 17 scenarios identical, and the HTML of all 18
+  listing pages is byte-identical. The four `.gitkeep` files were removed.
+  `src/index.ts` now imports only `main/index.ts` and `debug/index.ts`;
+  `main/global.ts` imports BACKTRACE and the commands, each `main/mNN.ts`
+  imports its own websites, and a reachability check shows every file that
+  registers something is still reachable (registration order changed: debug
+  now loads after the missions). Not live-tested; the checklist is at the
+  bottom of `docs/m01-playtest.md`. Deferred on purpose: M02-M04 migration
+  (after the M01 live test), folding `helpers/network.ts` into
+  `components/topology.ts`, and the full rewrite of
+  `docs/implementation-rules.md`.
+- **[bug] Debug tooling no longer leaks outside `isDebug`.** `src/debug/`
+  registered its commands (`msflab`, `repel`, `rivallab`, `sysdiag`,
+  `sysrepair`), the `RivalHackerStrike` side quest, Scheduler handlers and
+  event listeners unconditionally, so a build with `isDebug = false` still
+  shipped them. New `src/debug/debug-gate.ts` (`registerDebugCommand`,
+  `registerDebugQuest`) leaves a class unregistered when `isDebug` is off, and
+  every top-level `Scheduler.register`/`Events.on` in `msf-lab`, `rival-banner`,
+  `rival-breach` and `rival-hacker-lab` sits behind `if (isDebug)`
+  (`quiet-start` already was). Typecheck only; not yet confirmed in-game with
+  `isDebug = false`. Still ungated, left on purpose: `scratchbt` in
+  `src/applications/backtrace-debug.ts`.
+- **[docs] `src/` restructure started: phase A, `main/` quest files renamed.**
+  `src/main/mNN-quest.ts` and `mNN-quest.original.ts` are now `mNN.ts` and
+  `mNN.original.ts` (8 files, plain file moves, no content change); the four
+  imports in `src/index.ts` follow. Each quest's `Name` (`flatline.mNN`) is
+  untouched, so saves are unaffected. Naming rule recorded in
+  `docs/architecture.md`: inside a per-mission subfolder the file name drops the
+  `mNN-` prefix, and a module used by two or more missions stays in its layer
+  folder without a subfolder. Other docs kept the old file names until
+  the phase B docs sync; earlier changelog and bug entries keep them as history.
+
+## 2026-09-29
+
+- **[bug] `msflab` banners fixed, traces added, live-test guide written.** The
+  lab wrote every port's `version` as `1.0.0`, but the client splits `version`
+  at its last space into a service name and a version and compares the name
+  with the module's service, so all ten targets would have answered "Port N
+  could not be accessed". Banners are now `<Service> 1.0.0` and the port's
+  `service` field carries the protocol. `src/debug/msf-lab.ts` now logs
+  `[FP][MSFLAB]` lines (use, set, search, nmap, each attempt with the port row
+  the engine saw, success, session), plus one line at load, one per `msflab`
+  run and, with `isDebug`, one per terminal command. Telnet's internal port 23
+  is confirmed from the client. The lab now uses fixed IPs in the M1 router
+  shape (router `198.18.0.1`, hosts `198.18.0.2`–`.11`, LAN
+  `192.168.1.2`–`.11`); this supersedes the random router address in the entry
+  below. The first live attempt failed for two reasons that were not the
+  addresses: the guide wrote `nmap -sV <ip>`, but the client reads the first
+  argument as the IP and answers `Usage: nmap [ip address]` (the form is
+  `nmap <ip> -sV`), and `msflab up` had never been run. The guide was rewritten
+  to lead with the custom command. Not yet run in game — see
+  docs/msflab-livetest-guide.md.
+- **[bug] #32 fix extended to M1, M2 and M4.** Their quest data gained
+  `networkBuilt`, and `OnObjectivesStart` builds the network (the
+  `resetMissionNetworks` destroy included) only when the flag is false or an
+  anchor router is missing, so a restart or a dev reload keeps the persisted
+  network. New `missionNetworksExist` helper in `src/helpers/network.ts`; M1's
+  `registerM01Network` split into `registerM01Routers` and `registerM01Domains`.
+  Seven commented-out `destroyNetwork` lines removed from `m01-quest.ts` and
+  `m02-quest.ts`. Typechecked, not live-tested — see docs/bugs.md #32.
+- **[mechanic] BACKTRACE reports: Personal Log now sits under Evidence.** In
+  the M2 and M3 reports the Personal Log section moved from the left column
+  to the right column, directly below the Evidence card (a markup move in
+  `src/applications/backtrace.html`; the M1 report has no Personal Log).
+  Requested in the M3 round-3 review. The Shell Company card keeps reading
+  `m2.shellCompany` on purpose: missions are played in order, so a blank
+  there in an isolated M3 test is a test artifact, not a bug.
+- **[milestone] M3 round 3 live-tested (2026-09-29, 22:18–22:37).** All five
+  keys traced in order (`portal`, `parentEntity`, `gateway`, `vpnPeer`,
+  `accomplice`), both `[FP][M03] remote connection` lines appeared
+  (METASPLOIT → 79.124.62.90, SSH → 62.210.183.77) and the report completed
+  (`m3 -> complete`). R1–R4, R6 and R7 were ticked as passed; **R5 (the Reyes
+  personal log via `cat`/`open`) was skipped, not tested**: the note was read
+  after the mission had completed, when `teardown()` had already destroyed
+  the network ("File not found."). See `docs/m03-livetest-guide.md`.
+- **[docs] Bug statuses #31–#34 moved to live-tested; guide updated.**
+  `docs/bugs.md` #31 (portal via `Network.PortChanges`), #32 (round 2: a
+  restart and a reload keep the network), #33 (`accomplice` via SSH; its
+  Reyes-log half stays untested) and #34 (the report completes on ledger +
+  config, `cat` works at `meterpreter >`) no longer say "not yet
+  live-tested". The guide marks R5 `[-]` (skipped) and warns to send the
+  report last, because completing the mission tears the M3 network down.
+- **[refactor] `src/debug/scratch.ts` retired; `scratchbt` moved to
+  `src/applications/backtrace-debug.ts`.** Three of its four tools were
+  dead: `scratchloc` (bug #22's investigation is RESOLVED and already
+  written up in `docs/bugs.md`), `scratchimg` and the `scratch-viewer`
+  website (one-off tests never referenced again). Only `scratchbt` was
+  still live-test tooling, so it moved next to
+  `backtrace.ts`/`backtrace-state.ts`/`backtrace-facts.ts` instead of
+  disappearing with the rest of the file; its command name and behavior
+  are unchanged.
+- **[mechanic] `msflab` debug command added (`src/debug/msf-lab.ts`).**
+  Stands up one sandbox host per base-game Metasploit module (telnet,
+  MariaDB, vsftpd, OpenSSH, RDP, SMTP, Nginx, Apache, POP3, IMAP) with the
+  port/service/version banner and online `guest` user each module's own
+  gating needs, so every module can be live-tested against a known-good
+  target instead of inferred from the decompiled client alone. `msflab up`
+  builds it and prints the RHOST/RPORT/Version cheat sheet, `msflab` alone
+  reprints it, `msflab down` tears it down; the router address is random
+  and saved per-save, so it never collides with a mission's own network.
+- **[mechanic] BACKTRACE: one action = one key finding.** The old tracing
+  wrote several facts from a single action (M2's `affiliates` dump traced 5,
+  M3's ledger dump 4) and the mission card listed every fact as a row. The
+  model is now split: a **key** is one important finding earned by exactly
+  one provable action and is the only thing the "TRACED SO FAR // x OF N"
+  panel shows (title + value, no description); every other fact is an
+  **extra** that only exists in the full snapshot written at COMPLETE, where
+  it is composed into the report's Key Findings — which may outnumber the
+  keys because they are the chain of events. Keys: M1 4 (`broker`, `buyer`,
+  `vault`, `caseId`), M2 7 (`developer`, `ransom`, `deployLog`, `homeLead`,
+  `firewall`, `workstation`, `shellCompany`), M3 6 (`portal`, `parentEntity`,
+  `architectVpn`, `gateway`, `vpnPeer`, `accomplice`). `traceBacktraceFacts(mission,
+  keys[])` is replaced by the typed single-key `traceBacktraceFinding(mission,
+  key)` (a non-key is rejected at compile time and at runtime); carried facts
+  (`buyer` in M2, `caseId` in M2/M3, `shellCompany` in M3) are no longer keys.
+  M1 gained the Q3 folder as a checkpoint (LedgerVault reports the click to
+  the quest through `Website.Exports` + `Events.emit`), which merges `caseId`
+  and `project` into one finding; M3 gained a report view (Key Findings
+  8, Entities, Personal Log, EV-M3-01 now reachable) and M1/M2's Key Findings
+  were rewritten (M1 5, M2 9). See `docs/architecture.md` (Applications:
+  BACKTRACE) and `docs/implementation-rules.md` §13.
+- **[mechanic] One money model for M2 and M3 (`src/content/finance.ts`).**
+  M3's ledger showed a single $42,000 row while M2's ransom was $2,850,000.
+  Root cause: both were $42,000 in the pre-redesign missions; M2 was rebuilt
+  on 2026-09-25 (commit `f255b8e`) and M3's constant kept the old value, and a
+  2026-09-28 patch (`8bbdc8e`, "this is one line item, not the whole batch")
+  papered over it. Three ransom batches (LOG-EU-2209 $1.4M on 2026-05-02,
+  FIN-NA-0091 $4.1M on 2026-07-22 — moved from 2026-02-19 so it really falls
+  in the "Q3" that `quota_report` and the M2 report claim — and CASE-A7X-0417
+  $2.85M on 2026-08-14) share one waterfall: 60% SKN Capital Nominees
+  (management fee, the Architect's cut), 25% TR4C3404 Consulting (consulting
+  fees, the panel's share), 5% X7xSentry9 Brokerage (the M1 broker, paid a
+  share of the ransom), 10% retained by Skynet. Total $8,350,000, $5,010,000
+  to the parent. M2 shows gross and the panel's share (`affiliates` gained
+  `batchRef`, `panelShare`, `status`; `deploy.log` and `wire_authorization.pdf`
+  carry the amount, batch and value date); M3 shows the whole waterfall
+  (`wire_transfers` is now 12 rows with a running balance ending at the
+  retained $835,000, the Reyes spreadsheet is a Q3 reconciliation
+  `q3_reconciliation.xlsx` — it was misnamed `q1_` — the tip mail names the
+  $2,850,000, and the report gained "Funds" lines). Every number is computed
+  from the one batch table, so M2, M3 and BACKTRACE cannot disagree again.
+- **[mechanic] M3: `open` replaces the download step; formats changed.**
+  The VPN config is `site_to_site_backup.conf` and the capture
+  `finance_vlan_capture.pcap`; reading them with the `open` command (any
+  extension; `cat` only handles `.txt`/`.log`) is what counts
+  (`OPEN_FILE_READ_EVENT`, the M2 pattern), so the `Files.Transfer` handler
+  and the `vpnConfigPulled` flag are gone (`vpnConfigRead`, `captureRead`
+  instead). Starting Wireshark now only creates the file; the tunnel
+  endpoint is traced when the capture is opened. The capture log names the
+  public IPs of the DB server and the gateway (a LAN IP alone is a dead end,
+  `bugs.md` #27).
+- **[bug] M3 hydra username was undiscoverable (`bugs.md` #25).** The engine
+  defaults `-l` to `guest` and a missed fixture only says "Could not connect
+  to the server."; the fixture is now registered under `guest` and `admin`
+  and the dead bare-IP fixture is dropped.
+- **[bug] M3 `rootgrab` could never fire (`bugs.md` #26).** Vault-Line had no
+  `root` user; it now has one. The command is `rootgrab /etc/passwd`.
+- **[bug] "Shell obtained" never fired for a plain Metasploit exploit
+  (`bugs.md` #29).** `Metasploit.Meterpreter.Connected` is raised only by the
+  reverse-TCP listener; the `exploit` flow raises `Metasploit.Event` and
+  `RemoteConnection.Established`. M3's shell flag and its `gateway` finding,
+  and M2's new `workstation` finding, now listen for
+  `RemoteConnection.Established` (`t === "METASPLOIT"`). M4's
+  `initialShellAccess` has the same latent problem and was deliberately left
+  unchanged (untested, out of scope).
+- **[docs] Recon and tool facts recorded (`bugs.md` #27, #28):** nmap and
+  Metasploit take public IPs only, Splitter children are found with
+  `python3 net_tree.py`, and Wireshark is an App. Also corrected: M2's
+  Metasploit/`openPort` through Router→Splitter→Device was already proven
+  live, so the "two levels unproven" notes for M3 were stale.
+- **[docs] Stale docs synced.** `architecture.md` still said M2's
+  `shellCompany` traced on `Files.Transfer` and that M3/M4 had no facts;
+  `m02-playtest.md` still said `download`; the M3 playtest had the wrong
+  `wireshark`/`run`/default-user details. All updated together with
+  `implementation-rules.md`, `mechanics-reference.md`, `story.md`,
+  `network-plan.md`, `scratch.md` and the three playtests.
+- **[bug] M3 personal log typo.** The `ledger` log rendered "Co.. SKN"
+  (double period from `${name}.`); the line now carries the money instead.
+- **[milestone] Verification state.** `npx tsc -p tsconfig.json --noEmit`
+  passes clean (exit 0) on the whole change set — it could not be run earlier
+  in the session (the shell was blocked by auto mode) and was run once the
+  shell was available again, after all code edits. No build was run and
+  nothing was live-tested; every new checkpoint (the LedgerVault folder
+  export, `RemoteConnection.Established`, the Wireshark-started capture file)
+  is still an unplayed assumption.
+- **[docs] `open` cannot read a Meterpreter target (`bugs.md` #30).** Checked
+  against the client after the code was written: custom commands see a remote
+  file system only over SSH (`isRemote` = `ssh_ip`), and a relative path
+  resolves from the home folder, not the cwd. The M2/M3 route is Meterpreter
+  `download` (copies land in `~/downloads`) and then `open ~/downloads/<file>`;
+  the quests already match on `{ name, extension }`, so no code changed. The
+  playtests, `mechanics-reference.md` and `scratch.md` were corrected. Open
+  proposal: make `open` cwd-aware with `Files.resolvePath`.
+- **[bug] M3's NAT pivot could never fire — the gateway is a TP-Link router,
+  not a pfSense (`bugs.md` #31).** A live-test screenshot of the admin panel
+  showed the TP-Link "Router Administration" page with five pre-filled
+  forwarding rules. Checked against the client: a `Router` node renders that
+  page, which raises `Network.PortChanges` on Save and **no event on login**;
+  `PFSense.Login`/`PFSense.Changes` come only from the pfSense page of a
+  `Firewall` node (M1/M2, where they were live-proven). M3 listened to the
+  wrong events, so `portal`, `natPivotDone` and the VLAN ports never happened.
+- **[mechanic] M3 pivot redesigned: the player writes the forwarding rules
+  (Option B).** The Port Forwarding table is the router's real port table, so
+  it cannot be hidden; it now starts with only the locked port-80 rule and the
+  four VLAN devices ship with no ports. `Network.PortChanges` on the gateway:
+  the first Save traces `portal`; each saved rule that matches a host and
+  service in `M03_FORWARD_TARGETS` is completed with its service banner
+  (`removePort` + `addPort`, `syncM03Forwards` in `m03-quest.ts`) so sqlmap,
+  Metasploit and nmap accept it; an active match is the pivot; the matches
+  persist in `forwards` and are re-applied on start; the revert now means "no
+  active rule of yours left" instead of "any later Save". The hint precedes the
+  gate: the tip mail, the public site's Staff Access block and its `lynx`
+  fixture name each host with its service and port, and `python3 net_tree.py`
+  gives names and LAN IPs. Quest data: `pfsenseLoggedIn`/`pfsenseChangeCount`
+  replaced by `portalReached`/`forwards` (abandon or `mods.reset` an old M3
+  save).
+- **[milestone] Verification state (M3 pivot).** `npx tsc -p tsconfig.json
+  --noEmit` clean (exit 0), no build run, nothing played. Open assumptions:
+  `Network.PortChanges` reaching a quest-scoped listener, and the rewrite
+  surviving the panel's stale form state.
+- **[docs] `docs/m03-livetest-guide.md` added.** A short Indonesian live-test
+  guide for M3: the story, the network map with public vs LAN IPs, the six-stage
+  flow, how to trigger and check each BACKTRACE key (with the log line to look
+  for) and a prioritised bug/risk table to try on purpose. Complements
+  `m03-playtest.md`; disposable like the playtests.
+- **[milestone] M3 live-tested up to the VPN config (2026-09-29, log-confirmed).**
+  The router rework was played from the recon through `vpnPeer`: `portal`,
+  `architectVpn`, `parentEntity`, `gateway` and `vpnPeer` traced in the log, with
+  the capture, ledger and root personal logs. Verified live: `Network.PortChanges`
+  reaching the quest, the banner surviving a second Save, `open` on the `.pcap`
+  and the `.conf`, the plain `exploit` raising `RemoteConnection.Established`,
+  `rootgrab` with a root user, hydra without `-l`, and the rejected out-of-order
+  attempts. The project owner's review of that run (first written into the
+  guide's section 8, since replaced by the retest steps) found the three
+  problems below.
+- **[bug] M3's network vanished on every restart (`bugs.md` #32).** A start-time
+  `destroyNetwork` runs in a worker on a snapshot and overwrites the whole
+  network list when it finishes, so the network built a moment earlier — and the
+  player's rules — were lost on every restart and every dev reload. M3 now
+  builds the VLAN only once (`networkBuilt` in the quest data, plus a check that
+  the subnet still exists); `forwards` remains the fallback for a rebuilt
+  network. M1, M2 and M4 still call `resetMissionNetworks` on every start and
+  have the same problem.
+- **[mechanic] M3's report no longer requires the rules to be removed.** A
+  design call by the project owner (the rules are the player's freedom): `natReverted`
+  and `isVlanExposed` are gone, the report waits only for the capture, the ledger
+  and the config, the tip mail now says the rule is "yours to keep or remove",
+  and the objective text no longer says "cover your tracks".
+- **[mechanic] Faded-Ledger is reached over SSH (`bugs.md` #33).** The guide's
+  O14 showed that a successful SSH login did not clear the bonus key:
+  `Terminal.Explorer` is raised only by Meterpreter and `evil-rm`. `accomplice`
+  is now traced on `RemoteConnection.Established` with `t === "SSH"` to
+  Faded-Ledger; `M03_FORWARD_TARGETS` gained `22 ssh` for it; the Reyes personal
+  log fires on `cat`/`open` of her note instead of at login; the Staff Access
+  notice, the site page and the `helpdesk_resets` note were reworded to match.
+  Data: `reyesShareSeen` became `accompliceReached`.
+- **[docs] `docs/m03-livetest-guide.md` rewritten for the retest.** The review
+  section, the ticked bug table and the DB-manager remarks are gone; it now has
+  the fresh-start steps, the three new checks (restart, report with the rules
+  left in place, Faded-Ledger over SSH) and a short list of what is parked.
+  `m03-playtest.md`, `bugs.md`, `story.md`, `network-plan.md`, `architecture.md`
+  and `mechanics-reference.md` were synced.
+- **[milestone] Verification state (round 2).** `npx tsc -p tsconfig.json
+  --noEmit` clean, no build run by the assistant, the three changes above are
+  unplayed.
+- **[milestone] Retest of round 2 (2026-09-29, 20:02–20:26, log-confirmed).**
+  Restart and dev reload kept the network and the rules (`bugs.md` #32 works),
+  the new texts were live, BACKTRACE was clean. Not passed: the report never
+  completed and the SSH login to Faded-Ledger traced no key.
+- **[bug] M3's report was refused in silence (`bugs.md` #34).** The log shows the
+  ledger dumped and the config read, but no capture: the third report gate needed
+  `Wireshark.Started`, and gates print nothing. The Wireshark step (judged weird
+  in play) is removed with its `.pcap`, the payroll decoy and the `architectVpn`
+  key (now a snapshot extra; M3 has 5 keys). The ledger domain moved into the
+  Staff access notice, the personal log that fired on the capture (`tunnel`) fires
+  on the config read, M4's tip mail names the gateway config as the source, and
+  the report needs only the ledger and the config.
+- **[mechanic] No `download` in M3.** The gateway config is
+  `site_to_site_backup.txt` (was `.conf`), read with `cat` at the session's root;
+  `Terminal.Cat` traces `vpnPeer`. Unconfirmed: that `cat` is offered at the
+  `meterpreter >` prompt.
+- **[bug] `open` printed one paragraph.** `open` gave the whole file to one
+  `println` of a string, which collapses newlines; it now prints line by line
+  (`bugs.md` #34).
+- **[docs] `CLAUDE.md` added** at the project root: an honest project context
+  (a game mod, fictional data, design-level work). A `trace()` was added to the
+  `RemoteConnection.Established` handler to explain the silent SSH login.
+- **[milestone] Verification state (round 3).** `npx tsc -p tsconfig.json
+  --noEmit` clean, no build run by the assistant, round 3 is unplayed.
+
 ## 2026-09-28
 
+- **[mechanic] M3 "Money Trail" — pass 2, after the first live-test
+  (branch `clouds-modify`, not yet re-tested).** Three live-test bugs
+  fixed: (A) `bettercap` removed — it is a Wi-Fi tool (WifiRecon/DeAuth),
+  wrong for a wired pivot; the capture gates on `Wireshark.Started` +
+  pivot only. (B) the finance VLAN was reachable by `sqlmap` before the
+  pivot — every internal port now ships `active:false` and is opened only
+  by the NAT-pivot `PFSense.Changes` (the `Network.openPort`-after-breach
+  mechanism M1 uses), reconciled on restart. (C) the VLAN was re-addressed
+  `10.50.1.x` → `192.168.1.x` because the pfSense port-forward panel's
+  `IsLocalIp()` rejects anything else. New depth: a real Metasploit chain
+  against a hardened tunnel gateway `Vault-Line` (RDP `FreeRDP 7.1.9` RCE,
+  the recipe M2 live-confirmed) → Meterpreter → Rootgrab → download
+  `site_to_site_backup` whose config ties the recurring VPN IP to SKN
+  Capital Nominees; a multi-step OSINT password deduction (format from
+  Reyes, short-name + policy-year from the site); a real `@m.okafor`
+  red-herring Twotter persona; and DatabaseManager (`Database.Connected`)
+  as an alternative to `sqlmap`. Objectives collapsed to a single
+  `reportFindings`, matching M1/M2. Cross-mission constants preserved.
+  11 SDK-behavior assumptions listed in `docs/scratch.md`. **Abandon /
+  `mods.reset` M3 before testing — objective IDs changed again.**
+- **[mechanic] M3 "Money Trail" redesigned (branch `clouds-modify`, not
+  live-tested).** Closes the 2026-09-23 audit's M3 findings. **M3→M4:** the
+  `wireshark` capture (gated behind the NAT pivot *and* a new `bettercap`
+  step) now writes `~/finance_vlan_capture.log` naming
+  `M04_ARCHITECT_VPN_IP`, traces a new `architectVpn` BACKTRACE fact, and
+  the report requires that IP as a third field, so M4's opening tip now
+  describes evidence the player actually gathered. **d.reyes's SMB
+  creds** leak from a new `helpdesk_resets` table in the same `sqlmap`
+  dump. Deeper chain: remote-portal `nslookup` lead to the gateway, a D.
+  Reyes Twotter persona and personal note, three decoys (`@m.okafor`, the
+  `Split-Bill` host, and a PayStream payroll IP ruled out by `geoip`).
+  Objectives 12 → 3 milestones. See `docs/scratch.md` (last section).
+- **[bug] Two pre-existing M3 blockers fixed.** Coin-Drift had no domain,
+  so `sqlmap` (which resolves targets by domain only) could never reach
+  the ledger; it now carries `ledger.skynet-importexport.biz`. The pfSense
+  gateway exposed only 443, but the browser opens admin panels only on
+  internal port 80. VLAN moved to fresh addresses (`bugs.md` #21) and to
+  M2's proven public-`ip` + `lanIp` shape. 10 SDK-behavior assumptions and
+  2 open doc conflicts are listed in `docs/scratch.md` for verification
+  against the client before merge.
 - **[bug] M1-M4 network state silently survived `mods.reset` and rebuilds
   forever.** `Network.createSubnetNetwork()` is "create, not replace" per
   the SDK's own docs — an address that already holds a network is left
