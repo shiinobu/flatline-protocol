@@ -130,8 +130,9 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   mirror is what every context reads) and `progress.ts` (the LedgerVault seal
   mirror). Website renders run with no mod context, so they only read the
   mirrors and never roll or write anything (bugs #36). M05's `progress.ts` holds
-  two booleans (archive open, lookup open), M06's one monotonic stage that is
-  reset, not only raised, at mission start, and M07's the dashboard flag that the
+  two booleans (archive open, lookup open), M06's one monotonic stage (closed 0 to identity 6) that is
+  reset, not only raised, at mission start, plus the door mirrors (door open, failure count, lock-until
+  time) that the door's `Exports` write directly, and M07's the dashboard flag that the
   edge scan sets. A page's `metadata()` runs before the `Browser.Meta` event, so
   a mirror must be raised by an event that precedes the visit (bugs #55). Read by
   the controller, the websites and `applications/backtrace-facts.ts`; `content/`
@@ -177,7 +178,7 @@ HostTrail (M6), HoneyCheck and the C2 dashboard (M7), and the Echoline captures
 (each one by the mission it belongs to; the Echoline index lists only the
 groups that are open). A closed page with `seo: true`
 answers a Goagle search with `null` and a visit by address with the 404 page (`bugs.md` #63). Not gated,
-on purpose: LeakIndex, Cipher Desk and Remote Desktop Connection (permanent `Popular` tool sites), LedgerVault (its domain is permanent and it has its own seal,
+on purpose: Cipher Desk and Remote Desktop Connection (permanent `Popular` tool sites), LedgerVault (its domain is permanent and it has its own seal,
 `isM01VaultSealed`) and BLACKLEDGER (a static story page with no network). The
 mirror is session-only and only written by controllers, so a game that starts
 with a finished mission has every gated site closed.
@@ -498,10 +499,10 @@ guessed.
 | M5 | `usbTicket` | `usb_ticket_PC-IT-017.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M6 | `nominees` | the nominee company's own register record opened (`Browser.Meta` on `/entity/r7k4/`) |
 | M6 | `registeredAgent` | `whois` on the registered agent's domain (`Terminal.Whois`, the `agentIdentified` flag) |
-| M6 | `ownershipChange` | both superseded ownership filings read (`Browser.Meta` x2 joining at `snapshotsCompared`) |
-| M6 | `insurer` | the insurer's register record opened, which is where the officer's position is published |
-| M6 | `infra` | `whois` on the insurer's domain, which answers with M3's own registrant (`Terminal.Whois`) |
-| M6 | `architect` | the officer record, reachable only once the insurer page **and** the insurer `whois` are both done |
+| M6 | `ownershipChange` | the sealed 2024 filing opened in Cipher Desk (`flatline.cipher.opened`, mission `m06`, after the 2019 one) |
+| M6 | `insurer` | the insurer's register record opened (after the Holdings record), which is where the officer's position is published |
+| M6 | `infra` | `whois` on the insurer's domain, which answers with M3's own registrant (`Terminal.Whois`, after `insurerLinked`) |
+| M6 | `architect` | the Risk Committee minutes behind the Playfair door (`Browser.Meta` on `/minutes/` of the door host `x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion`, after `doorOpened`) |
 | M7 | `nodes` | the hidden dashboard on the index host visited over https (`Browser.Meta`, the `dashboardFound` flag) |
 | M7 | `credential` | `ash-gate_backup.txt` on the forgotten relay read by `cat`, `open` or the Files app (`onFileRead`, the `credentialRead` flag) |
 | M7 | `firewall` | first Save in the edge filter's pfSense panel (`PFSense.Changes`, the `firewallBreached` flag) |

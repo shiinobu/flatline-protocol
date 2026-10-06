@@ -133,9 +133,9 @@ the first screen already shows Roxanne and Gideon under "No longer listed", and 
 ## 6. Profiling the administrator (step 6)
 
 `lynx rnatnaree` (also `lynx @rnatnaree` and `lynx Roxanne Anindita Natnaree`): three lines, then the `greta` trace. **`lynx` does not resolve an
-email** (tested in the game on 2026-10-05). `lynx gteoh` is a decoy and traces nothing. Her Twotter profile has 18 posts (one sealed:
+email** (tested in the game on 2026-10-05). `lynx gteoh` is a decoy and traces nothing. Her Twotter profile has 19 posts (one sealed:
 see §14; the ones that matter are "OT3 again", "0814 was the night nobody in IT will forget" and the two about legacy access and
-recovery procedures). `probe:greta-seen`; a lookup before step 5 is held and counted after it.
+recovery procedures). One more post, right after the password-policy one, names `leakindex.net` ("MedVendor says a 'limited number of accounts' were exposed. leakindex.net says my work address is one of them. limited, sure."): the only pointer to LeakIndex, a decoy (§8 item 3). `probe:greta-seen`; a lookup before step 5 is held and counted after it.
 
 ## 7. The handover note (step 7)
 
@@ -156,7 +156,7 @@ the PacificCare documents, and to take the system code and the date from the inc
    "Sign-in failed. Check your username and password." Right pair `rnatnaree` / `rnatnaree-OT3-2026-08-14`: the portal opens at
    **Overview** with only Overview and Sign-ins in the sidebar. `portal:login view=portal` (step 9).
 3. The old password `Marigold2019` (LeakIndex record 1, `john`) answers "This password was retired during recovery." and
-   `portal:login retired`; it still opens Roxanne's sealed Twotter post (§14). LeakIndex gates nothing any more.
+   `portal:login retired`; it still opens Roxanne's sealed Twotter post (§14). LeakIndex gates nothing any more. It is a mission-gated decoy again (`src/websites/m05/leakindex/`, no `Popular`, empty icon): it opens only while M5 is open, and its pages set no `seo`, so Goagle does not list it (`docs/bugs.md` #52); the only pointer is Roxanne's Twotter post that names `leakindex.net` (§6); the player types the host.
 4. Decoy: `gteoh` / `printroom01` opens a **Profile** page only ("No managed systems are assigned to this profile. Contract ended
    2026-07-31.") and advances nothing. Reporting from that session is ignored.
 
@@ -292,6 +292,7 @@ After step 18 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:
 | — | The hospital photographs, set as CSS `background:url("./assets/m05/…")` inside the `frame.html` iframe, load in the game | headless Chrome only; the SDK injects a `<base>` and copies `public/` into `dist/`, but only `<img src>` has live precedent |
 | — | The lockscreen under the service notice loads, is readable and is not cropped on a narrow window | `.alert img` is capped at 220 px high on narrow windows; a 16:9 image should fit, but it was not seen in the game |
 | — | The "you're in" mail arrives once, and the Overview alarm rows (the "Acknowledged" pill in the 136 px first column, the muted done rows) look right | headless Chrome and a mocked SDK only |
+| — | Roxanne's post naming `leakindex.net` sits among her other posts (after the password-policy one) and the host opens when typed | typecheck only; not seen in the game |
 | — | The five-step portal chain (Min 1 to 5) in play, including HD-4481 opened before and after HD-4503 | the page was clicked through headless; the game was not |
 | — | The full 22-step chain and its length | estimate 60 to 115 minutes |
 

@@ -1898,9 +1898,9 @@ pass; M07's trace halving now converts it.
 
 ---
 
-## 47. UNVERIFIED: a mission with no network at all (`networkIps: []`)
+## 47. VERIFIED LIVE (2026-10-06): a mission with no network at all (`networkIps: []`)
 
-**Status: OPEN (code read plus harness; M06's phase-2 walking skeleton is the live test).**
+**Status: VERIFIED LIVE 2026-10-06 (full M06 run under dev focus: the mission started, ran and completed with no error in the log).**
 Raised: M06 skeleton, 2026-10-02.
 
 M06 is designed with `networkIps: []` and `networks: () => []`
@@ -1933,6 +1933,21 @@ and neither of which needs a subnet (E-1 for fixtures, E-3 for the site
 lookup). `dirhunter` is only a discovery aid: the gate is the visit to
 `/filings/archive/`, so even if `dirhunter` turned out to need a subnet the page
 is still reachable by typing its address, and the mission is still completable.
+
+**Live result (2026-10-06, `hackhub-2026-10-06.log`, dev focus `m06`, a save with M3 complete).**
+
+- The mission starts and runs: `probe:zero-network register built=true` at 08:48:13, and no error entry anywhere in the log.
+- After a mod reload the keep path runs: `built=false` at 08:48:33 (`networkBuilt` had been saved by the first start) and the
+  mission carried on.
+- The whole chain, steps 1 to 10, was walked and the run ends with `reward skipped under focus: 4000` (09:11:24), so
+  `onCompleteM06` ran, and no error entry followed the `unregister` after it.
+- `dirhunter pcr-registry.org` raised `Terminal.Dirhunter` with no subnet anywhere in the mission (`probe:dirhunter-no-subnet`,
+  08:50:51), and the owner confirmed on screen that `/filings/archive/` was printed.
+- Not shown by the log: that no `createSubnetNetwork` call was made. Nothing traces it, so that point rests on the code read above.
+- **Observation, cause not found:** `onObjectivesStartM06` ran twice at the first start, `built=true` at 08:48:13 and again at
+  08:48:23 with no mod reload between them, so the second call also took the build path. It is harmless here, because an empty
+  world builds nothing. If a later run shows it with a real network, check whether `quest.SetData("networkBuilt", true)` is
+  visible to the second `register` call.
 
 ---
 
@@ -2066,9 +2081,9 @@ passed to the `Exports` function.
 
 ---
 
-## 51. UNVERIFIED: a numeric progress stage in `SharedVariables` read from a website render, and eleven dynamic pages on one site
+## 51. PARTLY VERIFIED LIVE (2026-10-06): a numeric progress stage in `SharedVariables` read from a website render, and eleven dynamic pages on one site
 
-**Status: OPEN (harness only; M06's live test answers it).**
+**Status: PARTLY VERIFIED LIVE 2026-10-06 (the chain ran to completion; the page-render checks were not reported, see the live result below).**
 Raised: M06, 2026-10-02.
 
 Entry #20 and #36 established what a `Website`'s `metadata()` can see: not
@@ -2099,6 +2114,14 @@ Two things could go wrong and neither shows up in a harness that stubs the SDK:
 `docs/m06-playtest.md` §1 and §6 are the steps to watch. The probe lines are
 `[FP][M06] probe:stage=<n>` and
 `[FP][M06] probe:dirhunter-no-subnet host=pcr-registry.org`.
+
+**Live result (2026-10-06).** The whole chain ran and `probe:stage` logged 0, 1, 2, 3, 4, 5 in step order, each on its own event:
+the tip read (1), `whois marlowepryce.biz` (2), the visit to `/filings/archive/` (3), the 2019 filing alone left it at 3 and the
+2024 filing raised it to 4, and the Mutual record raised it to 5 once `whois nordhaven-mutual.com` had run. No failure was
+reported. What this does not isolate: `probe:stage` prints the value `stageForM06` computes, not what `readM06Stage()` returned, and
+the `>=` comparison would also accept a string, so the number-versus-string question is answered only by behaviour, not
+directly. Still open: whether `dirhunter` printed all 13 paths (only the archive was confirmed) and the page-render checks listed in
+`docs/m06-playtest.md` §15.
 
 ---
 
@@ -2570,3 +2593,16 @@ login event and the retry, so it goes out once and only when `portalLoggedIn` co
 says what to flag, the second (shown from Min 1) says to check what the account reported the day before; each turns into a muted "Acknowledged" row when its
 step counts, and the open-alarm count drops. The pill column of `.att-r` is 136 px so "Acknowledged" fits.
 (3) `usbFound` has its own premature-reply hint (`MAIL_PREMATURE_HINT_USB`). Every new string has en and zh (`core.ts`, `portal-zh.ts`).
+
+## 72. The M6 door square's letter animation did not show in the owner's game
+
+**Status: OPEN, accepted at the M6 FINAL LOCK 2026-10-06 (owner: "masa bodo"). Not reproduced; cause not found; not seen in game after the fixes below.**
+Raised: M6 door live tests, 2026-10-06.
+
+**Report.** After wrong attempts the letters of the square stay `A` to `Z` and no longer scramble, and later a fresh load or a refresh shows no boot scramble either. The owner also pointed out that the ambient flick (a random cell shows random letters, then returns to its own letter) is only an animation, and asked for a lasting random change.
+
+**Checked.** Windows animations are on (`SPI_GETCLIENTAREAANIMATION`). Every page load in the game log came with `wait=0`, so the boot scramble should have played. The game log records nothing from inside the iframe. The game builds a new component per `metadata()` call, so a refresh mounts a fresh iframe with no state carried over. The page wrapper (`BPc`, `PRr` in the client) only injects the exports as globals, `HackhubSDK` and a `<base>`, and measures the anchor; it touches no timers or motion. Headless Chrome with the owner's flow plays the boot scramble and the ambient flick.
+
+**Changes already in (not confirmed to address the report).** The wait text is `Too many attempts.`; the failure count restarts after each 10 s wait; a page loaded under a wait settles the square at once and plays the boot scramble when the wait ends; `boot()` has a 1.8 s guard.
+
+**If it returns.** Add a temporary Export that calls `trace()` and have the page report `MOTION`, `DATA.wait`, the boot start and end and `window.onerror` through it, because the game log shows nothing from inside the iframe. A lasting random change of the letters is not built: the square has to match the typed key, and the letters are clicked into the answer.

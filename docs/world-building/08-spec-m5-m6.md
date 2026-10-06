@@ -129,6 +129,10 @@ karena network layer sudah dipikul M5.
 
 ### C2. Rantai gerbang (10 langkah, transitif)
 
+> **Diganti oleh M6 v2 (README #70, 2026-10-06):** rantai kini 13 langkah yang berakhir di pintu Playfair, dengan pengajuan 2019
+> dan 2024 tersegel di Cipher Desk. Langkah, bendera, dan tahap yang berlaku ada di `docs/m06-playtest.md` §16. Tabel di bawah
+> adalah rantai v1 dan hanya dipertahankan sebagai catatan.
+
 | # | Langkah | Requires | Pemicu | Efek |
 |---|---|---|---|---|
 | 1 | `tipReviewed` | - | `Mail.Read` tip Custodian ("Nominees: siapa yang menandatangani") | - |

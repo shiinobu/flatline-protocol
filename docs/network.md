@@ -305,7 +305,7 @@ follow-up mails (README #38 is superseded for M5): the hospital pages, Echoline 
 `search`) are found through Goagle, and the portal's Systems page names `rdcdesk.io`. Fixtures (`nslookup`, `whois`, and the
 `lynx` entries for Roxanne and Gideon) register with their step, not at build.
 
-## M6 — "Open Register" (written 2026-10-02; full mission, not yet live-tested)
+## M6 — "Open Register" (written 2026-10-02, v2 door installed 2026-10-06; not yet live-tested)
 
 The project's only **zero-network mission**: `networkIps: []` and
 `networks: () => []`. There is no topology at all, and all four of its domains
@@ -313,13 +313,17 @@ are resolved by `whois` / `nslookup` fixtures with no `Network.registerDomain`
 call behind them (E-1).
 
 ```
-pcr-registry.org      38.242.76.19    the register: 11 records on 5 stages,
-                                      plus the unlinked /filings/archive/
-marlowepryce.biz      87.236.19.144   the registered agent (whois gate, step 4)
-nordhaven-mutual.com  193.42.33.58    the insurer (whois gate, step 8 —
-                                      registrant Bulletproof VPN Ltd.)
+pcr-registry.org      38.242.76.19    the register: 11 records on 6 stages,
+                                      plus the unlinked /filings/archive/;
+                                      the 2019 and 2024 filings are sealed hex
+marlowepryce.biz      87.236.19.144   the registered agent (whois gate)
+nordhaven-mutual.com  193.42.33.58    the insurer (whois gate after the Mutual
+                                      record — registrant Bulletproof VPN Ltd.)
 portal.nordhaven-mutual.com  193.42.33.60
-hosttrail.net         45.133.1.76     the certificate lookup, open from step 6
+x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion
+                                      the Playfair door (no address, browse only,
+                                      not searchable, anonymous page) and the minutes behind it
+hosttrail.net         45.133.1.76     the certificate lookup, opens at insurerLinked
 echoline.net          185.31.164.22   one archived capture of the agent record
 vpn.skn-central.net   203.0.113.160   nslookup only; the endpoint M3 ends on,
                                       sharing one certificate with the portal
@@ -330,8 +334,11 @@ Page access is gated by a single monotonic stage number in `SharedVariables`
 cannot read `SaveStorage` (`docs/bugs.md` #36). Every record path is an opaque
 code, because `dirhunter` prints every registered path and a mod cannot hide a
 page (#40). `hosttrail.net` is named by the Custodian's mail at
-`snapshotsCompared`, together with the insurer's portal, and the Mutual record
-carries a Customer portal field (#52). The stage is reset at mission start and
+`insurerLinked`, together with the insurer's portal, and the Mutual record
+carries a Customer portal field (#52). The door host is named in the tip mail
+only; its page and its `Exports.flatlineDoorTry` check live in
+`websites/m06/door/`, and the evidence page is gated by the door-open mirror
+that the `Exports` set synchronously (README #70). The stage is reset at mission start and
 derived from the tip, so the first visit renders correctly (#55).
 
 ## M7 — "The Architect" (migrated from the old M4 on 2026-10-02; full mission, not yet live-tested)
