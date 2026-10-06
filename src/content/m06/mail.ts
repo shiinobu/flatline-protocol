@@ -5,6 +5,7 @@ import { DEAD_DROP_CONTACT } from "../global/characters.js";
 import { M03_PARENT_ENTITY_NAME } from "../global/entities.js";
 import type { M06Step } from "./gates.js";
 import {
+    M06_DOOR_HOST,
     M06_HOSTTRAIL_DOMAIN,
     M06_INSURER_PORTAL_HOST,
     M06_REGISTRY_DOMAIN,
@@ -16,6 +17,7 @@ export const M06_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M06_TIP_SUBJECT = (): string => Localization.t(M06_I18N_KEY.MAIL_TIP_SUBJECT);
 export const M06_TIP_CONTENT = (): string =>
     Localization.t(M06_I18N_KEY.MAIL_TIP_CONTENT, {
+        door: M06_DOOR_HOST,
         jurisdiction: M06_REGISTRY_JURISDICTION,
         registry: M06_REGISTRY_DOMAIN,
         entity: M03_PARENT_ENTITY_NAME,
@@ -30,18 +32,28 @@ export const M06_HOSTS_LEAD_MAIL = (): MailDefinition => ({
     }),
 });
 
+export const M06_AGENT_LEAD_MAIL = (): MailDefinition => ({
+    from: M06_DEAD_DROP_EMAIL,
+    subject: Localization.t(M06_I18N_KEY.MAIL_AGENT_SUBJECT),
+    content: Localization.t(M06_I18N_KEY.MAIL_AGENT_CONTENT),
+});
+
 export const M06_PREMATURE_MAIL_SLOT = "m06.prematureReply";
 export const M06_PREMATURE_SUBJECT = (): string => Localization.t(M06_I18N_KEY.MAIL_PREMATURE_SUBJECT);
 
 const M06_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M06Step, string>>> = {
     tipReviewed: M06_I18N_KEY.MAIL_PREMATURE_HINT_TIP,
+    doorSeen: M06_I18N_KEY.MAIL_PREMATURE_HINT_DOOR_SEEN,
     registryReached: M06_I18N_KEY.MAIL_PREMATURE_HINT_REGISTRY,
     nomineesRead: M06_I18N_KEY.MAIL_PREMATURE_HINT_NOMINEES,
     agentIdentified: M06_I18N_KEY.MAIL_PREMATURE_HINT_AGENT,
     hiddenFilingsFound: M06_I18N_KEY.MAIL_PREMATURE_HINT_FILINGS,
-    snapshotsCompared: M06_I18N_KEY.MAIL_PREMATURE_HINT_SNAPSHOTS,
+    filing2019Opened: M06_I18N_KEY.MAIL_PREMATURE_HINT_FILING_2019,
+    filing2024Opened: M06_I18N_KEY.MAIL_PREMATURE_HINT_FILING_2024,
+    holdingsRead: M06_I18N_KEY.MAIL_PREMATURE_HINT_HOLDINGS,
     insurerLinked: M06_I18N_KEY.MAIL_PREMATURE_HINT_INSURER,
     infraLinked: M06_I18N_KEY.MAIL_PREMATURE_HINT_INFRA,
+    doorOpened: M06_I18N_KEY.MAIL_PREMATURE_HINT_DOOR_OPEN,
     identityProven: M06_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY,
 };
 

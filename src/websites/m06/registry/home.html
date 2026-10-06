@@ -4,48 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{t:M06.SITE.REGISTRY.BRAND}}</title>
-<style>
-*{box-sizing:border-box}
-:root{--paper:#f6f5f1;--ink:#1d1f21;--mute:#5a5f63;--rule:#d6d3cc;--link:#1a4f8a;--focus:#1a4f8a}
-body{margin:0;padding:24px;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.6}
-.wrap{max-width:900px;margin:auto}
-header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:24px}
-.brand{font-size:22px;font-weight:bold}
-.tagline{font-size:13px;color:var(--mute)}
-h1{font-size:19px;font-weight:normal;margin:0 0 8px}
-.intro{font-size:14px;color:#44484b;max-width:68ch}
-.panel{margin-top:22px;border:1px solid var(--rule);background:#fff;padding:16px}
-label{display:block;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
-.row{display:flex;gap:8px}
-input{flex:1 1 auto;min-width:0;padding:9px 11px;border:1px solid #bdb9b0;background:#fffefb;color:var(--ink);font:inherit;font-size:15px}
-input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
-button{flex:0 0 auto;padding:9px 18px;border:1px solid var(--ink);background:#e9e6df;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
-button:hover{background:#dfdbd2}
-button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.state{margin-top:18px;font-size:13px;color:var(--mute)}
-.count{margin:22px 0 6px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
-th{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute)}
-a{color:var(--link)}
-a:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-size:12px;color:var(--mute)}
-.updated{margin-top:4px}
-.hide{display:none}
-@media(max-width:640px){body{padding:16px}.row{flex-direction:column}button{width:100%}th:nth-child(2),td:nth-child(2),th:nth-child(4),td:nth-child(4){display:none}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
+/*__REG_STYLE__*/
 </head>
 <body>
-<div class="wrap">
-<header>
-<div class="brand">{{t:M06.SITE.REGISTRY.BRAND}}</div>
-<div class="tagline">{{t:M06.SITE.REGISTRY.TAGLINE}}</div>
-</header>
-<main>
+/*__REG_HEADER__*/
+<main class="wrap">
 <h1>{{t:M06.SITE.REGISTRY.HOME_TITLE}}</h1>
-<p class="intro">{{t:M06.SITE.REGISTRY.HOME_INTRO}}</p>
-<section class="panel">
+<p class="lead">{{t:M06.SITE.REGISTRY.HOME_INTRO}}</p>
+<section class="search">
   <label for="q">{{t:M06.SITE.SEARCH.LABEL}}</label>
   <div class="row">
     <input id="q" type="text" autocomplete="off" spellcheck="false"
@@ -70,8 +36,7 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-si
   </div>
 </section>
 </main>
-<footer>{{t:M06.SITE.REGISTRY.FOOTER}}<div class="updated">/*__REG_UPDATED__*/</div></footer>
-</div>
+/*__REG_FOOTER__*/
 <script>
 (function () {
   var DATA = /*__REG_DATA__*/[];
@@ -86,9 +51,10 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-si
     el.className = el.className.replace(/\s*hide\s*/g, " ").trim() + (on ? "" : " hide");
   }
 
-  function cell(text) {
+  function cell(text, numeric) {
     var td = document.createElement("td");
     td.textContent = text;
+    if (numeric) td.className = "num";
     return td;
   }
 
@@ -100,9 +66,9 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-si
     link.textContent = entry.name;
     first.appendChild(link);
     tr.appendChild(first);
-    tr.appendChild(cell(entry.number));
-    tr.appendChild(cell(entry.status));
-    tr.appendChild(cell(entry.kind));
+    tr.appendChild(cell(entry.number, true));
+    tr.appendChild(cell(entry.status, false));
+    tr.appendChild(cell(entry.kind, false));
     return tr;
   }
 

@@ -3,6 +3,8 @@ import { sendReplacingMail, withdrawMailFrom, withdrawSlotMail } from "../../com
 import { isReportSubmission, registerReportTemplate } from "../../components/report.js";
 import { payReward } from "../../components/reward.js";
 import { FLATLINE_MAIL_SENDERS } from "../../content/global/mail-senders.js";
+import { SEALED_OPENED_EVENT, clearSealedArtifacts, setSealedArtifacts } from "../../content/global/sealed.js";
+import { M06_DOOR_OPENED_EVENT } from "../../content/m06/door.js";
 import { M06_GATES, M06_STEP_ORDER, M06_UNLOCKS } from "../../content/m06/gates.js";
 import { M06_INTRO } from "../../content/m06/intro.js";
 import {
@@ -15,20 +17,23 @@ import {
     M06_REWARD_DESCRIPTION,
     M06_REWARD_MONEY,
 } from "../../content/m06/quest.js";
+import { M06_MISSION, M06_SEALED_ARTIFACTS } from "../../content/m06/sealed.js";
 import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import {
     M06_STAGE,
     clearM06Progress,
     resetM06Stage,
+    setM06DoorOpen,
+    setM06KeysFound,
     setM06ShellStruckOff,
     setM06Stage,
 } from "../../context/m06/progress.js";
 import { bindWorld, register, seed, unregister } from "../../core/index.js";
 import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep, firstUnmetStep, reachedUnlocks } from "../../middleware/gate.js";
 import type { M06QuestData } from "../../content/m06/state.js";
+import { bindM06Cipher } from "./cipher.js";
 import { bindM06Pages } from "./pages.js";
 import { bindM06Recon } from "./recon.js";
 import { M06_REPORT_SPEC } from "./report.js";
@@ -47,8 +52,9 @@ export const onStartM06 = (): void => {
 };
 
 export const stageForM06 = (data: M06QuestData): number => {
-    if (data.insurerLinked && data.infraLinked) return M06_STAGE.identity;
-    if (data.snapshotsCompared) return M06_STAGE.ownership;
+    if (data.doorOpened) return M06_STAGE.identity;
+    if (data.insurerLinked) return M06_STAGE.door;
+    if (data.filing2024Opened) return M06_STAGE.ownership;
     if (data.hiddenFilingsFound) return M06_STAGE.filings;
     if (data.agentIdentified) return M06_STAGE.archive;
     if (data.registryReached || data.tipReviewed) return M06_STAGE.register;
@@ -56,22 +62,26 @@ export const stageForM06 = (data: M06QuestData): number => {
     return M06_STAGE.closed;
 };
 
+export const keysFoundForM06 = (data: M06QuestData): number =>
+    [data.filing2019Opened, data.filing2024Opened, data.insurerLinked].filter(Boolean).length;
+
 const syncStage = (quest: M06Quest): void => {
     const stage = stageForM06(quest.Data);
     setM06Stage(stage);
-    trace("M06", `probe:stage=${stage}`);
+    setM06KeysFound(keysFoundForM06(quest.Data));
 };
 
 const mirrorConsequences = (): void => {
     const struckOff = backtraceMissionStatus("m3") === "complete";
     setM06ShellStruckOff(struckOff);
-    trace("M06", `probe:m3-consequence struckOff=${struckOff}`);
 };
 
 const bindStageSync = (quest: M06Quest): void => {
     quest.Events.on("Mail.Read", () => syncStage(quest));
     quest.Events.on("Browser.Meta", () => syncStage(quest));
     quest.Events.on("Terminal.Whois", () => syncStage(quest));
+    quest.Events.on(SEALED_OPENED_EVENT, () => syncStage(quest));
+    quest.Events.on(M06_DOOR_OPENED_EVENT, () => syncStage(quest));
 };
 
 const bindReport = (quest: M06Quest): void => {
@@ -94,16 +104,19 @@ export const onObjectivesStartM06 = (quest: M06Quest): void => {
     refreshSiteStrings();
     mirrorConsequences();
     resetM06Stage(stageForM06(quest.Data));
+    setM06KeysFound(keysFoundForM06(quest.Data));
+    setM06DoorOpen(quest.Data.doorOpened);
 
     const networkBuilt = register(M06_WORLD, {
         networkBuilt: quest.Data.networkBuilt,
         unlocked: reachedUnlocks(M06_UNLOCKS, quest.Data),
     });
-    trace("M06", `probe:zero-network register built=${networkBuilt}`);
 
+    setSealedArtifacts(M06_MISSION, M06_SEALED_ARTIFACTS);
     registerReportTemplate(M06_REPORT_SPEC);
     bindM06Recon(quest);
     bindM06Pages(quest);
+    bindM06Cipher(quest);
     bindStageSync(quest);
     bindReport(quest);
 
@@ -114,6 +127,7 @@ export const onCompleteM06 = (): void => {
     closeMissionSites("m06");
     setBacktraceMission("m6", "complete");
     withdrawSlotMail(M06_PREMATURE_MAIL_SLOT);
+    clearSealedArtifacts(M06_MISSION);
     clearM06Progress();
     payReward({
         scope: "M06",

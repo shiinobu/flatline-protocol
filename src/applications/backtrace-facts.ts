@@ -8,6 +8,7 @@ import {
     totalRansom,
 } from "../content/global/finance.js";
 import { M01_CASE_ID } from "../content/global/case.js";
+import { BLACKLEDGER_LEGACY_CLAIM_EU, BLACKLEDGER_LEGACY_CLAIM_NA } from "../content/global/blackledger.js";
 import { ensureM01ListingResolution } from "../context/m01/listing.js";
 import { M01_BROKER_ALIAS, M01_LEDGERVAULT_DOMAIN } from "../content/m01/network.js";
 import { M01_LEDGERVAULT_PROJECT } from "../content/m01/report.js";
@@ -54,6 +55,7 @@ import {
     M06_VOSS_APPOINTMENTS,
     M06_VOSS_NAME,
 } from "../content/m06/records.js";
+import { M06_MINUTES_MEETING_DATE, M06_MINUTES_SIGNED_DATE } from "../content/m06/minutes.js";
 import {
     M04_HUNTER_TAG,
     M04_INTRUDER_IP,
@@ -209,6 +211,9 @@ const buildM6Facts = (): BacktraceFacts => ({
     infra: `${M06_SKN_VPN_HOST} shares a certificate with ${M06_INSURER_PORTAL_HOST}`,
     architect: `${M07_ARCHITECT_REAL_NAME}, Chairman Risk Committee, ${M07_INSURER_NAME} (${M06_ARCHITECT_CHAIR_PERIOD})`,
     architectName: M07_ARCHITECT_REAL_NAME,
+    minutesInterest: `${M06_HOLDINGS_NAME} directorship declared, judged immaterial, chair kept`,
+    minutesSettlements: `two outside policy terms (${BLACKLEDGER_LEGACY_CLAIM_NA.region} ${BLACKLEDGER_LEGACY_CLAIM_NA.year}, ${BLACKLEDGER_LEGACY_CLAIM_EU.region} ${BLACKLEDGER_LEGACY_CLAIM_EU.year}) released to the settlement account held through ${M06_SKN_FULL_NAME}`,
+    minutesMeeting: `Risk Committee ${M06_MINUTES_MEETING_DATE}, signed ${M06_MINUTES_SIGNED_DATE}`,
     front: `${M06_VOSS_NAME}, ${M06_VOSS_APPOINTMENTS} appointments on record`,
     registrant: M04_WHOIS_REGISTRANT,
     peerGateway: M04_ARCHITECT_VPN_IP,

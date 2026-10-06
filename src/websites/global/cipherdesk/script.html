@@ -1,7 +1,5 @@
 var st = { ci: blankCi() };
 function blankCi() { return { mode: "decrypt", pass: "", inp: "", out: "", note: "", ok: false }; }
-var STORE = "flatline.cipherdesk.v1";
-function save() { try { localStorage.setItem(STORE, JSON.stringify(st.ci)); } catch (e) { return; } }
 function pull() { return; }
 var CD_MARK = '<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="7" height="7" rx="2" fill="#f3eee5"/><rect x="9.5" y="1" width="7" height="7" rx="2" fill="none" stroke="#f3eee5" stroke-width="1.5"/><rect x="18" y="1" width="7" height="7" rx="2" fill="#f3eee5"/><rect x="1" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/><rect x="9.5" y="9.5" width="7" height="7" rx="2" fill="#c4f06a"/><rect x="18" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/><rect x="1" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/><rect x="9.5" y="18" width="7" height="7" rx="2" fill="none" stroke="#8ed8ff" stroke-width="1.5"/><rect x="18" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/></svg>';
 var CI_MAX = 64;
@@ -105,7 +103,6 @@ function cipherCommit(pass, inp, res) {
     ciResult(res.out, C.mode === "encrypt" && res.ok);
     if ($("cphn")) { $("cphn").textContent = res.note; $("cphn").classList.toggle("ok", res.ok); }
     ciDone = { mode: C.mode, pass: pass, inp: inp };
-    save();
   }
 function ciCue(el) { if (!el) return; el.classList.remove("cd-cue"); void el.offsetWidth; el.classList.add("cd-cue"); SCH.wait(420, function () { el.classList.remove("cd-cue"); }, el); el.focus(); }
 function ciLock(on) { ["cphp", "cphi"].forEach(function (k) { if ($(k)) $(k).readOnly = on; }); if ($("cdband")) $("cdband").classList.toggle("run", on); }
@@ -137,7 +134,7 @@ function ciPlay(pass, inp, res) {
     steps.push({ t: t + F + (slow ? 220 : 80), fn: function () { ciLock(false); pull(); cipherCommit(pass, inp, res); cipherObserve(st.ci.mode, pass, inp); if ($("cphr")) $("cphr").focus(); } });
     ciSeq = SCH.run($("cdband"), steps, function () { var b = $("cdband"); if (b) b.classList.add("rd-ff"); SCH.wait(30, function () { if ($("cdband")) $("cdband").classList.remove("rd-ff"); }, b); });
   }
-function cipherObserve(mode, pass, inp) { try { if (typeof flatlineCipherRun === "function") flatlineCipherRun(mode, inp, pass); } catch (e) { return; } save(); }
+function cipherObserve(mode, pass, inp) { try { if (typeof flatlineCipherRun === "function") flatlineCipherRun(mode, inp, pass); } catch (e) { return; } }
 function cipherRun() {
     var C = st.ci, pass, inp, res;
     SCH.settle(ciSeq);
@@ -180,31 +177,24 @@ function act(a, d) {
   if (a === "cphcopy") { SCH.settle(ciSeq); cipherCopy(); return; }
   if (a === "toastx") { dismissToast(d.el.closest(".toast")); return; }
 }
-function restore() {
-  try {
-    var raw = JSON.parse(localStorage.getItem(STORE) || "null");
-    if (raw) st.ci = Object.assign(blankCi(), raw);
-  } catch (e) { return; }
-}
+function forget() { try { localStorage.removeItem("flatline.cipherdesk.v1"); } catch (e) { return; } }
 document.addEventListener("click", function (e) {
   var b = e.target.closest("[data-act]");
   if (!b) return;
   act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), el: b });
-  save();
 });
 document.addEventListener("input", function (e) {
   var f = e.target.getAttribute("data-f");
   if (f === "cpass") st.ci.pass = e.target.value;
   if (f === "cin") st.ci.inp = e.target.value;
   if (f === "cpass" || f === "cin") ciLive();
-  save();
 });
 document.addEventListener("keydown", function (e) {
   var id = e.target.id;
-  if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
-  if (e.key === "Enter" && id === "cphp") { cipherRun(); save(); }
+  if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); return; }
+  if (e.key === "Enter" && id === "cphp") cipherRun();
 });
 document.addEventListener("mouseover", ciHover);
 document.addEventListener("focusout", function (e) { if (e.target.id === "cpho") e.target.classList.remove("on"); });
-restore();
+forget();
 drawCipher();

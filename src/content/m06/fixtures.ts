@@ -46,7 +46,7 @@ export const buildM06ArchiveFixtures = (): FixtureEntry[] => [
     { command: "nmap", input: M06_ECHOLINE_IP, data: M06_REGISTRY_NMAP_RESULT },
 ];
 
-export const buildM06OwnershipFixtures = (): FixtureEntry[] => [
+export const buildM06InfraFixtures = (): FixtureEntry[] => [
     {
         command: "whois",
         input: M06_INSURER_DOMAIN,

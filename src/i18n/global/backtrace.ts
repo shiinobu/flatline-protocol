@@ -154,7 +154,7 @@ Localization.registerAll({
         [BACKTRACE_I18N_KEY.M6_FINDING_7]:
             "这两者由同一个运营者提供服务：<span data-fact=\"m6.infra\">—</span>。同一张证书意味着同一把私钥，那是一个人，不是巧合。",
         [BACKTRACE_I18N_KEY.M6_FINDING_8]:
-            "登记册最终交出的名字是 <span data-fact=\"m6.architect\">—</span>——此人主持过决定保险人赔付多少的委员会，也在持有那笔款项所入账户的公司董事会里任职。",
+            "门后委员会自己的会议纪要显示了谁坐在主席位上：<span data-fact=\"m6.architect\">—</span>。他申报了自己在持有该账户的公司担任董事，仍然继续主持会议，并确认两笔赔付今后不再列入纪要。",
         [BACKTRACE_I18N_KEY.M7_SUMMARY]:
             "付款最终都指向钱早已流向的那个端点背后的一台机器。它自己的节点表里，仍然列着那两台多年前就被注销的机器，而其中真正被遗忘的那一台，仍保存着索引主机前面那个过滤器的凭据。过滤器后面，<span class=\"code\" data-fact=\"m7.c2\">—</span> 只存着一个文件：辛迪加结清过的每一笔账，以及那一行——医院自己的损失原因，被安排到了一名与此毫无关系的系统管理员头上。",
         [BACKTRACE_I18N_KEY.M7_FINDING_1]:

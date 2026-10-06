@@ -12,6 +12,8 @@ export const M06_INSURER_DOMAIN = "nordhaven-mutual.com";
 export const M06_INSURER_IP = "193.42.33.58";
 export const M06_INSURER_PORTAL_HOST = `portal.${M06_INSURER_DOMAIN}`;
 export const M06_INSURER_PORTAL_IP = "193.42.33.60";
+export const M06_DOOR_HOST = "x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion";
+export const M06_DOOR_MINUTES_PATH = "/minutes/";
 
 export const M06_ECHOLINE_DOMAIN = "echoline.net";
 export const M06_ECHOLINE_IP = "185.31.164.22";

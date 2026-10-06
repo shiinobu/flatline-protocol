@@ -2,6 +2,7 @@ import { Quest, RegisterQuest } from "@hotbunny/hackhub-content-sdk";
 
 import "../websites/global/echoline/index.js";
 import "../websites/m05/hospital/index.js";
+import "../websites/m05/leakindex/index.js";
 import "../websites/m05/portal/index.js";
 import type { M05QuestData } from "../content/m05/state.js";
 import {

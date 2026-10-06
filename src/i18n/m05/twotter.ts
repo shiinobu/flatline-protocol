@@ -20,6 +20,7 @@ export const M05_TWOTTER_KEY = {
     GRETA_POST_16: "M05.TWOTTER.GRETA.POST_16",
     GRETA_POST_17: "M05.TWOTTER.GRETA.POST_17",
     GRETA_POST_18: "M05.TWOTTER.GRETA.POST_18",
+    GRETA_POST_19: "M05.TWOTTER.GRETA.POST_19",
     GARETH_BIO: "M05.TWOTTER.GARETH.BIO",
     GARETH_POST_1: "M05.TWOTTER.GARETH.POST_1",
     GARETH_POST_2: "M05.TWOTTER.GARETH.POST_2",
@@ -56,6 +57,8 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_17]: "0814 was the night nobody in IT will forget.",
         [M05_TWOTTER_KEY.GRETA_POST_18]:
             "everyone thinks a migration means the old access disappears. that's not always how it works.",
+        [M05_TWOTTER_KEY.GRETA_POST_19]:
+            "MedVendor says a 'limited number of accounts' were exposed. {{host}} says my work address is one of them. limited, sure.",
         [M05_TWOTTER_KEY.GARETH_BIO]: "IT contractor. short-term by definition",
         [M05_TWOTTER_KEY.GARETH_POST_1]: "two months into the hospital contract and i still can't find parking",
         [M05_TWOTTER_KEY.GARETH_POST_2]: "the one permanent sysadmin here does the work of four people, respect",
@@ -85,6 +88,7 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_16]: "他们要我签个东西",
         [M05_TWOTTER_KEY.GRETA_POST_17]: "0814 是 IT 部门没有人会忘记的那一夜。",
         [M05_TWOTTER_KEY.GRETA_POST_18]: "所有人都以为迁移就意味着旧权限会消失。事情并不总是这样。",
+        [M05_TWOTTER_KEY.GRETA_POST_19]: "MedVendor 说“少量账号”遭到泄露。{{host}} 说我的工作邮箱就是其中之一。少量，行吧。",
         [M05_TWOTTER_KEY.GARETH_BIO]: "IT 外包。按定义就是短期的",
         [M05_TWOTTER_KEY.GARETH_POST_1]: "进医院这个合同两个月了，我还是找不到停车位",
         [M05_TWOTTER_KEY.GARETH_POST_2]: "这里唯一的正式系统管理员一个人干四个人的活，佩服",

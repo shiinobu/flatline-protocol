@@ -3,49 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
 <title>{{t:M06.SITE.HT.BRAND}}</title>
 <style>
 *{box-sizing:border-box}
-:root{--bg:#101418;--panel:#171d23;--ink:#dde4ea;--mute:#7c8794;--line:#232b34;--edge:#303a45;--accent:#57b0a3;--focus:#79cfc1}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.6}
-.wrap{max-width:660px;margin:0 auto;padding:42px 20px 44px}
-header{margin-bottom:26px}
-.brand{margin:0;font-size:22px;font-weight:600;letter-spacing:.02em}
-.brand span{color:var(--accent)}
-.tagline{margin:4px 0 0;font-size:12px;color:var(--mute)}
-.panel{background:var(--panel);border:1px solid var(--line);padding:16px}
-label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
-.row{display:flex;gap:8px}
-input{flex:1 1 auto;min-width:0;padding:9px 11px;border:1px solid var(--edge);background:#0b0f13;color:var(--ink);font:inherit}
-input::placeholder{color:#5a6673}
-input:focus-visible{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
-button{flex:0 0 auto;padding:9px 16px;border:1px solid var(--edge);background:#1f2831;color:var(--ink);font:inherit;cursor:pointer}
-button:hover{background:#263140}
-button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.state{margin-top:18px;padding:14px;border:1px dashed var(--line);font-size:12px;color:var(--mute)}
-.card{margin-top:20px;background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--accent);padding:18px}
-.card h2{margin:0 0 14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
-dl{margin:0;display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px}
+:root{--bg:#0d141b;--panel:#141d27;--line:#243241;--edge:#33465a;--ink:#d9e2ea;--mute:#8696a6;--teal:#4fc3b0;--lamp:#e9b44c;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:"Segoe UI",system-ui,-apple-system,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans)}
+.wrap{max-width:720px;margin:0 auto;padding:40px 20px 44px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.mark{flex:0 0 auto;width:40px;height:40px}
+.brand{margin:0;font:700 26px/1.1 var(--sans);letter-spacing:-.01em}
+.brand span{color:var(--teal)}
+.tagline{margin:3px 0 0;font-size:13.5px;color:var(--mute)}
+.finder{padding:18px;background:var(--panel);border:1px solid var(--line)}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:8px}
+.row{display:flex;gap:10px}
+input{flex:1 1 auto;min-width:0;padding:11px 13px;border:1px solid var(--edge);background:#0a1016;color:var(--ink);font:15px var(--mono)}
+input::placeholder{color:#566475}
+button{flex:0 0 auto;padding:11px 20px;border:0;background:var(--teal);color:#06231f;font:600 15px var(--sans);cursor:pointer}
+button:hover{background:#6fd6c4}
+input:focus-visible,button:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.state{margin-top:18px;padding:14px 16px;border:1px dashed var(--edge);font-size:14px;color:var(--mute)}
+.card{margin-top:20px;background:var(--panel);border:1px solid var(--edge);border-top:3px solid var(--teal);padding:20px}
+.card h2{margin:0 0 14px;font:600 17px/1.3 var(--sans)}
+dl{margin:0;display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:14px}
 dt{color:var(--mute)}
-dd{margin:0;word-break:break-all}
-ul{list-style:none;margin:0;padding:0}
-li{padding:1px 0}
-li.hit{color:var(--accent)}
-.note{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
-footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:#616c78}
+dd{margin:0;font-family:var(--mono);font-size:13.5px;word-break:break-all}
+.part{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.part h3{margin:0 0 10px;font:600 14px/1.3 var(--sans);color:var(--mute)}
+.chips{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.chips span{padding:5px 0;text-align:center;background:#0a1016;border:1px solid var(--line);font:13px var(--mono);letter-spacing:.04em}
+.seen{margin:0 0 12px;font-size:14px;color:var(--ink)}
+.seen.shared{color:var(--lamp)}
+.nodes{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line)}
+.nodes li{position:relative;padding:5px 0 5px 16px;font:13.5px var(--mono);word-break:break-all}
+.nodes li::before{content:"";position:absolute;left:-21px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px var(--panel)}
+.nodes.shared{border-left-color:var(--lamp)}
+.nodes.shared li::before{background:var(--lamp)}
+.note{margin:18px 0 0;font-size:13.5px;color:var(--mute);max-width:62ch}
+footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:#677789}
 .hide{display:none}
-@media(max-width:520px){.wrap{padding:26px 15px}.row{flex-direction:column}button{width:100%}dl{grid-template-columns:1fr;gap:1px}dd{margin-bottom:8px}}
+@media(max-width:560px){.wrap{padding:26px 15px}.row{flex-direction:column}button{width:100%}dl{grid-template-columns:1fr;gap:1px}dd{margin-bottom:8px}.chips{grid-template-columns:repeat(4,1fr)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-  <h1 class="brand">Host<span>Trail</span></h1>
-  <p class="tagline">{{t:M06.SITE.HT.TAGLINE}}</p>
+  <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="8" fill="#141d27" stroke="#33465a"/><path d="M10 28V14M10 14h9M19 14v12M19 26h11" fill="none" stroke="#4fc3b0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="28" r="2.6" fill="#4fc3b0"/><circle cx="30" cy="26" r="2.6" fill="#e9b44c"/></svg>
+  <div>
+    <h1 class="brand">Host<span>Trail</span></h1>
+    <p class="tagline">{{t:M06.SITE.HT.TAGLINE}}</p>
+  </div>
 </header>
 <main>
-<section class="panel">
+<section class="finder">
   <label for="h">{{t:M06.SITE.HT.PROMPT}}</label>
   <div class="row">
     <input id="h" type="text" autocomplete="off" spellcheck="false"
@@ -56,18 +68,29 @@ footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-si
 <section aria-live="polite">
   <div id="empty" class="state">{{t:M06.SITE.HT.EMPTY}}</div>
   <div id="none" class="state hide">{{t:M06.SITE.HT.NONE}}</div>
-  <div id="card" class="card hide">
+  <article id="card" class="card hide">
     <h2>{{t:M06.SITE.HT.RESULT_TITLE}}</h2>
     <dl>
       <dt>{{t:M06.SITE.HT.LABEL_HOST}}</dt><dd id="rhost"></dd>
       <dt>{{t:M06.SITE.HT.LABEL_ADDRESS}}</dt><dd id="raddr"></dd>
-      <dt>{{t:M06.SITE.HT.LABEL_FINGERPRINT}}</dt><dd id="rfp"></dd>
-      <dt>{{t:M06.SITE.HT.LABEL_NAMES}}</dt><dd><ul id="rnames"></ul></dd>
-      <dt>{{t:M06.SITE.HT.LABEL_FIRST}}</dt><dd id="rfirst"></dd>
-      <dt>{{t:M06.SITE.HT.LABEL_LAST}}</dt><dd id="rlast"></dd>
     </dl>
+    <div class="part">
+      <h3>{{t:M06.SITE.HT.LABEL_FINGERPRINT}}</h3>
+      <div id="rfp" class="chips"></div>
+    </div>
+    <div class="part">
+      <h3>{{t:M06.SITE.HT.LABEL_NAMES}}</h3>
+      <p id="rseen" class="seen"></p>
+      <ul id="rnames" class="nodes"></ul>
+    </div>
+    <div class="part">
+      <dl>
+        <dt>{{t:M06.SITE.HT.LABEL_FIRST}}</dt><dd id="rfirst"></dd>
+        <dt>{{t:M06.SITE.HT.LABEL_LAST}}</dt><dd id="rlast"></dd>
+      </dl>
+    </div>
     <p class="note">{{t:M06.SITE.HT.NOTE}}</p>
-  </div>
+  </article>
 </section>
 </main>
 <footer>{{t:M06.SITE.HT.FOOTER}}</footer>
@@ -75,19 +98,27 @@ footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-si
 <script>
 (function () {
   var DATA = /*__HT_DATA__*/[];
+  var TEXT = /*__HT_TEXT__*/{};
   var input = document.getElementById("h");
   var empty = document.getElementById("empty");
   var none = document.getElementById("none");
   var card = document.getElementById("card");
   var names = document.getElementById("rnames");
+  var chips = document.getElementById("rfp");
+  var seen = document.getElementById("rseen");
 
   function show(el, on) {
     el.className = el.className.replace(/\s*hide\s*/g, " ").trim() + (on ? "" : " hide");
   }
 
+  function clear(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
   function render(raw) {
     var q = String(raw || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/+$/, "");
-    while (names.firstChild) names.removeChild(names.firstChild);
+    clear(names);
+    clear(chips);
     if (q === "") { show(empty, true); show(none, false); show(card, false); return; }
 
     var hit = null;
@@ -97,13 +128,26 @@ footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--line);font-si
     show(empty, false); show(none, false); show(card, true);
     document.getElementById("rhost").textContent = hit.host;
     document.getElementById("raddr").textContent = hit.address;
-    document.getElementById("rfp").textContent = hit.fingerprint;
     document.getElementById("rfirst").textContent = hit.firstSeen;
     document.getElementById("rlast").textContent = hit.lastSeen;
+
+    var bytes = hit.fingerprint.split(":");
+    for (var b = 0; b < bytes.length; b += 1) {
+      var chip = document.createElement("span");
+      chip.textContent = bytes[b];
+      chips.appendChild(chip);
+    }
+
+    var shared = hit.names.length > 1;
+    seen.textContent = shared
+      ? String(TEXT.shared || "").replace("{{n}}", hit.names.length)
+      : String(TEXT.alone || "");
+    seen.className = shared ? "seen shared" : "seen";
+    names.className = shared ? "nodes shared" : "nodes";
+
     for (var j = 0; j < hit.names.length; j += 1) {
       var li = document.createElement("li");
       li.textContent = hit.names[j];
-      if (hit.names[j].toLowerCase() !== q) li.className = "hit";
       names.appendChild(li);
     }
   }

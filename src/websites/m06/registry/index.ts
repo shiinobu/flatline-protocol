@@ -7,6 +7,8 @@ import {
 } from "@hotbunny/hackhub-content-sdk";
 
 import {
+    M06_FILING_2019_PATH,
+    M06_FILING_2024_PATH,
     M06_FILINGS_ARCHIVE_PATH,
     M06_REGISTRY_DOMAIN,
     M06_REGISTRY_UPDATED,
@@ -15,17 +17,31 @@ import {
     M06_FILING_PATHS,
     buildM06Records,
     type RecordField,
+    type RecordLink,
     type RegistryRecord,
 } from "../../../content/m06/records.js";
+import { M06_FILING_2019_HEX, M06_FILING_2024_HEX } from "../../../content/m06/sealed.js";
 import { M06_STAGE, isM06ShellStruckOff, isM06StageOpen } from "../../../context/m06/progress.js";
 import { siteT } from "../../../context/global/site-strings.js";
 import { M06_SITE_KEY } from "../../../i18n/m06/site.js";
-import { fillDataMarker, fillMarker, fillMarkers, localizeHtml } from "../../global/localize.js";
+import { fillDataMarker, fillMarkers, localizeHtml } from "../../global/localize.js";
 import { gateMissionPages, notFoundMetadata, requireHttps } from "../../global/page-guards.js";
 
 import filingsArchivePage from "./filings-archive.html";
+import registryHeader from "./header.html";
 import homePage from "./home.html";
 import recordPage from "./record.html";
+import registryStyle from "./style.html";
+
+interface FilingSeal {
+    readonly hex: string;
+    readonly hintKey: string;
+}
+
+const FILING_SEALS: Readonly<Record<string, FilingSeal>> = {
+    [M06_FILING_2019_PATH]: { hex: M06_FILING_2019_HEX, hintKey: M06_SITE_KEY.SEAL_HINT_2019 },
+    [M06_FILING_2024_PATH]: { hex: M06_FILING_2024_HEX, hintKey: M06_SITE_KEY.SEAL_HINT_2024 },
+};
 
 const SITE_KEYS: ReadonlySet<string> = new Set(Object.values(M06_SITE_KEY));
 
@@ -74,7 +90,7 @@ const renderTable = (record: RegistryRecord): string => {
         .join("");
 
     return [
-        `<div class="section">${escape(siteT(record.tableCaptionKey))}</div>`,
+        `<h2 class="section">${escape(siteT(record.tableCaptionKey))}</h2>`,
         `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`,
     ].join("");
 };
@@ -90,35 +106,69 @@ const linkOpen = (path: string): boolean => {
     return target === undefined || isM06StageOpen(target.stage);
 };
 
-const renderLinks = (record: RegistryRecord): string => {
-    const open = record.links.filter((link) => linkOpen(link.path));
-    if (open.length === 0) return "";
+const openLinksOf = (record: RegistryRecord): readonly RecordLink[] =>
+    record.links.filter((link) => linkOpen(link.path));
 
-    const items = open
+const renderLinks = (links: readonly RecordLink[]): string => {
+    if (links.length === 0) return "";
+
+    const items = links
         .map((link) => `<li><a href="${escape(link.path)}">${escape(link.label)}</a></li>`)
         .join("");
 
     return [
-        `<div class="section">${escape(siteT(M06_SITE_KEY.SECTION_LINKS))}</div>`,
+        `<h2 class="section">${escape(siteT(M06_SITE_KEY.SECTION_LINKS))}</h2>`,
         `<ul class="links">${items}</ul>`,
+    ].join("");
+};
+
+const renderPlate = (record: RegistryRecord): string =>
+    record.number === ""
+        ? ""
+        : `<div class="plate"><span>${escape(siteT(M06_SITE_KEY.LABEL_NUMBER))}</span><b>${escape(record.number)}</b></div>`;
+
+const renderSeal = (record: RegistryRecord): string => {
+    const seal = FILING_SEALS[record.path];
+    if (seal === undefined) return "";
+
+    return [
+        `<h2 class="section">${escape(siteT(M06_SITE_KEY.SECTION_SEALED))}</h2>`,
+        `<pre class="seal" tabindex="0">${escape(seal.hex)}</pre>`,
+        `<p class="note">${escape(siteT(seal.hintKey))}</p>`,
     ].join("");
 };
 
 const updatedLine = (): string =>
     escape(siteT(M06_SITE_KEY.REGISTRY_UPDATED).replace("{{date}}", M06_REGISTRY_UPDATED));
 
-const renderRecord = (record: RegistryRecord): string =>
-    fillMarkers(localizeHtml(recordPage), {
+const renderFooter = (): string =>
+    `<footer>${escape(siteT(M06_SITE_KEY.REGISTRY_FOOTER))}<div class="updated">${updatedLine()}</div></footer>`;
+
+const withChrome = (html: string, values: Readonly<Record<string, string>>): string =>
+    fillMarkers(localizeHtml(html), {
+        REG_STYLE: registryStyle,
+        REG_HEADER: localizeHtml(registryHeader),
+        REG_FOOTER: renderFooter(),
+        ...values,
+    });
+
+const renderRecord = (record: RegistryRecord): string => {
+    const links = openLinksOf(record);
+
+    return withChrome(recordPage, {
         REC_KIND: escape(siteT(SUBTITLE_KEYS[record.kind])),
         REC_TITLE: escape(record.title),
         REC_FLAG: FLAGGED_STATUS_KEYS.includes(record.statusKey) ? " flag" : "",
         REC_STATUS: escape(siteT(record.statusKey)),
+        REC_PLATE: renderPlate(record),
+        REC_COLS: links.length > 0 ? " has-side" : "",
         REC_FIELDS: renderFields(record.fields),
+        REC_SEAL: renderSeal(record),
         REC_TABLE: renderTable(record),
         REC_NOTES: renderNotes(record.noteKeys, record.noteVars),
-        REC_LINKS: renderLinks(record),
-        REC_UPDATED: updatedLine(),
+        REC_LINKS: renderLinks(links),
     });
+};
 
 const openRecords = (): readonly RegistryRecord[] =>
     buildM06Records(isM06ShellStruckOff()).filter((record) => isM06StageOpen(record.stage));
@@ -133,14 +183,10 @@ const searchPayload = (): readonly Record<string, string>[] =>
     }));
 
 const renderHome = (): string =>
-    fillMarker(
-        fillDataMarker(
-            fillDataMarker(localizeHtml(homePage), "REG_DATA", JSON.stringify(searchPayload())),
-            "REG_TEXT",
-            JSON.stringify({ count: siteT(M06_SITE_KEY.SEARCH_COUNT) }),
-        ),
-        "REG_UPDATED",
-        updatedLine(),
+    fillDataMarker(
+        fillDataMarker(withChrome(homePage, {}), "REG_DATA", JSON.stringify(searchPayload())),
+        "REG_TEXT",
+        JSON.stringify({ count: siteT(M06_SITE_KEY.SEARCH_COUNT) }),
     );
 
 const renderFilings = (): string => {
@@ -152,7 +198,7 @@ const renderFilings = (): string => {
 
             return [
                 "<tr>",
-                `<td>${escape(filed?.value ?? "")}</td>`,
+                `<td class="num">${escape(filed?.value ?? "")}</td>`,
                 `<td>${escape(siteT(M06_SITE_KEY.SUBJECT_OWNERSHIP))}</td>`,
                 `<td>${escape(siteT(record.statusKey))}</td>`,
                 `<td>${view}</td>`,
@@ -161,7 +207,7 @@ const renderFilings = (): string => {
         })
         .join("");
 
-    return fillMarkers(localizeHtml(filingsArchivePage), { FIL_ROWS: rows, FIL_UPDATED: updatedLine() });
+    return withChrome(filingsArchivePage, { FIL_ROWS: rows });
 };
 
 const staged = (

@@ -5,7 +5,7 @@ import { sealText } from "../../components/text-seal.js";
 import { M05_TWOTTER_KEY } from "../../i18n/m05/twotter.js";
 import { M01_LEDGERVAULT_PROJECT_LABEL } from "../global/case.js";
 import { M05_GRETA_NOTE_PLAINTEXT } from "./sealed.js";
-import { M05_GRETA_LEGACY_PASSWORD } from "./network.js";
+import { M05_GRETA_LEGACY_PASSWORD, M05_LEAKINDEX_DOMAIN } from "./network.js";
 
 export const M05_GRETA_HANDLE = "@rnatnaree";
 export const M05_GARETH_HANDLE = "@gteoh";
@@ -50,6 +50,7 @@ export const buildM05GretaPersona = (): PersonaSpec => ({
         sealedPost(4),
         post(M05_TWOTTER_KEY.GRETA_POST_6, 5),
         post(M05_TWOTTER_KEY.GRETA_POST_7, 12),
+        post(M05_TWOTTER_KEY.GRETA_POST_19, 8, { host: M05_LEAKINDEX_DOMAIN }),
         post(M05_TWOTTER_KEY.GRETA_POST_8, 8),
         post(M05_TWOTTER_KEY.GRETA_POST_18, 7),
         post(M05_TWOTTER_KEY.GRETA_POST_9, 7),

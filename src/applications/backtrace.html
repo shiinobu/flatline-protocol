@@ -246,7 +246,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .btn::after { content: " ▸"; font-family: var(--mono); color: var(--hot); }
 .btn:hover { background: rgba(255, 40, 60, .24); box-shadow: 0 0 18px rgba(255, 59, 78, .45); }
 
-.locked { flex: 1; min-height: 0; display: flex; padding: 28px; overflow-y: auto; }
+.locked { flex: 1; min-height: 0; display: flex; padding: 28px; overflow-y: auto; scrollbar-width: none; }
+.locked::-webkit-scrollbar { display: none; }
 .state-card { position: relative; width: min(580px, 100%); margin: auto; padding: 34px 32px 26px; background: var(--panel); border: 1px solid var(--edge); box-shadow: inset 0 0 24px rgba(255, 40, 60, .05); }
 .state-card::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 8px; background: repeating-linear-gradient(135deg, var(--fail) 0 8px, #000 8px 16px); opacity: .85; }
 .state-card[data-state="progress"]::before { background: repeating-linear-gradient(135deg, var(--warn) 0 8px, #000 8px 16px); }
@@ -839,7 +840,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <li data-i18n="BACKTRACE.M6.FINDING.5">That replacement, <span data-fact="m6.holdings">—</span>, was incorporated <span class="code" data-fact="m6.incorporated">—</span> — two days after the previous owner was dissolved — and its shareholder is an insurer: <span data-fact="m6.insurer">—</span>.</li>
         <li data-i18n="BACKTRACE.M6.FINDING.6">The insurer's own domain is registered to <span class="code" data-fact="m6.registrant">—</span>, the same registrant as <span class="code" data-fact="m6.peerGateway">—</span>, the endpoint the wire transfers already answered to.</li>
         <li data-i18n="BACKTRACE.M6.FINDING.7">The two are served by the same operator: <span data-fact="m6.infra">—</span>. A shared certificate means a shared private key, which is a person, not a coincidence.</li>
-        <li data-i18n="BACKTRACE.M6.FINDING.8">The name the register finally gives up is <span data-fact="m6.architect">—</span>, who chaired the committee deciding what the insurer pays and sat on the board of the company that owns the account it was paid into.</li>
+        <li data-i18n="BACKTRACE.M6.FINDING.8">The committee's own minutes, behind the door, show who held the chair: <span data-fact="m6.architect">—</span>. He declared a directorship of the company that owns the account, kept the chair, and confirmed that two settlements would not be minuted again.</li>
               </ul>
             </section>
           </div>
@@ -1065,9 +1066,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     parent: { type: 'Parent entity', refs: 'm3.parentEntity', form: 'folder', x: 369, y: 341, tilt: 1, ev: ['EV-M3-01', 'EV-M7-02'] },
     greta: { type: 'Blamed administrator', refs: 'm5.gretaName', form: 'portrait', sil: 'greta', x: 1463, y: 0, tilt: 1.2, ev: ['EV-M5-02'] },
     decider: { type: 'Decision maker', refs: 'm5.decider', form: 'portrait', sil: 'decider', x: 1257, y: 0, tilt: -0.8, ev: ['EV-M5-01'] },
-    insurer: { type: 'Insurer', refs: 'm5.insurer', form: 'folder', x: 809, y: 31, tilt: 0.7, ev: ['EV-M5-01', 'EV-M6-02'] },
+    insurer: { type: 'Insurer', refs: 'm5.insurer', form: 'folder', x: 809, y: 31, tilt: 0.7, ev: ['EV-M5-01', 'EV-M6-02', 'EV-M6-03'] },
     holdings: { type: 'Holding company', refs: 'm6.holdings', form: 'folder', x: 369, y: 31, tilt: -1, ev: ['EV-M6-01'] },
-    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', form: 'boss', sil: 'architect', x: 803, y: 283, tilt: 0, ev: ['EV-M6-02', 'EV-M7-02'] },
+    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', form: 'boss', sil: 'architect', x: 803, y: 283, tilt: 0, ev: ['EV-M6-02', 'EV-M6-03', 'EV-M7-02'] },
     ending: { type: 'Ending', refs: '', gate: true, name: 'The decision', found: 'm7', requires: 'm7', form: 'envelope', x: 809, y: 555, tilt: 0.6, ev: ['EV-M7-01'] }
   };
   const DOCS = {
@@ -1080,6 +1081,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     'EV-M5-02': { form: 'ticket', attach: 'greta', x: 1460, y: 164, tilt: -3 },
     'EV-M6-01': { form: 'memo', links: ['holdings', 'parent'], x: 384, y: 191, tilt: -3 },
     'EV-M6-02': { form: 'memo', links: ['endpoint', 'registrant'], x: 599, y: 726, tilt: 1.5 },
+    'EV-M6-03': { form: 'memo', links: ['architect', 'insurer'], x: 824, y: 180, tilt: 2 },
     'EV-M7-01': { form: 'ledger', links: ['architect'], x: 1045, y: 346, tilt: 2.5 },
     'EV-M7-02': { form: 'ledger', links: ['parent', 'architect'], x: 599, y: 196, tilt: -1.5 }
   };
@@ -1155,7 +1157,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     'EV-M6-02': {
       mission: 'm6',
       title: 'Certificate comparison',
-      rows: [['shared certificate', 'm6.infra'], ['registrant', 'm6.registrant'], ['tunnel endpoint', 'm6.peerGateway'], ['insurer', 'm6.insurer'], ['officer', 'm6.architect']]
+      rows: [['shared certificate', 'm6.infra'], ['registrant', 'm6.registrant'], ['tunnel endpoint', 'm6.peerGateway'], ['insurer', 'm6.insurer']]
+    },
+    'EV-M6-03': {
+      mission: 'm6',
+      title: 'Risk Committee minutes',
+      flag: 'Restricted',
+      rows: [['chair', 'm6.architectName'], ['interest declared', 'm6.minutesInterest'], ['settlements', 'm6.minutesSettlements'], ['minuting', null, 'The Chair confirmed that neither event will be minuted again'], ['meeting', 'm6.minutesMeeting']]
     },
     'EV-M7-01': {
       mission: 'm7',

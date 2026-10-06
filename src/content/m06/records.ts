@@ -195,7 +195,7 @@ const buildFiling2019 = (): RegistryRecord => ({
     fields: [
         field(M06_SITE_KEY.LABEL_FILED, M06_FILING_2019_YEAR),
         localized(M06_SITE_KEY.LABEL_SUBJECT, M06_SITE_KEY.SUBJECT_OWNERSHIP),
-        field(M06_SITE_KEY.LABEL_OWNER, M06_HALVARD_NAME),
+        localized(M06_SITE_KEY.LABEL_PARTICULARS, M06_SITE_KEY.VALUE_SEALED),
         localized(M06_SITE_KEY.LABEL_STATE, M06_SITE_KEY.STATUS_VERIFIED),
     ],
     tableHeadKeys: [],
@@ -203,7 +203,7 @@ const buildFiling2019 = (): RegistryRecord => ({
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_FILING_2019],
     noteVars: {},
-    links: [{ path: M06_HALVARD_PATH, label: M06_HALVARD_NAME }],
+    links: [],
 });
 
 const buildFiling2024 = (): RegistryRecord => ({
@@ -216,19 +216,15 @@ const buildFiling2024 = (): RegistryRecord => ({
     fields: [
         field(M06_SITE_KEY.LABEL_FILED, M06_FILING_2024_YEAR),
         localized(M06_SITE_KEY.LABEL_SUBJECT, M06_SITE_KEY.SUBJECT_OWNERSHIP),
-        localized(M06_SITE_KEY.LABEL_OWNER, M06_SITE_KEY.STATUS_WITHHELD),
+        localized(M06_SITE_KEY.LABEL_PARTICULARS, M06_SITE_KEY.VALUE_SEALED),
         localized(M06_SITE_KEY.LABEL_STATE, M06_SITE_KEY.STATUS_CONFLICTING),
-        field(M06_SITE_KEY.LABEL_CROSSREF, `${M06_HOLDINGS_NAME} · ${M06_HOLDINGS_NUMBER}`),
     ],
     tableHeadKeys: [],
     tableRows: [],
     tableCaptionKey: "",
     noteKeys: [M06_SITE_KEY.NOTE_FILING_2024],
     noteVars: {},
-    links: [
-        { path: M06_HALVARD_PATH, label: M06_HALVARD_NAME },
-        { path: M06_HOLDINGS_PATH, label: M06_HOLDINGS_NAME },
-    ],
+    links: [],
 });
 
 const buildHalvard = (): RegistryRecord => ({
@@ -273,6 +269,7 @@ const buildHoldings = (): RegistryRecord => ({
             M06_SITE_KEY.ROLE_DIRECTOR,
             `${M06_HOLDINGS_INCORPORATED} — ${M06_ARCHITECT_LEFT_BOARD}`,
         ],
+        [M06_HARTLEY_NAME, M06_SITE_KEY.ROLE_SECRETARY, `${M06_HOLDINGS_INCORPORATED} —`],
     ],
     tableCaptionKey: M06_SITE_KEY.CAPTION_OFFICERS,
     noteKeys: [M06_SITE_KEY.NOTE_HOLDINGS],
@@ -334,7 +331,7 @@ const buildOrchid = (): RegistryRecord => ({
 const buildArchitect = (): RegistryRecord => ({
     path: M06_ARCHITECT_PATH,
     kind: "officer",
-    stage: 5,
+    stage: 6,
     title: ARCHITECT_REAL_NAME,
     number: "",
     statusKey: M06_SITE_KEY.STATUS_FORMER,

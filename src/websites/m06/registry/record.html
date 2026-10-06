@@ -4,55 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{t:M06.SITE.REGISTRY.BRAND}}</title>
-<style>
-*{box-sizing:border-box}
-:root{--paper:#f6f5f1;--ink:#1d1f21;--mute:#5a5f63;--rule:#d6d3cc;--link:#1a4f8a;--flag:#8a3b1a;--flagbg:#fbf0e8}
-body{margin:0;padding:24px;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.6}
-.wrap{max-width:900px;margin:auto}
-header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px}
-.brand{font-size:22px;font-weight:bold}
-.tagline{font-size:13px;color:var(--mute)}
-nav{font-size:13px;margin-bottom:18px}
-.kind{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
-h1{font-size:21px;font-weight:normal;margin:2px 0 6px}
-.status{display:inline-block;font-size:12px;padding:2px 9px;border:1px solid var(--rule);background:#fff;color:var(--mute)}
-.status.flag{border-color:#d8b196;background:var(--flagbg);color:var(--flag)}
-.section{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:26px 0 8px;border-bottom:1px solid var(--rule);padding-bottom:4px}
-dl{display:grid;grid-template-columns:248px 1fr;gap:8px 16px;margin:0;font-size:14px}
-dt{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);align-self:center}
-dd{margin:0}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
-th{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute)}
-.note{margin:14px 0 0;font-size:13px;color:#44484b;max-width:68ch}
-ul.links{list-style:none;margin:0;padding:0;font-size:14px}
-ul.links li{padding:5px 0;border-bottom:1px solid var(--rule)}
-a{color:var(--link)}
-a:focus-visible{outline:2px solid var(--link);outline-offset:2px}
-footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--rule);font-size:12px;color:var(--mute)}
-.updated{font-size:12px;color:var(--mute);margin-top:4px}
-@media(max-width:640px){body{padding:16px}dl{grid-template-columns:1fr;gap:2px 0}dt{margin-top:10px}th:nth-child(3),td:nth-child(3){display:none}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
+/*__REG_STYLE__*/
 </head>
 <body>
-<div class="wrap">
-<header>
-<div class="brand">{{t:M06.SITE.REGISTRY.BRAND}}</div>
-<div class="tagline">{{t:M06.SITE.REGISTRY.TAGLINE}}</div>
-</header>
-<nav><a href="/">{{t:M06.SITE.REGISTRY.NAV_HOME}}</a></nav>
-<main>
-<div class="kind">/*__REC_KIND__*/</div>
+/*__REG_HEADER__*/
+<main class="wrap">
+<div class="head">
+<div>
+<p class="sub">/*__REC_KIND__*/</p>
 <h1>/*__REC_TITLE__*/</h1>
 <p><span class="status/*__REC_FLAG__*/">/*__REC_STATUS__*/</span></p>
-<div class="section">{{t:M06.SITE.SECTION.PARTICULARS}}</div>
+</div>
+/*__REC_PLATE__*/
+</div>
+<div class="cols/*__REC_COLS__*/">
+<div class="main">
+<h2 class="section">{{t:M06.SITE.SECTION.PARTICULARS}}</h2>
 <dl>/*__REC_FIELDS__*/</dl>
+/*__REC_SEAL__*/
 /*__REC_TABLE__*/
 /*__REC_NOTES__*/
-/*__REC_LINKS__*/
-</main>
-<footer>{{t:M06.SITE.REGISTRY.FOOTER}}<div class="updated">/*__REC_UPDATED__*/</div></footer>
 </div>
+<aside class="side">/*__REC_LINKS__*/</aside>
+</div>
+</main>
+/*__REG_FOOTER__*/
 </body>
 </html>
