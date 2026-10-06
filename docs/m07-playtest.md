@@ -1,5 +1,8 @@
 # M07 "The Architect" — Playtest Script (phase 4: full mission)
 
+> **Basi (2026-10-06).** Naskah ini menguji draf M7 lama (migrasi M4). Spesifikasi M7 sekarang adalah `docs/world-building/11-spec-m7.md` v2 (README #73-#76); naskah ini ditulis ulang di WP9.
+
+
 Status: **use once, disposable** — step-by-step script for the full M07 as
 implemented in phase 4 of the M4-M7 run. Supersedes the phase-1 skeleton script
 that used to live here. Delete or archive once M07 reaches FINAL LOCK; not a

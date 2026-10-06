@@ -96,3 +96,13 @@ Hartley) belum ditentukan. Dokumen ini menulis mereka tanpa kata ganti gender.
 
 Muncul di M4 (`old_targets.txt`: "d.reyes: monitor") dan M7 (`manifest.txt`). Menjadi saksi yang
 rentan (H7). Nasibnya bergantung pada ending (`05-ending.md`).
+
+## C. Pembaruan M7 v2 (2026-10-06, README #73-#76)
+
+- **Conrad Lindqvist = `SENTRY`.** Satu akun yang menyetujui rilis 2026-08-14 02:11 UTC dan menyerang pemain di M4. Ia bicara lewat siaran `sentry@darknull.io` di Duel 2. Kata sandi komputer pribadinya memakai tahun lahirnya (1967). Profil aktuaris dan motif "garis kerugian tetap datar" tidak berubah.
+- **Vivien Orchid.** Menerima instruksi 2026-06-24 dari Conrad untuk menjeda sinkron direktori dan melonggarkan media lepas (CHG-2606-022, "Office of the CRO"). Tetap bukan penjahat utama; ia menjalankan perintah lalu memutuskan membayar dan menyalahkan Roxanne.
+- **Penyurvei Nordhaven.** Kode survei `LC-07`, tak bernama: kunjungan 2026-08-03, kit 2026-08-07, serta lencana yang dipulihkan di Northstar 2020 dan Rheinland 2023.
+- **Roxanne.** Tidak berubah: hanya dokumen di M5, surat epilog A dan B, tanpa surat di C.
+- **Reyes, TR4C3404, Closer-Rig.** Muncul di daftar `[watch]` dan `[affiliates]` manifest; nasib per ending hanya lewat log pribadi BACKTRACE (`05-ending.md` E).
+- **Pemain (GHOSTWIRE).** Tetap tanpa nama. Berkas di komputer Conrad menyamarkan nama kerabat pasien OT3 sebagai "[redacted by the Chair]".
+- **Tomas Brandt, Alexander Voss, Imogen Hartley.** Tetap umpan.

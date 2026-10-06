@@ -1,358 +1,429 @@
-# 11 — M7 "The Architect": spesifikasi dan konten final
+# 11 — M7 "The Architect": spesifikasi v2
 
-Status: DECIDED 2026-10-02 untuk bentuk, rantai, nama, dan angka awal. Prosa en dan zh ditulis
-saat implementasi. Dialog bergaya panggilan telepon diganti surel Custodian dan kolom `choice`
-(diterima lewat EKSEKUSI). Mengikuti templat `07-arsitektur-misi-baru.md` bagian D. M7 adalah
-migrasi M4 lama dan harus dikerjakan **lebih dulu** dari M4 baru (id `m04` harus kosong).
+Status: **v2, disusun 2026-10-06** setelah M6 FINAL LOCK dan merge `clouds-modify` ke `main` (247273e). Menggantikan v1 (2026-10-02, migrasi M4 lama), yang disimpan utuh di `11-spec-m7.v1.md`. Keputusan pemilik tercatat di README #73-#76. Mengikuti templat `07-arsitektur-misi-baru.md` bagian D. Nilai konkret (alamat, kata sandi, id, angka) berstatus PROPOSAL sampai pemilik meninjau berkas ini; prosa en dan zh ditulis saat implementasi.
+
+Label: **CANON** terverifikasi di kode atau dokumen; **INFERENSI** kesimpulan dari bukti; **PROPOSAL** rancangan baru; **OPEN** menunggu pemilik. Semua nama, tempat, situs, dan orang fiktif dan berjalan di simulasi HackHub; berkas ini membahas desain cerita dan mekanik (event, gating, bentuk data), bukan cara serangan dunia nyata.
+
+## Brief pemilik (mengikat; 2026-10-06)
+
+1. M7 menjawab semua petunjuk, laporan, dan hasil investigasi M1-M6.
+2. M7 adalah misi paling kompleks (cerita, mekanik, penyelesaian). Kunci BACKTRACE boleh paling banyak.
+3. Cerita disusun ulang karena M1-M6 berubah besar.
+4. Dipakai: Cipher Desk, RDC, Metasploit, dan duel peretasan berpewaktu yang mulai saat pemain memasuki titik tertentu; gagal berarti breach; lawannya Conrad (pemain berada di server atau komputer pribadinya).
+5. **Tidak ada mekanik baru.** Semua dari investigasi dan pengalaman pemain di M1-M6.
+6. **Playfair hanya di M6.** M7 tidak memakainya.
+7. M7 dibangun di `main`. Hadiah disesuaikan di akhir.
+
+## Keputusan D1-D14
+
+| # | Keputusan | Status |
+|---|---|---|
+| D1 | Conrad adalah `SENTRY`: satu akun yang menyetujui rilis 2026-08-14 02:11 UTC dan menyerang pemain di M4 | DECIDED 2026-10-06 |
+| D2 | `194.36.108.20` kanon: infrastruktur broker M1 = sumber login pertama dengan kredensial Roxanne (M5) | DECIDED 2026-10-06 |
+| D3 | "next: prepping" = dua cadangan klaim FIN-EU-2214 dan MED-APAC-6689 | DECIDED 2026-10-06 |
+| D4 | Konsultan 3 Agu = survei pengendalian kerugian Nordhaven, tak bernama | DECIDED 2026-10-06 |
+| D5 | HoneyCheck dan `attrcheck` dibuang dari M7 | DECIDED 2026-10-06 |
+| D6 | Halaman RDC global boleh diubah (profil lewat `Exports`) dengan **salinan cadangan asli lebih dulu** supaya dapat dipulihkan (bagian J.4) | DECIDED 2026-10-06 |
+| D7 | Portal klaim `portal.nordhaven-mutual.com` sebagai situs misi | DECIDED 2026-10-06 |
+| D8 | 11 kunci BACKTRACE wajib + 3 opsional | DECIDED 2026-10-06 |
+| D9 | Apakah Duel 2 boleh diputus lebih awal dengan `flatline` | OPEN: dilihat setelah Duel 2 diimplementasikan (tanpa `flatline`) |
+| D10 | Penutup lengkap per ending (log pribadi untuk Reyes, TR4C3404, Orchid, korban) | DECIDED 2026-10-06 |
+| D11 | Hadiah | OPEN: disesuaikan di akhir; sementara 5000 (README #30, #40) |
+| D12 | Urutan membangun: lapis demi lapis (Inti, lalu Tambahan, lalu Opsional) dengan titik uji live setelah Inti | DECIDED A 2026-10-06 |
+| D13 | Judul tetap "The Architect" | DECIDED 2026-10-06 |
+| D14 | Berkas tentang pemain (kerabat pasien OT3, alias GHOSTWIRE) disertakan | DECIDED 2026-10-06 |
 
 ## A. Identitas
 
-`name: "flatline.m07"`, grup `storyline`, `autoStart: true`, `questGate("m07", ["flatline.m06"])`,
-bukan `Abandonable`, satu objective. **Hadiah: 5000 uang** (XP dilewati, keputusan #34), dibayar lewat
-`Bank.transaction` di `OnComplete` (bukan `Quest.Rewards`, tidak membayar di prototipe; `Rewards` quest
-tidak diisi dan pembayaran dilewati saat dev/tester focus). Nilai lama `M04_REWARDS` adalah 800 uang dan
-200 xp.
+`name: "flatline.m07"`, grup `storyline`, `autoStart: true`, `questGate("m07", ["flatline.m06"])`, bukan `Abandonable`, satu objective `m07.objective.00`. Hari-cerita 2026-10-03 (Sabtu).
+Objective (en, draf): "You have the name. Take the proof from the Architect's own books, reach the machine he keeps closest, and report what it proves and what you will do with it to the dead drop."
+Hadiah: `Bank.transaction` di `OnComplete`, `Rewards` quest tidak diisi, dilewati saat dev/tester focus (README #34). Nilai sementara 5000, final di akhir (D11).
 
-## B. Cacat M4 lama dan perbaikannya
+## B. Dari draf M7 lama ke v2 (cacat v1 dan nasibnya)
 
-| # | Cacat (terverifikasi di kode) | Perbaikan di M7 |
-|---|---|---|
-| 1 | `initialShellAccess` menunggu `Metasploit.Meterpreter.Connected` (`docs/bugs.md` #29), yang tidak terpancar oleh `exploit` biasa | `RemoteConnection.Established` dengan `t === "METASPLOIT"` |
-| 2 | Banner `LegacyCMS 2.1` tidak diterima modul mana pun, dan C2 hanya punya `root` tanpa password | Modul RDP bluekeep (live di M2 dan M3) dengan banner `FreeRDP 5.2.1` dan satu pengguna online `svc-cms` |
-| 3 | Firewall di tingkat Router dan perangkat di dalam Splitter (bentuk belum teruji, `docs/network.md`) | Bentuk M2 yang sudah live: Splitter berisi Firewall dan perangkat bersaudara |
-| 4 | `attrcheck` memakai `Files.getByPath` (session-aware hanya lewat SSH), jadi tidak melihat berkas di sesi Meterpreter (#30) | Pakai pencarian Meterpreter-aware (`commands/meterpreter-files.ts`). Bergantung pada live test `open` yang masih tertunda |
-| 5 | `cat` hanya membaca `.txt` dan `.log` (`docs/mechanics.md`), jadi jebakan lewat `Terminal.Cat` pada `.enc` tidak pernah terpicu | Pemicu jebakan diganti `open` (`OPEN_FILE_READ_EVENT`) |
-| 6 | `rootgrab` sebagai langkah rantai | Dibuang (pelajaran M3) |
-| 7 | `identityFileListed` bergantung pada SSH ke host tanpa password | Diganti membaca `manifest.txt` |
-| 8 | `Dialog` panggilan telepon, `switchBranch` tidak terhubung ke apa pun, dan SDK tidak punya event untuk cabang yang dipilih | Dibuang. Surel Custodian "What now?" dan kolom `choice` di laporan. Telepon dari Custodian juga melanggar aturan yang sudah terkunci ("the only channel", "no side conversations", `i18n/m01/core.ts:90-94`) |
-| 9 | Dua langkah awal (menelusuri IP VPN) mengulang M3 dan M4 | Dibuang |
-| 10 | Pilihan A/B/C hanya mengubah teks laporan | Efek nyata (bagian H) |
-| 11 | Aturan Firewall memakai IP publik C2 sebagai `destination` (`content/m04.ts`). Engine membandingkan `destination` dengan `lanIp` target, jadi aturan itu tidak pernah cocok, dan Save di panel pfSense menolaknya ("outside this network") selama aturan itu ada. LAN `172.16.0.x` juga bukan alamat lokal menurut engine (`IsLocalIp` hanya menerima `192.168.1.x`) | `destination` = `lanIp` C2 (`192.168.1.x`); LAN seluruh node diganti ke `192.168.1.x`; tidak ada aturan port 22 tanpa `destination` (memblokir SSH ke Null-Crown dan Ash-Vector). Lihat `docs/app-asar-reference.md` E-7 dan E-8, `docs/bugs.md` #41 |
+| Bagian draf lama (kode di `main`) | Nasib |
+|---|---|
+| Topologi Router, Splitter, Firewall `ash-gate` (hidden), C2, Null-Crown, Ash-Vector; LAN `192.168.1.x` | Dipertahankan (cacat v1 #1, #2, #3, #6, #7, #8, #9, #10, #11 tetap terperbaiki) |
+| Gerbang 12 langkah, laporan, `choice`, tiga efek ending, surat A/B | Dikembangkan menjadi 23 langkah (bagian E) |
+| Jejak 240 detik, penalti, breach, `.enc` ditimpa lalu dipulihkan | Dipertahankan sebagai Duel 1 (bagian K) |
+| HoneyCheck (`websites/global/honeycheck/`, `content/m07/honeycheck.ts`) | **Dibuang** (D5); diarsipkan di `src/archive/`, bukan dihapus |
+| `attrcheck` dan jebakan buka-`.enc` (cacat v1 #4, #5) | **Dibuang** (D5). Aturan dalam dunia: membuka `.enc` dengan `open` di host memangkas jendela; memakai event `open` yang sudah dikenal sejak M2 |
+| Manifest "employee negligence (R. Natnaree)", tanpa Cipher, RDC, atau portal | Ditulis ulang |
+| `M07_ARCHITECT_VPN_IP` | Nama tidak diganti (dipakai M2 dan M3) |
 
-## C. Rantai gerbang (12 langkah, transitif)
+## C. Buku bukti (hasil investigasi)
 
-Keputusan dan laporan adalah satu surel (kolom `choice`), jadi tidak ada langkah keputusan terpisah.
+### C.1 Benang yang belum dijawab
 
-| # | Langkah | Requires | Pemicu | Tier | Efek |
+| ID | Benang | Sumber | Status |
+|---|---|---|---|
+| T1 | Penyusup fisik: foto "Visitor pass — consultant" (3 Agu), tiket HD-4468 "VPN token for visiting consultant" (3 Agu 07:15, diminta `hazel.t`, dikeluarkan `rafael.bautista` 08:00), foto "Access kit" (7 Agu), foto recon (9 Jul); lencana "recovered" di Northstar 2020 dan Rheinland 2023 | `i18n/m01/ledgervault.ts`, `13` B, `content/m05/portal-data.ts` | CANON (fakta); pelakunya belum terjawab |
+| T2 | Sumber login pertama dengan kredensial Roxanne: `194.36.108.20`, 2026-08-11 00:41 UTC, lima sesi sampai 08-14 02:09. Sama dengan `M01_BROKER_INFRA_IP` (`x7xsentry9.tech`) | `content/m05/network.ts:92`, `content/m01/network.ts:30`, `portal-signins.ts` | CANON: dua konstanta sama; kini kanon (D2) |
+| T3 | CHG-2606-022 (30 Jun 03:00): sinkron direktori dijeda, media lepas log-only, "Office of the CRO", revert 15 Jul tidak pernah | `content/m05/portal-data.ts` | CANON; siapa yang memerintahkan belum terjawab |
+| T4 | Memo: "05:12 Clinical incident logged, Operating Theatre 3 ... Excluded from external statement". Adik pemain tak bernama | `content/m05/rdc.ts`, `i18n/m02/core.ts` | Bahwa adik ada di OT3: INFERENSI |
+| T5 | Dua penjualan akses tanpa batch pelunasan: FIN-EU-2214 (18 Jun) dan MED-APAC-6689 (14 Jul), pembeli TR4C3#404; log M1 pemain: "Two of the three were healthcare". M2: "Closes this quarter: 4" padahal `finance.ts` hanya punya dua batch di kuartal itu | `i18n/m01/core.ts`, `i18n/m02/core.ts`, `finance.ts` | CANON (tidak cocok); jawaban lewat D3 |
+| T6 | `old_targets.txt` M4: "pacificcare/it: closed", "next: prepping" | `i18n/m04/core.ts` | Dijawab D3 |
+| T7 | Pemburu `SENTRY` (`sentry@darknull.io`, tag operator, beacon 60 detik); "wonder who else has your name"; Custodian: "Someone will close it." | `content/m04/network.ts`, `i18n/m04/core.ts` | Dijawab D1 |
+| T8 | M2: "Architect's cut goes out same day ... they flagged it twice already." | `i18n/m02/core.ts` | Dijawab di `release_orders.log` (bagian I) |
+| T9 | Notulen 12 Des 2023 (ditandatangani 14 Des): item 1 "Reserve position — cyber reserves against the quarter's claims. Found adequate."; item 2 dua penyelesaian di luar polis (NA 2020, EU 2023) dilepas ke rekening yang dipegang lewat SKN; item 3 kepentingan Holdings dinyatakan | `i18n/m06/site.ts`, `content/m06/minutes.ts` | CANON. Kata "reserves" sudah ada di M6, jadi tema cadangan klaim tertanam |
+| T10 | Nasib Reyes, TR4C3404, Closer-Rig, Orchid, Roxanne | `05-ending.md`, `06` E-b | Dijawab di bagian N |
+| T11 | Tomas Brandt mundur 2022-06-13, Hartley menggantikan 2022-06-14; Voss umpan | `content/m06/network.ts` | Tetap umpan |
+| T12 | Roxanne diberhentikan 2026-08-19 tetapi capture Echoline 2026-08-18 sudah tak memuatnya | `content/m05`, `14-rename-m5.md` | Dibaca sebagai tekanan sebelum pemberhentian; tidak diubah |
+
+### C.2 Tautan lintas misi yang sudah tertanam
+
+1. `194.36.108.20`: M1 (infrastruktur broker), M5 (sumber foothold), M2 (sesi terakhir 08-14 02:09, lima menit sebelum "02:14 pushed" di `deploy.log`; kunci 02:41 dan bayar 09:02 sama dengan memo M5).
+2. 3 Agu: baris ledger 13:20 UTC, kwitansi ClearEscrow, foto visitor pass, tiket VPN konsultan.
+3. Tanggal vault Northstar (2020-03-19/31) dan Rheinland (2023-06-28/30) cocok dengan tahun di notulen M6.
+4. `SENTRY` hanya ada di M4; belum dipakai tempat lain.
+5. `203.0.113.159` (Night-Shift), `.160` (titik akhir), `.161` (C2 M7) bertetangga; registrant Bulletproof VPN Ltd. di M3, M4, dan whois asuransi M6.
+6. Sertifikat portal Nordhaven dan `vpn.skn-central.net` berbagi sidik jari (`5d86`); `portal.nordhaven-mutual.com` (193.42.33.60) belum punya situs.
+
+## D. Cerita M7 tersusun ulang
+
+**Premis.** Pemain punya nama. Nama bukan kasus. Conrad Lindqvist menjalankan sindikat lewat pembukuan: asuransinya membayar tebusan, tebusan mengalir ke entitasnya (60% ke SKN), dan "garis kerugian" tetap datar. M7 membuktikannya dengan dokumen miliknya sendiri, lalu memaksa pemain menghadapinya di komputer pribadinya, di bawah jam yang berjalan mundur.
+
+**Gagasan pengunci.** Asuransi memasang **cadangan klaim sebelum kejadian**. Ledger broker M1 mencatat penjualan akses 18 Jun dan 14 Jul; cadangan di buku asuransi bertanggal sama. Mereka tahu karena merekalah yang mengatur. Notulen M6 sudah menyebut komite meninjau "cyber reserves"; M7 menunjukkan apa isinya.
+
+### D.1 Peta penyelesaian (benang → jawaban → pembuktian)
+
+| Benang | Jawaban M7 | Dibuktikan lewat | Kunci / kolom laporan |
+|---|---|---|---|
+| T9 uang asuransi → SKN | Portal klaim: CASE-A7X-0417, FIN-NA-0091, LOG-EU-2209 berstatus "Paid" pada tanggal penyelesaian BLACKLEDGER, dibayar lewat rekening yang dipegang SKN. Penyelesaian 2020 dan 2023 tidak punya klaim ("outside policy terms", sesuai notulen) | S3 | `claims` |
+| T5, T6 korban berikutnya | Manifest `[reserves]`: FIN-EU-2214 (cadangan 2026-06-18) dan MED-APAC-6689 (2026-07-14), "pre-notified, insured not notified". Portal memverifikasi | S12 dan S16 | `manifest` (kolom `reserves`) |
+| T2 foothold | `release_orders.log` mencatat sesi dari `x7xsentry9.tech` (194.36.108.20) dengan akun `rnatnaree` pada 08-11 00:41 dan seterusnya | S13 | `orders` |
+| T7 SENTRY | Operator yang menyetujui rilis 08-14 02:11 adalah akun `sentry` = Conrad; di Duel 2 ia bicara lewat siaran `sentry@darknull.io` yang sama dengan M4 | S13, S21 | `orders`, kolom `architect` |
+| T1 penyusup | `survey_visits.txt`: survei pengendalian kerugian Nordhaven (kode survei, orang tak bernama) mengunjungi PacificCare 3 Agu, menyiapkan "media + lencana + kunci" 7 Agu; catatan lama Northstar 2020 dan Rheinland 2023 | S14 | `survey` |
+| T3 CHG-2606-022 | Instruksi 24 Jun dari Conrad kepada Orchid di komputer pribadinya | S22 | `instruction` |
+| T4 adik pemain | Berkas tentang kerabat pasien OT3 dan alias GHOSTWIRE (menjawab "who else has your name"; nama pemain disamarkan, tetap tak bernama) | RDC dokumen 3 (di luar rantai) | `dossier` (opsional) |
+| T8 "they flagged it twice" | `release_orders.log`: pembayaran bagian Architect dipercepat setelah dua teguran audit rekening penyelesaian | S13 | bagian dari `orders` |
+| Model Conrad | Memo "supply managed, the line stays flat" | RDC dokumen 2 (di luar rantai) | `model` (opsional) |
+| T10 Reyes, TR4C3404, Closer-Rig, Orchid, Roxanne | Daftar `[watch]` dan `[affiliates]` di manifest; nasib per ending (bagian N) | S12, S23 | log pribadi |
+| "Someone will close it" | Pemain yang menutupnya; satu baris Custodian setelah laporan | S23 | - |
+| T11 Brandt, Voss, Hartley | Tetap umpan; laporan menolak Voss sebagai Architect | - | validator |
+
+### D.2 Tokoh
+
+- **Conrad Lindqvist** (59, lahir 1967): aktuaris; juga operator `SENTRY`. Dingin, bahasa pembukuan. Kata sandi komputer pribadi memakai tahun lahirnya.
+- **Vivien Orchid**: CRO PacificCare; menerima instruksi 24 Jun (melemahkan kontrol), memutuskan membayar dan menyalahkan Roxanne. Bukan penjahat utama (batas `03` tetap).
+- **Roxanne Anindita Natnaree**: tak berubah; surat epilog A dan B, tanpa surat di C.
+- **Penyurvei Nordhaven**: tak bernama; hanya kode survei.
+- **Custodian**: tetap kosong (README #7); bicara hanya lewat tip, "belum waktunya", "What now?", dan satu baris penutup.
+
+### D.3 Tanggal (semua memenuhi `13` A.3-A.4; kutipan juga di `13`)
+
+| Tanggal | Peristiwa |
+|---|---|
+| 2026-06-18, 2026-07-14 | Cadangan klaim FIN-EU-2214, MED-APAC-6689 (sama dengan baris ledger M1) |
+| 2026-06-24 | Instruksi Conrad kepada Orchid (mendahului CHG-2606-022 30 Jun) |
+| 2026-07-09 | Survei luar PacificCare (sama dengan foto recon) |
+| 2026-08-03 | Kunjungan survei, token jarak jauh 14 hari (sama dengan HD-4468) |
+| 2026-08-07 | Kit disiapkan (sama dengan foto access kit) |
+| 2026-08-11 00:41 dan 01:03; 08-12 02:17; 08-13 01:58; 08-14 02:09 | Sesi dari 194.36.108.20 (persis `FOOTHOLD_SESSIONS`) |
+| 2026-08-14 02:11 UTC | Rilis disetujui oleh `sentry` (di antara sesi 02:09 dan "02:14 pushed") |
+| 2026-08-17 | Persetujuan klasifikasi oleh Nordhaven (sudah ada di manifest lama) |
+| 2026-09-24 | Berkas tentang pemain diperbarui (setelah serangan M4); opsional |
+| Sampai 2026-10-03 | Stempel "terakhir diperbarui" di dunia M7 |
+
+## E. Rantai gerbang (23 langkah, transitif)
+
+Semua pemicu Tier 1 dan sudah dipakai di M1-M6 (status live per butir ada di bagian Q). Satu objective; langkah berurutan lewat `advanceStep` (`rules.md` §11).
+
+| # | Langkah | Requires | Pemicu | Belajar di | Efek |
 |---|---|---|---|---|---|
-| 1 | `tipReviewed` | - | `Mail.Read` tip terakhir Custodian ("Kamu sudah punya nama. Sekarang buktinya.") | 1 | - |
-| 2 | `edgeScanned` | 1 | `Terminal.NmapScan -sV` pada C2: 443 terbuka (LegacyCMS), 3389 FILTERED | 1 | buka halaman `/legacy-cms/` |
-| 3 | `dashboardFound` | 2 | `Browser.Meta` `/legacy-cms/` (halaman tersembunyi, tabel status node) | 1 | kunci `nodes` |
-| 4 | `deadBoxEntered` | 3 | `RemoteConnection.Established` SSH ke **Ash-Vector** (kotak mati sungguhan) | 1 | - |
-| 5 | `credentialRead` | 4 | `Terminal.Cat` `ash-gate_backup.txt` | 1 | kunci `credential` |
-| 6 | `firewallLoggedIn` | 5 | `PFSense.Login` pada Firewall (pola `controller/m01/breach.ts:27`) | 1 | - |
-| 7 | `firewallBreached` | 6 | `PFSense.Changes` | 1 | kunci `firewall`; `removeFirewallRules` dan `openPorts` 3389 C2 |
-| 8 | `shellObtained` | 7 | `RemoteConnection.Established` METASPLOIT pada C2 | 1 | kunci `c2`; pelacakan dimulai |
-| 9 | `manifestRead` | 8 | `Terminal.Cat` `manifest.txt` | 1 | kunci `manifest` |
-| 10 | `trapRevealed` | 9 | `attrcheck` pada `master_ledger_backup.enc` (event mod) | 1 | - |
-| 11 | `fileExtracted` | 10 | `Files.Transfer` DOWNLOAD `master_ledger_backup` | 1 | kunci `ledger`; pelacakan berakhir; surel "What now?" dikirim |
-| 12 | `reportSent` | 11 | `Mail.Sent` ke Custodian dengan `matchesFields` | 1 | `completeObjective`; efek ending |
+| 1 | `tipReviewed` | - | `Mail.Read` tip Custodian | M2, M5, M6 | situs portal klaim terbuka |
+| 2 | `claimsPortalSeen` | 1 | `Browser.Meta` beranda portal | M5, M6 | - |
+| 3 | `paidClaimsMatched` | 2 | tiga pencarian klaim lewat `Exports.flatlineClaimLookup(ref)`: CASE-A7X-0417, FIN-NA-0091, LOG-EU-2209 | M5 (flag `seen`) | kunci `claims` |
+| 4 | `endpointMapped` | 3 | `Python3.ExecFile` `net_tree.py` pada 203.0.113.160 | M3 | fixture `nmap` C2 |
+| 5 | `edgeScanned` | 4 | `Terminal.NmapScan` -sV pada C2 | M2, M3 | halaman `/legacy-cms/` |
+| 6 | `dashboardFound` | 5 | `Browser.Meta` `/legacy-cms/` (ditemukan lewat `dirhunter`) | M6 | kunci `nodes` |
+| 7 | `deadBoxEntered` | 6 | `RemoteConnection.Established` SSH ke Ash-Vector | M1-M4 | - |
+| 8 | `credentialRead` | 7 | `onFileRead` `ash-gate_backup.txt` | M2, M4 | kunci `credential` |
+| 9 | `firewallLoggedIn` | 8 | `PFSense.Login` | M1, M2 | - |
+| 10 | `firewallBreached` | 9 | `PFSense.Changes` | M1, M2 | kunci `firewall`; port 3389 dibuka |
+| 11 | `shellObtained` | 10 | `RemoteConnection.Established` METASPLOIT | M2 | kunci `c2`; **Duel 1 mulai** |
+| 12 | `manifestRead` | 11 | `onFileRead` `manifest.txt` | M2, M3 | kunci `manifest` |
+| 13 | `ordersRead` | 12 | `onFileRead` `release_orders.log` (entri Log Viewer) | M1, M4 | kunci `orders` |
+| 14 | `surveyRead` | 13 | `onFileRead` `survey_visits.txt` | M2 | kunci `survey` |
+| 15 | `ledgerTaken` | 14 | `Files.Transfer` DOWNLOAD `master_ledger_backup.enc` (belum terbukti di sesi, `bugs.md` #45) | M2 | kunci `ledger`; **Duel 1 selesai** |
+| 16 | `reservesChecked` | 15 | `Exports.flatlineClaimLookup(ref)` untuk kedua cadangan (MED-APAC-6689 dan FIN-EU-2214) | langkah 3 | halaman cadangan terbuka; nomor rekening penyelesaian tampil hanya di sini |
+| 17 | `sealRead` | 16 | `onFileRead` `master_ledger_backup.enc` di `~/downloads` | M2, M3 | - |
+| 18 | `sealOneOpened` | 17 | `flatline.cipher.opened` id `ledgerSeal1` | M5, M6 | - |
+| 19 | `sealTwoOpened` | 18 | `flatline.cipher.opened` id `ledgerSeal2` (kunci dari plaintext 1 dan langkah 16) | M6 (segel berantai) | kunci `seal` |
+| 20 | `workstationLoggedIn` | 19 | `flatline.rdc.login` kode target pribadi (token dibuat dengan Cipher Encrypt) | M5 | - |
+| 21 | `displayAttached` | 20 | `flatline.rdc.attached` | M5 | **Duel 2 mulai**; dokumen bergerbang terbuka |
+| 22 | `instructionRead` | 21 | `flatline.rdc.read` gate 1 | M5 | kunci `instruction`; surel "What now?" dikirim |
+| 23 | `reportSent` | 22 | `Mail.Sent` ke Custodian, `matchesFields`, `choice` | M1-M6 | `completeObjective`; efek ending |
 
-**Di luar rantai** (langkah opsional tidak masuk gerbang): menyentuh Null-Crown (honeypot), `nuclei`
-pada C2, membuka `.enc` dengan `open` sebelum `attrcheck`.
+**Di luar rantai (tidak pernah prasyarat; `rules.md` memori "Optional steps stay off the gate chain"):**
+- Dokumen 2 dan 3 di komputer pribadi (gate 2 `modelRead`, gate 3 `dossierRead`): kunci opsional `model` dan `dossier`. Duel 2 baru selesai bila ketiganya terbaca atau waktu habis.
+- Menyentuh Null-Crown (honeypot): surel peringatan, penalti `min(saldo, 500)`, kunci opsional `decoy`.
+- Membuka `.enc` dengan `open` di host sebelum `ledgerTaken`: jendela Duel 1 dipangkas separuh, surel peringatan satu kali.
+- `nuclei` pada C2, kunjungan LedgerVault.
 
-## D. Dunia per langkah (`UnlockSpec`)
-- Langkah 2: halaman `/legacy-cms/` dan tabel node terbuka (cermin `SharedVariables`, #36).
-- Langkah 7: aturan Firewall untuk 3389 C2 dicabut dan port dibuka (`Network.openPort`).
-- Langkah 11: surel "What now?" dikirim.
-- Berkas di C2 ada sejak dunia dibangun, tetapi tak terjangkau sebelum sesi terbuka.
+## F. Dunia per langkah (`UnlockSpec`)
 
-## E. Topologi (bentuk M2 yang sudah live)
+| Langkah | Terbuka |
+|---|---|
+| 1 | situs portal klaim (`openMissionSites("m07")`; cermin `SharedVariables` untuk gerbang halaman) |
+| 4 | fixture `nmap`/`whois`/`geoip` C2 |
+| 5 | halaman `/legacy-cms/` |
+| 10 | `removeFirewallRule` 3389, `openPorts` 3389 C2, fixture `nmap` 3389 OPEN |
+| 11 | berkas C2 terjangkau (ada sejak dunia dibangun) |
+| 15 | cadangan klaim dapat dicari di portal (sebelumnya "No claim found") |
+| 18 | plaintext 1 terbaca |
+| 19 | token RDC dapat dibuat (semua lima bagian tersedia) |
+| 21 | dokumen bergerbang RDC |
+
+## G. Topologi (bentuk M2 yang sudah live)
 
 ```text
 Router 203.0.113.160 (titik akhir M3)
 └─ Splitter 45.76.180.9
-   ├─ Firewall "ash-gate" 194.60.38.12 (isIpHidden)  satu pengguna valid fw.admin/<P>
-   │     aturan blok 22 dan 3389 dengan destination = lanIp C2 (192.168.1.x)
-   ├─ Device C2 203.0.113.161  443 https "LegacyCMS 2.1" (aktif), 3389 rdp "FreeRDP 5.2.1" (blok)
-   │     pengguna: svc-cms (online), root. rootFiles: master_ledger_backup.enc, manifest.txt
-   ├─ Device "Null-Crown" 185.220.101.42  honeypot, ssh 22 admin/admin, banner OpenSSH 9.6
-   └─ Device "Ash-Vector" 146.70.44.18    kotak mati, ssh 22 admin/admin, banner OpenSSH 5.3
-         berkas: ash-gate_backup.txt (kredensial fw.admin)
+   ├─ Firewall "ash-gate" 194.60.38.12 (isIpHidden)  satu pengguna valid fw.admin
+   │     aturan blok 22 dan 3389 dengan destination = lanIp C2
+   ├─ Device C2 "index-01" 203.0.113.161  443 https "LegacyCMS 2.1" aktif, 3389 rdp "FreeRDP 5.2.1" diblok sampai langkah 10
+   │     pengguna online svc-cms, root; berkas lihat bagian I
+   ├─ Device "Null-Crown" 185.220.101.42  honeypot, ssh admin/admin, OpenSSH 9.6
+   └─ Device "Ash-Vector" 146.70.44.18    kotak terlupakan, ssh admin/admin, OpenSSH 5.3, ash-gate_backup.txt
 ```
 
-- Alamat publik dan nama diambil dari M4 lama (`content/m04.ts`); sisi LAN diganti ke `192.168.1.x`
-  (`.1` untuk Router, berurutan sesudahnya) karena `IsLocalIp` hanya menerima awalan itu
-  (`docs/app-asar-reference.md` E-7). Alamat M4 baru bertetangga dengan `203.0.113.160`
-  (Night-Shift, `10-spec-m4.md`).
-- Aturan Firewall: `destination`, bila diisi, sama dengan `lanIp` target dan bukan IP publik
-  (`docs/app-asar-reference.md` E-8). Tidak ada aturan port 22 tanpa `destination`: Ash-Vector dan
-  Null-Crown harus tetap terjangkau lewat SSH sebelum Firewall dibuka. `removeFirewallRule(ip, port)`
-  menghapus semua aturan pada port itu.
-- `PFSense.Login` hanya membawa `{ip}` dan hanya terpancar saat sukses (engine `index.js` ~9313749,
-  `docs/app-asar-reference.md` E-9), jadi Firewall punya **satu** pengguna valid.
-- RDP: modul `exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = alamat publik C2 (#27), `Version 5.2.1`
-  dari banner `nmap -sV`, butuh pengguna online (`svc-cms`). Port C2: `external` dan `internal` 3389,
-  `version` `FreeRDP 5.2.1`, aktif sesudah langkah 7; syarat lengkap modul di
-  `docs/app-asar-reference.md` E-11.
-- Firewall ditemukan lewat tabel node di `/legacy-cms/` atau `python3 net_tree.py`.
+Alamat dan LAN (`192.168.1.1` sampai `.6`) tetap seperti draf lama (CANON di kode). `PFSense.Login` hanya membawa `{ip}`; firewall punya satu pengguna valid (E-9). `destination` memakai `lanIp`, tidak pernah IP publik (E-8). Tidak ada aturan port 22 tanpa `destination`.
+Komputer pribadi Conrad **tidak punya node jaringan**: ia target virtual RDC (token diperiksa mod), jadi topologi tidak bertambah.
 
-## F. HoneyCheck (`honeycheck.net`)
+## H. Situs
 
-Situs global `websites/global/honeycheck/` (JS di dalam halaman dengan dataset tertanam, pola
-ClearEscrow), dibungkus `gateMissionPages("m07")`. M4 dapat memakainya nanti (OPEN).
+| Situs | Jenis | Isi | Catatan |
+|---|---|---|---|
+| `portal.nordhaven-mutual.com` (193.42.33.60) | baru, situs misi Tier 1, `gateMissionPages("m07")` | Satu halaman pencarian status klaim (`<input>` dan JS, bukan `<form>`, E-10) dengan panel hasil; alias `/search` untuk klik Goagle bila perlu | Tanpa subnet (E-3). Fungsi `Exports.flatlineClaimLookup(ref)` mengembalikan objek; kerja yang butuh mod dilakukan sebelum `await` pertama (E-16). Gaya terpisah dari Registry dan HostTrail |
+| `/legacy-cms/` di C2 | ada, disesuaikan | Tabel status node: label netral `index-01`, `ash-gate`, `node-07`, `node-11`; dua kotak "retired" berperan sama supaya tabel tidak membocorkan honeypot | Tanpa HoneyCheck. Pembeda adil: banner `nmap -sV` (OpenSSH 9.6 tidak cocok dengan "retired 2019", OpenSSH 5.3 cocok dengan "retired 2022"), keterampilan membaca penanda waktu dari M4 |
+| RDC `rdcdesk.io` | global permanen | Profil M7 (bagian J.3) | Pekerjaan "tahap 2" (J.4) |
+| Cipher Desk `cipherdesk.io` | global permanen | Dua artefak baru, token via Encrypt | Situs tidak berubah |
+| LedgerVault, BLACKLEDGER | permanen | Tidak berubah | Ingatan pemain |
 
-| Host | Penilaian | Kenyataan |
-|---|---|---|
-| C2 `203.0.113.161` | bukan honeypot (91%) | asli |
-| Null-Crown `185.220.101.42` | **bersih (88%)** | **honeypot yang disetel supaya lolos** |
-| Ash-Vector `146.70.44.18` | **honeypot kemungkinan besar (71%)** | **kotak mati sungguhan** |
+### H.1 Data klaim (konstanta, bukan angka uang; `rules.md` §14)
 
-Catatan bawah halaman: "This is not a foolproof method. Just because a host reads clean today does
-not mean it will tomorrow." (disadur dari honeypot.is).
+| Referensi | Tertanggung | Status | Tanggal | Rekening |
+|---|---|---|---|---|
+| CASE-A7X-0417 | PacificCare Health | Paid, cyber endorsement; klasifikasi "Retained risk, employee negligence", disetujui 2026-08-17 | 2026-08-14 (`settledAt`) | Paid to a settlement account held through SKN Capital Nominees Ltd (nomor tidak ditampilkan) |
+| FIN-NA-0091 | withheld | Paid | 2026-07-22 | idem |
+| LOG-EU-2209 | withheld | Paid | 2026-05-02 | idem |
+| FIN-EU-2214 | withheld | Reserved, pre-notified; insured not notified | cadangan 2026-06-18 | Held in settlement account PC-114772 (SKN Capital Nominees Ltd) |
+| MED-APAC-6689 | withheld | Reserved, pre-notified; insured not notified | cadangan 2026-07-14 | Held in settlement account PC-114772 (SKN Capital Nominees Ltd) |
+| nama lain (termasuk Northstar, Rheinland) | - | "No claim found for that reference." | - | - |
 
-**Pembeda yang adil (alat hanya petunjuk).** Tabel node di `/legacy-cms/` menulis keduanya
-"decommissioned" (Null-Crown 2019, Ash-Vector 2022). `nmap -sV` memperlihatkan Null-Crown memakai
-OpenSSH modern, tidak konsisten dengan "decommissioned 2019", sedangkan Ash-Vector memakai OpenSSH 5.3
-yang konsisten. **Salah pilih tidak membuntukan:** menyentuh Null-Crown memicu surel peringatan
-(`M04_HONEYPOT_ALERT_*` dari `watchdog@architect-c2.dark`) dan serangan tambahan (penalti
-`min(saldo, 500)`), lalu pemain tinggal memakai Ash-Vector.
+Cadangan hanya dikembalikan setelah langkah 15 (sebelumnya "No claim found", tak dapat dibedakan dari referensi lain).
 
-## G. Pelacakan waktu nyata (komponen kit M4 dipakai ulang)
+## I. Fixture dan data
 
-- Mulai di langkah 8 dan dipasang lagi di setiap sesi baru ke C2 selama `fileExtracted` belum
-  tercapai. Banner hitung mundur **240 detik**.
-- Membuka `.enc` dengan `open` sebelum `attrcheck`/ekstraksi: tenggat dipangkas setengah, surel
-  peringatan jebakan (`M04_TRAP_WARNING_*`). Berkas tidak terhapus.
-- **Gagal (tenggat habis):** penalti `min(saldo, 500)`, desktop dibobol lagi (kit `desktop-breach`),
-  `.enc` terhapus sendiri. `sysdiag` menolak berjalan di sesi remote ("Disconnect first"), jadi pemain
-  harus keluar dari sesi untuk memulihkan. `.enc` dibuat ulang (`Files.create` di dalam handler,
-  `docs/bugs.md` #19) saat sesi baru ke C2 dimulai, dan pelacakan dipasang lagi. Firewall tetap terbuka.
-  Tidak ada jalan buntu.
+**Berkas di C2 (`rootFiles`).**
 
-## H. Efek ending (dijalankan controller setelah `reportSent`)
-
-| `choice` | Efek mekanis | Epilog |
-|---|---|---|
-| `expose` | bukti dilepas | surat Roxanne A dari `roxanne.natnaree@postbox.my`, log pribadi BACKTRACE A |
-| `handoff` | bukti diserahkan | surat Roxanne B, log pribadi B |
-| `destroy` | jaringan C2 dihancurkan (`unregister`, berurutan #35), `.enc` hilang | **tanpa surat**, log pribadi C |
-
-Beat surat (dari `09-konten-m5-m6.md` B10): A, namanya bersih tetapi tidak ada yang kembali seperti
-semula. B, seorang pengacara menelepon dan prosesnya akan lama. C, kotak masuk tetap sunyi.
-Log pribadi per ending memuat nasib Reyes, Vivien Orchid, dan Conrad Lindqvist sesuai
-`05-ending.md` bagian B. `roxanne.natnaree@postbox.my` adalah alamat pribadi Roxanne, yang sama dengan
-rekaman umpan #2 di LeakIndex (M5).
-
-## I. Konten (beat)
-
-**Surel.** Tip terakhir Custodian: nama sudah ada, sekarang bukti, semua milik mereka ada di satu
-berkas, dan mereka tahu begitu kau menyentuhnya. "What now?" (sesudah ekstraksi): pertanyaan yang sama
-dengan dialog lama, tiga pilihan, jawab lewat laporan. Peringatan honeypot dan jebakan memakai teks yang
-sudah ada di `content/m04.ts`.
-
-**`/legacy-cms/`.** LegacyCMS 2.1, build 2011.04, "unpatched since deployment", dengan tabel status
-node (alamat publik, status, tanggal decommission) untuk C2, ash-gate, Null-Crown, dan Ash-Vector.
-
-**`ash-gate_backup.txt` (Ash-Vector).** Cadangan konfigurasi lama dengan kredensial `fw.admin`
-dalam teks biasa, tanggal 2022.
-
-**`manifest.txt` (C2, bisa dibaca).** "MASTER LEDGER INDEX": rekening korban (Northstar Port Authority
-2020 NA, Rheinland Energie AG 2023 EU, LOG-EU-2209 $1.400.000 2026-05-02, FIN-NA-0091 $4.100.000
-2026-07-22, PacificCare Health CASE-A7X-0417 $2.850.000 2026-08-14), tiap baris "settled". Catatan
-PacificCare: klasifikasi "employee negligence (R. Natnaree)", disusun bersama V. Orchid, persetujuan
-Nordhaven 2026-08-17. Catatan pantauan: "d.reyes: monitor". Pernyataan model Conrad: kerugian yang bisa
-dihitung bukan bencana, melainkan satu baris pembukuan, dan semua rekening dilunasi. Penutup:
-"every account, settled."
-
-**`master_ledger_backup.enc`.** Isi tetap `AES256-CBC::[REDACTED-BINARY-BLOB]` (konstanta lama), nama
-diganti dari `master_identity_backup` karena identitas sudah dibuktikan di M6.
-
-**Conrad Lindqvist (DECIDED).** 59 tahun (lahir 1967). Aktuaris yang memberi harga pada risiko yang
-ia ciptakan sendiri: tebusan sebagai kerugian yang bisa diprediksi bila pasokannya dikelola. Ini
-menutup X-b.
-
-**Laporan.** Kolom `architect` (Conrad Lindqvist), `evidence` (ringkasan: kelalaian karyawan
-disusun, R. Natnaree dijadikan kambing hitam), `choice` (`expose`/`handoff`/`destroy`). Validator
-menolak nama lain dan pilihan di luar tiga itu.
-
-**Petunjuk "belum waktunya" (beat).** Tip belum dibaca: baca kabar Custodian. C2 belum dipindai: lihat
-apa yang terbuka. Halaman tersembunyi belum ditemukan: tidak semua jalan ditautkan. Kotak mati belum
-dimasuki: ada yang terlupakan. Kredensial belum dibaca: isi kotak itu. Firewall belum dibuka: pintu
-masih terkunci. Berkas belum diekstrak: jangan membukanya begitu saja.
-
-**BACKTRACE.**
-
-| Kunci | Nilai |
+| Berkas | Isi (beat) |
 |---|---|
-| `nodes` | Tabel status node di `/legacy-cms/`: C2, ash-gate, dua kotak "mati" |
-| `credential` | Kredensial `fw.admin` dari cadangan lama di Ash-Vector |
-| `firewall` | ash-gate dibuka, 3389 C2 terbuka |
-| `c2` | Sesi di C2 (`svc-cms`) |
-| `manifest` | Master Ledger Index: lima rekening korban |
-| `ledger` | `master_ledger_backup.enc` diekstrak tanpa memicu jebakan |
+| `manifest.txt` | "MASTER LEDGER INDEX". `[accounts]` lima akun selesai (Northstar 2020 NA, Rheinland 2023 EU, LOG-EU-2209, FIN-NA-0091, CASE-A7X-0417 dengan nominal dan tanggal dari `finance.ts`). `[reserves]` FIN-EU-2214 dan MED-APAC-6689 dengan tanggal cadangan. `[note CASE-A7X-0417]` klasifikasi "employee negligence (R. Natnaree)", disusun bersama V. Orchid, disetujui Nordhaven 2026-08-17. `[settlement network]` `index-01` 192.168.1.4, `nma-cl-01` 192.168.1.40, `claims-02` 192.168.1.42. `[integrity]` "master_ledger_backup.enc is sealed in two parts. Part one: the Chair and the day the Committee signed the minute that booked the settlement account, in capitals, ISO date. Opening it on this host raises the watcher: take it whole." `[watch]` `d.reyes: monitor`, `[affiliates]` supply line TR4C3#404 dan operator FIN-NA. `[model]` baris model lama ("A loss you can calculate is not a disaster..."). Penutup "every account, settled." |
+| `release_orders.log` | Entri Log Viewer (format ISO, `components/log-file.ts`). Tiga proses rilis: `RO-2605-02` (LOG-EU-2209), `RO-2607-22` (FIN-NA-0091), `RO-2608-14` (CASE-A7X-0417). Untuk `RO-2608-14`: 08-11 00:12 kit executed, 00:41 dan 01:03 sesi diterima dari `x7xsentry9.tech` (194.36.108.20) dengan akun `rnatnaree`; 08-12 02:17; 08-13 01:58; 08-14 02:09 sesi diterima; **02:11 authorised by sentry**; 02:14 push; 02:41 lock confirmed; 09:02 payment confirmed. Catatan: dua teguran audit rekening penyelesaian ("Architect share advanced to same day"). Hindari kata drop, closed, released, terminated, dropped, "did not receive" di baris yang bukan pemutusan (itu memicu tipe Disconnected, `components/log-file.ts`); jangan memakai tipe SHELL_OBTAIN |
+| `survey_visits.txt` | Kode survei `LC-07`, "Nordhaven loss-control survey (cyber)". 2020-03-19 Northstar Port Authority: badge recovered. 2023-06-28 Rheinland Energie AG: badge recovered. 2026-07-09 PacificCare exterior survey (annotated). 2026-08-03 on-site visit, visitor pass issued, remote token 14 days. 2026-08-07 kit prepared: media, badge, key. Tanpa nama orang |
+| `master_ledger_backup.enc` | Kepala "AES256-CBC [1 of 2]" lalu heks segel 1 (garis 64 digit, spasi dan baris diabaikan `compactHex`). Plaintext harus ASCII tercetak satu baris (`readableText` menolak selain 32-126). Berkas memuat dua blok, `[1 of 2]` dan `[2 of 2]`, segel 1 dan segel 2 |
+| `/etc/hosts` | tidak dipakai (alamat LAN ada di manifest) |
 
-## J. Penempatan arsitektur dan perubahan global
-- Berkas: `main/m07.ts`, `controller/m07/` (`index`, `spec`, `report`, `world`, `recon`, `deadbox`,
-  `firewall`, `shell`, `extract`, `ending`), `content/m07/*`, `i18n/m07/`, `websites/m07/architect-c2/`
-  (dipindah), `websites/global/honeycheck/`.
-- `commands/attrcheck.ts`: konstanta dan nama berkas diperbarui, pakai pencarian Meterpreter-aware, event
-  menjadi `flatline.m07.attrcheckRevealed`.
-- **`M04_ARCHITECT_VPN_IP` di `content/global/characters.ts` tidak di-rename** (dipakai M2 dan M3 yang
-  terkunci). `content/global/mail-senders.ts` hanya diubah jalur impornya. `M04_ARCHITECT_REAL_NAME`
-  menjadi `M07_ARCHITECT_REAL_NAME` = "Conrad Lindqvist".
-- Global: `QuestId` (`guard/flags.ts`), `BacktraceMissionId` dan `BACKTRACE_KEYS` (m7), `manifest.json`.
-- Nasib `*.original.ts` M4 lama: ARCHIVED 2026-10-03 (dipindah ke `src/archive/`, X-e ditutup).
+**Komputer pribadi (profil RDC `Steady-State`, tag `NMA-CL-01`, Windows 11, LAN 192.168.1.40).** Dokumen bergerbang: gate 1 `instruction_2026-06-24.txt` (kepada V. Orchid: jeda sinkron, longgarkan media lepas, revert 15 Jul, "do not minute"); gate 2 `model_note.txt` ("keep the supply managed, the line stays flat", cadangan sebagai harga); gate 3 `file_ghostwire.txt` (kerabat pasien OT3 yang meminta catatan 2026-08-27, dicocokkan dengan alias GHOSTWIRE lewat posting umpan 2026-09-18; nama disamarkan "[redacted by the Chair]"; pembaruan 2026-09-24). Umpan (gate 0): `minutes_2023_Q4_draft.txt`, `calendar.txt`, `notes.txt`. Semua teks Inggris saja (K15), satu hex satu plaintext.
 
-## K. Verifikasi mekanik dan risiko
+## J. Cipher Desk dan RDC
+
+### J.1 Prinsip bahan
+
+Situs misi M5 dan M6 sudah tutup di M7. Semua bahan kunci dan token datang dari: (a) **BACKTRACE** (fakta dan baris `EVIDENCE`), (b) dunia M7 (berkas di C2, portal klaim), (c) situs permanen. Nomor referensi notulen (`NMA/RC/2023/Q4`) dan nomor perusahaan (PC-114772) tidak ada di BACKTRACE; kunci tidak boleh bergantung padanya kecuali nilainya tampil di dunia M7 (nomor rekening muncul di halaman cadangan portal).
+
+### J.2 Artefak tersegel dan token
+
+| id | Kunci | Asal kunci | Plaintext (garis besar, satu baris ASCII) |
+|---|---|---|---|
+| `ledgerSeal1` | `LINDQVIST-2023-12-14` | Ketua dan tanggal penandatanganan notulen, dua baris di kartu EV-M6-03; bentuknya disebut manifest `[integrity]` | "Part two: the account that holds the reserves, then the healthcare reserve reference, joined by a dash." Ditambah indeks singkat cadangan |
+| `ledgerSeal2` | `PC-114772-MED-APAC-6689` | Nomor rekening penyelesaian hanya tampil di halaman cadangan portal (langkah 16); referensi dari manifest | "Chair console: user clindqvist, password Reserve-Flat-1967, device NMA-CL-01. Address as in the settlement network index. Change: the release order of the PacificCare run. Tokens are sealed with the same release order." |
+| token RDC | `RO-2608-14` (id rilis dari `release_orders.log`; juga bagian `change`) | Cipher **Encrypt** | `clindqvist:Reserve-Flat-1967:192.168.1.40:RO-2608-14:NMA-CL-01` |
+
+Kunci enkripsi token = `RO-2608-14`, id rilis yang sama dengan bagian `change`; plaintext segel 2 menyebut bentuknya ("Tokens are sealed with the same release order"). Bagian token berasal dari tiga sumber: `user`, `password`, `tag` dari segel 2; `LAN` dari manifest `[settlement network]` (langkah 12); `change` dari `release_orders.log` (langkah 13). Tiga target RDC: `Steady-State` (tag `NMA-CL-01`, 192.168.1.40, change `RO-2608-14`, punya modul layar) dan dua umpan berupa konsol tanpa modul layar seperti Bedside-17 M5: `index-01` (tag `index-01`, 192.168.1.4, change `RO-2607-22`) dan `Claims-Desk` (tag `claims-02`, 192.168.1.42, change `RO-2605-02`). Pesan penolakan memakai urutan M5.
+Tangga Cipher: segel 1 = anak tangga 5 (kunci diturunkan dari dua baris BACKTRACE); segel 2 = anak tangga 6 (segel berantai di dalam satu berkas); token = anak tangga 3 (Encrypt). Playfair tidak dipakai.
+
+### J.3 Profil RDC M7
+
+`RdcProfile { id: "m07", mission: "m07", key: "RO-2608-14", user: "clindqvist", password: "Reserve-Flat-1967", advanceCode, targets (3), docs (gate 1-3 + 3 umpan) }` memakai registri `content/global/rdc.ts` (sudah generik). Tingkat puzzle layar: baseline (sama dengan M5); tingkat lebih berat OPEN dan opsional. Pelaksanaan WP2 dan WP3 (2026-10-06): profil memuat `narrative` (48 kunci) yang menggantikan teks M5 di konsol dan desktop; Steady-State bersistem Ubuntu 22.04 (bukan Windows 11); dua umpan bernama `Index-Host` (index-01) dan `Claims-Desk` (claims-02); folder desktop `chair`, `private`, `committee`.
+
+### J.4 Pekerjaan RDC "tahap 2" (D6 disetujui, dengan cadangan asli)
+
+Fakta terverifikasi: registri profil dan pemeriksaan token generik, tetapi `websites/global/rdcdesk/script.html` (2070 baris) masih memuat konstanta M5: `TARGETS` empat host, `buildColdFs()` dan `buildDecoyFs()`, tujuh dokumen arsip (sebagian kembar dengan `content/m05/rdc.ts`), nama `rnatnaree` dan `arc-ir-01` di banyak string; `exports.ts` memakai `getM05RdcState`.
+Rencana (opsi A): halaman statis tetap (kata kunci pencarian utuh); profil dimuat lewat `Exports.flatlineRdcProfile()` (nilai balik objek terbukti live, E-16); profil M5 diekstrak apa adanya ke `content/m05/rdc.ts`.
+**Cadangan dan pemulihan (syarat pemilik):**
+1. Sebelum menyentuh apa pun, salin seluruh `src/websites/global/rdcdesk/` ke `src/archive/websites/global/rdcdesk.original/` (`index.original.ts`, `exports.original.ts`, `script.original.html`, `style.original.html`, `shell.original.html`), dan `src/context/m05/progress.ts` bagian RDC bila diubah. `tsconfig.json` memasukkan seluruh `src`, jadi salinan `.ts` diberi satu `../` tambahan pada impor relatif (aturan arsip proyek), tidak diimpor dari `src/index.ts`, dan `tsc` harus tetap bersih. Catat hash SHA-256 tiap berkas asli di `docs/scratch.md` dan verifikasi salinan identik sebelum perubahan pertama.
+2. Penjaga regresi: harness SDK tiruan merender halaman M5 sebelum dan sesudah, membandingkan DOM dan teks; harus identik.
+3. Bila ada kendala: pulihkan dengan menyalin balik dari `rdcdesk.original/` (atau `git checkout` berkas itu); M5 kembali ke keadaan FINAL LOCK. Komit dibuat per bagian supaya dapat di-revert terpisah.
+
+## K. Duel berpewaktu
+
+Memakai kit M4 yang sudah ada: `components/intrusion.ts` (`beginStrike`, `escapeStrike`, `registerIntrusionHandlers`), `desktop-breach.ts` (`startBreach`), `incident-banner`, `kernel-layout.ts` (log insiden), penalti `penalty()` dari `components/reward.ts`.
+
+| | Duel 1: host indeks | Duel 2: komputer pribadi |
+|---|---|---|
+| Mulai | Sesi Metasploit di C2 terbentuk (langkah 11) | `agent attach` selesai, desktop Conrad tampil (langkah 21) |
+| Lawan | Pemantau host indeks (`watchdog@architect-c2.dark`) | Conrad sebagai `SENTRY` (siaran `wall` dari `sentry@darknull.io`, banner varian `broadcast` seperti M4) |
+| Jendela | 240 detik nyata (OPEN, angka lama) | 180 detik nyata (OPEN; cukup untuk tiga dokumen) |
+| Tugas | Baca manifest, release_orders, survey; unduh `.enc` utuh | Baca tiga dokumen bergerbang |
+| Menang | `.enc` terunduh utuh: banner "EXTRACTION COMPLETE" | Ketiga dokumen terbaca: banner selesai. Pemutusan dini dengan `flatline` ditunda (D9) |
+| Kurang | Buka `.enc` dengan `open` di host: jendela dipangkas separuh (120 detik atau sisa, mana yang lebih kecil), surel peringatan sekali | Siaran Conrad makin tajam dalam tiga tahap banner |
+| Kalah | Penalti `min(saldo, 500)`, `.enc` ditimpa, breach desktop (pemain sudah memperbaikinya di M4); sesi baru ke C2 memulihkan `.enc` dan memasang jam lagi | Penalti `min(saldo, 500)`, sesi RDC diputus, breach desktop; log insiden menyebut alamat sumber penyerang, yaitu gerbang komputer Conrad. Dokumen yang sudah dibaca tetap tercatat; login baru dan attach baru memasang jam lagi sampai ketiga dokumen terbaca |
+| Jalan buntu | Tidak ada | Tidak ada |
+
+Catatan: bila `instructionRead` sudah tercapai sebelum jam habis, kegagalan Duel 2 tidak menghilangkan kemajuan rantai (misi tetap dapat dilaporkan); ia hanya menghasilkan penalti dan breach. Itulah yang D9 akan perbaiki dengan jalan keluar aman.
+Prasyarat teknis belum terbukti (probe WP1): job `Scheduler` `{ realMs }` tetap meledak di dalam sesi Metasploit dan RDC dan dibatalkan benar (`bugs.md` #46); `Files.Transfer` DOWNLOAD di sesi RDP (#45); `open` pada jalur remote di sesi Meterpreter.
+
+## L. BACKTRACE (14 kunci: 11 wajib, 3 opsional)
+
+| # | Kunci | Aksi pembukti | W/O | Nilai (garis besar) |
+|---|---|---|---|---|
+| 1 | `claims` | S3 | W | Tiga klaim dibayar pada tanggal BLACKLEDGER lewat rekening SKN |
+| 2 | `nodes` | S6 | W | Inventaris node di dasbor |
+| 3 | `credential` | S8 | W | `fw.admin` @ ash-gate |
+| 4 | `firewall` | S10 | W | 194.60.38.12 dibuka, 3389 terjangkau |
+| 5 | `c2` | S11 | W | Sesi di index-01 |
+| 6 | `manifest` | S12 | W | Indeks: lima akun selesai, dua cadangan |
+| 7 | `orders` | S13 | W | Rilis 2026-08-14 02:11 UTC oleh `sentry`, sesi dari 194.36.108.20 |
+| 8 | `survey` | S14 | W | Survei LC-07, kunjungan 2026-08-03 |
+| 9 | `ledger` | S15 | W | `.enc` diambil utuh |
+| 10 | `seal` | S19 | W | Segel kedua terbuka, rekening penyelesaian |
+| 11 | `instruction` | S22 | W | Perintah 2026-06-24 kepada Orchid, dibaca di komputer Conrad |
+| 12 | `decoy` | Null-Crown disentuh | O | Honeypot tersentuh (di luar rantai) |
+| 13 | `model` | RDC gate 2 | O | Memo "supply managed" |
+| 14 | `dossier` | RDC gate 3 | O | Berkas tentang pemain |
+
+Aturan terpenuhi: satu aksi satu kunci; nilai tiap kunci wajib masuk laporan (kolom bersama untuk langkah berurutan, README #53); `reserves` tidak punya kunci sendiri (nilainya di kunci `manifest`); fakta yang hanya terbawa (nomor kasus, entitas induk) berstatus extra. `decoy`, `model`, `dossier` ada di `BACKTRACE_OPTIONAL_KEYS`; yang tak dikerjakan tampil "Skipped" setelah selesai.
+Tiap kunci punya log pribadi di panggilan yang sama (`traceBacktraceFinding(mission, key, logs, options)`), terdaftar di `MISSION_LOGS` (`backtrace-logs.ts`). Log momen (breach gagal, ending) tanpa toast, bertanda Moment. Bahasa: antarmuka Inggris saja; prosa terbaca dan log dua bahasa (README #54).
+Pekerjaan: `BACKTRACE_KEYS.m7` dan `buildM7Facts` di `backtrace-facts.ts`; `MISSION_LOGS.m7`; bagian M7 di `backtrace.html` (`KEY_LABELS.m7`, temuan, `EVIDENCE` `EV-M7-*`, entitas dan tautan papan, chip); `i18n/global/backtrace.ts`. Desain terkunci tidak diubah; uji tampilan 14 kunci (kartu M7 dirancang untuk 6) di harness.
+
+## M. Laporan "Mission 7 Findings" (templat saja, tanpa badan bebas; README #41)
+
+Kolom (sembilan; langkah berurutan berbagi kolom): `architect`, `path`, `claims`, `reserves`, `orders`, `survey`, `account`, `instruction`, `choice`.
+
+| Kolom | Menjawab | Pencocokan (longgar, en dan zh; kata kunci, urutan bebas) |
+|---|---|---|
+| `architect` | Conrad Lindqvist, operator SENTRY | "lindqvist" dan "sentry"; menolak "voss", "hartley" |
+| `path` | ash-gate lalu index-01 | dua dari ash-vector, ash-gate, 203.0.113.161, index-01; menolak null-crown sebagai jalur |
+| `claims` | asuransi membayar tebusan | "paid" dan ("nordhaven" atau "insurer") |
+| `reserves` | dua cadangan | "fin-eu-2214" dan "med-apac-6689" |
+| `orders` | rilis 02:11 oleh sentry dari IP broker | "02:11" dan "sentry" dan ("194.36.108.20" atau "x7xsentry9") |
+| `survey` | survei Nordhaven | ("survey" atau "loss-control") dan ("2026-08-03" atau "3 aug") |
+| `account` | rekening penyelesaian SKN | "pc-114772" atau "skn" |
+| `instruction` | perintah kepada Orchid | "orchid" dan ("2026-06-24" atau "24 jun") |
+| `choice` | `expose`, `handoff`, `destroy` | tepat salah satu |
+
+Balasan "belum waktunya": satu balasan per langkah pertama yang belum selesai, diganti (bukan ditumpuk), dengan petunjuk dalam dunia tanpa membocorkan langkah berikutnya. Beat per langkah: tip belum dibaca: baca kabar Custodian; portal belum dilihat: ada tempat yang menjawab siapa pun yang memegang nomor klaim; klaim belum dicocokkan: periksa ketiganya, bukan satu; tepi belum dipetakan: alamat itu punya tetangga; dasbor belum ditemukan: tidak semua jalan ditautkan; kotak mati belum dimasuki: hanya satu yang benar-benar lupa; kredensial belum dibaca: isi kotak itu; firewall belum dibuka: pintunya masih terkunci; sesi belum didapat: pintu sudah terbuka, sekarang ketuk; manifest/orders/survey belum dibaca: baca semuanya sebelum pergi; berkas belum diambil: bawa utuh, jangan dibuka di sana; cadangan belum dicek: nomor-nomor itu menanyakan sesuatu; segel belum dibuka: kuncinya ada di catatanmu sendiri; token belum dibuat: kamu punya lima potongan, bangun satu; komputer belum dimasuki: layarnya belum menampilkan mesinnya; dokumen belum dibaca: kamu sudah masuk dan belum membaca perintahnya.
+
+## N. Ending (dijalankan controller setelah laporan diterima, sebelum `completeObjective`; log BACKTRACE dan surat ditulis lebih dulu, README #41)
+
+| Benang | A `expose` | B `handoff` | C `destroy` |
+|---|---|---|---|
+| Efek mekanis | bukti dilepas | bukti diserahkan | `unregister` C2 setelah `.enc` dihapus (satu panggilan, README #41) |
+| Dua korban berikutnya | diperingatkan publik, menutup akses | diberi tahu diam-diam lewat jalur resmi | tetap terkompromi tanpa diberi tahu; cadangan tak pernah jadi klaim |
+| Roxanne | surat A | surat B | tanpa surat; tetap kambing hitam |
+| Reyes | namanya ikut keluar | saksi | aman, tak lagi dipantau |
+| TR4C3404 dan operator FIN-NA | teridentifikasi | bekerja sama | tak tersentuh |
+| Orchid | terbongkar | diselidiki | utuh |
+| Conrad | nasibnya di tangan publik | diadili, hasil tak pasti | tak diadili, infrastruktur hancur |
+| OT3 dan cover-up | insiden klinis masuk catatan publik | diselidiki | tetap "excluded" |
+| Custodian | satu baris singkat | satu baris singkat | "Someone closed it." |
+
+Semua baris adalah log pribadi BACKTRACE (Tier 1) dan surat searah (Tier 1); tidak ada mekanik baru. Surat Roxanne A dan B ditulis ulang agar menyebut yang berubah (A: baris OT3 ada di catatan sekarang). Prosa final saat implementasi, en dan zh; surat Roxanne en dan zh seperti bentuk lama.
+
+## O. Teks dan lapisan visual
+
+- Kunci i18n en dan zh: `i18n/m07/core.ts`, `site.ts` (portal), `site-keys.ts`. Teks Cipher dan RDC hanya Inggris.
+- Lapisan visual (aturan "bukan hanya terminal"): portal klaim, dasbor `/legacy-cms/`, banner duel, desktop RDC, papan BACKTRACE.
+- Arah visual: gelap/merah CRT yang berkomitmen; satu layar (portal klaim) ditampilkan dulu sebelum build penuh (memori pemilik). Skill `frontend-design` untuk situs baru, bukan superdesign.
+- Teks pemain menegaskan fiksi; tanpa data nyata.
+
+## P. Penempatan arsitektur dan perubahan global
+
+| Area | Berkas | Tindakan |
+|---|---|---|
+| Arsip (jangan hapus) | `src/archive/{content,main,applications,websites}/m07.original.*` dan `honeycheck.original.*` | salinan draf lama sebelum rewrite |
+| `content/m07` | `state, gates, network, topology, fixtures, scan, server-files, mail, report, quest, quest-logs, legacy-cms, intro` | tulis ulang; `claims.ts`, `sealed.ts`, `rdc.ts` baru; `honeycheck.ts` diarsipkan |
+| `controller/m07` | `index, spec, world, report, recon, deadbox, firewall, shell, extract, tracking, ending, types` | tulis ulang; `claims.ts`, `cipher.ts`, `rdc.ts`, `duel.ts` baru (pola `controller/m05/{cipher,rdc}.ts`, `controller/m06/cipher.ts`) |
+| `context/m07/progress.ts` | cermin `SharedVariables` | tambah tahap portal dan dasbor |
+| `i18n/m07` | `core, site, site-keys` | en dan zh |
+| websites | `websites/m07/portal/` baru; `websites/m07/architect-c2/` disesuaikan; `websites/global/honeycheck/` diarsipkan; `websites/global/rdcdesk/*` **menyentuh permukaan M5 terkunci** (J.4) | |
+| global content | `content/global/{sealed,rdc}.ts` | artefak dan profil M7 |
+| BACKTRACE | `applications/backtrace-facts.ts`, `backtrace-logs.ts`, `backtrace.html` (bagian M7), `i18n/global/backtrace.ts` | hanya M7 |
+| lain | `commands/attrcheck.ts` (hapus registrasinya bila tak terpakai; berkas diarsipkan), `guard/flags.ts` (`DEV_FOCUS_QUEST.m07`), `manifest.json`, `content/global/mail-senders.ts` | perubahan kecil |
+| Dokumen | `docs/world-building/*`, `changelog.md`, `bugs.md`, `network.md`, `m07-playtest.md` | WP0 (spesifikasi) dan WP9 (playtest) |
+
+Permukaan terkunci yang disentuh: `rdcdesk` (M5, izin D6) dan bagian M7 di `backtrace.html`. M1-M4 tidak disentuh (anggaran hook nol edit).
+
+## Q. Verifikasi mekanik (tier dan butir bug)
+
 | Butir | Status |
 |---|---|
-| Bluekeep RDP, `PFSense.Login/Changes`, SSH ke Device, bentuk Splitter, `cat` `.txt` di sesi Meterpreter | Live (M1, M2, M3) |
-| Kit pelacakan, banner, kunci desktop, pemulihan | Live di lab, belum di pipeline |
-| HoneyCheck (JS dalam halaman dengan dataset tertanam) | Pola ClearEscrow, live |
-| `attrcheck` Meterpreter-aware | Bergantung pada live test `open` yang tertunda |
-| `Files.Transfer` DOWNLOAD pada `download` di sesi RDP | Belum diuji di jalur ini |
-| `Files.create` untuk membuat ulang `.enc` | Aturan konteks mod (#19) |
+| Surel, `Mail.Sent`, gerbang transitif, `onFileRead` tunggal, entri Log Viewer | Live (M1-M5) |
+| `net_tree.py`, `nmap -sV`, `dirhunter`, SSH ke Device, pfSense login dan simpan | Live (M1-M3, M6) |
+| Bluekeep dan `RemoteConnection.Established` METASPLOIT | Live (M2, M3) |
+| Cipher Desk (dekripsi, enkripsi), RDC (token, puzzle, attach, dokumen) | Live (M5) |
+| Segel berantai antar dokumen (M6 v2) | Belum dilihat di game utuh (M6 v2 hanya typecheck dan Chrome headless, README #72) |
+| Kit duel: banner, breach, konsol pemulihan | Live (M4) di pipeline; **belum** di dalam sesi Metasploit/RDC |
+| Situs tanpa subnet dengan `Exports` objek | Live (M5, M6 v1, E-16 di lab) |
+| Job `{ realMs }` di dalam sesi | **Belum terbukti** (`bugs.md` #46) |
+| `Files.Transfer` DOWNLOAD di sesi RDP | **Belum terbukti** (#45) |
+| `open` jalur remote di sesi Meterpreter | **Belum terbukti** (`bugs.md` #30 tindak lanjut) |
+| Menyalin heks dari terminal ke halaman Cipher Desk | **Belum terbukti** |
+| Objek profil RDC besar lewat `Exports` | **Belum terbukti** untuk ukuran ini |
 
-**Risiko.** (1) Dua event belum teruji di sesi RDP M7: `attrcheck` Meterpreter-aware dan `Files.Transfer`.
-(2) Sesi non-RDP (modul Apache) belum jelas kemampuannya, jadi dipilih RDP. (3) Tenggat pelacakan
-harus adil. (4) Migrasi harus mendahului M4 baru.
+### Probe lab (WP1; `src/debug/`, bebas EKSEKUSI)
 
-## L. Rencana uji
-Kerangka jalan M7 lebih dulu: topologi bentuk M2, satu sesi RDP, `cat manifest.txt`, `attrcheck`, dan
-`download` untuk memastikan tiga event itu terpancar, sebelum konten lain ditulis. Prasyarat bersama:
-live test `open` Meterpreter (juga syarat kunci M1-M3).
-
-## M. Masih OPEN
-Prosa en dan zh, alamat IP dan password, penyesuaian angka (tenggat 240 detik, penalti),
-pemakaian HoneyCheck di M4.
-
-## Catatan implementasi (2026-10-02, fase 1)
-
-Fase 1 dari prompt implementasi: **kerangka jalan M7**. Migrasi selesai, konten
-penuh belum. Semua di cabang kerja sesi ini, bukan `clouds-modify`.
-
-**Yang sudah masuk kode.** `content/m04.ts` dan `main/m04.ts` diganti bentuk
-pipeline M1-M3: `content/m07/*` (network, scan, topology, server-files,
-fixtures, gates, state, mail, report, quest, intro), `i18n/m07/core.ts`,
-`controller/m07/*` (spec, world, report, recon, deadbox, firewall, shell,
-extract, probes), `main/m07.ts` tipis, dan `websites/m04/architect-c2/`
-dipindah ke `websites/m07/` dengan `git mv`. Rantai 12 langkah bagian C lengkap
-sebagai tabel gerbang, topologi bagian E lengkap, laporan dan surel honeypot
-serta jebakan lengkap. Enam cacat bagian B diperbaiki: #1, #2, #3, #4, #6, #11.
-
-**Yang ditunda ke fase 4** (sesuai peta fase prompt): HoneyCheck (bagian F),
-tabel status node `/legacy-cms/` yang dirancang (bagian I), pelacakan 240 detik
-beserta banner, penalti dan pembobolan desktop (bagian G), efek ending dan
-surat Roxanne (bagian H), surel "What now?" dan kolom `choice`, pembayaran hadiah
-5000, kunci BACKTRACE m7 (bagian I), dan teks zh. `Rewards` quest sengaja tidak
-diisi (prompt D1).
-
-**Nilai yang dipilih agen** (bisa diveto pemilik):
-
-| Hal | Nilai | Alasan |
+| Probe | Pertanyaan | Lulus bila |
 |---|---|---|
-| LAN | Router `.1`, Splitter `.2`, Firewall `.3`, C2 `.4`, Null-Crown `.5`, Ash-Vector `.6`, semua `192.168.1.x` | E-7; berurutan dari `.1`, tanpa pengulangan |
-| Pengguna Firewall | `fw.admin` / `Ashgate#2022r2` | satu-satunya pengguna valid (E-9). Kata sandi dibaca dari cadangan 2022 |
-| `M07_ARCHITECT_REAL_NAME` | `Conrad Lindqvist` | keputusan #8; nilai lama "Damien Okoro" dibuang |
-| Kolom `evidence` | `employee negligence (R. Natnaree)` | persis seperti tercetak di `manifest.txt`, jadi pemain terbukti membacanya |
-| Tenggat probe pelacakan | 60 detik (`realMs`) | hanya probe fase 1; angka sebenarnya 240 detik di fase 4 |
+| P1 | Job `Scheduler` `{ realMs }` 60 detik tetap meledak di dalam sesi Metasploit dan RDC, dan dibatalkan benar | event kedaluwarsa muncul tepat waktu; pembatalan berhasil |
+| P2 | `Files.Transfer` DOWNLOAD terpancar saat `download` di sesi RDP | event terbaca controller |
+| P3 | `open` jalur remote di sesi Meterpreter membaca berkas target | isi tercetak dan event `open` terpancar |
+| P4 | Teks heks dari keluaran terminal bisa dipilih dan disalin ke Cipher Desk | tempel berhasil didekripsi |
+| P5 | `Exports` mengembalikan objek profil RDC (target, dokumen) sebesar profil M7 | objek utuh di halaman |
+| P6 | Heks 380 digit (dua segel) lewat `Exports` Cipher | artefak terbuka |
 
-**Tanggal.** Semua dari `13-story-timeline.md`: `manifest.txt` memakai 2020,
-2023, 2026-05-02, 2026-07-22, 2026-08-14 (nominal dan tanggal dari
-`finance.ts`) dan persetujuan Nordhaven 2026-08-17; `ash-gate_backup.txt`
-bertanggal 2022. **Tidak ada tanggal baru.** Baris "terakhir direkonsiliasi"
-yang diizinkan bagian E tabel M7 belum dipakai.
+## R. Risiko
 
-**IP publik dan nama** tetap seperti M4 lama, sesuai bagian E. Tidak ada IP
-publik baru di fase ini.
+| Risiko | Penanganan |
+|---|---|
+| RDC tahap 2 merusak M5 FINAL LOCK | Cadangan asli, penjaga regresi DOM, komit per bagian (J.4) |
+| `{ realMs }` di sesi (P1) | Cadangan: jendela dihitung dari event dan penanda waktu tanpa job |
+| `Files.Transfer` di sesi RDP (P2) | Cadangan: `download` lalu `open` salinan lokal sebagai pemicu |
+| Menyalin heks dari terminal (P4) | Cadangan: tampilkan segel juga di halaman portal klaim yang dapat disalin |
+| Tata letak BACKTRACE untuk 14 kunci | Uji di harness; kurangi opsional bila perlu |
+| Bahan kunci hilang karena situs M5/M6 tutup | Aturan J.1 |
+| Waktu bermain panjang | Perkiraan 120-180 menit; titik uji live setelah lapisan Inti (D12) |
+| Teks zh tanpa tinjauan pemilik | Tandai draf; pemilik menulis surat penutup BACKTRACE sendiri |
 
-**Dua hal yang masih UNVERIFIED, masing-masing dengan probe di build ini.**
-`docs/bugs.md` #45: apakah Firewall di dalam Splitter melindungi perangkat
-sebelahnya (`GetFirewall` mencocokkan `parent === router.ip`). M2 memakai
-bentuk yang sama dan lulus live test, dan progres tidak bergantung padanya
-karena port 3389 `active: false` di produksi dan `UnlockSpec` memanggil
-`Network.openPort` juga. `docs/bugs.md` #46: apakah job `Scheduler` berdelay
-`{ realMs }` puluhan detik tetap meledak di dalam sesi Meterpreter, benar
-dibatalkan `cancelKind`, dan apa yang terjadi sesudah `mods.reset`.
+## S. Rencana kerja
 
-**Penyimpangan dari spesifikasi.** (1) Port 3389 `active` sejak build
-(`M07_RDP_OPEN_FROM_BUILD`), jalan pintas kerangka saja, dicabut fase 4.
-(2) `ash-gate_backup.txt` sekarang juga memuat **host** panel, bukan hanya
-kredensial, karena Firewall `isIpHidden` dan tabel node `/legacy-cms/` baru ada
-di fase 4; tanpa itu langkah 6 tak terjangkau. (3) Unlock langkah 7 juga
-mengganti fixture `nmap` C2 supaya 3389 terbaca `OPEN` sesudah firewall dibuka;
-bagian D hanya menyebut pencabutan aturan dan pembukaan port, tetapi tanpa
-fixture baru `nmap` tetap menjawab `FILTERED` (E-12: fixture dibaca lebih dulu).
-(4) Nama `ash-gate` tidak dipasang sebagai `name` node Firewall, mengikuti
-konvensi `docs/network.md` (hanya Device internal diberi `name`); nama itu hidup
-di teks.
+| WP | Isi | EKSEKUSI? | Gerbang pemilik |
+|---|---|---|---|
+| WP0 | Spesifikasi v2, README #73-#76, 02/03/05/06/13, changelog (berkas ini) | ya (dijalankan 2026-10-06) | Pemilik meninjau spesifikasi sebelum kode |
+| WP1 | Probe P1-P6 di `src/debug/` | tidak | Hasil memutuskan jendela duel dan cadangan |
+| WP2 | Arsip draf M7 lama dan RDC lama; RDC tahap 2; registri sealed/RDC M7 | ya | Keluaran M5 identik; cadangan ada. **DIJALANKAN 2026-10-06** (hash di `docs/scratch.md`, penjaga DOM identik) |
+| WP3 | `content/m07` dan `i18n/m07` (en, zh) | ya | **DIJALANKAN 2026-10-06**; zh draf; teks situs portal menyusul di WP5; kerangka controller sudah ada |
+| WP4 | `controller/m07`: gerbang, unlock, Duel 1, Cipher, RDC, laporan, ending; lalu Duel 2 | ya | Pemilik melihat Duel 2 sebelum D9 diputuskan |
+| WP5 | Situs: satu layar portal klaim dulu, lalu build penuh; `/legacy-cms/` | ya | Pemilik melihat satu layar |
+| WP6 | BACKTRACE M7 | ya | Uji tampilan 14 kunci |
+| WP7 | Perubahan global kecil | ya | - |
+| WP8 | Harness SDK tiruan dan `tsc --noEmit` (tanpa esbuild kecuali diminta) | ya | - |
+| WP9 | Live test pemilik (en lalu zh), temuan ke `docs/bugs.md`; tulis ulang `m07-playtest.md` | ya per temuan | Lulus live test |
+| WP10 | Review kode di akhir sesi, hapus `trace()` M7, FINAL LOCK, sinkron `story.md`, hadiah final (D11) | ya | Pemilik menyatakan FINAL LOCK |
 
-**Uji pemilik:** `docs/m07-playtest.md`. Yang dicari di log:
-`[FP][M07] probe:metasploit-session`, `probe:manifest-cat`,
-`probe:attrcheck-revealed`, `probe:ledger-download`, dan pasangan
-`probe:tracking-armed` / `probe:tracking-disarmed` / `probe:tracking-expired`.
+Urutan: WP0 → WP1 → (WP2, WP3) → WP4 → WP5 → WP6 → WP7 → WP8 → WP9 → WP10. Cakupan berlapis (D12): **Inti** = Babak tepi, host indeks, Cipher, RDC, dua duel, laporan, tiga ending, 11 kunci wajib; **Tambahan** = portal klaim (langkah 1-3 dan 16), entri Log Viewer, kunci opsional `decoy`; **Opsional** = berkas tentang pemain, puzzle RDC lebih berat. Konten ketiga lapis sudah disetujui; D12 hanya mengatur urutan dan titik uji.
 
-## Catatan implementasi (2026-10-02, fase 4)
+## T. Rencana uji
 
-Fase 4: **M7 penuh**. Semua yang fase 1 tunda sudah masuk.
+1. Probe WP1 sebelum kode misi.
+2. Harness SDK tiruan (esbuild dengan SDK dialiaskan ke Proxy stub, uji DOM Chrome headless) untuk state, gerbang, laporan, halaman portal, dan guard regresi RDC M5.
+3. `npx tsc -p tsconfig.json --noEmit` bersih; `grep -rn "^\s*//" src/` kosong.
+4. Live test pemilik, naskah baru `docs/m07-playtest.md` (sekali pakai): jalur penuh, kegagalan Duel 1 dan 2, tiga ending, `mods.reset` di tengah duel, lintasan zh.
+5. Review kode dikumpulkan di akhir sesi (bukan setiap perubahan).
 
-**Dicabut dari kerangka.** Port 3389 tidak lagi `active` sejak build
-(`M07_RDP_OPEN_FROM_BUILD = false`), dan lima probe telanjang di
-`controller/m07/probes.ts` dihapus bersama berkasnya.
+## U. Definisi selesai
 
-**Yang ditambahkan.** Pelacakan 240 detik di atas kit fase 3 (dipasang di
-langkah 8, dipasang lagi di setiap sesi baru ke C2 sampai `fileExtracted`,
-dipangkas jadi 120 detik bila `.enc` dibuka dengan `open`); HoneyCheck di
-`websites/global/honeycheck/` dengan penilaian yang sengaja salah pada kedua
-kotak mati; tabel status node `/legacy-cms/` yang dirancang; kolom `choice`
-dengan ketiga efek ending; dua surat epilog Roxanne dan kesunyian pada `destroy`;
-hadiah 5000 lewat `Bank.transaction`; enam kunci BACKTRACE m7 dengan kartu
-laporan penuh di `backtrace.html`; dan teks zh lengkap.
-
-**Nilai yang dipilih agen** (bisa diveto):
-
-| Hal | Nilai | Alasan |
-|---|---|---|
-| `honeycheck.net` | `185.93.2.117` | IP publik baru, tidak bertabrakan |
-| Tanggal sampel HoneyCheck | 2026-10-01 | di dalam batas hari-cerita M7 (2026-10-03) |
-| Tenggat dipangkas | 120 detik | separuh dari 240, sesuai bagian G |
-| Penalti pelacakan | `min(saldo, 500)` | bagian G |
-| Label node di `/legacy-cms/` | `index-01`, `ash-gate`, `node-07`, `node-11` | kedua kotak mati diberi label dan peran yang sama supaya tabel tidak membocorkan mana yang honeypot |
-
-**Tanggal.** Tidak ada tanggal baru selain **2026-10-01** (stempel sampel
-HoneyCheck), yang memenuhi aturan `13` §A.3. `manifest.txt` tetap dari
-`finance.ts`; `ash-gate_backup.txt` tetap 2022; tabel node tetap 2019 dan 2022.
-Surat Roxanne dan log pribadi per ending tanpa tanggal (sudut pandang sesudah M7,
-diizinkan `13` §A.3).
-
-**Penyimpangan.** (1) `.enc` tidak dihapus lalu dibuat ulang, melainkan
-**payload-nya ditimpa** dan dipulihkan lewat `Files.write` pada berkas yang
-ditemukan lewat jalan-id; alasannya di `docs/bugs.md` #49 (`Files.create` hanya
-menerima `parentPath`, dan path tidak pernah menjangkau target Meterpreter,
-#30). Tanpa ini misi bisa jalan buntu, yang bagian G larang. Gerbangnya juga
-memeriksa bendera `ledgerWiped`, jadi kebenarannya tidak bergantung pada
-penulisan berkas. (2) Pelacakan diberi `repellable: false` di kit, supaya pemain
-tidak bisa membatalkan hitung mundurnya sendiri dengan `repel <ip C2>`.
-(3) HoneyCheck dibungkus `gateMissionPages("m07")` sebagai situs misi, bukan
-situs alat permanen (menunggu `weblab`, `04-web-layer.md` §E). (4) Plugin
-`frontend-design` **tidak tersedia** di lingkungan build, jadi kedua permukaan
-dirancang manual mengikuti brief prompt §6; dicatat di laporan sesuai perintah
-prompt.
-
-**Uji pemilik:** `docs/m07-playtest.md` (sudah ditulis ulang untuk misi penuh,
-13 bagian termasuk jalur gagal, ketiga ending, dan lintasan zh).
-
-## Catatan implementasi (2026-10-02, perbaikan audit)
-
-Perbaikan setelah audit pemilik atas run fase 2-8 (cabang `fix/phases2-8-m04-m07-audit`).
-Keputusannya ada di README #38, #39, dan #41; yang di bawah ini hanya selisih terhadap spesifikasi
-dan catatan fase 4.
-
-**Ending (bagian H).** Log BACKTRACE dan surat Roxanne ditulis saat laporan diterima, sebelum
-`completeObjective`, yang menjalankan `OnComplete` secara sinkron: log yang ditulis sesudahnya hilang.
-Hanya `destroy` menghancurkan jaringan C2, dengan satu `unregister` sesudah berkas ledger dihapus.
-`expose` dan `handoff` membiarkan C2 hidup, dan `onCompleteM07` tidak lagi memanggil `unregister`.
-Laporan hanya lewat templat, tanpa badan freehand, dan baris `Decision` di templat en kini memuat
-`{{choice}}` seperti zh.
-
-**Dasbor dan pelacakan.** `/legacy-cms/` baru terbuka sesudah `edgeScanned`, lewat cermin
-`SharedVariables` (`context/m07/progress.ts`); `dirhunter` hanya mencatat probe dan tidak lagi
-memajukan `dashboardFound`, yang hanya dipicu `Browser.Meta` (bagian C). Membuka `.enc` hanya bekerja
-sesudah shell didapat dan memangkas jendela jadi paling lama 120 detik, tidak pernah lebih panjang dari
-sisa waktu: `Scheduler.remaining` mengembalikan milidetik dalam game, jadi dikonversi lewat
-`Time.toRealMs` (`docs/bugs.md` #46). Surel watchdog dikirim sekali.
-
-**Penunjuk dalam dunia.** Tip menyebut HoneyCheck dan menegaskan bahwa itu pendapat, bukan bukti;
-manifest memuat bagian `[integrity]` yang menyebut `attrcheck`; catatan kaki tabel node menyebut login
-bawaan pabrik pada node yang sudah dihapus (README #38).
+Sama dengan `07-arsitektur-misi-baru.md` E. Tambahan M7: keluaran M5 identik (guard RDC), Playfair tidak muncul, setiap benang T1-T10 punya satu baris pembuktian di BACKTRACE atau di surat ending, tidak ada alat atau perintah yang belum pernah dialami pemain di M1-M6.

@@ -2985,3 +2985,43 @@ attach, read, state). Cipher and RDC are shared with M6 and M7, so their traces 
 - Gareth Lim stays canon (nine months, contract to 2026-07), so the captures list him only from 2025-11-03 although the source
   document listed him from 2024; Bianca Silva and Nadia Karim are on the 2026-08-18 capture but not on the live page (the source
   document's roster of 14 omits them), so they read as ordinary churn after 2026-08-18.
+
+## M7 WP2 and WP3 (2026-10-06)
+
+### RDC backup (restore path for the M5 FINAL LOCK surface)
+
+Originals copied before any edit to `src/archive/websites/global/rdcdesk.original/`. The `.html` copies are byte-identical; the two `.ts` copies only
+have their relative imports given one extra `../` (`tsconfig.json` includes all of `src`) and their sibling imports renamed to `.original`.
+Restore: copy the five `*.original.*` files back under their old names (reverting the import edits in the two `.ts` files), or
+`git checkout HEAD -- src/websites/global/rdcdesk/` (blobs below). Working-tree hashes are CRLF, git blobs are LF-normalised.
+
+| File | SHA-256 (working tree, before the change) | Git blob at HEAD |
+|---|---|---|
+| `script.html` | `9373cd9eadfd037826aed87527a84a75b1481d6e0d3b87f97db8a944c94e1f7b` | `4747855ced72689b3f5eb10af1c0bc00a137eaf3` |
+| `style.html` | `079ccd5da2276d06ba820c7df73b17b786d418a8b8003f4c708b597b71d6a27e` | `f5869b0d73fa6574a65cf33760edb75ffc58dc12` |
+| `shell.html` | `2fa0f4c0978f56cc2f96ae47346dc3bfdae508c271c23718589f24871e4b5565` | `037295ee9e2b2fc9a0ebd0916c015faa35071e3c` |
+| `index.ts` | `e4eef14b261f202c864edda7696ea7372b48e93923d6b4c21c6ffcaa4b054d60` | `139b3b8cb3346acba7ae946a0c35d2590e26c6fe` |
+| `exports.ts` | `7453dedbe67ebdf11068fa07ab617b5cba2435e126aa672ae5de340442c866cc` | `fd27e539d8518d701a25b5fac67ca6e68c6ed925` |
+| `content/global/rdc.ts` (types added) | `58640147492b2197d6bd4443602b4fcf60de6ee48ac55e342a4ae33fde466b01` | n/a |
+
+`context/m05/progress.ts` and `content/m05/rdc.ts` were not changed.
+
+### What stage 2 changed in `script.html`
+
+- Module-level `TARGETS` and `DOCS` literals are gone; `applyProfile()` fills them from `flatlineRdcProfile()` (called at load and again in
+  `tokenCheck`). The display host keeps the page id `cold`; the others become `h<code>`. Documents keep their `key` from the profile `label`.
+- A `NARR_DEFAULT` object (about 50 keys) holds the M5 text that used to be inline: user, dates, host files, logs, desk dressing. A profile
+  `narrative` overrides keys one by one. Log and file bodies that mix narrative with puzzle values use `{tag}`, `{blk}`, `{deadPid}` style
+  placeholders filled by `tpl()` from `fsVars()`.
+- The desktop folders, the Places menu, the Files sidebar and the browser sections are derived from the document directories (home last).
+- Regression guard (outside the repo): a Chrome headless harness renders the page with stubbed `flatlineRdc*` globals, drives the login and the
+  console through the DOM, snapshots text, markup and canvas hashes. Original vs patched page, M5 profile: display (73 commands), three decoys,
+  sealed directory, bad tokens, desktop windows: identical. The lock countdown, the clocks and the seconds in times are masked.
+
+### Not done yet (by design)
+
+- Probes P1-P6 (`src/debug/probe-lab.ts`) need `isDebug = true`; none has been run.
+- The controller binds no step yet (WP4). `commands/attrcheck.ts` is still registered (WP7). BACKTRACE still registers the old six M7 logs;
+  the new `M07_LOG_*` exports for the other keys exist but are not wired (WP6).
+- The M7 archive uses `.ts.txt` instead of the `.original.ts` convention of M1-M4: 38 files with cross-imports would have needed their
+  imports rewritten and would break whenever a shared module changes.

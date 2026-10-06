@@ -43,17 +43,21 @@ LOCKED = ada di kode M1-M3 yang terkunci. DECIDED = ada di spesifikasi yang suda
 | 2024-05-14 sampai 2026-08-18 | Sembilan capture Echoline halaman staf IT PacificCare: C1 2024-05-14, C2 2024-10-18, C3 2025-03-12, C4 2025-07-29, C5 2025-11-03 (`8fq2`), C6 2026-01-22, C7 2026-03-18, C8 2026-06-30, C9 2026-08-18 (`4ec9`). Roxanne ada di C1-C8 dan tidak di C9; Gideon di C5-C8 | `09` B3, `content/m05/echoline.ts`, `14-rename-m5.md` | DECIDED 2026-10-05 |
 | 2026-05-02 (Sab) | LOG-EU-2209, batch PB-2605-01, $1.400.000 | `src/content/global/finance.ts:35-40` | LOCKED |
 | 2026-06-18 11:42 UTC | Baris ledger penjualan akses `FIN-EU-2214` di `sales_ledger.log` (be7) | `src/i18n/m01/core.ts` LEDGER_CONTENT | DECIDED 2026-10-04 |
+| 2026-06-18 dan 2026-07-14 | Cadangan klaim FIN-EU-2214 dan MED-APAC-6689 di buku asuransi (tanggal sama dengan baris ledger M1; data di portal klaim M7) | `11-spec-m7.md` H.1 | DECIDED 2026-10-06 |
+| 2026-06-24 | Instruksi Conrad kepada Orchid (jeda sinkron direktori, longgarkan media lepas, revert 2026-07-15); dibaca di komputer pribadinya di M7 | `11-spec-m7.md` D.3 | DECIDED 2026-10-06 |
 | 2026-07-09 | Foto recon lokasi (beranotasi) di folder Q3-2026-SEA | `home.html` (folder `q3`) | DECIDED 2026-10-06 (dulu LOCKED: foto eksterior 07-09 dan koridor 07-26) |
 | 2026-07-14 16:05 UTC | Baris ledger penjualan akses `MED-APAC-6689` di `sales_ledger.log` | `LEDGER_CONTENT` | DECIDED 2026-10-04 |
 | 2026-07-22 (Rab) | FIN-NA-0091, batch PB-2607-01, $4.100.000 | `finance.ts:42-47` | LOCKED |
 | 2026-07-31 (Jum) | Kontrak Gideon Bayu Teoh berakhir | `09` B2 | DECIDED |
 | 2026-08-03 13:20 UTC | Baris ledger penjualan akses rumah sakit (kode listing per-simpanan, mis. `MED-SEA-0417`) di `sales_ledger.log`: 7 hari sebelum posting USB Roxanne, 11 hari sebelum serangan | `LEDGER_CONTENT` | DECIDED 2026-10-04 |
 | 2026-08-03 | Foto kwitansi ClearEscrow dan foto kartu tamu konsultan di folder Q3 (hari yang sama dengan baris ledger 13:20 UTC di atas) | `home.html` (folder `q3`) | DECIDED 2026-10-06 |
+| 2026-08-03 | Kunjungan survei pengendalian kerugian Nordhaven (kode `LC-07`) ke PacificCare, token jarak jauh 14 hari; catatan di `survey_visits.txt` M7 (sama dengan foto visitor pass dan tiket HD-4468) | `11-spec-m7.md` I | DECIDED 2026-10-06 |
 | 2026-08-07 (Jum) | Foto access kit (USB, lencana, kunci) di folder Q3, empat hari sebelum USB dicolokkan | `home.html` (folder `q3`) | DECIDED 2026-10-06 |
 | 2026-08-10 (Sen) | Roxanne memposting temuan USB berlabel "Q3-2026-SEA" | `09` B2 | DECIDED |
 | 2026-08-11 (Sel) 00:12 UTC | USB dicolokkan ke PC-IT-017 oleh `rnatnaree` | `09` B5, B6 | DECIDED |
 | 2026-08-14 (Jum) | Serangan PacificCare, batch PB-2608-01, CASE-A7X-0417, $2.850.000. Jam UTC: 02:14 payload didorong, 02:41 sistem terkunci, 02:55 jadwal ruang operasi dan rekam medis mati, 03:20 tim krisis, 03:58 asuransi dihubungi, 04:35 negosiator dilibatkan, 05:12 "Clinical incident logged, Operating Theatre 3", 06:10 tuntutan terkonfirmasi, 07:30 asuransi setuju, 08:40 CRO mengotorisasi, 09:02 pembayaran (escrow released), 09:04 diterima, 09:15 paperwork diarsipkan, 09:20 parent dan sinkron, 09:24 panel, 09:27 broker. Jeda terkunci ke bayar: 6 jam 21 menit | `finance.ts:28-33,49-54`, `src/i18n/m02/core.ts:102,110-118`, `09` B5 | LOCKED dan DECIDED |
 | 2026-08-14 | Foto notice BLACKLEDGER dan foto layar penjadwalan operasi di vault bertanggal Aug 14, 2026 | `home.html` (folder `q3`) | DECIDED 2026-10-06 (dulu LOCKED: receipt dan notice) |
+| 2026-08-14 02:11 UTC | Rilis disetujui oleh akun `sentry`, di antara sesi 02:09 dan "02:14 pushed"; tercatat di `release_orders.log` M7 (`RO-2608-14`) | `11-spec-m7.md` I | DECIDED 2026-10-06 |
 | 2026-08-15 (Sab) | Draf temuan insiden v1 (penyebab: alat dukungan jarak jauh pihak ketiga) | `09` B5 | DECIDED |
 | 2026-08-15 (Sab) | Foto koridor bangsal di vault bertanggal Aug 15, 2026 | `home.html` (folder `q3`) | DECIDED 2026-10-06 (dulu 07-26) |
 | 2026-08-16 (Min) | Draf rekonsiliasi Reyes "dated Aug 16, 2026", dua hari sesudah otorisasi transfer | `src/i18n/m03/core.ts:144` | LOCKED |
@@ -153,15 +157,18 @@ Hari dalam seminggu, dihitung untuk 2026 (UTC).
 | Tanggal sertifikat bersama yang ditampilkan HostTrail | harus mencakup 2026-09-30, kecuali sengaja kedaluwarsa | `09` C2 | PROPOSAL |
 | Konsekuensi M3 pada rekaman | tanggal pada bagian C | `09` C2 | PROPOSAL |
 
-### M7 (hari-cerita 2026-10-03)
+### M7 (hari-cerita 2026-10-03; v2, 2026-10-06)
 
 | Berkas | Tanggal | Sumber | Status |
 |---|---|---|---|
-| `/legacy-cms/`, tabel status node | Null-Crown dinonaktifkan 2019, Ash-Vector 2022; C2 dan ash-gate tanpa tanggal nonaktif | `11` I | DECIDED |
-| `ash-gate_backup.txt` di Ash-Vector | 2022 | `11` I | DECIDED |
-| `manifest.txt` | Northstar 2020 NA; Rheinland 2023 EU; LOG-EU-2209 2026-05-02; FIN-NA-0091 2026-07-22; CASE-A7X-0417 2026-08-14; persetujuan Nordhaven 2026-08-17. Nominal dan tanggal dari `finance.ts` | `11` I, `finance.ts` | DECIDED dan LOCKED |
-| Tanggal tambahan di `manifest.txt` (mis. "terakhir direkonsiliasi") | antara 2026-08-17 dan 2026-10-03 | | PROPOSAL |
-| Surat epilog Roxanne, log pribadi per ending | dari sudut pandang sesudah M7 (aturan A.3) | `05-ending.md` B2 | DECIDED |
+| Portal klaim: status klaim | CASE-A7X-0417 2026-08-14 (disetujui 08-17), FIN-NA-0091 2026-07-22, LOG-EU-2209 2026-05-02; cadangan 2026-06-18 dan 2026-07-14 | `11-spec-m7.md` H.1, `finance.ts` | DECIDED 2026-10-06 |
+| `/legacy-cms/`, tabel status node | Null-Crown nonaktif 2019, Ash-Vector 2022; `ash-gate` dan `index-01` tanpa tanggal nonaktif | `11-spec-m7.v1.md` I | DECIDED |
+| `ash-gate_backup.txt` di Ash-Vector | 2022 | `11-spec-m7.v1.md` I | DECIDED |
+| `manifest.txt` | akun selesai: Northstar 2020, Rheinland 2023, LOG-EU-2209, FIN-NA-0091, CASE-A7X-0417 (nominal dan tanggal dari `finance.ts`); cadangan 2026-06-18 dan 2026-07-14; persetujuan Nordhaven 2026-08-17 | `11-spec-m7.md` I | DECIDED dan LOCKED |
+| `release_orders.log` | 2026-05-02, 2026-07-22, 2026-08-14 (rilis); sesi 2026-08-11 sampai 08-14; rilis disetujui 02:11 UTC | `11-spec-m7.md` I, `portal-signins.ts` | DECIDED 2026-10-06 |
+| `survey_visits.txt` | 2020-03-19, 2023-06-28, 2026-07-09, 2026-08-03, 2026-08-07 | `11-spec-m7.md` I | DECIDED 2026-10-06 |
+| Dokumen komputer pribadi | 2026-06-24 (instruksi), 2026-08-27 dan 2026-09-24 (berkas tentang pemain, opsional); semua sampai 2026-10-03 | `11-spec-m7.md` I | DECIDED 2026-10-06 |
+| Surat epilog Roxanne, log pribadi per ending | dari sudut pandang sesudah M7 (aturan A.3) | `05-ending.md` E | DECIDED |
 
 Surel Custodian, surel `sentry@darknull.io`, dan surel `watchdog@architect-c2.dark` tidak memuat tanggal di spesifikasi; cap waktunya dari jam game dan tidak diatur mod.
 

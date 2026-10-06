@@ -1,7 +1,7 @@
 # 02 — Peta misi M1-M7
 
 Status: M1-M3 LIVE. M4-M6: bentuk dan konten DECIDED (judul kerja, rinci di `08` sampai `10`).
-M7 adalah M4 lama yang dimigrasi (DECIDED, `11-spec-m7.md`). Prosa en dan zh dikerjakan saat
+M7: spesifikasi v2 (`11-spec-m7.md`, 2026-10-06; v1 migrasi M4 lama di `11-spec-m7.v1.md`). Prosa en dan zh dikerjakan saat
 implementasi.
 
 ## A. Tulang punggung tema (PROPOSAL)
@@ -23,7 +23,7 @@ implementasi.
 | M4 | Burn Notice (kerja) | Titik balik: pemain diburu | Bertahan dan lacak balik | DECIDED (judul kerja) |
 | M5 | The Door (kerja) | Asal-usul serangan, cover-up, G | Analisis arsip dan satu penerobosan | DECIDED (judul kerja) |
 | M6 | Open Register (kerja) | Identitas Conrad Lindqvist terbukti lewat silang-rujuk | Analisis di browser | DECIDED (judul kerja) |
-| M7 | The Architect | Finale, pilihan A/B/C | Penerobosan dan keputusan | DECIDED (M4 lama, dimigrasi) |
+| M7 | The Architect | Finale, pilihan A/B/C | Penerobosan dan keputusan | DECIDED (spesifikasi v2, 2026-10-06) |
 
 ## C. Aturan lintas misi
 
@@ -97,23 +97,17 @@ implementasi.
 - **Hasil.** Reveal di M7 menjadi konfirmasi, bukan pemberian nama.
 - **OPEN.** Prosa en dan zh. Nama dan rantai pemilikan final: `09-konten-m5-m6.md`.
 
-### M7 "The Architect" (M4 lama, bentuk dan konten DECIDED)
+### M7 "The Architect" (spesifikasi v2, 2026-10-06; judul tetap)
 
-- **Fungsi.** Finale dengan pilihan A/B/C (`05-ending.md`). Identitas sudah dibuktikan di M6, jadi M7
-  mengumpulkan bukti: berkas master ledger dan manifestnya.
-- **Rantai.** 12 langkah transitif (`11-spec-m7.md` bagian C): pindai C2 dan temukan `/legacy-cms/`,
-  pilih kotak mati yang benar dengan bantuan HoneyCheck (penilaiannya sengaja bisa salah), baca kredensial
-  Firewall, buka ash-gate, eksploitasi RDP (bluekeep) ke C2, baca `manifest.txt`, `attrcheck`, ekstrak
-  `master_ledger_backup.enc` di bawah pelacakan waktu nyata 240 detik, lalu satu surel laporan yang membawa
-  `choice`.
-- **Efek ending nyata.** `expose` dan `handoff` melepas bukti dan Roxanne mengirim surat; `destroy`
-  menghancurkan jaringan C2 tanpa surat.
-- **Epilog.** Surat searah dari Roxanne Anindita Natnaree lewat `Mail.send` (ending C: tanpa surat).
-- **Perbaikan M4 lama.** Sepuluh cacat diperbaiki (`11-spec-m7.md` bagian B), termasuk #29,
-  banner yang tidak diterima modul, bentuk Firewall yang belum teruji, dan dialog telepon yang dibuang.
-- **Hadiah.** 5000 uang, dibayar lewat `Bank.transaction` (XP dilewati, keputusan #34).
-- **Prasyarat.** Dimigrasi ke id `m07` lebih dulu dari M4 baru. Gerbang: `questGate("m07", ["flatline.m06"])`.
-- **OPEN.** Prosa en dan zh, alamat dan password, penyesuaian angka (`11-spec-m7.md` bagian M).
+- **Fungsi.** Finale. Menjawab semua benang terbuka M1-M6 dengan dokumen milik Conrad sendiri, lalu pilihan A/B/C (`05-ending.md`). Spesifikasi di `11-spec-m7.md` (v1 lama di `11-spec-m7.v1.md`).
+- **Gagasan pengunci.** Asuransi memasang cadangan klaim sebelum kejadian: FIN-EU-2214 (2026-06-18) dan MED-APAC-6689 (2026-07-14), sama dengan baris ledger broker M1. Itu menjawab "next: prepping" dan "Q3 closes: 4".
+- **Rantai.** 23 langkah transitif dalam enam bagian: cocokkan klaim di portal asuransi (halaman), peta dan tembus tepi (jaringan), host indeks di bawah Duel 1, segel Cipher (di rumah), komputer pribadi Conrad lewat RDC di bawah Duel 2, laporan dengan `choice`.
+- **Lawan.** Conrad adalah `SENTRY`, operator yang menyetujui rilis 2026-08-14 02:11 UTC dan menyerang pemain di M4.
+- **Mekanik.** Hanya yang sudah dialami pemain di M1-M6. Dibuang: HoneyCheck, `attrcheck`. Tidak dipakai: Playfair (hanya M6).
+- **Efek ending nyata.** `expose` dan `handoff` melepas bukti; `destroy` menghancurkan jaringan C2. Penutup lengkap per ending (Roxanne, Reyes, TR4C3404, Orchid, dua korban berikutnya, OT3).
+- **Hadiah.** Sementara 5000 uang (`Bank.transaction`), disesuaikan di akhir.
+- **Prasyarat.** `questGate("m07", ["flatline.m06"])`.
+- **OPEN.** D9 (pemutusan dini Duel 2), D11 (hadiah), D12 (urutan membangun); prosa en dan zh dan nilai konkret yang berstatus PROPOSAL di spesifikasi.
 
 ## E. Biaya penomoran (diverifikasi 2026-10-02)
 

@@ -64,3 +64,17 @@ dengan balasan Custodian). Pemain tidak membalas. Percakapan dua arah
 - Apakah Reyes muncul langsung di finale atau hanya lewat epilog. Roxanne hanya lewat
   surat epilog (DECIDED).
 - Apakah nama Roxanne dan Reyes disebut dalam dialog akhir.
+
+## E. Matriks M7 v2 (2026-10-06, README #73-#76)
+
+Menambah bagian B (tidak menggantikan). Efek dijalankan controller setelah laporan diterima, log dan surat ditulis sebelum `completeObjective` (README #41). Rinci di `11-spec-m7.md` N.
+
+| Benang | A publikasi | B hukum | C hancurkan |
+|---|---|---|---|
+| Dua korban berikutnya (FIN-EU-2214, MED-APAC-6689) | diperingatkan publik, menutup akses | diberi tahu diam-diam lewat jalur resmi | tetap terkompromi tanpa diberi tahu; cadangan tak pernah jadi klaim |
+| TR4C3404 dan operator FIN-NA | teridentifikasi | bekerja sama | tak tersentuh |
+| Orchid | terbongkar | diselidiki | utuh |
+| OT3 dan cover-up | insiden klinis masuk catatan publik | diselidiki | tetap "excluded" |
+| Custodian (satu baris) | singkat | singkat | "Someone closed it." |
+
+Surat Roxanne A dan B ditulis ulang agar menyebut yang berubah (A: baris OT3 kini ada di catatan). Ending C tetap tanpa surat.
