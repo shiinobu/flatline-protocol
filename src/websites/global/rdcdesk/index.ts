@@ -4,25 +4,27 @@ import type { RdcLoginResult } from "../../../content/global/rdc.js";
 import { M05_RDC_DOMAIN } from "../../../content/m05/network.js";
 import type { M05RdcMirror } from "../../../context/m05/progress.js";
 import { renderToolPage, toolIcon } from "../tool-page.js";
-import { rdcAttach, rdcLogin, rdcRead, rdcSignal, rdcState } from "./exports.js";
+import { rdcAttach, rdcLogin, rdcRead, rdcSeed, rdcSignal, rdcState } from "./exports.js";
 
 import script from "./script.html";
 import shell from "./shell.html";
 import style from "./style.html";
 
 const RDC_TITLE = "Remote Desktop Connection";
-const RDC_SEARCH: readonly string[] = ["remote desktop connection", "remote desktop", "remote display", "workstation console"];
+const RDC_SEARCH: readonly string[] = ["remote desktop connection", "remote desktop", "remote display", "workstation console", "rdc"];
 
 const RDC_ICON = toolIcon(
-    '<rect width="64" height="64" rx="14" fill="#0b1720"/>' +
-        '<rect x="12" y="15" width="40" height="27" rx="4" fill="none" stroke="#5cc8f0" stroke-width="4"/>' +
-        '<path d="M32 42v8M24 50h16" stroke="#5cc8f0" stroke-width="4" stroke-linecap="round"/>' +
-        '<path d="M18 31h7l4-8 5 14 4-9h6" fill="none" stroke="#38c88e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+    '<rect width="64" height="64" rx="14" fill="#1b1d22"/>' +
+        '<g transform="translate(9.9 9.9) scale(1.7)">' +
+        '<rect x="1.8" y="2.8" width="15.4" height="11.4" rx="3" fill="none" stroke="#edeff2" stroke-width="1.6"/>' +
+        '<rect x="8" y="9" width="16.2" height="12.6" rx="3" fill="#edeff2"/>' +
+        '<path d="M13.2 12.6v6.2l1.7-1.6 1.2 2.6 1.4-.6-1.2-2.6 2.3-.1z" fill="#1b1d22"/>' +
+        "</g>",
 );
 
 @RegisterWebsite
 export class RemoteDesktopConnectionWebsite extends Website {
-    SiteName = RDC_TITLE;
+    SiteName = "RDC";
     Host = M05_RDC_DOMAIN;
     Icon = RDC_ICON;
     Popular = true;
@@ -37,6 +39,9 @@ export class RemoteDesktopConnectionWebsite extends Website {
         },
         flatlineRdcRead: (gate: number): void => {
             rdcRead(Number(gate));
+        },
+        flatlineRdcSeed: (seed: number): void => {
+            rdcSeed(Number(seed));
         },
         flatlineRdcState: (): M05RdcMirror => rdcState(),
     };

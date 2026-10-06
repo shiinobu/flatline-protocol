@@ -1,3 +1,25 @@
+Object.assign(P, {
+    term: '<path d="M4.5 7l4.5 4.5L4.5 16"/><path d="M12 17h7"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    max: '<rect x="5" y="5" width="14" height="14" rx="2.5"/>',
+    min: '<path d="M5 12h14"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    out: '<path d="M10 4H6a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 6 20h4"/><path d="M15 8l4 4-4 4M19 12H9"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.8v.1"/>',
+    alert: '<path d="M12 4l9 15.5H3z"/><path d="M12 10v4.5M12 17.2v.1"/>',
+    check: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.4"/>',
+    lock: '<rect x="5.5" y="10.5" width="13" height="9" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>',
+    monitor: '<rect x="3.5" y="5" width="17" height="11.5" rx="2.5"/><path d="M9 20h6M12 16.5V20"/>',
+    folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
+    file: '<path d="M6.5 3.5h7l4 4v13h-11z"/><path d="M13.5 3.5v4h4M9 12.5h6M9 16h6"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.3 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.3-3.8-8.5s1.2-6.1 3.8-8.5z"/>',
+    trash: '<path d="M5 7h14M9.5 7V4.5h5V7M7 7l.8 12.5h8.4L17 7"/>',
+    prev: '<path d="M14.5 6l-6 6 6 6"/>',
+    next: '<path d="M9.5 6l6 6-6 6"/>',
+    reload: '<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M19 4.5V8h-3.5"/>',
+    pulse: '<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',
+    config: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.5M12 18v2.5M3.5 12H6M18 12h2.5M6 6l1.8 1.8M16.2 16.2L18 18M18 6l-1.8 1.8M7.8 16.2L6 18"/>'
+  });
 var LOCK_AFTER = 3;
 var LOCK_SECONDS = 15;
 var HOME = "/root";
@@ -207,7 +229,7 @@ function buildColdFs() {
       var role = R.relays[n], fr = role === "valid" ? R.fv : role === "expired" ? R.fx : R.fw;
       file("/etc/agent/relays.d/" + n + ".conf", "[relay]\nname = " + n + "\nhost = " + n + ".ir.pacificcare-health.org\nallow = " + (role === "wrong" ? "arc-img-02" : "arc-ir-01") + "\ncert_not_after = " + (role === "expired" ? "2026-08-31" : "2027-03-14") + "\naccept_framing = " + fr + "\n", "root", "Aug  9 06:20");
     });
-    file("/usr/share/doc/agent/README", "agent 4.2.1, endpoint console and display agent\n\nThe console and the display are separate. The console runs as a system\nservice. The display is attached on request through a signal chain:\n\n  lease    the display lock must be free\n  source   capture head to read frames from\n  link     relay and framing used to carry the frames\n  format   how the frames are laid out (see format.txt)\n  sync     frame timing, calibrated last\n\nWhen the picture is wrong, read troubleshooting.txt and the agent log.\n");
+    file("/usr/share/doc/agent/README", "agent 4.2.1, endpoint console and display agent\n\nThe console and the display are separate. The console runs as a system\nservice. The display is attached on request through a signal chain:\n\n  lease    the display lock must be free\n  source   capture head to read frames from\n  link     relay and framing used to carry the frames\n  format   how the frames are laid out (see format.txt)\n  sync     frame timing, calibrated last\n\nHeads are listed under /sys/class/graphics, relays under /etc/agent/relays.d,\nand the display's own history is kept in /var/log.\n\nWhen the picture is wrong, read troubleshooting.txt and the agent log.\n");
     file("/usr/share/doc/agent/format.txt", "Framebuffer format\n\n  width, height   visible size in pixels\n  bpp             bits per pixel: 16, 24 or 32\n  order           channel order of one pixel: rgb or bgr\n  stride          bytes per row: width x (bpp / 8), rounded up to the\n                  next multiple of 64\n\nThe kernel does not report the stride. Compute it.\n");
     file("/usr/share/doc/agent/troubleshooting.txt", "Symptoms and the stage that causes them\n\n  black screen .................. the capture head has no frame to give\n  only a pointer ................ the head is the cursor plane\n  frozen picture ................ the relay is not talking to us\n  snow .......................... relay and agent disagree on framing\n  slanted picture ............... row length (stride) is wrong\n  swapped colours ............... channel order is wrong\n  banded colours ................ bpp is lower than the framebuffer\n  smeared colour edges .......... bpp is 24 against 32, or the reverse\n  repeated or squeezed columns .. width is wrong\n  repeated or stretched rows .... height is wrong\n  rolling picture ............... sync is stale, or the rate is wrong\n\nRemote Desktop Connection shows the earliest stage that fails. Fix that one first.\nChanging an earlier stage makes the calibration stale.\n");
     file("/usr/share/doc/agent/signal.txt", "signal show                  print the current profile\nsignal sources               list capture heads\nsignal relays                list relays\nsignal set <key> <value>     keys: source relay framing width height\n                             bpp order stride rate\nsignal apply                 push the profile and show it in Remote Desktop Connection\nsignal calibrate             lock frame timing to the current chain\nsignal reset                 go back to profile.bak\n");
@@ -295,8 +317,11 @@ function splitPipe(line) {
     out.push(cur);
     return out;
   }
-function plain(s) { return s.replace(/[\u0001\u0002]/g, ""); }
-function promptText() { return "(agent)-[" + S().cwd + "]"; }
+function plain(s) {
+    if (typeof s !== "string") return s.box === "diag" ? diagPlain() : s.text;
+    return s.replace(/[\u0001\u0002]/g, "");
+  }
+function promptHtml(cwd) { return '<span class="p-a">(agent)</span><span class="p-b">-[</span><span class="p-c">' + esc(cwd) + '</span><span class="p-b">]</span>'; }
 var DA = "\u0001";
 var DB = "\u0002";
 var SEALED = "Volume sealed (legal hold L-2608-03)";
@@ -500,32 +525,30 @@ function psText() {
     return "  PID TTY          TIME CMD\n    1 ?        00:00:09 systemd\n  412 ?        00:00:02 sshd\n  655 ?        00:01:14 agent-sync\n 1180 ?        00:00:00 cron\n " + R.livePid + " ?        00:00:03 agent-console\n " + (R.livePid + 41) + " pts/0    00:00:00 bash\n " + (R.livePid + 58) + " pts/0    00:00:00 ps";
   }
 function pad2(s, n) { while (s.length < n) s += " "; return s; }
-function boxText(title, rows) {
-    var w = title.length + 4, out = [], i, line;
-    rows.forEach(function (r) { if (r.length > w) w = r.length; });
-    line = "";
-    for (i = 0; i < w + 2 - title.length - 3; i++) line += "─";
-    out.push("┌─ " + title + " " + line + "┐");
-    rows.forEach(function (r) { out.push("│ " + pad2(r, w) + " │"); });
-    line = "";
-    for (i = 0; i < w + 2; i++) line += "─";
-    out.push("└" + line + "┘");
-    return out.join("\n");
-  }
-function helpText() {
-    return boxText("agent console", [
-      "files    ls [-la]  cd  pwd  cat  head  tail  stat",
-      "search   grep [-irnvcl]  find  wc  sort  uniq  cut",
-      "system   ps  date  uptime  hostname  uname  id",
-      "agent    agent diag",
-      "         agent lease list | clear <pid>",
-      "         agent attach",
-      "signal   signal show | sources | relays",
-      "         signal set <key> <value>",
-      "         signal apply | calibrate | reset",
-      "docs     man agent | signal | format",
-      "pipes    cmd | grep | head | tail | wc | sort"
-    ]);
+var HELP = [
+    ["files", "ls [-la]  cd  pwd  cat  head  tail  stat"],
+    ["search", "grep [-irnvcl]  find  wc  sort  uniq  cut"],
+    ["system", "ps  date  uptime  hostname  uname  id"],
+    ["agent", "agent diag"],
+    ["", "agent lease list | clear <pid>"],
+    ["", "agent attach"],
+    ["signal", "signal show | sources | relays"],
+    ["", "signal set <key> <value>"],
+    ["", "signal apply | calibrate | reset"],
+    ["docs", "man agent | signal | format | troubleshooting"],
+    ["pipes", "cmd | grep | head | tail | wc | sort"]
+  ];
+var HELP_RGB = { files: "92,184,255", search: "171,140,255", system: "79,216,208", agent: "255,191,90", signal: "240,138,156", docs: "143,168,255", pipes: "166,173,185" };
+function helpBox() {
+    var cur = "", rows = HELP.map(function (r) {
+      var chips = r[1].split(/ {2,}/).map(function (c) {
+        var i = c.indexOf(" ");
+        return '<span class="kc">' + (i < 0 ? "<b>" + esc(c) + "</b>" : "<b>" + esc(c.slice(0, i)) + "</b>" + esc(c.slice(i))) + "</span>";
+      }).join("");
+      if (r[0]) cur = r[0];
+      return '<div class="tbx-r' + (r[0] ? "" : " cont") + '" style="--c:' + HELP_RGB[cur] + '"><span class="tbx-k">' + esc(cur) + '</span><span class="tbx-v">' + chips + "</span></div>";
+    }).join("");
+    return '<div class="tbox"><div class="tbx-h"><span class="tbx-tile">' + ic("term") + '</span>agent console</div><div class="tbx-b">' + rows + "</div></div>";
   }
 function manText(topic, isCold) {
     var T = mfs(), map = { agent: "README", format: "format.txt", signal: "signal.txt", troubleshooting: "troubleshooting.txt" }, n;
@@ -533,14 +556,24 @@ function manText(topic, isCold) {
     n = T["/usr/share/doc/agent/" + map[topic]];
     return nodeText(n).replace(/\n$/, "");
   }
-function diagText() {
-    var P = PZ(), rows = compStates(P), det = {};
+function diagRows() {
+    var P = PZ(), det = {};
     det.lease = P.attached ? "released" : P.lease ? "released" : "display.lock held";
     det.source = P.attached || P.set.source ? P.cfg.source : "from profile.bak";
     det.link = P.attached || (P.set.relay && P.set.framing) ? P.cfg.relay + ", " + P.cfg.framing : P.set.relay || P.set.framing ? "relay or framing still from profile.bak" : "from profile.bak";
     det.format = groupState(P, ["width", "height", "bpp", "order", "stride"]) === "SET" || P.attached ? P.cfg.width + "x" + P.cfg.height + " " + P.cfg.bpp + "bpp " + P.cfg.order : "from profile.bak";
     det.sync = P.attached || syncState(P) === "LOCKED" ? "rate " + P.cfg.rate : syncState(P) === "STALE" ? "chain changed since calibration" : "not calibrated";
-    return boxText("agent diag", rows.map(function (r) { return pad2(r[0], 8) + pad2(r[1], 8) + det[r[0]]; }).concat(["", "display   " + (P.attached ? "ATTACHED" : "stopped")]));
+    return compStates(P).map(function (r) { return [r[0], r[1], det[r[0]]]; });
+  }
+function diagBox() {
+    var P = PZ(), rows = diagRows().map(function (r) {
+      return '<div class="dg" data-s="' + r[1] + '"><svg class="rd-cg" viewBox="0 0 16 16" aria-hidden="true">' + CELL_G[r[1]] + '</svg><span class="n">' + r[0] + '</span><span class="s">' + r[1] + '</span><span class="d">' + esc(r[2]) + "</span></div>";
+    }).join("");
+    return '<div class="tbox"><div class="tbx-h"><span class="tbx-tile">' + ic("pulse") + '</span>agent diag</div><div class="tbx-b">' + rows + '<div class="dgf"><span>display</span><span class="s' + (P.attached ? " on" : "") + '">' + (P.attached ? "ATTACHED" : "stopped") + "</span></div></div></div>";
+  }
+function diagPlain() {
+    var P = PZ();
+    return diagRows().map(function (r) { return pad2(r[0], 8) + pad2(r[1], 8) + r[2]; }).concat(["", "display   " + (P.attached ? "ATTACHED" : "stopped")]).join("\n");
   }
 function leaseCmd(args) {
     var P = PZ(), R = getRun(), pid;
@@ -558,7 +591,7 @@ function leaseCmd(args) {
   }
 function agentCmd(args) {
     var sub = args[0] || "";
-    if (sub === "diag" || sub === "status") return diagText();
+    if (sub === "diag" || sub === "status") return { box: "diag" };
     if (sub === "lease") return leaseCmd(args.slice(1));
     if (sub === "attach") return attachCmd();
     return "usage: agent diag | lease list | lease clear <pid> | attach";
@@ -613,7 +646,7 @@ function signalReset() {
   }
 function signalCmd(args) {
     var sub = args[0] || "";
-    if (sub === "show") return signalShow();
+    if (sub === "show") return { text: signalShow(), kind: "kv" };
     if (sub === "sources") return HEADS.join("  ");
     if (sub === "relays") return RELAYS.join("  ");
     if (sub === "set") return signalSet(args.slice(1));
@@ -696,38 +729,79 @@ var dskScale = 1;
 var dragSt = null;
 var hpos = -1;
 function docByName(n) { return DOCS.filter(function (d) { return d.name === n; })[0]; }
-function scrH(w) { return Math.round(w * DESK_H / DESK_W) + 64; }
+function scrH(w) { return Math.round(w * DESK_H / DESK_W) + 76; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-function lineHtml(it) {
-    if (it.k === "c") return '<div class="ml"><span class="pr">' + esc(it.p) + "</span> " + esc(it.t) + "</div>";
-    return '<div class="mo' + (it.bx ? " bx" : "") + '">' + it.h + "</div>";
+var ERR_RE = /^(bash: |usage: |Usage: |(ls|cat|cd|head|tail|grep|find|wc|sort|uniq|cut|stat|sudo|agent|signal): |[a-z]+: cannot read from a pipe|apply failed|calibrate failed|attach refused|refusing: |no lease held|No manual entry|What manual page)/;
+var OK_RE = /^(display: (lease acquired|attaching|attached)|lease display\.lock released|timing locked|pushed \d|profile reset)/;
+var SET_RE = /^[a-z]+ = /;
+var WARN_RE = /(rejected|expired|died|mismatch|drifts|not released|returned no frame|cursor plane only|free running|stalled|dropped|stopped)/;
+var LOG_RE = /^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d) ([a-z_.-]+:)(.*)$/;
+function cmdEcho(raw) {
+    var m = raw.match(/^(\s*)(\S+)(.*)$/);
+    return m ? m[1] + '<span class="cm">' + esc(m[2]) + '</span><span class="ar">' + esc(m[3]) + "</span>" : "";
   }
-function outHtml(text) { return esc(text).replace(/\u0001([^\u0002]*)\u0002/g, '<span class="td">$1</span>'); }
+function blockHtml(cwd, raw, body, cls) {
+    return '<div class="tblk' + (cls ? " " + cls : "") + '"><div class="ml"><span class="pr">' + promptHtml(cwd) + '</span><span class="cmdt">' + cmdEcho(raw) + "</span></div>" + (body ? '<div class="tout">' + body + "</div>" : "") + "</div>";
+  }
+function bannerHtml(it) {
+    return '<div class="tbanner"><div class="tt">Agent console, <b>' + esc(it.h) + "</b></div><p>" + (it.c ? "This console reads the host. The display is changed only through the agent and signal commands." : "The display module is not installed on this host.") + "</p><p>Type <code>help</code> for the commands.</p></div>";
+  }
+function itemHtml(it) {
+    if (it.k === "b") return '<div class="tblk">' + bannerHtml(it) + "</div>";
+    if (it.k === "x") return blockHtml(it.p, it.t, it.h, it.c);
+    if (it.k === "c") return '<div class="tblk"><div class="ml"><span class="pr">' + esc(it.p) + '</span><span class="cmdt">' + esc(it.t) + "</span></div></div>";
+    return '<div class="tblk"><div class="tout"><div class="ol">' + it.h + "</div></div></div>";
+  }
+function tintLine(raw, kind) {
+    var m;
+    if (kind === "kv" && (m = raw.match(/^(\S+)\s{2,}(.*)$/))) return '<span class="kv-k">' + esc(m[1]) + '</span><span class="kv-v">' + esc(m[2]) + "</span>";
+    m = raw.match(LOG_RE);
+    if (m) return '<span class="lg-t">' + m[1] + '</span> <span class="lg-g">' + esc(m[2]) + "</span>" + (WARN_RE.test(m[3]) ? '<span class="w">' + esc(m[3]) + "</span>" : esc(m[3]));
+    return esc(raw).replace(/\u0001([^\u0002]*)\u0002/g, '<span class="td">$1</span>');
+  }
+function lineClass(l, one) { return ERR_RE.test(l) ? " e" : OK_RE.test(l) || (one && SET_RE.test(l)) ? " k" : ""; }
+function outBody(out) {
+    var text = typeof out === "string" ? out : out.text, kind = typeof out === "string" ? "" : out.kind, lines = text.split("\n"), one = lines.length === 1;
+    return {
+      html: lines.map(function (l, i) { return '<div class="ol' + lineClass(l, one) + '" style="--i:' + Math.min(i, 14) + '">' + tintLine(l, kind) + "</div>"; }).join(""),
+      cls: ERR_RE.test(lines[0]) ? "err" : OK_RE.test(lines[lines.length - 1]) || (one && SET_RE.test(lines[0])) ? "ok" : ""
+    };
+  }
 function monFocus() { var i = $("mcmd"); if (i) i.focus(); }
 function renderScroll() {
     var el = $("mscroll");
     if (!el) return;
-    el.innerHTML = '<div id="mlines">' + S().scroll.map(lineHtml).join("") + '</div><div class="mprompt"><span class="pr" id="mpr">' + esc(promptText()) + '</span><input id="mcmd" name="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Agent console input"></div>';
+    el.innerHTML = '<div id="mlines">' + S().scroll.map(itemHtml).join("") + '</div><div class="mprompt"><span class="pr" id="mpr">' + promptHtml(S().cwd) + '</span><input id="mcmd" name="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Agent console input"></div>';
     el.scrollTop = el.scrollHeight;
   }
 function pushLines(items) {
     var Sx = S(), box = $("mlines");
     items.forEach(function (it) { Sx.scroll.push(it); });
-    if (Sx.scroll.length > 250) Sx.scroll = Sx.scroll.slice(-250);
+    if (Sx.scroll.length > 120) Sx.scroll = Sx.scroll.slice(-120);
     if (!box) return;
-    box.insertAdjacentHTML("beforeend", items.map(lineHtml).join(""));
-    $("mpr").textContent = promptText();
+    box.insertAdjacentHTML("beforeend", items.map(itemHtml).join(""));
+    $("mpr").innerHTML = promptHtml(Sx.cwd);
     $("mscroll").scrollTop = $("mscroll").scrollHeight;
   }
-function hintText() {
+var lastHint = "";
+function hintState() {
     var M = st.mon, P = M.pz, sym;
-    if (M.host !== "cold") return "The display module is not installed on this host.";
-    if (P.attached) return "Display attached. Use the Remote Desktop Connection window.";
-    if (!P.lease) return "The display is busy. Something may still be holding its lease.";
-    if (!P.applied) return "Nothing is being shown yet. Push the profile with signal apply.";
+    if (M.host !== "cold") return ["dim", "info", "The display module is not installed on this host."];
+    if (P.attached) return ["ok", "check", "Display attached. Use the Remote Desktop Connection window."];
+    if (!P.lease) return ["bad", "lock", "The display is busy. Something may still be holding its lease."];
+    if (!P.applied) return ["warn", "alert", "Nothing is being shown yet. Push the profile with signal apply."];
     sym = curSym();
-    if (sym.first === "clear") return "The signal is clean. Attach the display.";
-    return "Remote Desktop Connection shows the earliest failing stage. Read it, then the agent log.";
+    if (sym.first === "clear") return ["ok", "check", "The signal is clean. Attach the display."];
+    return ["info", "info", "Remote Desktop Connection shows the earliest failing stage. Read it, then the agent log."];
+  }
+function hintSync() {
+    var h = hintState(), el = $("thint");
+    if (!el) return;
+    el.setAttribute("data-t", h[0]);
+    el.querySelector(".rd-hi").innerHTML = ic(h[1]);
+    $("thtxt").textContent = h[2];
+    if (lastHint && lastHint !== h[2]) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+    lastHint = h[2];
   }
 var CELL_G = {
     HELD: '<rect x="3" y="7.2" width="10" height="6.8" rx="1.6"/><path class="sh" d="M5.4 7.2V5.3a2.6 2.6 0 0 1 5.2 0v1.9"/>',
@@ -749,12 +823,27 @@ function cellAnim(c, cls) {
     c.classList.add(cls);
     SCH.wait(650, function () { c.classList.remove(cls); }, c);
   }
+var LAMP_OK = { CLEAR: 1, SET: 1, LOCKED: 1, OK: 1 };
+function lampsSync(rows) {
+    var box = $("tlamps"), n = 0, txt;
+    if (!box) return;
+    rows.forEach(function (r, i) {
+      var on = !!LAMP_OK[r[1]], l = box.children[i];
+      if (on) n++;
+      if (l && l.classList.contains("on") !== on) l.classList.toggle("on", on);
+    });
+    txt = rows.length === 1 ? "Display module not installed" : "Signal chain: " + n + " of " + rows.length + " stages clear";
+    box.setAttribute("aria-label", txt);
+    box.setAttribute("title", txt);
+  }
 function chipsSync() {
     var box = $("tstat"), rows = cellRows(), cur;
     if (!box) return;
     cur = Array.prototype.slice.call(box.children);
-    if (cur.length !== rows.length || cur.some(function (c, i) { return c.getAttribute("data-k") !== rows[i][0]; })) { box.innerHTML = rows.map(cellHtml).join(""); return; }
-    rows.forEach(function (r, i) {
+    if (cur.length !== rows.length || cur.some(function (c, i) { return c.getAttribute("data-k") !== rows[i][0]; })) {
+      box.innerHTML = rows.map(cellHtml).join("");
+      box.classList.toggle("one", rows.length === 1);
+    } else rows.forEach(function (r, i) {
       var c = cur[i], was = c.getAttribute("data-s");
       if (was === r[1]) return;
       c.setAttribute("data-s", r[1]);
@@ -762,10 +851,12 @@ function chipsSync() {
       c.querySelector(".rd-cg").innerHTML = CELL_G[r[1]];
       cellAnim(c, was === "HELD" && r[1] === "CLEAR" ? "unlock" : r[1] === "LOCKED" ? "lockin" : "chg");
     });
+    lampsSync(rows);
   }
+function pulse() { var p = $("tstat"); if (!p) return; p.classList.remove("pulse"); void p.offsetWidth; p.classList.add("pulse"); }
 function refreshTerm() {
     chipsSync();
-    if ($("thint")) $("thint").textContent = hintText();
+    hintSync();
   }
 function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (rnatnaree)"; }
 function rdStatus() { var P = st.mon.pz; return !P || !P.shown ? ["off", "no signal"] : P.attached ? ["on", "attached"] : ["rx", "signal received"]; }
@@ -775,7 +866,7 @@ function rdMenuHtml() {
       '<div class="rd-mb"><h3>Connection</h3><dl class="rd-dl"><dt>Connection</dt><dd class="m">' + esc(rdConnName()) + "</dd><dt>Host</dt><dd>" + esc(t.name) + '</dd><dt>Address</dt><dd class="m">' + esc(t.lan) + '</dd><dt>Status</dt><dd id="rdms">' + rdStatus()[1] + "</dd></dl>" +
       '<h3 id="rdsh">Scaling</h3><div class="rd-seg" role="radiogroup" aria-labelledby="rdsh"><button role="radio" data-act="rdscale" data-v="fit" aria-checked="' + fit + '">Fit to window</button><button role="radio" data-act="rdscale" data-v="one" aria-checked="' + !fit + '">Actual size</button></div>' +
       '<h3><label for="rdclip">Clipboard</label></h3><textarea id="rdclip" class="rd-clip" data-f="rdclip" spellcheck="false" aria-describedby="rdcn">' + esc(M.clip || "") + '</textarea><p class="rd-note" id="rdcn">Text copied on the remote computer appears here.</p></div>' +
-      '<div class="rd-mf"><button class="rd-ghost" data-act="monout">' + ic("out") + "Disconnect</button></div></aside>";
+      '<div class="rd-mf"><button class="rd-ghost out" data-act="monout">' + ic("out") + "Disconnect</button></div></aside>";
   }
 function rdMenuOpen() { var m = $("rdmenu"); return !!(m && m.classList.contains("open")); }
 function rdMenu(open) {
@@ -794,18 +885,28 @@ function rdScale(v) {
     fitDesk();
     refreshSignal();
   }
+function lampsHtml(id, random) {
+    return '<span class="rd-lamps' + (random ? " rnd" : "") + '" id="' + id + '"' + (random ? ' aria-hidden="true"' : ' role="img" aria-label="Signal chain: 0 of 5 stages clear" title="Signal chain: 0 of 5 stages clear"') + "><i></i><i></i><i></i><i></i><i></i></span>";
+  }
 function termWinHtml(t) {
-    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term">' + ic("term") + '<span class="rd-wt">Agent console</span><span class="rd-wh">' + esc(t.tag + " " + t.lan) + '</span></div><div class="rd-pipe" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint"></div><i class="rd-rz" data-rz="term"></i></section>';
+    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term"><span class="rd-tile">' + ic("term") + '</span><span class="rd-wt">Agent console</span><span class="rd-wh"><b>' + esc(t.tag) + "</b>" + esc(t.lan) + '</span><span class="sp"></span>' + lampsHtml("tlamps", false) + '</div><div class="rd-pipe on" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint" data-t="info"><span class="rd-hi"></span><span id="thtxt"></span></div><i class="rd-rz" data-rz="term"></i></section>';
   }
 function monWinHtml() {
     var s = rdStatus();
-    return '<section class="win pop" id="w-scr" data-id="scr" aria-label="Remote Desktop Connection"><div class="rd-tb" data-win="scr">' + RD_MARK + '<span class="rd-wt">Remote Desktop Connection</span><span class="rd-conn">' + esc(rdConnName()) + '</span><span class="rd-ws" id="mws" data-s="' + s[0] + '"><i></i><span id="mwh">' + s[1] + '</span></span><span class="sp"></span>' +
+    return '<section class="win pop" id="w-scr" data-id="scr" data-s="' + s[0] + '" aria-label="Remote Desktop Connection"><div class="rd-tb" data-win="scr"><span class="rd-tile">' + ic("monitor") + '</span><span class="rd-wt">Remote Desktop Connection</span>' + lampsHtml("mlamps", true) + '<span class="sp"></span>' +
       '<button class="rd-ib" data-act="rdmenu" aria-label="Session menu" aria-expanded="false" title="Session menu (Ctrl+Alt+Shift)">' + ic("menu") + '</button><button class="rd-ib" data-act="winmax" aria-label="Fit to workspace" title="Fit to workspace">' + ic("max") + "</button></div>" +
-      '<div class="rd-scr' + (st.mon.scale === "one" ? " one" : "") + '" id="mv">' + rdScreenHtml() + '</div><div class="rd-strip" id="mhud"></div><i class="rd-rz" data-rz="scr"></i></section>';
+      '<div class="rd-scr' + (st.mon.scale === "one" ? " one" : "") + '" id="mv">' + rdScreenHtml() + '</div><div class="rd-foot" id="mhud"><div class="fl"><span class="rd-ws" id="mws" data-s="' + s[0] + '" role="status"><i></i><span id="mwh">' + s[1] + '</span></span></div><div class="fc"><span class="ft ft-res" id="hr" hidden></span><span class="ft ft-fps" id="hf" hidden></span><span class="ft ft-bpp" id="hb" hidden></span></div><div class="fr"><span class="ft ft-link" id="hl" hidden></span><span class="ft ft-sc" id="hs"></span></div></div><i class="rd-rz" data-rz="scr"></i></section>';
   }
-function clearCand() { if ($("tcand")) $("tcand").textContent = ""; }
-function afterCmd(prev) {
+function clearCand() { var c = $("tcand"); if (c) { c.classList.remove("on"); c.textContent = ""; } }
+function showCand(list) {
+    var c = $("tcand");
+    if (!c) return;
+    c.innerHTML = list.map(function (x) { return '<span class="cc">' + esc(x) + "</span>"; }).join("");
+    c.classList.add("on");
+  }
+function afterCmd(prev, line) {
     var P = st.mon.host === "cold" ? PZ() : null;
+    if (P && P.applied && /^signal\s+(apply|calibrate)\b/.test(line)) pulse();
     if (P && P.applied && !$("w-scr")) openMonitorWindow();
     else if (P && prev && P.shown !== prev.shown) rdBring(false);
     refreshTerm();
@@ -813,18 +914,20 @@ function afterCmd(prev) {
     else { refreshSignal(); if (P && P.attached) rdAutoFit(true); }
   }
 function monExec(raw) {
-    var Sx = S(), line = raw.trim(), items = [{ k: "c", p: promptText(), t: raw }], out = "", tk, c, Pz = st.mon.host === "cold" ? st.mon.pz : null, prev = Pz ? { shown: Pz.shown, attached: Pz.attached } : null;
+    var Sx = S(), line = raw.trim(), cwd = Sx.cwd, out = "", body = "", cls = "", tk, c, r, Pz = st.mon.host === "cold" ? st.mon.pz : null, prev = Pz ? { shown: Pz.shown, attached: Pz.attached } : null;
     if (line) {
       Sx.hist.push(line);
       tk = tokenize(line);
       c = tk[0] || "";
       if (c === "exit" || c === "logout") { monOut(); return; }
       if (c === "clear") { Sx.scroll = []; renderScroll(); monFocus(); return; }
-      out = c === "help" && tk.length === 1 ? helpText() : execLine(line);
+      out = c === "help" && tk.length === 1 ? { box: "help" } : execLine(line);
     }
-    if (out !== "") items.push({ k: "o", h: outHtml(out), bx: out.indexOf("┌") === 0 });
-    pushLines(items);
-    afterCmd(prev);
+    if (out.box === "help") body = helpBox();
+    else if (out.box === "diag") body = diagBox();
+    else if (out !== "") { r = outBody(out); body = r.html; cls = r.cls; }
+    pushLines([{ k: "x", p: cwd, t: raw, h: body, c: cls }]);
+    afterCmd(prev, line);
   }
 function tabPool(words, tok) {
     var T = mfs(), sp, dirPart = "", base = tok, sl, dp, dn, keys = ["source", "relay", "framing", "width", "height", "bpp", "order", "stride", "rate"], pool = null;
@@ -851,7 +954,7 @@ function monTab(inp) {
     pre = pool[0];
     pool.forEach(function (x) { while (x.indexOf(pre) !== 0) pre = pre.slice(0, -1); });
     if (pre.length > tok.length) inp.value = lead + pre;
-    if ($("tcand")) $("tcand").textContent = pool.join("  ");
+    showCand(pool);
   }
 function monKey(e) {
     var inp = e.target, H = S().hist;
@@ -862,21 +965,29 @@ function monKey(e) {
     if (e.key === "Tab") { e.preventDefault(); monTab(inp); return; }
     if (e.ctrlKey && (e.key === "l" || e.key === "L")) { e.preventDefault(); S().scroll = []; renderScroll(); monFocus(); }
   }
-function hudHtml() {
-    var P = st.mon.pz, sym = curSym(), c, fps;
-    if (!P || !P.shown) return '<span>no signal</span><span class="sp"></span>' + rdScaleLabel();
-    c = P.shown;
-    if (P.attached) return "<span>arc-ir-01</span><span>fps <b>30</b></span><span>attached</span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp</span>" + rdScaleLabel();
-    fps = sym.first === "black" || sym.first === "cursor" || sym.first === "frozen" ? 0 : 24;
-    return "<span>arc-ir-01</span><span>link <b>" + esc(c.relay) + "/" + esc(c.framing) + "</b></span><span>fps <b>" + fps + "</b></span><span class=\"sp\"></span><span>" + c.width + "x" + c.height + " " + c.bpp + "bpp " + c.order + "</span>" + rdScaleLabel();
+function hudSeg(id, html) {
+    var el = $(id);
+    if (!el || el.getAttribute("data-h") === html) return;
+    el.setAttribute("data-h", html);
+    el.hidden = !html;
+    el.innerHTML = html;
   }
-function rdScaleLabel() { return "<span>" + (st.mon.scale === "one" ? "100%" : "fit " + Math.round(dskScale * 100) + "%") + "</span>"; }
-function rdStatusSync() {
-    var s = rdStatus();
-    if ($("mwh")) $("mwh").textContent = s[1];
-    if ($("mws")) $("mws").setAttribute("data-s", s[0]);
-    if ($("rdms")) $("rdms").textContent = s[1];
+function hudSync() {
+    var P = st.mon.pz, sym = curSym(), c = P && P.shown, fps;
+    if (!$("mhud")) return;
+    if (!c) { hudSeg("hr", ""); hudSeg("hf", ""); hudSeg("hb", ""); hudSeg("hl", ""); }
+    else if (P.attached) { hudSeg("hr", "<b>" + c.width + " x " + c.height + "</b>"); hudSeg("hf", '<b class="g">30</b> fps'); hudSeg("hb", "<b>" + c.bpp + "</b> bpp"); hudSeg("hl", ""); }
+    else {
+      fps = sym.first === "black" || sym.first === "cursor" || sym.first === "frozen" ? 0 : 24;
+      hudSeg("hr", "<b>" + c.width + " x " + c.height + "</b>");
+      hudSeg("hf", '<b class="' + (fps ? "" : "r") + '">' + fps + "</b> fps");
+      hudSeg("hb", "<b>" + c.bpp + "</b> bpp " + esc(c.order));
+      hudSeg("hl", "link <b>" + esc(c.relay) + "/" + esc(c.framing) + "</b>");
+    }
+    hudSeg("hs", rdScaleLabel());
   }
+function rdScaleLabel() { return st.mon.scale === "one" ? "100%" : "fit " + Math.round(dskScale * 100) + "%"; }
+function rdStatusSync() { var s = rdStatus(); rdWords(s[0], s[1]); }
 function fakeClock() {
     var s = 14 * 3600 + 7 * 60 + Math.max(0, Math.floor((Date.now() - (st.mon.t0 || Date.now())) / 1000));
     return pad(Math.floor(s / 3600) % 24) + ":" + pad(Math.floor(s / 60) % 60);
@@ -914,7 +1025,7 @@ var RK_PTR = {
 var WALL = null;
 var SCENE = null;
 var FX = { full: null, fmt: null, fmtKey: "", cb: null, cbKey: "", noise: null, loop: null, ni: 0 };
-var DSP = { seq: null, desk: false, loading: false, hold: false };
+var DSP = { seq: null, desk: false, hold: false };
 function mkCanvas(w, h) { var c = document.createElement("canvas"); c.width = w || FB_W; c.height = h || FB_H; return c; }
 function ctx2(c) { try { return c && c.getContext ? c.getContext("2d") : null; } catch (e) { return null; } }
 function pathFill(g, d, fill, stroke, sw) {
@@ -991,8 +1102,6 @@ function paintPanel(g) {
     ["Applications", "Places", "System"].forEach(function (t) { g.fillText(t, x + 11, 17); x += textW(g, t) + 26; });
     x += 14; g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(x, 6, 1, 22); x += 14;
     g.font = "400 14px " + RK_SANS;
-    rrFill(g, x, 3, textW(g, "Browser") + 22, 28, 6, "rgba(255,255,255,.14)");
-    g.fillStyle = "#fff"; g.fillText("Browser", x + 11, 17);
     g.textAlign = "right"; g.fillStyle = "#e2e6ef";
     g.fillText(fakeClock(), right, 17); right -= textW(g, fakeClock()) + 16;
     g.fillText("arc-ir-01", right, 17); right -= textW(g, "arc-ir-01") + 16;
@@ -1007,27 +1116,6 @@ function paintIcon(g, d) {
     g.font = "400 14px " + RK_SANS; tw = textW(g, d[1]);
     rrFill(g, x + 48 - tw / 2 - 7, y + 68, tw + 14, 23, 5, "rgba(8,12,26,.62)");
     g.fillStyle = "#f4f6fb"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d[1], x + 48, y + 79.5); g.textAlign = "left";
-  }
-function skel(g, x, y, w, h) { rrFill(g, x, y, w, h, h / 2, "#262b3d"); }
-function paintBrowserSkel(g, b) {
-    var x = b.x, y = b.y, w = b.w, h = b.h, i, lx = x + 18, vy;
-    g.save(); g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = 16; g.shadowOffsetY = 10; rrFill(g, x, y, w, h, 9, "#1c2030"); g.restore();
-    g.save(); pathFill(g, rr(x, y, w, h, 9), null, "rgba(255,255,255,.1)", 1); g.beginPath(); g.rect(x, y, w, h); g.clip();
-    g.fillStyle = "#262b3d"; g.fillRect(x, y, w, 36);
-    artPaint(g, RK_ART.browser, x + 12, y + 10, 16 / 56);
-    g.font = "700 14px " + RK_SANS; g.fillStyle = "#a9b0c6"; g.textBaseline = "middle"; g.fillText("Clinical Incident Archive", x + 36, y + 18);
-    ["M2 6h8", "M2.5 2.5h7v7h-7z", "M2.5 2.5l7 7M9.5 2.5l-7 7"].forEach(function (d, k) { g.save(); g.translate(x + w - 92 + k * 28 + 8, y + 12); pathFill(g, d, null, "#c9cfde", 1.8); g.restore(); });
-    g.fillStyle = "#20253a"; g.fillRect(x, y + 36, w, 40);
-    rrFill(g, x + 110, y + 42, w - 124, 28, 14, "#141827"); skel(g, x + 126, y + 52, 260, 8);
-    ["M15 18l-6-6 6-6", "M9 18l6-6-6-6", "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"].forEach(function (d, k) { g.save(); g.translate(x + 12 + k * 32, y + 48); g.scale(0.66, 0.66); pathFill(g, d, null, "#8a92a8", 2.4); g.restore(); });
-    g.fillStyle = "#151925"; g.fillRect(x, y + 76, w, h - 76);
-    g.fillStyle = "#7cc4f5"; g.fillRect(x, y + 76, w * 0.4, 3);
-    g.font = "700 20px " + RK_SANS; g.fillStyle = "#eef0f6"; g.fillText("Clinical Incident Archive", x + 20, y + 104);
-    skel(g, x + w - 250, y + 91, 228, 26);
-    g.fillStyle = "rgba(255,255,255,.07)"; g.fillRect(x, y + 132, w, 1); g.fillRect(x + 280, y + 132, 1, h - 132);
-    for (i = 0; i < 9; i++) skel(g, lx, y + 152 + i * 34, i % 4 === 0 ? 120 : 190 + (i * 37) % 60, i % 4 === 0 ? 9 : 12);
-    for (vy = y + 156, i = 0; vy < y + h - 30; vy += 26, i++) skel(g, x + 302, vy, i % 6 === 5 ? 180 : w - 340 - (i * 53) % 160, 10);
-    g.restore();
   }
 function paintPtr(g, k, x, y) {
     var p = RK_PTR[k];
@@ -1045,7 +1133,6 @@ function sceneCanvas() {
     g.drawImage(w, 0, 0);
     paintPanel(g);
     RK_ICONS.forEach(function (d) { paintIcon(g, d); });
-    paintBrowserSkel(g, rkW("mb"));
     paintPtr(g, "arrow", 652, 452);
     SCENE = c;
     return c;
@@ -1165,14 +1252,19 @@ function startLoop() {
     if (!cv || !sym || st.mon.pz.attached || calm() || sym.first !== "noise") return;
     FX.loop = SCH.frame(function (t) { if (t - last < 83) return true; last = t; FX.ni++; paintFrame(t); return true; }, cv);
   }
-function rdWords(s, w) { if ($("mws")) $("mws").setAttribute("data-s", s); if ($("mwh")) $("mwh").textContent = w; if ($("rdms")) $("rdms").textContent = w; }
+function rdWords(s, w) {
+    if ($("w-scr")) $("w-scr").setAttribute("data-s", s);
+    if ($("mws")) $("mws").setAttribute("data-s", s);
+    if ($("mwh")) $("mwh").textContent = w;
+    if ($("rdms")) $("rdms").textContent = w;
+  }
 function rdStallSync() { var sym = curSym(), P = st.mon.pz; if (P && P.shown && !P.attached && sym && sym.first === "frozen") rdWords("stall", "signal received"); }
 function rdLive() {
     var P = st.mon.pz;
     paintFrame(0);
     rdStatusSync();
     rdStallSync();
-    if ($("mhud")) $("mhud").innerHTML = hudHtml();
+    hudSync();
     if (P && !P.attached) startLoop();
     rkPtrMode();
   }
@@ -1221,11 +1313,16 @@ function rkState() {
     var P = PZ();
     if (!P.rw) P.rw = {};
     if (!P.rz) P.rz = [];
+    if (!P.ro) P.ro = [];
     if (!P.rw.mb) P.rw.mb = Object.assign({ open: !!P.mb, min: false, max: false }, P.mbp || RK_DEF.mb);
     return P.rw;
   }
 function rkW(id) { var R = rkState(); if (!R[id]) R[id] = Object.assign({ open: false, min: false, max: false }, RK_DEF[id]); return R[id]; }
 function rkOpenIds() { var R = rkState(), P = PZ(); return P.rz.concat(Object.keys(R).filter(function (k) { return P.rz.indexOf(k) < 0; })).filter(function (k) { return R[k].open; }); }
+function rkTaskIds() {
+    var R = rkState(), P = PZ(), ro = P.ro.filter(function (k) { return R[k] && R[k].open; });
+    return ro.concat(Object.keys(R).filter(function (k) { return R[k].open && ro.indexOf(k) < 0; }));
+  }
 function rkTitle(id) { var W = rkW(id); return id === "mb" ? "Clinical Incident Archive" : id === "tv" ? (W.doc || "Text Viewer") : rkLocName(W.loc || "home"); }
 function rkLocName(loc) { return loc === "home" || loc === "/home/rnatnaree" ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
 function rkGlyph(id) { return ic(id === "mb" ? "globe" : id === "tv" ? "file" : "folder"); }
@@ -1239,7 +1336,6 @@ function rkFileRows(dir) {
   }
 function rkBrowserHtml() {
     var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
-    if (DSP.loading) return tool + '<span class="rk-addr"></span></div><div class="rk-page"><div class="rk-load"></div><div class="rk-ph"><b>Clinical Incident Archive</b></div><div class="rk-arb"><div class="rk-arl"><i class="rk-sk"></i><i class="rk-sk"></i><i class="rk-sk"></i></div><div class="rk-arv"><i class="rk-sk"></i><i class="rk-sk"></i></div></div></div>';
     return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/rnatnaree</h6>" + rkFileRows("/home/rnatnaree") +
       '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
   }
@@ -1264,7 +1360,7 @@ function rkWinHtml(id) {
       '<div class="rk-tb" data-rwd="' + id + '">' + rkGlyph(id) + "<span>" + esc(t) + '</span><button class="rk-wb" data-act="rkmin" data-v="' + id + '" aria-label="Minimise" title="Minimise" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button><button class="rk-wb" data-act="rkmax" data-v="' + id + '" aria-label="Maximise" title="Maximise" data-cur="hand"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" rx="1.5"/></svg></button><button class="rk-wb x" data-act="rkclose" data-v="' + id + '" aria-label="Close" title="Close" data-cur="hand"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button></div>' +
       '<div class="rk-body" tabindex="-1">' + (id === "mb" ? rkBrowserHtml() : id === "fl" ? rkFilesHtml() : rkViewerHtml()) + '</div><i class="rk-rz" data-rwr="' + id + '" data-cur="nwse"></i></section>';
   }
-function rkTasksHtml() { var P = PZ(); return rkOpenIds().map(function (id) { var W = rkW(id); return '<button class="rk-task' + (P.rf === id && !W.min ? " on" : "") + (W.min ? " min" : "") + '" data-act="rktask" data-v="' + id + '" data-cur="hand">' + (id === "mb" ? "Browser" : id === "fl" ? "Files" : "Text Viewer") + "</button>"; }).join(""); }
+function rkTasksHtml() { var P = PZ(); return rkTaskIds().map(function (id) { var W = rkW(id); return '<button class="rk-task' + (P.rf === id && !W.min ? " on" : "") + (W.min ? " min" : "") + '" data-act="rktask" data-v="' + id + '" data-cur="hand">' + (id === "mb" ? "Browser" : id === "fl" ? "Files" : "Text Viewer") + "</button>"; }).join(""); }
 function rkPanelHtml() {
     return '<nav class="rk-panel" aria-label="Remote panel"><svg class="rk-logo" viewBox="0 0 18 18" aria-hidden="true">' + RK_LOGO.map(function (p) { return '<path d="' + p[0] + '" fill="' + p[1] + '"/>'; }).join("") + "</svg>" +
       ["apps", "places", "system"].map(function (k) { return '<button class="rk-m" id="rkm-' + k + '" data-act="rkmenu" data-v="' + k + '" aria-haspopup="menu" aria-expanded="' + (rkPop === k) + '" data-cur="hand">' + RK_MENUS[k][0] + "</button>"; }).join("") +
@@ -1273,7 +1369,7 @@ function rkPanelHtml() {
 function rkPopHtml() {
     var m = RK_MENUS[rkPop], b = $("rkm-" + rkPop);
     if (!m) return "";
-    return '<div class="rk-pop" role="menu" aria-label="' + m[0] + '" style="left:' + (b ? b.offsetLeft : 40) + 'px;top:36px">' + m[1].map(function (it) { return it ? '<button class="rk-mi" role="menuitem" data-act="rkitem" data-v="' + it[1] + '" data-n="' + it[0] + '" data-cur="hand">' + ic(it[2]) + it[0] + "</button>" : '<div class="rk-sep"></div>'; }).join("") + "</div>";
+    return '<div class="rk-pop" role="menu" tabindex="-1" aria-label="' + m[0] + '" style="left:' + (b ? b.offsetLeft : 40) + 'px;top:36px">' + m[1].map(function (it) { return it ? '<button class="rk-mi" role="menuitem" data-act="rkitem" data-v="' + it[1] + '" data-n="' + it[0] + '" data-cur="hand">' + ic(it[2]) + it[0] + "</button>" : '<div class="rk-sep"></div>'; }).join("") + "</div>";
   }
 function rkDlgHtml() { return rkDlg ? '<div class="rk-scrim"></div><div class="rk-dlg" role="alertdialog" aria-modal="true" aria-labelledby="rkdt"><b id="rkdt">' + esc(rkDlg[0]) + "</b><p>" + esc(rkDlg[1]) + '</p><div><button class="rk-btn pri" data-act="rkok" data-cur="hand">OK</button></div></div>' : ""; }
 function rkDeskHtml() {
@@ -1335,13 +1431,23 @@ function rkDeskRender(lazy) {
 function rkWall() { var g = ctx2($("rkwall")); if (g && wallCanvas()) g.drawImage(wallCanvas(), 0, 0); }
 function rkFocus(id) {
     var P = PZ(), W = rkW(id);
+    if (!W.open || P.ro.indexOf(id) < 0) P.ro = P.ro.filter(function (k) { return k !== id; }).concat([id]);
     P.rz = P.rz.filter(function (k) { return k !== id; }).concat([id]);
     P.rf = id;
     W.open = true;
     W.min = false;
     if (id === "mb") P.mb = true;
   }
-function rkOpen(id) { rkFocus(id); rkPop = ""; drawDesk(); var b = document.querySelector('#dsk [data-rw="' + id + '"] .rk-body'); if (b) b.focus({ preventScroll: true }); }
+function rkIn(id) { var w = document.querySelector('#dsk [data-rw="' + id + '"]'); if (w) w.classList.add("rk-in"); }
+function rkOpen(id) {
+    var fresh = !rkW(id).open, b;
+    rkFocus(id);
+    rkPop = "";
+    drawDesk();
+    if (fresh) rkIn(id);
+    b = document.querySelector('#dsk [data-rw="' + id + '"] .rk-body');
+    if (b) b.focus({ preventScroll: true });
+  }
 function rkLoc(loc) { var W = rkW("fl"); W.loc = loc; W.sel = ""; rkOpen("fl"); }
 function rkNa(n) { rkDlgOpen("Not available", n + " is not available on this host."); }
 function rkRo() { rkDlgOpen("Read-only session", "Files on this computer cannot be changed in this session."); }
@@ -1351,7 +1457,13 @@ function rkIcon(id, open) {
     if (!open) return;
     if (id === "browser") rkOpen("mb"); else rkLoc(id === "computer" ? "computer" : id === "trash" ? "trash" : "home");
   }
-function rkDocOpen(name) { var W = rkW("tv"); W.doc = name; rkFocus("tv"); openDoc(name); }
+function rkDocOpen(name) {
+    var W = rkW("tv"), fresh = !W.open;
+    W.doc = name;
+    rkFocus("tv");
+    openDoc(name);
+    if (fresh) rkIn("tv");
+  }
 function rkFile(v, open) {
     var W = rkW("fl");
     W.sel = v;
@@ -1367,15 +1479,23 @@ function rkWinBtn(a, id) {
     drawDesk();
   }
 function rkTask(id) { var W = rkW(id), P = PZ(); if (P.rf === id && !W.min) { rkWinBtn("rkmin", id); return; } rkOpen(id); }
-function rkMenuBtn(k) { rkPop = rkPop === k ? "" : k; rkUi(); var f = document.querySelector("#rkpop .rk-mi"); if (f && rkPop) f.focus({ preventScroll: true }); }
+function rkMenuBtn(k, kb) {
+    var f;
+    rkPop = rkPop === k ? "" : k;
+    rkUi();
+    f = document.querySelector(kb ? "#rkpop .rk-mi" : "#rkpop .rk-pop");
+    if (f && rkPop) f.focus({ preventScroll: true });
+  }
 function rkKey(e) {
     var t = e.target, list, i, W, rows, back = rkPop;
     if (e.key === "Escape" && rkDlg) { e.preventDefault(); rkDlgClose(); return true; }
     if (e.key === "Escape" && rkPop) { e.preventDefault(); rkPop = ""; rkUi(); if ($("rkm-" + back)) $("rkm-" + back).focus(); return true; }
     if (rkPop && /^Arrow(Up|Down|Left|Right)$/.test(e.key)) {
       e.preventDefault();
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { list = ["apps", "places", "system"]; i = (list.indexOf(rkPop) + (e.key === "ArrowLeft" ? 2 : 1)) % 3; rkMenuBtn(list[i]); return true; }
-      list = all("#rkpop .rk-mi"); i = list.indexOf(t); list[(i + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length].focus();
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { list = ["apps", "places", "system"]; i = (list.indexOf(rkPop) + (e.key === "ArrowLeft" ? 2 : 1)) % 3; rkMenuBtn(list[i], true); return true; }
+      list = all("#rkpop .rk-mi"); i = list.indexOf(t);
+      i = i < 0 ? (e.key === "ArrowDown" ? 0 : list.length - 1) : (i + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length;
+      list[i].focus();
       return true;
     }
     if (t.classList && t.classList.contains("rk-ico") && e.key === "Enter") { e.preventDefault(); rkIcon(t.getAttribute("data-v"), true); return true; }
@@ -1436,7 +1556,6 @@ function rkDragMove(d, p) {
 function rdDeskOn(keep) {
     var cv = $("msig");
     DSP.desk = true;
-    DSP.loading = false;
     rkState();
     if (!PZ().rf && rkW("mb").open) rkFocus("mb");
     if (!keep || !$("rkwins")) rkDeskRender();
@@ -1445,25 +1564,21 @@ function rdDeskOn(keep) {
     rkPtrMode();
     fitDesk();
     rdStatusSync();
-    if ($("mhud")) $("mhud").innerHTML = hudHtml();
+    hudSync();
   }
 function rdFinale() {
     var P = PZ(), cv = $("msig"), d = $("dsk"), slow = !calm(), steps = [];
     if (!cv || !d) { rdDeskOn(); return; }
     SCH.settle(DSP.seq);
     stopLoop();
-    if (!P.mb) P.mb = true;
     rkState();
-    rkW("mb").open = true;
-    rkFocus("mb");
     DSP.hold = true;
-    steps.push({ t: 0, fn: function () { cv.classList.remove("off", "blank"); paintFrame(0); cv.classList.add("lock"); rdWords("on", "attached"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); } });
+    steps.push({ t: 0, fn: function () { cv.classList.remove("off", "blank"); paintFrame(0); cv.classList.add("lock"); rdWords("on", "attached"); hudSync(); } });
     steps.push({ t: slow ? 300 : 60, fn: function (fast) { cv.classList.remove("lock"); if (!P.fit) { P.fit = true; P.fitDue = false; if ($("w-scr") && !st.mon.win.scr.max) rdFit(fast || !slow);  save(); } } });
-    steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; DSP.loading = true; d.classList.add("rd-finale"); rkDeskRender(true); } });
+    steps.push({ t: slow ? 520 : 120, fn: function () { cv.classList.add("dim"); DSP.desk = true; d.classList.add("rd-finale"); rkDeskRender(true); } });
     steps.push({ t: slow ? 560 : 140, fn: function () { rkWall(); } });
-    steps.push({ t: slow ? 2200 : 420, fn: function () { var b = document.querySelector("#mbw .rk-body"); DSP.loading = false; if (b) b.innerHTML = rkBrowserHtml(); else drawDesk(); } });
     steps.push({ t: slow ? 2450 : 500, fn: function () { DSP.hold = false; rkPtrMode(); } });
-    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(true); var b = document.querySelector('#dsk [data-rw="mb"] .rk-body'); if (b && !$("mcmd").matches(":focus")) b.focus({ preventScroll: true }); reportAttach(); save(); } });
+    steps.push({ t: slow ? 2700 : 760, fn: function () { d.classList.remove("rd-finale"); rdDeskOn(true); reportAttach(); save(); } });
     DSP.seq = SCH.run($("mv"), steps, function () { d.classList.remove("rd-finale"); });
   }
 function rdAutoFit(now) {
@@ -1484,12 +1599,11 @@ function rdFit(instant) {
     el.animate([{ transform: "translate(" + (a.left - b.left) + "px," + (a.top - b.top) + "px) scale(" + a.width / b.width + "," + a.height / b.height + ")", transformOrigin: "0 0" }, { transform: "none", transformOrigin: "0 0" }], { duration: 460, easing: "cubic-bezier(.16,.84,.24,1)" });
   }
 function rdScreenHtml() {
-    return '<div class="rd-pan" id="rdpan"><div class="rd-fb" id="rdfb"><canvas id="msig" width="' + FB_W + '" height="' + FB_H + '" role="img" aria-label="Remote screen"></canvas><div class="rdk hide" id="dsk"></div><div id="rdptr" aria-hidden="true"></div></div></div><div class="rd-neg" id="rdneg" aria-live="polite"><i></i><span id="rdnegt"></span></div>' + rdMenuHtml();
+    return '<div class="rd-pan" id="rdpan"><div class="rd-fb" id="rdfb"><canvas id="msig" width="' + FB_W + '" height="' + FB_H + '" role="img" aria-label="Remote screen"></canvas><div class="rdk hide" id="dsk"></div><div id="rdptr" aria-hidden="true"></div></div></div><div class="rd-neg" id="rdneg" aria-live="polite"><span id="rdnegt"></span><i></i></div>' + rdMenuHtml();
   }
 function rdDisplayInit() {
     var P = st.mon.pz;
     DSP.desk = false;
-    DSP.loading = false;
     DSP.hold = false;
     rkPop = "";
     rkDlg = null;
@@ -1497,19 +1611,19 @@ function rdDisplayInit() {
     fitDesk();
     if (P && P.attached) { rdDeskOn(); rdAutoFit(false); return; }
     if (P && P.shown) rdLive();
-    else { rdWords("off", "no signal"); if ($("mhud")) $("mhud").innerHTML = hudHtml(); }
+    else { rdWords("off", "no signal"); hudSync(); }
   }
 function fitDesk() {
     var mv = $("mv"), fb = $("rdfb");
     if (!mv || !fb) return;
     dskScale = st.mon.scale === "one" ? 1 : (mv.clientWidth || FB_W * 0.62) / FB_W;
     fb.style.transform = st.mon.scale === "one" ? "" : "scale(" + dskScale + ")";
-    if ($("mhud") && st.mon.pz && st.mon.pz.shown) $("mhud").innerHTML = hudHtml();
+    hudSync();
   }
 function refreshSignal() {
     var P = st.mon.pz;
     if (!P || !$("msig") || (DSP.seq && DSP.seq.live)) return;
-    if (P.attached && DSP.desk) { rdStatusSync(); if ($("mhud")) $("mhud").innerHTML = hudHtml(); return; }
+    if (P.attached && DSP.desk) { rdStatusSync(); hudSync(); return; }
     rdLive();
   }
 function ensureWin() {
@@ -1519,7 +1633,7 @@ function ensureWin() {
     if (!M.win) {
       tw = Math.min(560, Math.max(400, Math.round(W * 0.43)));
       sw = Math.max(420, W - tw - 60);
-      M.win = { term: { x: 20, y: 20, w: tw, h: Math.min(600, H - 40) }, scr: { x: tw + 40, y: 20, w: sw, h: scrH(sw) } };
+      M.win = { term: { x: 20, y: 20, w: tw, h: Math.min(620, H - 40) }, scr: { x: tw + 40, y: 20, w: sw, h: scrH(sw) } };
     }
     return M.win;
   }
@@ -1587,7 +1701,7 @@ function winMax(id) {
     if (r.max) { Object.assign(r, r.prev, { max: false, prev: null }); }
     else {
       r.prev = { x: r.x, y: r.y, w: r.w, h: r.h };
-      w = Math.min(W, Math.floor((H - 64) * DESK_W / DESK_H));
+      w = Math.min(W, Math.floor((H - 76) * DESK_W / DESK_H));
       r.x = Math.round((W - w) / 2);
       r.y = 0;
       r.w = w;
@@ -1606,20 +1720,21 @@ function openMonitorWindow() {
     placeWin("scr");
     front("scr");
     DSP.desk = false;
-    DSP.loading = false;
     fitDesk();
     if (st.mon.pz.attached) { rdDisplayInit(); return; }
-    if ($("mhud")) $("mhud").innerHTML = '<span>no signal</span><span class="sp"></span>' + rdScaleLabel();
+    hudSync();
     rdBring(true);
   }
 function drawWork() {
     var M = st.mon, t = targetById(M.host), P = M.host === "cold" ? PZ() : null;
-    $("stage").innerHTML = '<div class="rdc rd-work">' + rdTop('<div class="rd-sess"><i class="rd-live"></i><b>' + esc(t.name) + '</b><span class="rd-mn">' + esc(t.tag + "  " + t.lan) + '</span></div><span class="rd-clk" id="mclk">00:00</span><button class="rd-ghost" data-act="monout">' + ic("out") + "Disconnect</button>") + '<div class="rd-wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
+    $("stage").innerHTML = '<div class="rdc rd-work">' + rdTop('<div class="rd-sess"><i class="rd-live"></i><b>' + esc(t.name) + '</b><span class="rd-chip">' + esc(t.tag) + " <i>" + esc(t.lan) + '</i></span></div><span class="rd-clk" id="mclk">00:00</span><button class="rd-ghost out" data-act="monout">' + ic("out") + "Disconnect</button>") + '<div class="rd-wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
     ensureWin();
     placeWin("term");
     front(M.top || "term");
     renderScroll();
+    lastHint = "";
     refreshTerm();
+    SCH.wait(1100, function () { var p = $("tstat"); if (p) p.classList.remove("on"); }, $("tstat"));
     if (P && P.applied) restoreMonitorWindow();
     tickClock();
     monFocus();
@@ -1646,20 +1761,27 @@ function drawMonitor() {
   }
 var RD_STEPS = ["Reading the token", "Checking the format", "Signing in", "Locating the host", "Matching the device", "Confirming the approval", "Opening the session"];
 var RD_FAILS = ["Token unreadable.", "Token format not recognised.", "Sign-in failed.", "Address is not on the monitoring network.", "Address and device tag do not match.", "Approval does not cover this address."];
-var RD_MARK = '<svg class="rd-mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="1.8" y="2.8" width="15.4" height="11.4" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="9" width="16.2" height="12.6" rx="3" fill="currentColor"/><path d="M13.2 12.6v6.2l1.7-1.6 1.2 2.6 1.4-.6-1.2-2.6 2.3-.1z" fill="#1b1d22"/></svg>';
+var RD_MARK = '<svg class="rd-mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="1.8" y="2.8" width="15.4" height="11.4" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="9" width="16.2" height="12.6" rx="3" fill="currentColor"/><path d="M13.2 12.6v6.2l1.7-1.6 1.2 2.6 1.4-.6-1.2-2.6 2.3-.1z" fill="#1c1f24"/></svg>';
 var RD_GLYPH = '<svg class="rd-g" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6"/><path class="g-arc" d="M7 1a6 6 0 0 1 6 6"/><path class="g-ok" d="M4.1 7.3l2 2 3.9-4.2"/><path class="g-no" d="M4.8 4.8l4.4 4.4M9.2 4.8l-4.4 4.4"/></svg>';
 var rdSeq = null;
 var rdEnter = false;
 function rdTop(right) { return '<header class="rd-top"><div class="rd-brand">' + RD_MARK + '<span>Remote Desktop Connection</span></div>' + (right || "") + "</header>"; }
 function rdRouteHtml() {
-    return '<aside class="rd-route" id="rdroute" data-act="rdskip" aria-hidden="true"><div class="rd-pt"><i class="rd-dot"></i><div><b>This browser</b><span>Ready</span></div></div><div class="rd-track"><i class="rd-fill" id="rdfill"></i><ol class="rd-steps" id="rdsteps"></ol></div>' +
-      '<div class="rd-pt rd-end" id="rdhost"><i class="rd-dot"></i><div><b id="rdhn">Remote host</b><span id="rdhs">Not connected</span></div></div><p class="rd-skip">Press Esc to skip</p></aside>';
+    return '<aside class="rd-route" id="rdroute" aria-hidden="true"><div class="rd-pt rd-from"><i class="rd-dot">' + ic("globe") + '</i><div><b>This browser</b><span>Ready</span></div></div><div class="rd-track"><ol class="rd-steps" id="rdsteps"></ol></div>' +
+      '<div class="rd-pt rd-end" id="rdhost"><i class="rd-dot">' + ic("monitor") + '</i><div><b id="rdhn">Remote host</b><span id="rdhs">Awaiting token</span></div></div></aside>';
   }
+function rdWave(y, cls, col) {
+    var d = "M-40 " + y, x;
+    for (x = -40; x < 1640; x += 320) d += " H" + (x + 110) + " l8 -6 l8 6 H" + (x + 170) + " l6 10 l9 -58 l9 72 l6 -24 H" + (x + 250) + " l14 -14 l14 14 H" + (x + 320);
+    return '<g class="' + cls + '" stroke="' + col + '"><path class="base" d="' + d + '"/><path class="run" pathLength="1000" d="' + d + '"/></g>';
+  }
+function rdTraces() { return '<svg class="rd-traces" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">' + rdWave(150, "t1", "#5cb8ff") + rdWave(470, "t2", "#5be39b") + rdWave(790, "t3", "#ab8cff") + "</svg>"; }
+function rdErrHtml(t) { return ic("alert") + "<span>" + esc(t) + "</span>"; }
 function monLoginHtml() {
-    var M = st.mon, locked = M.lock > Date.now();
-    return '<div class="rdc rd-login">' + rdTop("") + '<main class="rd-lg"><section class="rd-card" id="rdcard"><div class="rd-form"><h1>Connect to a workstation</h1><p class="rd-lead">Paste the access token issued for the host you want to open.</p><label class="rd-lab" for="mtok">Access token</label>' +
-      '<textarea id="mtok" class="rd-tok" name="token" rows="4" autocomplete="off" spellcheck="false" placeholder="Paste the token here" aria-describedby="mlerr"></textarea><div class="rd-act"><p class="rd-err" id="mlerr" aria-live="polite">' + esc(locked ? lockText() : M.err) + '</p>' +
-      '<button class="rd-btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '><span class="rd-bl">Connect</span><i class="rd-bar" id="rdbar"></i></button></div></div>' + rdRouteHtml() + '</section><p class="rd-fine">Each token is issued for one host. Sessions are recorded and reviewed by IT Operations.</p></main></div>';
+    var M = st.mon, locked = M.lock > Date.now(), msg = locked ? lockText() : M.err;
+    return '<div class="rdc rd-login">' + rdTop("") + '<main class="rd-lg">' + rdTraces() + '<section class="rd-card" id="rdcard"><div class="rd-form"><h1>Connect to a workstation</h1><p class="rd-lead">Paste the access token issued for the host you want to open.</p><label class="rd-lab" for="mtok">Access token</label>' +
+      '<div class="rd-tokw"><textarea id="mtok" class="rd-tok" name="token" rows="4" autocomplete="off" spellcheck="false" placeholder="Paste the token here" aria-describedby="mlerr"></textarea><i class="rd-scan"></i></div><div class="rd-act"><p class="rd-err" id="mlerr" aria-live="polite">' + (msg ? rdErrHtml(msg) : "") + '</p><span class="sp"></span>' +
+      '<button class="rd-btn" id="mbtn" data-act="monlogin"' + (locked ? " disabled" : "") + '><span class="rd-bl">Connect</span><i class="rd-bar" id="rdbar"></i></button></div></div>' + rdRouteHtml() + '</section><p class="rd-fine">Each token is issued for one host. Remote Desktop Connection is an independent service.</p></main></div>';
   }
 function rdBusy() { return !!(rdSeq && rdSeq.live); }
 function rdBusyUi(on) {
@@ -1674,21 +1796,20 @@ function rdBusyUi(on) {
     if (!on) $("rdbar").style.transform = "";
   }
 function rdStep(k, state) {
-    var ol = $("rdsteps"), li, f = $("rdfill"), bar = $("rdbar");
+    var ol = $("rdsteps"), li, bar = $("rdbar");
     if (!ol) return;
     li = ol.children[k - 1];
     if (!li) { ol.insertAdjacentHTML("beforeend", '<li class="rd-st">' + RD_GLYPH + "<span>" + RD_STEPS[k - 1] + "</span></li>"); li = ol.children[k - 1]; }
     li.setAttribute("data-s", state);
-    if (f) f.style.transform = "scaleY(" + ((state === "on" ? k - 0.5 : k) / 7).toFixed(3) + ")";
     if (bar) bar.style.transform = "scaleX(" + ((state === "on" ? k - 0.5 : k) / 7).toFixed(3) + ")";
   }
 function rdResetRoute() {
-    var ol = $("rdsteps"), h = $("rdhost");
+    var ol = $("rdsteps"), h = $("rdhost"), r = $("rdroute");
     if (ol) ol.innerHTML = "";
-    if ($("rdfill")) { $("rdfill").style.transform = ""; $("rdfill").classList.remove("live"); }
     if (h) h.classList.remove("on");
+    if (r) r.classList.remove("rd-fail");
     if ($("rdhn")) $("rdhn").textContent = "Remote host";
-    if ($("rdhs")) { $("rdhs").textContent = "Not connected"; $("rdhs").className = ""; }
+    if ($("rdhs")) { $("rdhs").textContent = "Connecting"; $("rdhs").className = ""; }
     if ($("mtok")) $("mtok").classList.remove("bad");
   }
 function rdHostReveal(h) {
@@ -1698,16 +1819,21 @@ function rdHostReveal(h) {
     $("rdhn").textContent = h.name;
     $("rdhs").textContent = h.tag;
     $("rdhs").className = "rd-id";
-    $("rdfill").classList.add("live");
   }
-function rdTiming() { return calm() ? { a: 30, gap: 105, res: 75, host: 110, rej: 160 } : { a: 120, gap: 440, res: 330, host: 280, rej: 380 }; }
+function rdFailRoute() {
+    var r = $("rdroute"), s = $("rdhs");
+    if (r) r.classList.add("rd-fail");
+    if (s) s.textContent = "Not reached";
+  }
+var LEAVE_MS = 360;
+function rdTiming() { return calm() ? { a: 30, gap: 105, res: 75, host: 110, rej: 160 } : { a: 200, gap: 960, res: 760, host: 640, rej: 420 }; }
 function rdFailCommit(r) {
     var M = st.mon, now;
     now = Date.now();
     M.fails++;
     if (M.fails >= LOCK_AFTER) { M.lock = now + LOCK_SECONDS * 1000; M.fails = 0; }
     M.err = r.msg;
-    if ($("mlerr")) $("mlerr").textContent = M.lock > now ? lockText() : M.err;
+    if ($("mlerr")) $("mlerr").innerHTML = rdErrHtml(M.lock > now ? lockText() : M.err);
     if ($("mbtn")) $("mbtn").disabled = M.lock > now;
     save();
   }
@@ -1716,16 +1842,21 @@ function rdOkCommit(h) {
     startSession(h);
     save();
   }
+function rdLeave() {
+    var lg = document.querySelector("#stage > .rd-login");
+    if (lg && !calm()) lg.classList.add("rd-leave");
+  }
 function rdLoginSteps(r) {
     var n = r.host ? 7 : Math.max(1, RD_FAILS.indexOf(r.msg) + 1), T = rdTiming(), out = [], k, end = T.a + (n - 1) * T.gap + T.res;
     for (k = 1; k <= n; k++) (function (i) {
       var at = T.a + (i - 1) * T.gap;
       out.push({ t: at, fn: function () { rdStep(i, "on"); } });
-      out.push({ t: at + T.res, fn: function () { rdStep(i, i === n && !r.host ? "bad" : "ok"); if (i === n && !r.host) rdFailCommit(r); } });
+      out.push({ t: at + T.res, fn: function () { rdStep(i, i === n && !r.host ? "bad" : "ok"); if (i === n && !r.host) { rdFailCommit(r); rdFailRoute(); } } });
     })(k);
     if (r.host) {
       out.push({ t: end + 10, fn: function () { rdHostReveal(r.host); } });
-      out.push({ t: end + T.host, fn: function () { rdOkCommit(r.host); } });
+      out.push({ t: end + T.host, fn: rdLeave });
+      out.push({ t: end + T.host + (calm() ? 0 : LEAVE_MS), fn: function () { rdOkCommit(r.host); } });
       return out;
     }
     out.push({ t: end + 5, fn: function (fast) { var c = $("rdcard"), t = $("mtok"); if (t) t.classList.add("bad"); if (c && !fast && !calm()) { c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); } } });
@@ -1737,16 +1868,16 @@ function monLogin() {
     if (M.lock > Date.now() || rdBusy()) return;
     r = tokenCheck(box ? box.value : "");
     rdResetRoute();
+    if ($("mlerr")) $("mlerr").textContent = "";
     rdBusyUi(true);
-    if ($("rdcard")) $("rdcard").classList.remove("rd-ff");
-    rdSeq = SCH.run($("rdcard"), rdLoginSteps(r), function () { var c = $("rdcard"); if (c) c.classList.add("rd-ff"); });
+    rdSeq = SCH.run($("rdcard"), rdLoginSteps(r));
   }
 function rdEntrance() {
     var root = document.querySelector("#stage > .rd-work");
     rdEnter = false;
     if (!root || INSTANT) return;
     root.classList.add("rd-enter");
-    SCH.wait(900, function () { root.classList.remove("rd-enter"); }, root);
+    SCH.wait(1150, function () { root.classList.remove("rd-enter"); }, root);
   }
 function startSession(h) {
     var M = st.mon, Sx;
@@ -1757,10 +1888,11 @@ function startSession(h) {
     M.lock = 0;
     M.t0 = Date.now();
     M.top = "term";
-    if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+    if (h.id === "cold") ensureSeed(M);
+    else if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
     if (h.id === "cold") PZ();
     Sx = S();
-    if (!Sx.scroll.length) Sx.scroll = [{ k: "o", h: esc("Agent console, " + h.tag + "\n" + (h.id === "cold" ? "This console reads the host. The display is changed only through the agent and signal commands.\nType help for the commands." : "The display module is not installed on this host.\nType help for the commands.")) }];
+    if (!Sx.scroll.length) Sx.scroll = bannerItems(h);
     if (h.id === "cold") {}
     drawMonitor();
   }
@@ -1774,7 +1906,7 @@ function monOut() {
 function lockTick() {
     var M = st.mon, el = $("mlerr"), b = $("mbtn");
     if (!el || !M.lock) return;
-    if (M.lock > Date.now()) { el.textContent = lockText(); if (b) b.disabled = true; return; }
+    if (M.lock > Date.now()) { el.innerHTML = rdErrHtml(lockText()); if (b) b.disabled = true; return; }
     M.lock = 0;
     M.err = "";
     el.textContent = "";
@@ -1790,18 +1922,15 @@ function tickClock() {
     if (M.view === "login") lockTick();
     SCH.sweep();
   }
-function bannerItems(h) {
-    return [{ k: "o", h: esc("Agent console, " + h.tag + "\n" + (h.id === "cold" ? "This console reads the host. The display is changed only through the agent and signal commands.\nType help for the commands." : "The display module is not installed on this host.\nType help for the commands.")) }];
-  }
+function bannerItems(h) { return [{ k: "b", h: h.tag, c: h.id === "cold" }]; }
 function act(a, d) {
   if (a === "monlogin") { monLogin(); return; }
-  if (a === "rdskip") { SCH.settle(rdSeq); return; }
   if (a === "rdmenu") { rdMenu(); return; }
   if (a === "rdscale") { rdScale(d.v); return; }
   if (a === "monout") { monOut(); return; }
   if (a === "winmax") { winMax("scr"); return; }
   if (a === "mbopen") { rkOpen("mb"); return; }
-  if (a === "rkmenu") { rkMenuBtn(d.v); return; }
+  if (a === "rkmenu") { rkMenuBtn(d.v, d.kb); return; }
   if (a === "rkitem") { rkItem(d.v, d.el.getAttribute("data-n")); return; }
   if (a === "rkicon") { rkIcon(d.v, false); return; }
   if (a === "rktask") { rkTask(d.v); return; }
@@ -1836,11 +1965,22 @@ function reportPending() {
 }
 function reportRead(gate) { try { if (typeof flatlineRdcRead === "function") flatlineRdcRead(gate); } catch (e) { return; } }
 function reportAttach() { try { if (typeof flatlineRdcAttach === "function") flatlineRdcAttach(1); } catch (e) { return; } }
+function reportSeed(seed) { try { if (typeof flatlineRdcSeed === "function") flatlineRdcSeed(seed); } catch (e) { return; } }
+function ensureSeed(M) {
+  var m = modState();
+  if (m && m.seed > 0) {
+    if (M.seed !== m.seed) { M.seed = m.seed; M.pz = null; }
+    return;
+  }
+  if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+  reportSeed(M.seed);
+}
 function restoreFromMod() {
   var m = modState(), M = st.mon, P;
   if (!m) return;
   if (!m.loggedIn) { if (M.view === "work") st.mon = blankMon(); return; }
   if (M.view !== "work" || M.host !== "cold") enterWork(M);
+  else ensureSeed(M);
   P = PZ();
   if (m.attached && !P.attached) attachedState();
   if (!P.attached) return;
@@ -1856,7 +1996,6 @@ function attachedState() {
   P.shownCal = P.cal;
   P.applied = true;
   P.attached = true;
-  P.mb = true;
 }
 function enterWork(M) {
   M.view = "work";
@@ -1866,7 +2005,7 @@ function enterWork(M) {
   M.lock = 0;
   M.t0 = Date.now();
   M.top = "term";
-  if (!M.seed) M.seed = 1 + Math.floor(Math.random() * 2000000000);
+  ensureSeed(M);
   PZ();
   S().scroll = bannerItems(targetById("cold"));
 }
@@ -1882,12 +2021,11 @@ document.addEventListener("click", function (e) {
   var b = e.target.closest("[data-act]");
   if (rdMenuOpen() && !e.target.closest('#rdmenu,[data-act="rdmenu"]')) rdMenu(false);
   if (rkPop && !e.target.closest("#rkpop,.rk-m")) { rkPop = ""; rkUi(); }
-  if (DSP.seq && DSP.seq.live && e.target.closest("#rdpan,#rdneg")) { SCH.settle(DSP.seq); save(); return; }
   if (!b) {
     if (e.target.closest("#mscroll") && !String(window.getSelection()).length) monFocus();
     return;
   }
-  act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), el: b });
+  act(b.getAttribute("data-act"), { v: b.getAttribute("data-v"), el: b, kb: e.detail === 0 });
   save();
 });
 document.addEventListener("input", function (e) {
@@ -1896,7 +2034,6 @@ document.addEventListener("input", function (e) {
 });
 document.addEventListener("keydown", function (e) {
   var id = e.target.id;
-  if (e.key === "Escape" && SCH.settle()) { e.preventDefault(); save(); return; }
   if (e.key === "Escape" && rdMenuOpen()) { e.preventDefault(); rdMenu(false); return; }
   if (e.ctrlKey && e.altKey && e.shiftKey && /^(Control|Alt|Shift)$/.test(e.key) && $("rdmenu")) { e.preventDefault(); rdMenu(); return; }
   if (st.mon.pz && st.mon.pz.attached && e.target.closest && e.target.closest("#dsk") && rkKey(e)) { save(); return; }

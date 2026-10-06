@@ -42,7 +42,7 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_7]: "the 90-day password policy. me, with the same password since 2019: haha",
         [M05_TWOTTER_KEY.GRETA_POST_8]:
             "directory sync failed again at 3am. ticket opened, ticket ignored. standard",
-        [M05_TWOTTER_KEY.GRETA_POST_9]: "gareth's last day. badge died at noon. account's still 'in the queue'",
+        [M05_TWOTTER_KEY.GRETA_POST_9]: "gideon's last day. badge died at noon. account's still 'in the queue'",
         [M05_TWOTTER_KEY.GRETA_POST_10]: "it is forty degrees in the server room and the AC ticket is from june",
         [M05_TWOTTER_KEY.GRETA_POST_11]:
             "found a usb stick on my desk this morning with {{label}} written on the side in marker. anyone know what that is? it looks like one of our project codes",
@@ -69,6 +69,7 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_1]: "今天注册了 MedVendor 门户。用了工作邮箱，还有，是的，老密码。我知道，我知道",
         [M05_TWOTTER_KEY.GRETA_POST_2]: "是谁老是把打印机房的门开着，里面那个“鬼”现在成了我的问题",
         [M05_TWOTTER_KEY.GRETA_POST_3]: "值夜班，自动贩卖机除了热水什么都没了",
+        [M05_TWOTTER_KEY.GRETA_POST_4]: "又是 OT3。三号手术室，老毛病。",
         [M05_TWOTTER_KEY.GRETA_POST_SEALED]: "写给自己的笔记。封好了，就像我在乎的一切。",
         [M05_TWOTTER_KEY.GRETA_POST_6]: "补丁星期二到了这个份上，已经不是一天，而是一种生活方式",
         [M05_TWOTTER_KEY.GRETA_POST_7]: "90 天改密码政策。而我，从 2019 年起一直用同一个密码：哈哈",
@@ -77,10 +78,13 @@ Localization.registerAll({
         [M05_TWOTTER_KEY.GRETA_POST_10]: "服务器机房四十度，而空调工单还是六月开的",
         [M05_TWOTTER_KEY.GRETA_POST_11]:
             "今早在桌上发现一个 U 盘，侧面用马克笔写着 {{label}}。有人知道那是什么吗？看着像我们的某个项目代号",
+        [M05_TWOTTER_KEY.GRETA_POST_12]: "有些遗留的恢复流程，比它们所保护的系统还要老。",
         [M05_TWOTTER_KEY.GRETA_POST_13]: "什么都进不去。全员上。我就在现场，我也不知道怎么回事",
         [M05_TWOTTER_KEY.GRETA_POST_14]: "睡了三个小时。他们管这叫网络故障。网络是我在管",
         [M05_TWOTTER_KEY.GRETA_POST_15]: "今早他们把我的笔记本“拿去审查”了",
         [M05_TWOTTER_KEY.GRETA_POST_16]: "他们要我签个东西",
+        [M05_TWOTTER_KEY.GRETA_POST_17]: "0814 是 IT 部门没有人会忘记的那一夜。",
+        [M05_TWOTTER_KEY.GRETA_POST_18]: "所有人都以为迁移就意味着旧权限会消失。事情并不总是这样。",
         [M05_TWOTTER_KEY.GARETH_BIO]: "IT 外包。按定义就是短期的",
         [M05_TWOTTER_KEY.GARETH_POST_1]: "进医院这个合同两个月了，我还是找不到停车位",
         [M05_TWOTTER_KEY.GARETH_POST_2]: "这里唯一的正式系统管理员一个人干四个人的活，佩服",

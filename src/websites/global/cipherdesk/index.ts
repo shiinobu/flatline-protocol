@@ -12,10 +12,18 @@ const CIPHER_DESK_TITLE = "Cipher Desk";
 const CIPHER_DESK_SEARCH: readonly string[] = ["encrypt", "decrypt", "cipher", "passphrase"];
 
 const CIPHER_DESK_ICON = toolIcon(
-    '<rect width="64" height="64" rx="14" fill="#e6edf5"/>' +
-        '<circle cx="24" cy="32" r="9" fill="none" stroke="#14304a" stroke-width="5"/>' +
-        '<path d="M33 32h21M46 32v9M54 32v6" fill="none" stroke="#14304a" stroke-width="5" stroke-linecap="round"/>' +
-        '<circle cx="24" cy="32" r="2.5" fill="#ff6b5e"/>',
+    '<rect width="64" height="64" rx="14" fill="#0f1631"/>' +
+        '<g transform="translate(9.9 9.9) scale(1.7)">' +
+        '<rect x="1" y="1" width="7" height="7" rx="2" fill="#f3eee5"/>' +
+        '<rect x="9.5" y="1" width="7" height="7" rx="2" fill="none" stroke="#f3eee5" stroke-width="1.5"/>' +
+        '<rect x="18" y="1" width="7" height="7" rx="2" fill="#f3eee5"/>' +
+        '<rect x="1" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/>' +
+        '<rect x="9.5" y="9.5" width="7" height="7" rx="2" fill="#c4f06a"/>' +
+        '<rect x="18" y="9.5" width="7" height="7" rx="2" fill="none" stroke="#c4f06a" stroke-width="1.5"/>' +
+        '<rect x="1" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/>' +
+        '<rect x="9.5" y="18" width="7" height="7" rx="2" fill="none" stroke="#8ed8ff" stroke-width="1.5"/>' +
+        '<rect x="18" y="18" width="7" height="7" rx="2" fill="#8ed8ff"/>' +
+        "</g>",
 );
 
 @RegisterWebsite

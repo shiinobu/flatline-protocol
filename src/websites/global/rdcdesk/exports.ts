@@ -5,6 +5,7 @@ import {
     RDC_LOGIN_EVENT,
     RDC_MESSAGES,
     RDC_READ_EVENT,
+    RDC_SEED_EVENT,
     checkRdcToken,
     gatedDocCount,
     getRdcProfile,
@@ -12,6 +13,7 @@ import {
     type RdcLoginPayload,
     type RdcLoginResult,
     type RdcReadPayload,
+    type RdcSeedPayload,
 } from "../../../content/global/rdc.js";
 import { getM05RdcState, type M05RdcMirror } from "../../../context/m05/progress.js";
 import { trace } from "../../../helpers/logger.js";
@@ -53,6 +55,15 @@ export const rdcRead = (gate: number): void => {
     trace("RDC", `read mission=${profile.mission} gate=${gate}`);
     const payload: RdcReadPayload = { mission: profile.mission, gate };
     Events.emit(RDC_READ_EVENT, payload);
+};
+
+export const rdcSeed = (seed: number): void => {
+    const profile = getRdcProfile();
+    if (!profile || !Number.isInteger(seed) || seed < 1) return;
+
+    trace("RDC", `seed mission=${profile.mission}`);
+    const payload: RdcSeedPayload = { mission: profile.mission, seed };
+    Events.emit(RDC_SEED_EVENT, payload);
 };
 
 export const rdcState = (): M05RdcMirror => {

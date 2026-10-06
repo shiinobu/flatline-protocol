@@ -42,6 +42,7 @@ import {
     M05_LOG_STATEMENT,
     M05_LOG_STATUS,
     M05_LOG_TICKET,
+    M05_LOG_USB,
 } from "../content/m05/quest-logs.js";
 import {
     M06_LOG_AGENT,
@@ -116,6 +117,7 @@ const MISSION_LOGS: Readonly<Record<BacktraceMissionId, readonly BacktraceLogGro
         { read: M05_LOG_DISMISSED, key: "dismissed" },
         { read: M05_LOG_GRETA, key: "greta" },
         { read: M05_LOG_FOOTHOLD, note: true, optional: true },
+        { read: M05_LOG_USB, note: true, optional: true },
         { read: M05_LOG_SEPARATION, note: true, optional: true },
         { read: M05_LOG_CONTROLS, note: true, optional: true },
         { read: M05_LOG_HOLD, note: true, optional: true },

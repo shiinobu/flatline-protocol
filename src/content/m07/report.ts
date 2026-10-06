@@ -17,7 +17,7 @@ export const M07_REPORT_CHOICE_HINT = M07_CHOICES.join(" / ");
 export const M07_REPORT_ARCHITECT_TERMS: readonly string[] = ["lindqvist"];
 export const M07_REPORT_PATH_TERMS: readonly string[] = [M07_ASHVECTOR_CODENAME, M07_FIREWALL_LABEL, M07_C2_IP];
 export const M07_REPORT_EVIDENCE_FAULT_TERMS: readonly string[] = ["negligen", "疏忽", "过失"];
-export const M07_REPORT_EVIDENCE_PERSON_TERMS: readonly string[] = ["souza"];
+export const M07_REPORT_EVIDENCE_PERSON_TERMS: readonly string[] = ["natnaree"];
 
 const templateFacts = (): Record<string, string> => ({
     parentEntity: M03_PARENT_ENTITY_NAME,

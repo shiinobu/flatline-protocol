@@ -3,11 +3,13 @@ import {
     RDC_ATTACHED_EVENT,
     RDC_LOGIN_EVENT,
     RDC_READ_EVENT,
+    RDC_SEED_EVENT,
     type RdcAttachedPayload,
     type RdcLoginPayload,
     type RdcReadPayload,
+    type RdcSeedPayload,
 } from "../../content/global/rdc.js";
-import { M05_GATES } from "../../content/m05/gates.js";
+import { M05_GATES, type M05Step } from "../../content/m05/gates.js";
 import {
     M05_LOG_ARCHIVE,
     M05_LOG_MEMO,
@@ -15,7 +17,7 @@ import {
     M05_LOG_TICKET,
 } from "../../content/m05/quest-logs.js";
 import { M05_MISSION, M05_RDC_ADVANCE_CODE } from "../../content/m05/rdc.js";
-import type { M05QuestData } from "../../content/m05/state.js";
+import { rdcSeedOf } from "../../content/m05/state.js";
 import { setM05RdcState } from "../../context/m05/progress.js";
 import { unlock } from "../../core/index.js";
 import { trace } from "../../helpers/logger.js";
@@ -25,7 +27,7 @@ import type { M05Quest } from "./types.js";
 import { M05_WORLD } from "./world.js";
 
 interface ReadStep {
-    readonly step: keyof M05QuestData;
+    readonly step: M05Step;
     readonly key: "statement" | "decisionMemo" | "usbTicket";
     readonly log: () => readonly string[];
 }
@@ -49,6 +51,7 @@ const writeMirror = (quest: M05Quest): void => {
         loggedIn: quest.Data.rdcLoggedIn,
         attached: quest.Data.displayAttached,
         docs: docsRead(quest),
+        seed: rdcSeedOf(quest.Data),
     });
 };
 
@@ -59,6 +62,15 @@ const bindLogin = (quest: M05Quest): void => {
         settleM05(quest);
         trace("M05", "probe:rdc-login cold");
         advanceStep(quest, M05_GATES, "rdcLoggedIn", () => writeMirror(quest));
+    });
+};
+
+const bindSeed = (quest: M05Quest): void => {
+    quest.Events.on(RDC_SEED_EVENT, (data: RdcSeedPayload) => {
+        if (data.mission !== M05_MISSION || rdcSeedOf(quest.Data) > 0) return;
+
+        quest.SetData("rdcSeed", data.seed);
+        writeMirror(quest);
     });
 };
 
@@ -92,6 +104,7 @@ const bindRead = (quest: M05Quest): void => {
 
 export const bindM05Rdc = (quest: M05Quest): void => {
     bindLogin(quest);
+    bindSeed(quest);
     bindAttach(quest);
     bindRead(quest);
 };

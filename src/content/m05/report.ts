@@ -16,8 +16,8 @@ export const M05_REPORT_GAP = M05_GAP_TEXT;
 export const M05_REPORT_MOTIVE = "insurance claim classification";
 export const M05_REPORT_ARCHIVE = M05_COLD_CHART_CODENAME;
 
-export const M05_REPORT_DOOR_TERMS: readonly string[] = ["greta", "souza"];
-export const M05_REPORT_DOOR_REJECTED_TERMS: readonly string[] = ["gareth"];
+export const M05_REPORT_DOOR_TERMS: readonly string[] = ["roxanne", "natnaree"];
+export const M05_REPORT_DOOR_REJECTED_TERMS: readonly string[] = ["gideon"];
 export const M05_REPORT_CAUSE_MEDIA_TERMS: readonly string[] = ["usb", "u盘", "优盘", "移动介质", "可移动"];
 export const M05_REPORT_CAUSE_FAULT_TERMS: readonly string[] = [
     "negligen",

@@ -15,6 +15,7 @@ export const M05_STEP_ORDER: readonly M05Step[] = [
     "policyRead",
     "portalLoggedIn",
     "footholdFlagged",
+    "usbFound",
     "separationFound",
     "controlsFound",
     "holdFound",
@@ -29,6 +30,7 @@ export const M05_STEP_ORDER: readonly M05Step[] = [
 
 export const M05_SETTLE_ORDER: readonly M05Step[] = [
     "footholdFlagged",
+    "usbFound",
     "separationFound",
     "controlsFound",
     "holdFound",
@@ -46,7 +48,8 @@ export const M05_GATES: readonly Gate<M05QuestData>[] = [
     { step: "policyRead", requires: ["handoverOpened"] },
     { step: "portalLoggedIn", requires: ["policyRead"] },
     { step: "footholdFlagged", requires: ["portalLoggedIn"] },
-    { step: "separationFound", requires: ["footholdFlagged"] },
+    { step: "usbFound", requires: ["footholdFlagged"] },
+    { step: "separationFound", requires: ["usbFound"] },
     { step: "controlsFound", requires: ["separationFound"] },
     { step: "holdFound", requires: ["controlsFound"] },
     { step: "systemsOpened", requires: ["holdFound"] },

@@ -38,6 +38,7 @@ export interface RdcLoginResult {
 export const RDC_LOGIN_EVENT = "flatline.rdc.login";
 export const RDC_ATTACHED_EVENT = "flatline.rdc.attached";
 export const RDC_READ_EVENT = "flatline.rdc.read";
+export const RDC_SEED_EVENT = "flatline.rdc.seed";
 
 export interface RdcLoginPayload {
     readonly mission: string;
@@ -51,6 +52,11 @@ export interface RdcAttachedPayload {
 export interface RdcReadPayload {
     readonly mission: string;
     readonly gate: number;
+}
+
+export interface RdcSeedPayload {
+    readonly mission: string;
+    readonly seed: number;
 }
 
 export const RDC_MESSAGES = {

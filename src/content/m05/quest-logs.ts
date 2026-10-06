@@ -8,6 +8,7 @@ export const M05_LOG_GRETA = (): readonly string[] => [
     Localization.t(M05_I18N_KEY.LOG_GRETA_2),
 ];
 export const M05_LOG_FOOTHOLD = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_FOOTHOLD_1)];
+export const M05_LOG_USB = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_USB_1)];
 export const M05_LOG_SEPARATION = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_SEPARATION_1)];
 export const M05_LOG_CONTROLS = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_CONTROLS_1)];
 export const M05_LOG_HOLD = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_HOLD_1)];

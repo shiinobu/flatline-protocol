@@ -47,9 +47,9 @@ var TABS = [
     { id: "signins", name: "Sign-ins", min: 0, g: "Monitor", ic: "signins" },
     { id: "directory", name: "Directory", min: 1, g: "People", ic: "directory" },
     { id: "tickets", name: "Tickets", min: 1, g: "People", ic: "tickets" },
-    { id: "config", name: "Config", min: 2, g: "Infrastructure", ic: "config" },
-    { id: "systems", name: "Systems", min: 4, g: "Infrastructure", ic: "systems" },
-    { id: "network", name: "Network", min: 4, g: "Infrastructure", ic: "network" }
+    { id: "config", name: "Config", min: 3, g: "Infrastructure", ic: "config" },
+    { id: "systems", name: "Systems", min: 5, g: "Infrastructure", ic: "systems" },
+    { id: "network", name: "Network", min: 5, g: "Infrastructure", ic: "network" }
   ];
 var PROFILE_TAB = { id: "profile", name: "Profile", g: "Account", ic: "profile" };
 var PAGE_NAME = { overview: "Overview", signins: "Sign-ins", directory: "Directory", tickets: "Tickets", config: "Config", systems: "Systems", network: "Network", profile: "Profile" };
@@ -170,19 +170,26 @@ function drawOverview() {
       ["c-red", "Directory sync", String(days("2026-06-30", TODAY)), "days no heartbeat", svgTrace(heartPath(syncDays, syncFlat, 640, 68), false), "Last healthy sync on 30 June", true],
       ["c-spo", "Overdue reviews", "4", "firewall rules", svgTrace(linePath(over, 640, 68, 4), true), "Past their review date", false]
     ];
+    var outside = days("2026-08-11", TODAY);
     var alarms = [
-      ["bad", "High", "Sign-ins", "Sign-in from an unusual location", "One sign-in has not been acknowledged.", days("2026-08-11", TODAY), "signins", "Open sign-ins"],
-      ["bad", "High", "Directory", "Directory sync is failing", "No successful run since 2026-06-30.", days("2026-06-30", TODAY), "directory", "Open directory"],
-      ["warn", "Medium", "Network", "Firewall policy review is overdue", "Four rules are past their review date.", days("2026-08-21", TODAY), "network", "Open network"]
-    ];
+      { tone: "bad", sev: "High", title: "Sign-in from an unusual location", text: "One sign-in has not been flagged for review. Find the source that belongs to no one here and flag it.", since: outside, tab: "signins", go: "Open sign-ins", done: st.min >= 1, doneText: "Flagged for review" },
+      { tone: "bad", sev: "High", title: "Account used from outside since 11 Aug", text: "Check what this account reported the day before.", since: outside, tab: "tickets", go: "Open tickets", done: st.min >= 2, doneText: "Ticket read", hide: st.min < 1 },
+      { tone: "bad", sev: "High", title: "Directory sync is failing", text: "No successful run since 2026-06-30.", since: days("2026-06-30", TODAY), tab: "directory", go: "Open directory", done: false },
+      { tone: "warn", sev: "Medium", title: "Firewall policy review is overdue", text: "Four rules are past their review date.", since: days("2026-08-21", TODAY), tab: "network", go: "Open network", done: false }
+    ].filter(function (a) { return !a.hide; });
+    var live = alarms.filter(function (a) { return !a.done; });
+    alarms = live.concat(alarms.filter(function (a) { return a.done; }));
     var first = !st.drawn;
     st.drawn = true;
     return head("Overview", "Remote access gateway fw-edge. All times are UTC.") +
       '<div class="tiles ' + (first ? "draw" : "") + '">' + tiles.map(function (c) {
         return '<div class="tile ' + c[0] + (c[6] ? " alarm" : "") + '"><div class="tile-h"><span class="led' + (c[6] ? " blink" : "") + '"></span>' + c[1] + '</div><div class="tile-v"><b>' + c[2] + "</b><span>" + c[3] + "</span></div>" + c[4] + '<div class="tile-f">' + c[5] + "</div></div>";
-      }).join("") + '</div><div class="sec-h"><h2>Needs attention</h2><span class="dim">' + alarms.length + ' open alarms</span></div><div class="att">' +
+      }).join("") + '</div><div class="sec-h"><h2>Needs attention</h2><span class="dim">' + live.length + ' open alarms</span></div><div class="att">' +
       alarms.map(function (a) {
-        return '<div class="att-r"><span><span class="pill ' + a[0] + '">' + a[1] + '</span></span><div><b>' + esc(a[3]) + "</b><small>" + esc(a[4]) + '</small></div><span class="age"><b>' + a[5] + "</b> days open</span><span class=\"go\">" + (tabOpen(a[6]) ? '<button class="btn ghost sm" data-act="tab" data-v="' + a[6] + '">' + a[7] + "</button>" : "") + "</span></div>";
+        var pill = a.done ? '<span class="pill ok">Acknowledged</span>' : '<span class="pill ' + a.tone + '">' + a.sev + "</span>";
+        var age = a.done ? "" : "<b>" + a.since + "</b> days open";
+        var go = !a.done && tabOpen(a.tab) ? '<button class="btn ghost sm" data-act="tab" data-v="' + a.tab + '">' + a.go + "</button>" : "";
+        return '<div class="att-r' + (a.done ? " done" : "") + '"><span>' + pill + "</span><div><b>" + esc(a.title) + "</b><small>" + esc(a.done ? a.doneText : a.text) + '</small></div><span class="age">' + age + '</span><span class="go">' + go + "</span></div>";
       }).join("") + "</div>";
   }
 function siMatch(x) {

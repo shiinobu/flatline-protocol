@@ -10,6 +10,7 @@ export interface M05RdcMirror {
     readonly loggedIn: boolean;
     readonly attached: boolean;
     readonly docs: readonly number[];
+    readonly seed: number;
 }
 
 export const setM05TeamOpen = (open: boolean): void => SharedVariables.set(M05_TEAM_OPEN_KEY, open);
@@ -26,7 +27,7 @@ export const getM05PortalMin = (): number => SharedVariables.get<number>(M05_POR
 
 export const setM05RdcState = (state: M05RdcMirror): void => SharedVariables.set(M05_RDC_STATE_KEY, state);
 export const getM05RdcState = (): M05RdcMirror =>
-    SharedVariables.get<M05RdcMirror>(M05_RDC_STATE_KEY) ?? { loggedIn: false, attached: false, docs: [] };
+    SharedVariables.get<M05RdcMirror>(M05_RDC_STATE_KEY) ?? { loggedIn: false, attached: false, docs: [], seed: 0 };
 
 export const clearM05Progress = (): void => {
     SharedVariables.remove(M05_TEAM_OPEN_KEY);

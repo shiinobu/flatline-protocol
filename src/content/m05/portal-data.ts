@@ -25,7 +25,7 @@ import {
     M05_RDP_PORT,
     M05_SSH_PORT,
 } from "./network.js";
-import { M05_ROLLBACK_CHANGE, M05_SEPARATION_TICKET } from "./portal.js";
+import { M05_ROLLBACK_CHANGE, M05_SEPARATION_TICKET, M05_USB_TICKET } from "./portal.js";
 import { M05_ROLLBACK_KEY, M05_ROLLBACK_PLAINTEXT, M05_SAMPLE_PLAINTEXT } from "./sealed.js";
 
 export const M05_PORTAL_TODAY = "2026-09-27";
@@ -187,7 +187,7 @@ export const M05_PORTAL_TICKETS: readonly PortalTicket[] = [
     { id: "HD-4436", at: "2026-07-08 08:20", by: "kieran.pradipta", title: "Badge reader, loading dock", pr: "P4", stt: "CLOSED", who: "it.ops", notes: ["2026-07-08 10:45 it.ops: Reader reseated."] },
     { id: "HD-4452", at: "2026-07-31 09:30", by: "rafael.bautista", title: "Disable accounts: G. Teoh (contract ended)", pr: "P3", stt: "OPEN", who: "it.ops", notes: ["2026-07-31 09:52 it.ops: Queued behind HD-4417. Manual closure not permitted during the migration window."] },
     { id: "HD-4468", at: "2026-08-03 07:15", by: "hazel.t", title: "VPN token for visiting consultant", pr: "P4", stt: "CLOSED", who: "rafael.bautista", notes: ["2026-08-03 08:00 rafael.bautista: Issued, expires in 14 days."] },
-    { id: "HD-4481", at: "2026-08-10 09:02", by: "rnatnaree", title: "Unknown USB on my desk, whose is it?", pr: "P4", stt: "OPEN", who: "unassigned", notes: ["2026-08-10 09:02 rnatnaree: Found a USB stick on my desk. Label says Q3-2026-SEA. Is this ours? I do not want to plug it into anything without asking.", "(no reply)"] },
+    { id: M05_USB_TICKET, at: "2026-08-10 09:02", by: "rnatnaree", title: "Unknown USB on my desk, whose is it?", pr: "P4", stt: "OPEN", who: "unassigned", key: "usb", notes: ["2026-08-10 09:02 rnatnaree: Found a USB stick on my desk. Label says Q3-2026-SEA. Is this ours? I do not want to plug it into anything without asking.", "(no reply)"] },
     { id: "HD-4490", at: "2026-08-12 13:40", by: "kaelenp", title: "Theatre 2 scheduling display flicker", pr: "P4", stt: "CLOSED", who: "it.ops", notes: ["2026-08-12 15:10 it.ops: Cable swapped."] },
     {
         id: "HD-4496",

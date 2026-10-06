@@ -510,7 +510,8 @@ Localization.registerAll({
         [M05_HS_KEY.NEWS_2_BODY]:
             "核心服务已恢复。我们未发现对患者安全造成任何影响。患者门户和排班系统将分阶段恢复。",
         [M05_HS_KEY.NEWS_3_TITLE]: "审查已完成",
-        [M05_HS_KEY.NEWS_3_BODY]: "我们对此次中断的审查已经完成，纠正措施已落实。我们不会再作进一步评论。",
+        [M05_HS_KEY.NEWS_3_BODY]:
+            "我们对此次中断的审查已经完成，纠正措施已落实。审查包括对遗留管理访问权限及受影响服务账号的核验。我们不会再作进一步评论。",
         [M05_HS_KEY.NEWS_MEDIA_TITLE]: "媒体联系",
         [M05_HS_KEY.NEWS_MEDIA_BODY]: "首席风险官办公室",
 
@@ -538,13 +539,13 @@ Localization.registerAll({
         [M05_HS_KEY.COMP_IMAGING]: "影像归档",
         [M05_HS_KEY.COMP_BILLING]: "计费与理赔",
         [M05_HS_KEY.COMP_REMOTE]: "员工远程访问",
-        [M05_HS_KEY.COMP_OT1]: "手术室 1",
-        [M05_HS_KEY.COMP_OT2]: "手术室 2",
-        [M05_HS_KEY.COMP_OT3]: "手术室 3",
+        [M05_HS_KEY.COMP_OT1]: "手术室 1（OT1）",
+        [M05_HS_KEY.COMP_OT2]: "手术室 2（OT2）",
+        [M05_HS_KEY.COMP_OT3]: "手术室 3（OT3）",
         [M05_HS_KEY.INCIDENT_1_TITLE]: "重大故障——临床系统不可用",
-        [M05_HS_KEY.INCIDENT_1_BODY]: "临床系统不可用，停机流程已启动。",
+        [M05_HS_KEY.INCIDENT_1_BODY]: "临床系统不可用，首先受影响的是手术室 3（OT3）。停机流程已启动。",
         [M05_HS_KEY.INCIDENT_2_TITLE]: "正在恢复",
-        [M05_HS_KEY.INCIDENT_2_BODY]: "各项服务正在分阶段恢复。",
+        [M05_HS_KEY.INCIDENT_2_BODY]: "各项服务正在分阶段恢复。恢复期间已对遗留管理访问权限进行核查。",
         [M05_HS_KEY.INCIDENT_3_TITLE]: "已解决",
         [M05_HS_KEY.INCIDENT_3_BODY]: "所列服务均已正常运行。",
 

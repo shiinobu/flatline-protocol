@@ -17,10 +17,11 @@ export interface M05PortalSeenPayload {
     readonly ref: string;
 }
 
-export type M05PortalKind = "foothold" | "separation" | "controls" | "hold" | "systems";
+export type M05PortalKind = "foothold" | "usb" | "separation" | "controls" | "hold" | "systems";
 
 export const M05_PORTAL_KINDS: readonly M05PortalKind[] = [
     "foothold",
+    "usb",
     "separation",
     "controls",
     "hold",
@@ -28,12 +29,14 @@ export const M05_PORTAL_KINDS: readonly M05PortalKind[] = [
 ];
 
 export const M05_ROLLBACK_CHANGE = "CHG-2606-022";
+export const M05_USB_TICKET = "HD-4481";
 export const M05_SEPARATION_TICKET = "HD-4503";
 export const M05_SAMPLE_TICKET = "HD-4496";
 export const M05_SYSTEMS_REF = "systems";
 
 const PORTAL_REFS: Readonly<Record<M05PortalKind, string>> = {
     foothold: M05_FOOTHOLD_SOURCE_IP,
+    usb: M05_USB_TICKET,
     separation: M05_SEPARATION_TICKET,
     controls: M05_ROLLBACK_CHANGE,
     hold: M05_COLD_CHART_CHANGE,
@@ -48,4 +51,4 @@ export const matchesM05PortalObservation = (kind: string, ref: string): boolean 
 
 export const M05_PORTAL_LOGIN_USER = M05_GRETA_USERNAME;
 export const M05_PORTAL_CONTRACTOR_USER = M05_GARETH_USERNAME;
-export const M05_PORTAL_MIN_STEPS: readonly M05PortalKind[] = ["foothold", "separation", "controls", "hold"];
+export const M05_PORTAL_MIN_STEPS: readonly M05PortalKind[] = ["foothold", "usb", "separation", "controls", "hold"];

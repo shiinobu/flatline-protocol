@@ -7,6 +7,8 @@ export const M05_I18N_KEY = {
 
     MAIL_TIP_SUBJECT: "M05.MAIL.TIP.SUBJECT",
     MAIL_TIP_CONTENT: "M05.MAIL.TIP.CONTENT",
+    MAIL_PORTAL_SUBJECT: "M05.MAIL.PORTAL.SUBJECT",
+    MAIL_PORTAL_CONTENT: "M05.MAIL.PORTAL.CONTENT",
     MAIL_PREMATURE_SUBJECT: "M05.MAIL.PREMATURE.SUBJECT",
     MAIL_PREMATURE_INTRO: "M05.MAIL.PREMATURE.INTRO",
     MAIL_PREMATURE_OUTRO: "M05.MAIL.PREMATURE.OUTRO",
@@ -19,6 +21,7 @@ export const M05_I18N_KEY = {
     MAIL_PREMATURE_HINT_CREDENTIAL: "M05.MAIL.PREMATURE.HINT_CREDENTIAL",
     MAIL_PREMATURE_HINT_PORTAL: "M05.MAIL.PREMATURE.HINT_PORTAL",
     MAIL_PREMATURE_HINT_FOOTHOLD: "M05.MAIL.PREMATURE.HINT_FOOTHOLD",
+    MAIL_PREMATURE_HINT_USB: "M05.MAIL.PREMATURE.HINT_USB",
     MAIL_PREMATURE_HINT_SEPARATION: "M05.MAIL.PREMATURE.HINT_SEPARATION",
     MAIL_PREMATURE_HINT_CONTROLS: "M05.MAIL.PREMATURE.HINT_CONTROLS",
     MAIL_PREMATURE_HINT_HOLD: "M05.MAIL.PREMATURE.HINT_HOLD",
@@ -46,6 +49,7 @@ export const M05_I18N_KEY = {
     LOG_GRETA_1: "M05.LOG.GRETA.1",
     LOG_GRETA_2: "M05.LOG.GRETA.2",
     LOG_FOOTHOLD_1: "M05.LOG.FOOTHOLD.1",
+    LOG_USB_1: "M05.LOG.USB.1",
     LOG_SEPARATION_1: "M05.LOG.SEPARATION.1",
     LOG_CONTROLS_1: "M05.LOG.CONTROLS.1",
     LOG_HOLD_1: "M05.LOG.HOLD.1",
@@ -81,6 +85,15 @@ Localization.registerAll({
             "Find out who they are, and find out who decided they were the cause.",
         ].join("\n"),
 
+        [M05_I18N_KEY.MAIL_PORTAL_SUBJECT]: "you're in",
+        [M05_I18N_KEY.MAIL_PORTAL_CONTENT]: [
+            "You are in, and nobody stopped you. Remember that.",
+            "",
+            "Do not start with the settings. Start with who came through this door, and from where. One of them was never meant to.",
+            "",
+            "The portal lists what it thinks is wrong. Each item is a thread. Pull the first one.",
+        ].join("\n"),
+
         [M05_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "not yet",
         [M05_I18N_KEY.MAIL_PREMATURE_INTRO]:
             "That is a story, not a finding. Every line in it has to come from somewhere you've actually been.",
@@ -102,6 +115,8 @@ Localization.registerAll({
             "The page that lists the team also tells staff where to sign in from outside.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_FOOTHOLD]:
             "A sign-in log shows who came from where. One source belongs to no one here.",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_USB]:
+            "Before the first sign-in, the account's owner asked a question. Nobody answered.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_SEPARATION]: "A person who has left leaves a ticket behind.",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_CONTROLS]:
             "Find what changed the day the sync failed. Some of what the portal holds is sealed; a tool for that is in the open.",
@@ -159,6 +174,8 @@ Localization.registerAll({
         [M05_I18N_KEY.LOG_GRETA_2]: "None of it is a password. It tells you which of the hospital's own records to read again.",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "The first sign-in with her credentials from outside came from 194.36.108.20 on 2026-08-11 at 00:41 UTC.",
+        [M05_I18N_KEY.LOG_USB_1]:
+            "On 2026-08-10 she asked IT whose USB stick it was. Nobody answered. The first outside sign-in came in the early hours of the next day.",
         [M05_I18N_KEY.LOG_SEPARATION_1]:
             "Her account closure was requested on 2026-08-19 and never actioned.",
         [M05_I18N_KEY.LOG_CONTROLS_1]:
@@ -202,14 +219,31 @@ Localization.registerAll({
             "查出她是谁，再查出是谁认定她就是原因。",
         ].join("\n"),
 
+        [M05_I18N_KEY.MAIL_PORTAL_SUBJECT]: "你进来了",
+        [M05_I18N_KEY.MAIL_PORTAL_CONTENT]: [
+            "你进来了，而且没有人拦你。记住这一点。",
+            "",
+            "别从设置开始。先看是谁从这扇门进来的，又是从哪里来的。其中有一个，本来就不该进来。",
+            "",
+            "门户会列出它认为出了问题的地方。每一条都是一根线头。先拉第一条。",
+        ].join("\n"),
+
         [M05_I18N_KEY.MAIL_PREMATURE_SUBJECT]: "还不到时候",
         [M05_I18N_KEY.MAIL_PREMATURE_INTRO]: "那是个故事，不是结论。里面每一行都得来自你真正去过的地方。",
         [M05_I18N_KEY.MAIL_PREMATURE_OUTRO]: "等他们自己的档案这么写了，再发一次。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_VAULT]: "从保险库开始。那张便条已经在你的证据里了。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_TEAM]: "医院会列出负责系统的人。找到那张页面。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_ARCHIVE]: "看谁不见了，而不是看谁还在。页面会改，去找它以前写的是什么。",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_CHANGE]:
+            "列出团队的那张页面也指向一个岗位空缺。空缺有编号，编号背后有记录。",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_IDENTITY]:
+            "把那几个首字母和以前的名字对上。只有一个人担任过如今空缺的那个岗位。",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_CREDENTIAL]: "恢复格式也是封存的。它归在关闭该岗位的那个编号之下。",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_HANDOVER]:
+            "有一张便条是封给担任过那个岗位的人的。Cipher Desk 会为正确的账号名把它打开。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_PORTAL]: "列出团队的那张页面，也告诉员工从外部在哪里登录。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_FOOTHOLD]: "登录日志会显示谁从哪里来。有一个来源不属于这里的任何人。",
+        [M05_I18N_KEY.MAIL_PREMATURE_HINT_USB]: "第一次登录之前，账号的主人问过一个问题。没有人回答。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_SEPARATION]: "一个已经离开的人，会留下一张工单。",
         [M05_I18N_KEY.MAIL_PREMATURE_HINT_CONTROLS]:
             "去找同步失败那天改了什么。门户里有些东西是封存的；解封的工具就在明处。",
@@ -254,8 +288,15 @@ Localization.registerAll({
         [M05_I18N_KEY.OSINT_LYNX_GARETH_2]: "之后再没发过。他的门禁卡在这些事发生之前就已经失效了。",
         [M05_I18N_KEY.OSINT_WHOIS_HOSPITAL_CONTACT]: "PacificCare 医院 — 网络运维",
 
+        [M05_I18N_KEY.LOG_DISMISSED_1]:
+            "Roxanne Anindita Natnaree 在 6 月 30 日担任系统管理员，到 8 月 18 日已经不在了。SA-0826 重新开放的，正是这个岗位。",
+        [M05_I18N_KEY.LOG_GRETA_1]:
+            "她的公开帖子总是绕回 OT3、绕回 0814 那一夜，以及迁移之后依然留存的旧权限。",
+        [M05_I18N_KEY.LOG_GRETA_2]: "这些都不是密码。它们告诉你，该重读医院自己的哪些记录。",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "用她的凭据从外部的第一次登录来自 194.36.108.20，时间是 2026-08-11 00:41 UTC。",
+        [M05_I18N_KEY.LOG_USB_1]:
+            "2026-08-10 她问 IT 那个 U 盘是谁的，没有人回答。第一次外部登录出现在次日凌晨。",
         [M05_I18N_KEY.LOG_SEPARATION_1]: "她的账号注销请求在 2026-08-19 提出，却从未执行。",
         [M05_I18N_KEY.LOG_CONTROLS_1]:
             "2026-06-30 目录同步被暂停，可移动介质管控被降为仅记录。两者都没恢复，这正是注销无法执行的原因。",

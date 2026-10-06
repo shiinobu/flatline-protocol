@@ -9,6 +9,14 @@ export const M05_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M05_TIP_SUBJECT = (): string => Localization.t(M05_I18N_KEY.MAIL_TIP_SUBJECT);
 export const M05_TIP_CONTENT = (): string => Localization.t(M05_I18N_KEY.MAIL_TIP_CONTENT);
 
+export const M05_PORTAL_MAIL_SLOT = "m05.portalLogin";
+
+export const buildM05PortalLoginMail = (): MailDefinition => ({
+    from: M05_DEAD_DROP_EMAIL,
+    subject: Localization.t(M05_I18N_KEY.MAIL_PORTAL_SUBJECT),
+    content: Localization.t(M05_I18N_KEY.MAIL_PORTAL_CONTENT),
+});
+
 export const M05_PREMATURE_MAIL_SLOT = "m05.prematureReply";
 export const M05_PREMATURE_SUBJECT = (): string => Localization.t(M05_I18N_KEY.MAIL_PREMATURE_SUBJECT);
 
@@ -23,6 +31,7 @@ const M05_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M05Step, string>>> = {
     policyRead: M05_I18N_KEY.MAIL_PREMATURE_HINT_CREDENTIAL,
     portalLoggedIn: M05_I18N_KEY.MAIL_PREMATURE_HINT_PORTAL,
     footholdFlagged: M05_I18N_KEY.MAIL_PREMATURE_HINT_FOOTHOLD,
+    usbFound: M05_I18N_KEY.MAIL_PREMATURE_HINT_USB,
     separationFound: M05_I18N_KEY.MAIL_PREMATURE_HINT_SEPARATION,
     controlsFound: M05_I18N_KEY.MAIL_PREMATURE_HINT_CONTROLS,
     holdFound: M05_I18N_KEY.MAIL_PREMATURE_HINT_HOLD,

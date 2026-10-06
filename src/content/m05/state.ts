@@ -9,6 +9,7 @@ export interface M05QuestData {
     readonly policyRead: boolean;
     readonly portalLoggedIn: boolean;
     readonly footholdFlagged: boolean;
+    readonly usbFound: boolean;
     readonly separationFound: boolean;
     readonly controlsFound: boolean;
     readonly holdFound: boolean;
@@ -27,6 +28,7 @@ export interface M05QuestData {
     readonly handoverDecrypted: boolean;
     readonly formatDecrypted: boolean;
     readonly footholdSeen: boolean;
+    readonly usbSeen: boolean;
     readonly separationSeen: boolean;
     readonly controlsSeen: boolean;
     readonly holdSeen: boolean;
@@ -37,6 +39,7 @@ export interface M05QuestData {
     readonly statusNoted: boolean;
     readonly bedsideVisited: boolean;
     readonly networkBuilt: boolean;
+    readonly rdcSeed: number;
 }
 
 export const createM05Data = (): M05QuestData => ({
@@ -50,6 +53,7 @@ export const createM05Data = (): M05QuestData => ({
     policyRead: false,
     portalLoggedIn: false,
     footholdFlagged: false,
+    usbFound: false,
     separationFound: false,
     controlsFound: false,
     holdFound: false,
@@ -68,6 +72,7 @@ export const createM05Data = (): M05QuestData => ({
     handoverDecrypted: false,
     formatDecrypted: false,
     footholdSeen: false,
+    usbSeen: false,
     separationSeen: false,
     controlsSeen: false,
     holdSeen: false,
@@ -78,4 +83,7 @@ export const createM05Data = (): M05QuestData => ({
     statusNoted: false,
     bedsideVisited: false,
     networkBuilt: false,
+    rdcSeed: 0,
 });
+
+export const rdcSeedOf = (data: M05QuestData): number => (data.rdcSeed > 0 ? data.rdcSeed : 0);
