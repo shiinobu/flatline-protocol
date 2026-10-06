@@ -18,6 +18,8 @@ export interface RdcArchiveDoc {
     readonly text: string;
 }
 
+export type RdcNarrative = Readonly<Record<string, string>>;
+
 export interface RdcProfile {
     readonly id: string;
     readonly mission: string;
@@ -27,7 +29,48 @@ export interface RdcProfile {
     readonly advanceCode: number;
     readonly targets: readonly RdcTarget[];
     readonly docs: readonly RdcArchiveDoc[];
+    readonly narrative?: RdcNarrative;
 }
+
+export interface RdcMirror {
+    readonly loggedIn: boolean;
+    readonly attached: boolean;
+    readonly docs: readonly number[];
+    readonly seed: number;
+}
+
+export interface RdcPageTarget {
+    readonly code: number;
+    readonly name: string;
+    readonly tag: string;
+    readonly lanIp: string;
+    readonly os: string;
+    readonly hasDisplay: boolean;
+}
+
+export interface RdcPageProfile {
+    readonly id: string;
+    readonly targets: readonly RdcPageTarget[];
+    readonly docs: readonly RdcArchiveDoc[];
+    readonly narrative?: RdcNarrative;
+}
+
+export const toRdcPageProfile = (profile: RdcProfile | null): RdcPageProfile | null =>
+    profile === null
+        ? null
+        : {
+              id: profile.id,
+              targets: profile.targets.map(({ code, name, tag, lanIp, os, hasDisplay }) => ({
+                  code,
+                  name,
+                  tag,
+                  lanIp,
+                  os,
+                  hasDisplay,
+              })),
+              docs: profile.docs.map(({ name, dir, gate, label, text }) => ({ name, dir, gate, label, text })),
+              narrative: profile.narrative,
+          };
 
 export interface RdcLoginResult {
     readonly ok: boolean;

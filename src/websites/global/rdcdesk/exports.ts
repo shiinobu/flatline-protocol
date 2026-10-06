@@ -10,15 +10,23 @@ import {
     gatedDocCount,
     getRdcProfile,
     type RdcAttachedPayload,
+    toRdcPageProfile,
     type RdcLoginPayload,
     type RdcLoginResult,
+    type RdcMirror,
+    type RdcPageProfile,
     type RdcReadPayload,
     type RdcSeedPayload,
 } from "../../../content/global/rdc.js";
-import { getM05RdcState, type M05RdcMirror } from "../../../context/m05/progress.js";
+import { M07_MISSION } from "../../../content/m07/rdc.js";
+import { getM05RdcState } from "../../../context/m05/progress.js";
+import { getM07RdcState } from "../../../context/m07/progress.js";
 import { trace } from "../../../helpers/logger.js";
 
 const MAX_TOKEN_LENGTH = 512;
+
+const mirrorOf = (mission: string | undefined): RdcMirror =>
+    mission === M07_MISSION ? getM07RdcState() : getM05RdcState();
 
 export const rdcLogin = (hex: string): RdcLoginResult => {
     const profile = getRdcProfile();
@@ -66,8 +74,14 @@ export const rdcSeed = (seed: number): void => {
     Events.emit(RDC_SEED_EVENT, payload);
 };
 
-export const rdcState = (): M05RdcMirror => {
-    const state = getM05RdcState();
+export const rdcState = (): RdcMirror => {
+    const state = mirrorOf(getRdcProfile()?.mission);
     trace("RDC", `state loggedIn=${state.loggedIn} attached=${state.attached} docs=${state.docs.length}`);
     return state;
+};
+
+export const rdcProfile = (): RdcPageProfile | null => {
+    const profile = toRdcPageProfile(getRdcProfile());
+    trace("RDC", `profile served id=${profile?.id ?? "none"} targets=${profile?.targets.length ?? 0}`);
+    return profile;
 };

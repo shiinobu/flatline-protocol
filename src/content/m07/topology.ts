@@ -1,3 +1,4 @@
+import type { LogDay } from "../../components/log-file.js";
 import type { DeviceSpec, RouterSpec } from "../../core/types.js";
 
 import {
@@ -42,9 +43,17 @@ import {
     M07_MANIFEST_CONTENT,
     M07_MANIFEST_FILE_EXTENSION,
     M07_MANIFEST_FILE_NAME,
+    M07_ORDERS_CONTENT,
+    M07_ORDERS_FILE_EXTENSION,
+    M07_ORDERS_FILE_NAME,
+    M07_SURVEY_CONTENT,
+    M07_SURVEY_FILE_EXTENSION,
+    M07_SURVEY_FILE_NAME,
 } from "./server-files.js";
 
 export const M07_RDP_OPEN_FROM_BUILD = false;
+
+const M07_ROOT_LOG_DAY: LogDay = { year: 2026, month: 10, day: 3 };
 
 const buildFirewall = (): DeviceSpec => ({
     kind: "firewall",
@@ -80,11 +89,23 @@ const buildCommandHost = (): DeviceSpec => ({
             version: M07_C2_RDP_VERSION,
         },
     ],
+    rootLogDay: M07_ROOT_LOG_DAY,
+    neutralLogs: [M07_ORDERS_FILE_NAME],
     rootFiles: [
         {
             name: M07_MANIFEST_FILE_NAME,
             extension: M07_MANIFEST_FILE_EXTENSION,
             data: M07_MANIFEST_CONTENT(),
+        },
+        {
+            name: M07_ORDERS_FILE_NAME,
+            extension: M07_ORDERS_FILE_EXTENSION,
+            data: M07_ORDERS_CONTENT(),
+        },
+        {
+            name: M07_SURVEY_FILE_NAME,
+            extension: M07_SURVEY_FILE_EXTENSION,
+            data: M07_SURVEY_CONTENT(),
         },
         {
             name: M07_LEDGER_FILE_NAME,

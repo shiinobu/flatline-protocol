@@ -1,5 +1,7 @@
 import type { DomainSpec } from "../../core/types.js";
 import { M04_ARCHITECT_VPN_IP } from "../global/characters.js";
+import { M01_BROKER_INFRA_DOMAIN, M01_BROKER_INFRA_IP } from "../m01/network.js";
+import { M06_INSURER_PORTAL_HOST, M06_INSURER_PORTAL_IP } from "../m06/network.js";
 
 export { M04_ARCHITECT_VPN_IP };
 
@@ -20,6 +22,7 @@ export const M07_C2_LAN_IP = "192.168.1.4";
 export const M07_C2_SERVICE_USERNAME = "svc-cms";
 export const M07_C2_CMS_VERSION = "LegacyCMS 2.1";
 export const M07_C2_RDP_VERSION = "FreeRDP 5.2.1";
+export const M07_INDEX_TAG = "index-01";
 
 export const M07_NULLCROWN_IP = "185.220.101.42";
 export const M07_NULLCROWN_LAN_IP = "192.168.1.5";
@@ -42,6 +45,17 @@ export const M07_HTTPS_PORT = 443;
 export const M07_RDP_PORT = 3389;
 
 export const M07_LEGACY_CMS_PATH = "/legacy-cms/";
+
+export const M07_PORTAL_HOST = M06_INSURER_PORTAL_HOST;
+export const M07_PORTAL_IP = M06_INSURER_PORTAL_IP;
+
+export const M07_BROKER_INFRA_DOMAIN = M01_BROKER_INFRA_DOMAIN;
+export const M07_BROKER_INFRA_IP = M01_BROKER_INFRA_IP;
+
+export const M07_CHAIR_TAG = "NMA-CL-01";
+export const M07_CHAIR_LAN_IP = "192.168.1.40";
+export const M07_CLAIMS_TAG = "claims-02";
+export const M07_CLAIMS_LAN_IP = "192.168.1.42";
 
 export const M07_ROUTER_IPS: readonly string[] = [M07_ROUTER_IP];
 

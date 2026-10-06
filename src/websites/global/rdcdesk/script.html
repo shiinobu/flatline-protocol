@@ -45,15 +45,92 @@ function rng(seed) {
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-var TARGETS = [
-  { id: "cold", code: 1, name: "Cold-Chart", tag: "arc-ir-01", lan: "192.168.1.4", os: "Debian 12" },
-  { id: "bed", code: 2, name: "Bedside-17", tag: "PC-IT-017", lan: "192.168.1.5", os: "Windows 11" },
-  { id: "img", code: 3, name: "Lead-Apron", tag: "arc-img-02", lan: "192.168.1.6", os: "Ubuntu 22.04" },
-  { id: "bill", code: 4, name: "Pay-Station", tag: "bill-01", lan: "192.168.1.7", os: "Ubuntu 22.04" }
-];
+var TARGETS = [];
+var DOCS = [];
+var NARR_DEFAULT = {
+  user: "rnatnaree",
+  stampDay: "2026-09-27",
+  date: "Sun Sep 27 14:07:31 UTC 2026",
+  whoSince: "2026-09-27 14:03",
+  unameTail: " 6.1.0-23-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.99-1 x86_64 GNU/Linux",
+  deadSince: "2026-08-14 02:57",
+  liveSince: "2026-09-27 14:03",
+  certExpired: "2026-08-31",
+  certValid: "2027-03-14",
+  relayDomain: "ir.pacificcare-health.org",
+  relayAt: "Aug  9 06:20",
+  otherTag: "arc-img-02",
+  sealed: "Volume sealed (legal hold L-2608-03)",
+  sealedDir: "/var/ir",
+  sealedOwner: "svc-ir",
+  sealedAt: "Aug 14 05:21",
+  osRelease: 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\n',
+  hosts: "127.0.0.1 localhost\n{lan} {tag}\n192.168.1.3 fw-edge\n",
+  passwdExtra: "svc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Rafael Surya Bautista:/home/rbautista:/bin/bash\n",
+  agentConfAt: "Aug 14 02:58",
+  profileHeader: "# agent 4.2.1 profile, written 2026-08-14 02:12",
+  profileAt: "Aug 14 02:12",
+  deadStarted: "2026-08-14 02:57:44",
+  deadAt: "Aug 14 02:57",
+  liveStarted: "2026-09-27 14:03:02",
+  liveAt: "Sep 27 14:03",
+  agentLog: "2026-08-13 03:00:02 agent: console ready (agent 4.2.1)\n2026-08-13 07:55:10 display: attach by sibrahim (source={blk}, relay={relayExpired})\n2026-08-13 18:02:41 display: detach by sibrahim\n2026-08-14 02:57:41 display: attach requested by it.ops\n2026-08-14 02:57:44 display: lease acquired, pid {deadPid}\n2026-08-14 02:58:03 display: containment IR-3389 raised, link dropped\n2026-08-14 02:58:03 display: lease not released, owner process died\n2026-08-14 02:58:05 display: stopped\n",
+  agentLogAt: "Sep 27 14:07",
+  sessionLog1: "2026-08-13 07:55:10 attach user=sibrahim source={blk} relay={relayExpired} framing={fo} mode={odw}x{odh} bpp={odbpp} order={odorder} rate={odrate}\n2026-08-13 18:02:41 detach user=sibrahim\n",
+  kernLog: "2026-08-09 06:00:11 {tag} kernel: Linux version 6.1.0-23-amd64\n2026-08-09 06:00:13 {tag} kernel: {blk}: registered, vesafb\n2026-08-09 06:00:13 {tag} kernel: {act}: registered, i915drmfb\n2026-08-09 06:00:14 {tag} kernel: {cur}: cursor plane registered\n2026-08-14 02:58:03 {tag} kernel: nf_conntrack: containment rule IR-3389 loaded\n2026-08-15 03:02:11 {tag} kernel: {act}: mode change {odw}x{odh} -> {trw}x{trh} ({trbpp}bpp, {trpix}, {trrate} Hz)\n2026-08-15 03:02:11 {tag} kernel: {blk}: dpms off\n2026-09-01 00:00:02 {tag} kernel: random: crng reseeded\n",
+  xorgAt: "Sep 27 06:00",
+  syslog: "Sep 27 06:00:01 {tag} systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 {tag} CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 {tag} CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 {tag} systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 {tag} agent-console[{livePid}]: console session opened by Remote Desktop Connection relay\nSep 27 14:03:02 {tag} agent-console[{livePid}]: display lease check: held by {deadPid}\n",
+  syslogAt: "Sep 27 14:03",
+  authLog: "Jul  9 03:20:11 {tag} sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 {tag} sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 {tag} sshd[2301]: Accepted publickey for rbautista from 10.8.0.14 port 51422\nAug 14 02:57:40 {tag} sudo: rbautista : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 {tag} sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 {tag} sshd[2480]: Accepted publickey for rbautista from 10.8.0.14 port 51500\nAug 15 11:04:02 {tag} sshd[2480]: Received disconnect from 10.8.0.14\n",
+  authLogAt: "Aug 15 11:04",
+  adminUser: "rbautista",
+  todo: "- {tag}: display stopped by IR-3389, the lease is still held. Find out who owns the pid before clearing it\n- profile.bak is from before the mode change on the 15th, do not reuse it as is\n- ask Legal when the hold on the archive can be lifted\n",
+  todoAt: "Aug 15 11:03",
+  history: "cd /etc/agent\nless profile.bak\nsudo systemctl stop agent-display\nls /run/agent\nexit\n",
+  historyAt: "Aug 15 11:04",
+  decoyAgentLog: "2026-08-15 11:03:12 agent: display module removed by rbautista (CHG-2608-016)\n2026-08-15 11:03:12 agent: console ready\n",
+  decoyAt: "Aug 15 11:03",
+  decoyTodo: "- retire the vendor agent on bill-01 and arc-img-02 (done)\n- check the new firewall rules next week\n- ask Legal when the hold on the archive can be lifted\n",
+  decoyHistory: "cd /opt/vendorcare\nsudo systemctl disable --now vendorcare-agent\nsudo vi /etc/vendorcare/gateway.conf\nexit\n",
+  decoyHistoryAt: "Aug 15 11:04",
+  browserTitle: "Clinical Incident Archive",
+  browserPill: "Legal hold L-2608-03, view only",
+  browserUrl: "https://arc-ir-01.pacificcare-health.org/ir/archive",
+  archiveHeading: "Archive"
+};
+var N = Object.assign({}, NARR_DEFAULT);
+var PROF_LOADED = false;
+function homeDir() { return "/home/" + N.user; }
+function dirList() {
+    var out = [], home = homeDir();
+    DOCS.forEach(function (d) { if (d.dir !== home && out.indexOf(d.dir) < 0) out.push(d.dir); });
+    out.push(home);
+    return out;
+  }
+function tpl(t, v) { return String(t).replace(/\{(\w+)\}/g, function (m, k) { return v[k] === undefined ? m : String(v[k]); }); }
+function fsVars(R) {
+    var tr = R.truth, od = R.old, t0 = targetById("cold");
+    return { tag: t0.tag, lan: t0.lan, blk: R.role.blank, act: R.role.active, cur: R.role.cursor, relayExpired: R.relayOf.expired, deadPid: R.deadPid, livePid: R.livePid, fo: R.fo, odw: od.w, odh: od.h, odbpp: od.bpp, odorder: od.order, odrate: od.rate, trw: tr.w, trh: tr.h, trbpp: tr.bpp, trpix: pixFmt(tr), trrate: tr.rate };
+  }
+function applyProfile(p) {
+    if (!p || !p.targets) return;
+    TARGETS = p.targets.map(function (t) { return { id: t.hasDisplay ? "cold" : "h" + t.code, code: t.code, name: t.name, tag: t.tag, lan: t.lanIp, os: t.os }; });
+    DOCS = (p.docs || []).map(function (d) { var o = { name: d.name, dir: d.dir, gate: d.gate, text: d.text }; if (d.label) o.key = d.label; return o; });
+    N = Object.assign({}, NARR_DEFAULT, p.narrative || {});
+    SEALED = N.sealed;
+    PROF_LOADED = true;
+    rebuildDesk();
+  }
+function ensureProfile() {
+    var p = null;
+    if (PROF_LOADED) return;
+    try { p = typeof flatlineRdcProfile === "function" ? flatlineRdcProfile() : null; } catch (e) { p = null; }
+    applyProfile(p);
+  }
 function targetById(id) { return TARGETS.filter(function (t) { return t.id === id; })[0]; }
 function tokenCheck(raw) {
   var r = null, host;
+  ensureProfile();
   try { r = typeof flatlineRdcLogin === "function" ? flatlineRdcLogin(String(raw)) : null; } catch (e) { r = null; }
   if (!r) return { msg: "Token unreadable." };
   if (!r.ok) return { msg: r.msg };
@@ -169,13 +246,13 @@ function stamp(P) {
     var s;
     P.clock = (P.clock || 0) + 7;
     s = 31 + P.clock;
-    return "2026-09-27 14:" + pad(7 + Math.floor(s / 60)) + ":" + pad(s % 60);
+    return N.stampDay + " 14:" + pad(7 + Math.floor(s / 60)) + ":" + pad(s % 60);
   }
 function applyLogs(P, c, sym, R) {
     var out = [];
     if (sym.first === "black") out.push("capture: " + c.source + " returned no frame (dpms off)");
     else if (sym.first === "cursor") out.push("capture: " + c.source + " exposes the cursor plane only");
-    else if (sym.first === "frozen") out.push(R.relays[c.relay] === "expired" ? "link: " + c.relay + " certificate expired 2026-08-31, session stalled" : "link: " + c.relay + " rejected arc-ir-01 (not in allow list)");
+    else if (sym.first === "frozen") out.push(R.relays[c.relay] === "expired" ? "link: " + c.relay + " certificate expired " + N.certExpired + ", session stalled" : "link: " + c.relay + " rejected " + targetById("cold").tag + " (not in allow list)");
     else if (sym.first === "noise") out.push("link: peer rejected framing " + c.framing + ", retrying");
     else if (sym.first === "format") {
       sym.fmt.forEach(function (k) {
@@ -208,42 +285,42 @@ function buildDecoyFs(hostId) {
     file("/etc/hostname", h.tag + "\n");
     file("/etc/agent/agent.conf", "[agent]\nhost = " + h.tag + "\nconsole = enabled\ndisplay = stopped\ndisplay_module = absent\n");
     file("/root/README", "Agent console\n\nThe display module is not installed on this host.\n");
-    file("/var/log/agent/agent.log", "2026-08-15 11:03:12 agent: display module removed by rbautista (CHG-2608-016)\n2026-08-15 11:03:12 agent: console ready\n", "root", "Aug 15 11:03");
-    file("/home/rbautista/todo.txt", "- retire the vendor agent on bill-01 and arc-img-02 (done)\n- check the new firewall rules next week\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
-    file("/home/rbautista/.bash_history", "cd /opt/vendorcare\nsudo systemctl disable --now vendorcare-agent\nsudo vi /etc/vendorcare/gateway.conf\nexit\n", "rbautista", "Aug 15 11:04");
+    file("/var/log/agent/agent.log", N.decoyAgentLog, "root", N.decoyAt);
+    file("/home/" + N.adminUser + "/todo.txt", N.decoyTodo, N.adminUser, N.decoyAt);
+    file("/home/" + N.adminUser + "/.bash_history", N.decoyHistory, N.adminUser, N.decoyHistoryAt);
     ensureDirs(T);
     return T;
   }
 function buildColdFs() {
-    var T = {}, R = getRun(), tr = R.truth, od = R.old, act = R.role.active, blk = R.role.blank, cur = R.role.cursor;
+    var T = {}, R = getRun(), tr = R.truth, od = R.old, act = R.role.active, blk = R.role.blank, cur = R.role.cursor, V = fsVars(R);
     function dir(p, own, at, mod, extra) { T[p] = { t: "d", own: own || "root", at: at || "Aug  9 06:00", mod: mod || "drwxr-xr-x", c: "" }; if (extra) T[p].sealed = true; }
     function file(p, c, own, at) { T[p] = { t: "f", own: own || "root", at: at || "Aug  9 06:00", mod: "-rw-r--r--", c: c }; }
-    file("/etc/hostname", "arc-ir-01\n");
-    file("/etc/os-release", 'PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\n');
-    file("/etc/hosts", "127.0.0.1 localhost\n192.168.1.4 arc-ir-01\n192.168.1.3 fw-edge\n");
-    file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\nsvc-ir:x:1002:1002:IR archive service:/var/ir:/usr/sbin/nologin\nrwong:x:1001:1001:Rafael Surya Bautista:/home/rbautista:/bin/bash\n");
-    file("/etc/agent/agent.conf", "[agent]\nhost = arc-ir-01\nconsole = enabled\ndisplay = stopped\ndisplay_module = installed\nprofile = /etc/agent/profile.bak\nlease_dir = /run/agent\nlog = /var/log/agent/agent.log\n", "root", "Aug 14 02:58");
+    file("/etc/hostname", V.tag + "\n");
+    file("/etc/os-release", N.osRelease);
+    file("/etc/hosts", tpl(N.hosts, V));
+    file("/etc/passwd", "root:x:0:0:root:/root:/bin/bash\nagent:x:996:996:Endpoint agent:/var/lib/agent:/usr/sbin/nologin\n" + N.passwdExtra);
+    file("/etc/agent/agent.conf", "[agent]\nhost = " + V.tag + "\nconsole = enabled\ndisplay = stopped\ndisplay_module = installed\nprofile = /etc/agent/profile.bak\nlease_dir = /run/agent\nlog = /var/log/agent/agent.log\n", "root", N.agentConfAt);
     file("/etc/agent/policy.conf", "[policy]\ndisplay.attach = operator\ndisplay.record = on\ndisplay.read_only = true\nlog.retention_days = 60\n");
-    file("/etc/agent/profile.bak", "# agent 4.2.1 profile, written 2026-08-14 02:12\n[display]\ncapture = " + blk + "\nrelay = " + R.relayOf.expired + "\nframing = " + R.fo + "\nwidth = " + od.w + "\nheight = " + od.h + "\nbpp = " + od.bpp + "\norder = " + od.order + "\nrate = " + od.rate + "\n", "root", "Aug 14 02:12");
+    file("/etc/agent/profile.bak", N.profileHeader + "\n[display]\ncapture = " + blk + "\nrelay = " + R.relayOf.expired + "\nframing = " + R.fo + "\nwidth = " + od.w + "\nheight = " + od.h + "\nbpp = " + od.bpp + "\norder = " + od.order + "\nrate = " + od.rate + "\n", "root", N.profileAt);
     RELAYS.forEach(function (n) {
       var role = R.relays[n], fr = role === "valid" ? R.fv : role === "expired" ? R.fx : R.fw;
-      file("/etc/agent/relays.d/" + n + ".conf", "[relay]\nname = " + n + "\nhost = " + n + ".ir.pacificcare-health.org\nallow = " + (role === "wrong" ? "arc-img-02" : "arc-ir-01") + "\ncert_not_after = " + (role === "expired" ? "2026-08-31" : "2027-03-14") + "\naccept_framing = " + fr + "\n", "root", "Aug  9 06:20");
+      file("/etc/agent/relays.d/" + n + ".conf", "[relay]\nname = " + n + "\nhost = " + n + "." + N.relayDomain + "\nallow = " + (role === "wrong" ? N.otherTag : V.tag) + "\ncert_not_after = " + (role === "expired" ? N.certExpired : N.certValid) + "\naccept_framing = " + fr + "\n", "root", N.relayAt);
     });
     file("/usr/share/doc/agent/README", "agent 4.2.1, endpoint console and display agent\n\nThe console and the display are separate. The console runs as a system\nservice. The display is attached on request through a signal chain:\n\n  lease    the display lock must be free\n  source   capture head to read frames from\n  link     relay and framing used to carry the frames\n  format   how the frames are laid out (see format.txt)\n  sync     frame timing, calibrated last\n\nHeads are listed under /sys/class/graphics, relays under /etc/agent/relays.d,\nand the display's own history is kept in /var/log.\n\nWhen the picture is wrong, read troubleshooting.txt and the agent log.\n");
     file("/usr/share/doc/agent/format.txt", "Framebuffer format\n\n  width, height   visible size in pixels\n  bpp             bits per pixel: 16, 24 or 32\n  order           channel order of one pixel: rgb or bgr\n  stride          bytes per row: width x (bpp / 8), rounded up to the\n                  next multiple of 64\n\nThe kernel does not report the stride. Compute it.\n");
     file("/usr/share/doc/agent/troubleshooting.txt", "Symptoms and the stage that causes them\n\n  black screen .................. the capture head has no frame to give\n  only a pointer ................ the head is the cursor plane\n  frozen picture ................ the relay is not talking to us\n  snow .......................... relay and agent disagree on framing\n  slanted picture ............... row length (stride) is wrong\n  swapped colours ............... channel order is wrong\n  banded colours ................ bpp is lower than the framebuffer\n  smeared colour edges .......... bpp is 24 against 32, or the reverse\n  repeated or squeezed columns .. width is wrong\n  repeated or stretched rows .... height is wrong\n  rolling picture ............... sync is stale, or the rate is wrong\n\nRemote Desktop Connection shows the earliest stage that fails. Fix that one first.\nChanging an earlier stage makes the calibration stale.\n");
     file("/usr/share/doc/agent/signal.txt", "signal show                  print the current profile\nsignal sources               list capture heads\nsignal relays                list relays\nsignal set <key> <value>     keys: source relay framing width height\n                             bpp order stride rate\nsignal apply                 push the profile and show it in Remote Desktop Connection\nsignal calibrate             lock frame timing to the current chain\nsignal reset                 go back to profile.bak\n");
-    file("/run/agent/display.lock", "pid=" + R.deadPid + "\ncmd=agent-display\nstarted=2026-08-14 02:57:44\n", "root", "Aug 14 02:57");
-    file("/run/agent/session.lock", "pid=" + R.livePid + "\ncmd=agent-console\nstarted=2026-09-27 14:03:02\n", "root", "Sep 27 14:03");
+    file("/run/agent/display.lock", "pid=" + R.deadPid + "\ncmd=agent-display\nstarted=" + N.deadStarted + "\n", "root", N.deadAt);
+    file("/run/agent/session.lock", "pid=" + R.livePid + "\ncmd=agent-console\nstarted=" + N.liveStarted + "\n", "root", N.liveAt);
     file("/var/log/agent/agent.log", function () {
-      return "2026-08-13 03:00:02 agent: console ready (agent 4.2.1)\n2026-08-13 07:55:10 display: attach by sibrahim (source=" + blk + ", relay=" + R.relayOf.expired + ")\n2026-08-13 18:02:41 display: detach by sibrahim\n2026-08-14 02:57:41 display: attach requested by it.ops\n2026-08-14 02:57:44 display: lease acquired, pid " + R.deadPid + "\n2026-08-14 02:58:03 display: containment IR-3389 raised, link dropped\n2026-08-14 02:58:03 display: lease not released, owner process died\n2026-08-14 02:58:05 display: stopped\n" + PZ().log.join("\n") + (PZ().log.length ? "\n" : "");
-    }, "root", "Sep 27 14:07");
+      return tpl(N.agentLog, V) + PZ().log.join("\n") + (PZ().log.length ? "\n" : "");
+    }, "root", N.agentLogAt);
     file("/var/log/agent/session.log", "2026-09-01 00:00:03 log rotated\n", "root", "Sep  1 00:00");
-    file("/var/log/agent/session.log.1", "2026-08-13 07:55:10 attach user=sibrahim source=" + blk + " relay=" + R.relayOf.expired + " framing=" + R.fo + " mode=" + od.w + "x" + od.h + " bpp=" + od.bpp + " order=" + od.order + " rate=" + od.rate + "\n2026-08-13 18:02:41 detach user=sibrahim\n", "root", "Aug 31 23:59");
-    file("/var/log/kern.log", "2026-08-09 06:00:11 arc-ir-01 kernel: Linux version 6.1.0-23-amd64\n2026-08-09 06:00:13 arc-ir-01 kernel: " + blk + ": registered, vesafb\n2026-08-09 06:00:13 arc-ir-01 kernel: " + act + ": registered, i915drmfb\n2026-08-09 06:00:14 arc-ir-01 kernel: " + cur + ": cursor plane registered\n2026-08-14 02:58:03 arc-ir-01 kernel: nf_conntrack: containment rule IR-3389 loaded\n2026-08-15 03:02:11 arc-ir-01 kernel: " + act + ": mode change " + od.w + "x" + od.h + " -> " + tr.w + "x" + tr.h + " (" + tr.bpp + "bpp, " + pixFmt(tr) + ", " + tr.rate + " Hz)\n2026-08-15 03:02:11 arc-ir-01 kernel: " + blk + ": dpms off\n2026-09-01 00:00:02 arc-ir-01 kernel: random: crng reseeded\n", "root", "Sep  1 00:00");
-    file("/var/log/Xorg.0.log", "[    12.401] (II) Module drm: vendor=\"X.Org Foundation\"\n[    12.552] (II) " + act + ": depth " + tr.bpp + ", " + pixFmt(tr) + ", " + tr.w + "x" + tr.h + "@" + tr.rate + "\n[    12.553] (II) " + blk + ": no output connected\n[    12.560] (WW) " + cur + ": cursor plane only, skipping\n[    12.610] (==) Using config directory: \"/etc/X11/xorg.conf.d\"\n", "root", "Sep 27 06:00");
-    file("/var/log/syslog", "Sep 27 06:00:01 arc-ir-01 systemd[1]: Started Daily apt download activities.\nSep 27 06:00:03 arc-ir-01 CRON[611]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 07:00:01 arc-ir-01 CRON[702]: (root) CMD (/usr/lib/agent/agent-sync --quiet)\nSep 27 10:12:44 arc-ir-01 systemd-timesyncd[301]: Synchronized to time server time.pacificcare-health.org\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: console session opened by Remote Desktop Connection relay\nSep 27 14:03:02 arc-ir-01 agent-console[" + R.livePid + "]: display lease check: held by " + R.deadPid + "\n", "root", "Sep 27 14:03");
-    file("/var/log/auth.log", "Jul  9 03:20:11 arc-ir-01 sshd[1820]: Failed password for invalid user admin from 45.83.64.19 port 40122\nJul  9 03:20:19 arc-ir-01 sshd[1822]: Failed password for invalid user administrator from 185.234.72.5 port 41200\nAug 14 02:57:09 arc-ir-01 sshd[2301]: Accepted publickey for rbautista from 10.8.0.14 port 51422\nAug 14 02:57:40 arc-ir-01 sudo: rbautista : TTY=pts/0 ; COMMAND=/usr/bin/systemctl stop agent-display\nAug 14 02:58:10 arc-ir-01 sshd[2301]: Received disconnect from 10.8.0.14\nAug 15 11:02:50 arc-ir-01 sshd[2480]: Accepted publickey for rbautista from 10.8.0.14 port 51500\nAug 15 11:04:02 arc-ir-01 sshd[2480]: Received disconnect from 10.8.0.14\n", "root", "Aug 15 11:04");
+    file("/var/log/agent/session.log.1", tpl(N.sessionLog1, V), "root", "Aug 31 23:59");
+    file("/var/log/kern.log", tpl(N.kernLog, V), "root", "Sep  1 00:00");
+    file("/var/log/Xorg.0.log", "[    12.401] (II) Module drm: vendor=\"X.Org Foundation\"\n[    12.552] (II) " + act + ": depth " + tr.bpp + ", " + pixFmt(tr) + ", " + tr.w + "x" + tr.h + "@" + tr.rate + "\n[    12.553] (II) " + blk + ": no output connected\n[    12.560] (WW) " + cur + ": cursor plane only, skipping\n[    12.610] (==) Using config directory: \"/etc/X11/xorg.conf.d\"\n", "root", N.xorgAt);
+    file("/var/log/syslog", tpl(N.syslog, V), "root", N.syslogAt);
+    file("/var/log/auth.log", tpl(N.authLog, V), "root", N.authLogAt);
     HEADS.forEach(function (h) {
       var role = R.heads[h], base = "/sys/class/graphics/" + h + "/", md = role === "active" ? tr : od;
       if (role === "cursor") {
@@ -262,10 +339,10 @@ function buildColdFs() {
         file(base + "modes", "U:" + md.w + "x" + md.h + "p-" + md.rate + "\n");
       }
     });
-    file("/root/README", "Agent console for arc-ir-01\n\nType help for the commands. The console reads the host; the display is\nchanged only through the agent and signal commands.\n", "root", "Sep 27 14:03");
-    file("/home/rbautista/todo.txt", "- arc-ir-01: display stopped by IR-3389, the lease is still held. Find out who owns the pid before clearing it\n- profile.bak is from before the mode change on the 15th, do not reuse it as is\n- ask Legal when the hold on the archive can be lifted\n", "rbautista", "Aug 15 11:03");
-    file("/home/rbautista/.bash_history", "cd /etc/agent\nless profile.bak\nsudo systemctl stop agent-display\nls /run/agent\nexit\n", "rbautista", "Aug 15 11:04");
-    dir("/var/ir", "svc-ir", "Aug 14 05:21", "drwx------", true);
+    file("/root/README", "Agent console for " + V.tag + "\n\nType help for the commands. The console reads the host; the display is\nchanged only through the agent and signal commands.\n", "root", N.liveAt);
+    file("/home/" + N.adminUser + "/todo.txt", tpl(N.todo, V), N.adminUser, N.todoAt);
+    file("/home/" + N.adminUser + "/.bash_history", N.history, N.adminUser, N.historyAt);
+    dir(N.sealedDir, N.sealedOwner, N.sealedAt, "drwx------", true);
     dir("/tmp");
     ensureDirs(T);
     return T;
@@ -324,7 +401,7 @@ function plain(s) {
 function promptHtml(cwd) { return '<span class="p-a">(agent)</span><span class="p-b">-[</span><span class="p-c">' + esc(cwd) + '</span><span class="p-b">]</span>'; }
 var DA = "\u0001";
 var DB = "\u0002";
-var SEALED = "Volume sealed (legal hold L-2608-03)";
+var SEALED = NARR_DEFAULT.sealed;
 var CMDS = ["agent", "cat", "cd", "clear", "cut", "date", "echo", "exit", "find", "grep", "head", "help", "history", "hostname", "id", "less", "ls", "man", "ps", "pwd", "signal", "sort", "stat", "tail", "uname", "uniq", "uptime", "wc", "who", "whoami"];
 function lsName(k, n) { return n.t === "d" ? DA + bname(k) + DB : bname(k); }
 function lsLine(k, n, long, label) {
@@ -578,7 +655,7 @@ function diagPlain() {
 function leaseCmd(args) {
     var P = PZ(), R = getRun(), pid;
     if (args[0] === "list") {
-      return "lease           pid    command          since\n" + (P.lease ? "" : "display.lock    " + R.deadPid + "   agent-display    2026-08-14 02:57\n") + "session.lock    " + R.livePid + "   agent-console    2026-09-27 14:03";
+      return "lease           pid    command          since\n" + (P.lease ? "" : "display.lock    " + R.deadPid + "   agent-display    " + N.deadSince + "\n") + "session.lock    " + R.livePid + "   agent-console    " + N.liveSince;
     }
     if (args[0] === "clear") {
       pid = +args[1];
@@ -664,7 +741,7 @@ function attachCmd() {
     sym = curSym();
     if (sym.first !== "clear") return "attach refused: signal not clean. Look at the Remote Desktop Connection window.";
     P.attached = true;
-    return "display: lease acquired\ndisplay: attaching arc-ir-01\ndisplay: attached";
+    return "display: lease acquired\ndisplay: attaching " + targetById("cold").tag + "\ndisplay: attached";
   }
 function runStage(c, args, input) {
     var piped = input !== undefined, isCold = st.mon.host === "cold";
@@ -687,10 +764,10 @@ function runStage(c, args, input) {
     if (c === "whoami") return "root";
     if (c === "id") return "uid=0(root) gid=0(root) groups=0(root)";
     if (c === "hostname") return targetById(st.mon.host).tag;
-    if (c === "uname") return "Linux " + targetById(st.mon.host).tag + " 6.1.0-23-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.99-1 x86_64 GNU/Linux";
+    if (c === "uname") return "Linux " + targetById(st.mon.host).tag + N.unameTail;
     if (c === "uptime") return " 14:07:31 up 49 days,  8:04,  1 user,  load average: 0.04, 0.06, 0.05";
-    if (c === "date") return "Sun Sep 27 14:07:31 UTC 2026";
-    if (c === "who") return "root     pts/0        2026-09-27 14:03 (relay)";
+    if (c === "date") return N.date;
+    if (c === "who") return "root     pts/0        " + N.whoSince + " (relay)";
     if (c === "man") return manText(args[0], isCold);
     if (c === "agent") return isCold ? agentCmd(args) : "agent: the display module is not installed on this host";
     if (c === "signal") return isCold ? signalCmd(args) : "signal: the display module is not installed on this host";
@@ -709,15 +786,6 @@ function execLine(line) {
     }
     return text;
   }
-var DOCS = [
-    { name: "decision_memo.txt", dir: "/ir/2026-08-14", gate: 2, key: "Decision memo", text: ["CONFIDENTIAL — OFFICE OF THE CHIEF RISK OFFICER", "Incident CASE-A7X-0417 — decision record", "Prepared by Vivien Orchid, CRO", "", "Timeline (UTC, 2026-08-14):", "  02:41  systems locked", "  02:55  theatre scheduling and records offline", "  03:20  crisis team convened", "  03:58  insurer notified", "  04:35  appointed negotiator engaged (Brightwater Resolutions)", "  05:12  Clinical incident logged, Operating Theatre 3. Escalated to Legal.", "         Excluded from external statement.", "  06:10  demand confirmed at $2,850,000", "  07:30  insurer agreed to settle", "  08:40  CRO authorised payment", "  09:02  payment released", "", "Decision: the incident is to be classified as employee negligence.", "Rationale: a classification of external attack leaves the policy's", "cyber endorsement open to dispute. A negligence classification keeps", "the claim inside cover and closes the matter within the quarter.", "", "Attachment A (finding draft v1) is superseded. Do not circulate it."].join("\n") },
-    { name: "finding_draft_v1.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — DRAFT v1 — 2026-08-15", "Incident CASE-A7X-0417", "", "Probable cause: a third-party remote support tool with a standing", "connection into the records network.", "Classification: external attack.", "", "Note: no evidence of staff action has been identified at this time.", "", "STATUS: SUPERSEDED. See the decision record."].join("\n") },
-    { name: "finding_final.txt", dir: "/ir/2026-08-14", gate: 0, text: ["INCIDENT FINDING — FINAL — 2026-08-19", "Incident CASE-A7X-0417", "", "Cause: unauthorised USB media introduced to PC-IT-017 by R. Natnaree,", "contrary to IT policy 7.2.", "Classification: employee negligence. Retained risk.", "", "Personnel: R. Natnaree separated from the organisation 2026-08-19.", "Investigation closed 2026-08-24."].join("\n") },
-    { name: "acknowledgement_rnatnaree.txt", dir: "/ir/2026-08-14", gate: 1, key: "Acknowledgement", text: ["ACKNOWLEDGEMENT — 2026-08-18", "", "I acknowledge that on 2026-08-11 I connected personal USB media to", "PC-IT-017, contrary to IT policy 7.2, and that this is recorded as the", "cause of incident CASE-A7X-0417.", "", "Signed: R. Natnaree", "Drafted by: Office of the Chief Risk Officer"].join("\n") },
-    { name: "usb_ticket_PC-IT-017.txt", dir: "/ir/tickets", gate: 3, key: "USB ticket", text: ["TICKET IR-PC-IT-017 — opened 2026-08-18", "", "Asset: PC-IT-017", "Reported by: Office of the Chief Risk Officer", "", "Removable media connected 2026-08-11 00:12 UTC by account rnatnaree.", "Device label as recorded by the user: Q3-2026-SEA", "An unsigned binary on the device executed on connection.", "", "Resolution: recorded as cause. No technical remediation requested."].join("\n") },
-    { name: "asset_register.txt", dir: "/ir/tickets", gate: 0, text: ["IT ASSET REGISTER — extract", "", "PC-IT-017   assigned   R. Natnaree   Systems Administrator", "PC-IT-014   assigned   G. Teoh   IT Contractor (contract ended 2026-07-31)", "PC-IT-021   spare      -"].join("\n") },
-    { name: "notes.txt", dir: "/home/rnatnaree", gate: 0, text: ["I keep writing this out and deleting it.", "", "It was on my desk. It said Q3-2026-SEA on the side in marker, which looked like", "one of our project codes, and I wanted to know what it was. That is the whole", "reason. I plugged it into my own machine to read the label properly.", "", "I told them exactly that. What came back written down says I introduced", "unauthorised media, which is true, and leaves out why, which is the only part", "that was mine.", "", "They keep saying the systems came back. Theatre 3 is not a system."].join("\n") }
-  ];
 var DESK_W = 1280;
 var DESK_H = 800;
 var FB_W = 1280;
@@ -858,7 +926,7 @@ function refreshTerm() {
     chipsSync();
     hintSync();
   }
-function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (rnatnaree)"; }
+function rdConnName() { var t = targetById(st.mon.host); return (t ? t.tag : "") + ":1 (" + N.user + ")"; }
 function rdStatus() { var P = st.mon.pz; return !P || !P.shown ? ["off", "no signal"] : P.attached ? ["on", "attached"] : ["rx", "signal received"]; }
 function rdMenuHtml() {
     var M = st.mon, t = targetById(M.host), fit = M.scale !== "one";
@@ -1006,7 +1074,7 @@ var RK_SANS = '"RdCantarell", Cantarell, sans-serif';
 var RK_DEF = { mb: { x: 176, y: 62, w: 900, h: 640 }, fl: { x: 300, y: 118, w: 740, h: 480 }, tv: { x: 372, y: 84, w: 660, h: 590 } };
 var RK_MIN = { mb: [560, 380], fl: [480, 320], tv: [420, 300] };
 var RK_ICONS = [["computer", "Computer", 24, 58], ["home", "Home", 24, 170], ["trash", "Trash", 24, 282], ["browser", "Browser", 24, 394]];
-var RK_URL = "https://arc-ir-01.pacificcare-health.org/ir/archive";
+var RK_URL = NARR_DEFAULT.browserUrl;
 var RK_LOGO = [["M9 1.5l7.5 7.5L9 16.5 1.5 9z", "#f08a9c"], ["M6.6 9a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0-4.8 0z", "#2a0f17"]];
 function rr(x, y, w, h, r) { return "M" + (x + r) + " " + y + "h" + (w - 2 * r) + "a" + r + " " + r + " 0 0 1 " + r + " " + r + "v" + (h - 2 * r) + "a" + r + " " + r + " 0 0 1 -" + r + " " + r + "h-" + (w - 2 * r) + "a" + r + " " + r + " 0 0 1 -" + r + " -" + r + "v-" + (h - 2 * r) + "a" + r + " " + r + " 0 0 1 " + r + " -" + r + "z"; }
 function circ(cx, cy, r) { return "M" + (cx - r) + " " + cy + "a" + r + " " + r + " 0 1 0 " + 2 * r + " 0a" + r + " " + r + " 0 1 0 -" + 2 * r + " 0z"; }
@@ -1104,8 +1172,8 @@ function paintPanel(g) {
     g.font = "400 14px " + RK_SANS;
     g.textAlign = "right"; g.fillStyle = "#e2e6ef";
     g.fillText(fakeClock(), right, 17); right -= textW(g, fakeClock()) + 16;
-    g.fillText("arc-ir-01", right, 17); right -= textW(g, "arc-ir-01") + 16;
-    g.font = "700 14px " + RK_SANS; g.fillText("rnatnaree", right, 17);
+    g.fillText(targetById("cold").tag, right, 17); right -= textW(g, targetById("cold").tag) + 16;
+    g.font = "700 14px " + RK_SANS; g.fillText(N.user, right, 17);
     g.textAlign = "left";
   }
 function paintIcon(g, d) {
@@ -1300,10 +1368,24 @@ function rdBring(first) {
   }
 var RK_MENUS = {
     apps: ["Applications", [["Browser", "open:mb", "globe"], ["Files", "open:fl", "folder"], ["Text Viewer", "open:tv", "file"], 0, ["Terminal", "na", "term"], ["Processes", "na", "pulse"], ["Settings", "na", "config"]]],
-    places: ["Places", [["Home", "loc:home", "folder"], ["Computer", "loc:computer", "monitor"], 0, ["2026-08-14", "loc:/ir/2026-08-14", "folder"], ["tickets", "loc:/ir/tickets", "folder"], 0, ["Trash", "loc:trash", "trash"]]],
+    places: ["Places", [["Home", "loc:home", "folder"], ["Computer", "loc:computer", "monitor"], 0, ["Trash", "loc:trash", "trash"]]],
     system: ["System", [["About this computer", "loc:computer", "monitor"], ["Settings", "na", "config"], 0, ["Lock screen", "na", "lock"], ["Log out", "na", "out"]]]
   };
-var RK_DIRS = { home: "/home/rnatnaree", "/home/rnatnaree": "/home/rnatnaree", "/ir/2026-08-14": "/ir/2026-08-14", "/ir/tickets": "/ir/tickets" };
+var RK_DIRS = {};
+function rebuildDesk() {
+    var home = homeDir(), places = [["Home", "loc:home", "folder"], ["Computer", "loc:computer", "monitor"], 0];
+    RK_DIRS = { home: home };
+    RK_DIRS[home] = home;
+    dirList().forEach(function (p) {
+      if (p === home) return;
+      RK_DIRS[p] = p;
+      places.push([p.slice(p.lastIndexOf("/") + 1), "loc:" + p, "folder"]);
+    });
+    places.push(0, ["Trash", "loc:trash", "trash"]);
+    RK_MENUS.places = ["Places", places];
+    RK_URL = N.browserUrl;
+  }
+rebuildDesk();
 var rkPop = "";
 var rkDlg = null;
 var rkBack = null;
@@ -1323,8 +1405,8 @@ function rkTaskIds() {
     var R = rkState(), P = PZ(), ro = P.ro.filter(function (k) { return R[k] && R[k].open; });
     return ro.concat(Object.keys(R).filter(function (k) { return R[k].open && ro.indexOf(k) < 0; }));
   }
-function rkTitle(id) { var W = rkW(id); return id === "mb" ? "Clinical Incident Archive" : id === "tv" ? (W.doc || "Text Viewer") : rkLocName(W.loc || "home"); }
-function rkLocName(loc) { return loc === "home" || loc === "/home/rnatnaree" ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
+function rkTitle(id) { var W = rkW(id); return id === "mb" ? N.browserTitle : id === "tv" ? (W.doc || "Text Viewer") : rkLocName(W.loc || "home"); }
+function rkLocName(loc) { return loc === "home" || loc === homeDir() ? "Home" : loc === "computer" ? "Computer" : loc === "trash" ? "Trash" : loc.slice(loc.lastIndexOf("/") + 1); }
 function rkGlyph(id) { return ic(id === "mb" ? "globe" : id === "tv" ? "file" : "folder"); }
 function rkSize(n) { return n < 1000 ? n + " bytes" : (n / 1000).toFixed(1) + " kB"; }
 function rkFileRows(dir) {
@@ -1336,7 +1418,7 @@ function rkFileRows(dir) {
   }
 function rkBrowserHtml() {
     var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
-    return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>Clinical Incident Archive</b><span class="rk-pill">Legal hold L-2608-03, view only</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files"><h6>/ir/2026-08-14</h6>' + rkFileRows("/ir/2026-08-14") + "<h6>/ir/tickets</h6>" + rkFileRows("/ir/tickets") + "<h6>/home/rnatnaree</h6>" + rkFileRows("/home/rnatnaree") +
+    return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>' + esc(N.browserTitle) + '</b><span class="rk-pill">' + esc(N.browserPill) + '</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files">' + dirList().map(function (p) { return "<h6>" + p + "</h6>" + rkFileRows(p); }).join("") +
       '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
   }
 function rkRows(loc) {
@@ -1344,13 +1426,13 @@ function rkRows(loc) {
     if (loc === "trash") return '<div class="rk-empty"><b>Trash is empty</b></div>';
     if (loc === "computer") {
       var t = targetById("cold");
-      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + ["/ir/2026-08-14", "/ir/tickets", "/home/rnatnaree"].map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
+      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + dirList().map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
     }
     return DOCS.filter(function (d) { return d.dir === dir; }).map(function (d) { return '<button class="rk-row' + (W.sel === d.name ? " sel" : "") + '" data-act="rkfsel" data-v="' + d.name + '" data-dbl="1" data-cur="hand">' + ic("file") + "<span>" + d.name + "</span><small>" + rkSize(d.text.length) + "</small><small>Text document</small></button>"; }).join("");
   }
 function rkFilesHtml() {
     var W = rkW("fl"), loc = W.loc || "home", P2 = function (l, n, g) { return '<button class="rk-place' + (loc === l || RK_DIRS[loc] === l ? " on" : "") + '" data-act="rkloc" data-v="' + l + '" data-cur="hand">' + ic(g) + n + "</button>"; };
-    return '<div class="rk-fl"><nav class="rk-side" aria-label="Places"><h6>Places</h6>' + P2("home", "Home", "folder") + P2("computer", "Computer", "monitor") + P2("trash", "Trash", "trash") + "<h6>Archive</h6>" + P2("/ir/2026-08-14", "2026-08-14", "folder") + P2("/ir/tickets", "tickets", "folder") + "</nav>" +
+    return '<div class="rk-fl"><nav class="rk-side" aria-label="Places"><h6>Places</h6>' + P2("home", "Home", "folder") + P2("computer", "Computer", "monitor") + P2("trash", "Trash", "trash") + "<h6>" + N.archiveHeading + "</h6>" + dirList().filter(function (p) { return p !== homeDir(); }).map(function (p) { return P2(p, p.slice(p.lastIndexOf("/") + 1), "folder"); }).join("") + "</nav>" +
       '<div class="rk-main"><div class="rk-path"><span>' + esc(RK_DIRS[loc] || rkLocName(loc)) + '</span><button class="rk-btn" data-act="rkro" data-cur="hand">New folder</button><button class="rk-btn" data-act="rkro" data-cur="hand">Move to Trash</button></div><div class="rk-list" role="listbox" aria-label="Files">' + rkRows(loc) + "</div></div></div>";
   }
 function rkViewerHtml() { var W = rkW("tv"), d = W.doc ? docByName(W.doc) : null; return '<div class="rk-arv" tabindex="0" data-cur="text">' + (d ? esc(d.text) : '<div class="rk-empty"><b>No file open</b>Open a text file from Files.</div>') + "</div>"; }
@@ -1364,7 +1446,7 @@ function rkTasksHtml() { var P = PZ(); return rkTaskIds().map(function (id) { va
 function rkPanelHtml() {
     return '<nav class="rk-panel" aria-label="Remote panel"><svg class="rk-logo" viewBox="0 0 18 18" aria-hidden="true">' + RK_LOGO.map(function (p) { return '<path d="' + p[0] + '" fill="' + p[1] + '"/>'; }).join("") + "</svg>" +
       ["apps", "places", "system"].map(function (k) { return '<button class="rk-m" id="rkm-' + k + '" data-act="rkmenu" data-v="' + k + '" aria-haspopup="menu" aria-expanded="' + (rkPop === k) + '" data-cur="hand">' + RK_MENUS[k][0] + "</button>"; }).join("") +
-      '<div class="rk-tasks" id="rktasks">' + rkTasksHtml() + '</div><div class="rk-right"><b>rnatnaree</b><span>arc-ir-01</span><span id="dclk">' + fakeClock() + "</span></div></nav>";
+      '<div class="rk-tasks" id="rktasks">' + rkTasksHtml() + '</div><div class="rk-right"><b>' + esc(N.user) + '</b><span>' + esc(targetById("cold").tag) + '</span><span id="dclk">' + fakeClock() + "</span></div></nav>";
   }
 function rkPopHtml() {
     var m = RK_MENUS[rkPop], b = $("rkm-" + rkPop);
@@ -2064,6 +2146,7 @@ document.addEventListener("mouseup", endDrag);
 document.addEventListener("touchend", endDrag);
 window.addEventListener("resize", fitDesk);
 SCH.every(1000, tickClock);
+ensureProfile();
 restore();
 restoreFromMod();
 drawMonitor();

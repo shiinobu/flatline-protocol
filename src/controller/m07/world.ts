@@ -1,6 +1,7 @@
 import {
     M07_STALE_FIXTURES,
     buildM07CommandHostOpenFixtures,
+    buildM07EdgeFixtures,
     buildM07Fixtures,
 } from "../../content/m07/fixtures.js";
 import {
@@ -22,6 +23,7 @@ export const M07_WORLD: WorldSpec = {
     fixtures: buildM07Fixtures,
     staleFixtures: M07_STALE_FIXTURES,
     unlocks: {
+        edgeIntel: { fixtures: buildM07EdgeFixtures },
         legacyCms: {},
         commandHostRdp: {
             fixtures: buildM07CommandHostOpenFixtures,

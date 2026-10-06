@@ -19,8 +19,14 @@ export const M07_REWARD_DESCRIPTION = "The Architect — contract settled";
 export const M07_SAVE_PREFIX = "flatline.m07";
 export const M07_SCOPE = "M07";
 
-export const M07_TRACE_STRIKE_ID = "trace";
-export const M07_TRACE_DEADLINE_REAL_MS = 240_000;
-export const M07_TRACE_HALVED_REAL_MS = 120_000;
-export const M07_TRACE_PENALTY = 500;
+export const M07_DUEL_ONE_PREFIX = "flatline.m07.duelOne";
+export const M07_DUEL_ONE_STRIKE_ID = "index";
+export const M07_DUEL_ONE_DEADLINE_REAL_MS = 240_000;
+export const M07_DUEL_ONE_HALVED_REAL_MS = 120_000;
+
+export const M07_DUEL_TWO_PREFIX = "flatline.m07.duelTwo";
+export const M07_DUEL_TWO_STRIKE_ID = "chair";
+export const M07_DUEL_TWO_DEADLINE_REAL_MS = 180_000;
+
+export const M07_DUEL_PENALTY = 500;
 export const M07_HONEYPOT_PENALTY = 500;
