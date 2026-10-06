@@ -284,9 +284,8 @@ answer, and Send enables after the last one is filled.
 - `path` → `Ash-Vector, ash-gate, 203.0.113.161` (needs all three: the dead box, the edge
   firewall and the index host)
 - `evidence` → `employee negligence (R. Natnaree)` (needs a fault word,
-  "negligen" or 疏忽 / 过失, and the surname: intended "natnaree"; the code
-  still checks "souza", so a copy of the manifest line fails until
-  `docs/bugs.md` #69 is fixed)
+  "negligen" or 疏忽 / 过失, and the surname "natnaree"; the term was
+  "souza" until `docs/bugs.md` #69)
 - `choice` → one of `expose`, `handoff`, `destroy`
 
 Case and edge spacing are ignored; a fourth word is rejected, and so is an empty

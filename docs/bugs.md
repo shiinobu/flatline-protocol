@@ -2516,7 +2516,7 @@ terminal prints what the gate counts. The hospital site search follows #62: a re
 
 ## 69. The M5 `door` and M7 `evidence` report fields still look for the old surname
 
-**Status: FOUND (docs sweep, 2026-10-06). NOT FIXED: it needs the owner's EKSEKUSI.**
+**Status: FIXED 2026-10-06 (found in the docs sweep, fixed on the owner's EKSEKUSI). Typecheck and a check of the matcher only; the reports were not re-tested in the game.**
 The rename of 2026-10-05 (README #66) changed `GRETA_FULL_NAME` to "Roxanne Anindita Natnaree" and `GRETA_SHORT_NAME` to "R. Natnaree",
 but two lowercase term lists were not touched:
 
@@ -2527,6 +2527,46 @@ but two lowercase term lists were not touched:
   (`M07_EVIDENCE_CLASSIFICATION`, `content/m07/server-files.ts:35`), and `matchesFields` in `controller/m07/report.ts` needs the term, so a
   player who copies the line fails the M7 report.
 
-**Proposed fix (not applied):** `["roxanne", "natnaree"]` with `["gideon"]` rejected for M5, and `["natnaree"]` for M7. Checked while
+**Fix:** `M05_REPORT_DOOR_TERMS = ["roxanne", "natnaree"]` with `["gideon"]` rejected for M5, and `["natnaree"]` for M7. Run through the
+`report-match` normalisation: "Roxanne Anindita Natnaree", "R. Natnaree" and "natnaree" match `door`, "Gideon Bayu Teoh" and the old
+"Greta de Souza" do not; `employee negligence (R. Natnaree)` matches `evidence`, `employee negligence` alone does not. Checked while
 looking: every other lowercase old-name string left in `src` is an internal id (the BACKTRACE key `greta`, `M05_LOG_GRETA`).
-`docs/m05-playtest.md` section 18 and `docs/m07-playtest.md` state the intended terms and point here.
+`docs/m05-playtest.md` section 18 and `docs/m07-playtest.md` state the accepted terms.
+
+## 70. The RDC puzzle seed lived only in the page's `localStorage`, and `help` did not list `man troubleshooting`
+
+**Status: FIXED 2026-10-06 (found while reviewing the signal puzzle, fixed on the owner's EKSEKUSI). Typecheck and a seven-case check of `ensureSeed`; not seen in the game.**
+`makeRun(seed)` in `websites/global/rdcdesk/script.html` derives the heads, relays, framings, both pids and the true display mode from
+`st.mon.seed`. That seed was saved only in the page's `localStorage` (`flatline.rdcdesk.v1`); `restoreFromMod` rebuilt just the attach
+state and the read documents from `flatlineRdcState()`. If the page storage is gone between the RDC login and `agent attach` while the
+mod still says logged in, `enterWork` rolls a new seed: the console files, pids and values change and the player's notes no longer fit.
+Separately, `man troubleshooting` worked but `help` listed only `man agent | signal | format`.
+
+**Fix.** `M05QuestData.rdcSeed` (number, 0 = unset; `rdcSeedOf` in `content/m05/state.ts` returns 0 for an old save without the field)
+holds the first seed reported; `M05RdcMirror.seed` carries it to the page. The page reports its seed through the new export
+`flatlineRdcSeed`, which emits `flatline.rdc.seed`; `bindSeed` in `controller/m05/rdc.ts` stores it once and rewrites the mirror.
+`ensureSeed` in the page runs at login (`startSession` for Cold-Chart, `enterWork`) and on load: a seed in the mod wins and drops the
+local puzzle progress when it differs, and a local seed the mod does not know yet is reported. `help` now reads
+`man agent | signal | format | troubleshooting`. The agent README (`man agent`) gained one line: heads under `/sys/class/graphics`,
+relays under `/etc/agent/relays.d`, the display's history in `/var/log`. `ReadStep.step` in `controller/m05/rdc.ts` became `M05Step` because a number field
+no longer fits `keyof M05QuestData` as a gate step. `docs/m05-playtest.md` sections 16 and 21 describe the restart check.
+
+## 71. The portal's first puzzle step had no instruction and nothing downstream used it
+
+**Status: FIXED 2026-10-06 (owner's design review, executed on EKSEKUSI). Typecheck, a 32-case run of the real controller code with a stub SDK, and a headless Chrome run of the rendered portal in en and zh; not seen in the game.**
+The owner asked what the **Flag** button in Sign-ins was for and where the player was told to use it. The only pointer was the Overview alarm
+"One sign-in has not been acknowledged."; the toast "Flagged for review" explained nothing, no later step used the flagged source, and
+HD-4481 (the USB ticket nobody answered, which explains how the account was misused) counted nothing, so the tickets that matter were found by luck.
+
+**Fix.** (1) A visible chain with one new gate: Sign-ins (flag the outside source) → Tickets **HD-4481** → HD-4503 → Config (30 June) → Config (legal
+hold) → Systems. `usbSeen` and `usbFound` in `content/m05/state.ts`; `usbFound` sits between `footholdFlagged` and `separationFound` in `M05_STEP_ORDER`,
+`M05_SETTLE_ORDER` and `M05_GATES`; `kind=usb` with ref HD-4481 (`M05_USB_TICKET`) in `content/m05/portal.ts`, and `key: "usb"` on the ticket in
+`portal-data.ts`. `M05_PORTAL_MIN_STEPS` has five entries; Config opens at Min 3, Systems and Network at Min 5. `portalMinOf` (exported from
+`controller/m05/portal.ts`, also used by `restoreMirrors`) counts the unbroken prefix of found steps, not the number of flags, so an old save that has
+the later flags but not `usbFound` stays at Min 1 until HD-4481 is opened once. An observation out of order is held and counted on its turn.
+New BACKTRACE NOTE `M05_LOG_USB` (in `MISSION_LOGS`).
+(2) Two aids. The dead drop sends one mail, "you're in" (`M05_PORTAL_MAIL_SLOT`, `buildM05PortalLoginMail`), from `onPortalLogin`, the callback shared by the
+login event and the retry, so it goes out once and only when `portalLoggedIn` counts. The Overview alarms are now instructions built from `st.min`: the first
+says what to flag, the second (shown from Min 1) says to check what the account reported the day before; each turns into a muted "Acknowledged" row when its
+step counts, and the open-alarm count drops. The pill column of `.att-r` is 136 px so "Acknowledged" fits.
+(3) `usbFound` has its own premature-reply hint (`MAIL_PREMATURE_HINT_USB`). Every new string has en and zh (`core.ts`, `portal-zh.ts`).

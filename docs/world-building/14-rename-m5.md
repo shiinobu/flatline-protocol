@@ -15,7 +15,8 @@ pemetaan nama dan aturan pemakaiannya; cerita dan kronologinya tidak berubah.
    (format `<local-part>-<kode sistem>-<tanggal insiden>`). `Marigold2019` tetap sandi lama yang bocor. Pengguna Linux RDC: `rbautista`.
 5. Id internal **tidak** diganti: `GRETA_*`, `GARETH_*`, `M05_GRETA_USERNAME`, flag `gretaSeen`, kunci BACKTRACE `greta`, probe `greta-seen`.
 6. Tidak disentuh: Marcus Okafor (M3) dan rumah tangga Reyes (M3, M7). Penggantian memakai nama lengkap yang persis, jadi nama lain dengan nama depan yang sama tidak ikut berubah.
-7. Istilah pencocok laporan (huruf kecil) bukan nama tampil dan tidak ikut diganti otomatis; lihat `docs/bugs.md` #69.
+7. Istilah pencocok laporan (huruf kecil) bukan nama tampil dan tidak ikut diganti otomatis. `M05_REPORT_DOOR_TERMS`, `M05_REPORT_DOOR_REJECTED_TERMS` dan
+   `M07_REPORT_EVIDENCE_PERSON_TERMS` diubah dengan tangan (`docs/bugs.md` #69); periksa daftar itu lagi pada rename berikutnya.
 
 ## Master timeline Echoline (halaman staf IT, `/it`)
 

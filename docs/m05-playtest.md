@@ -1,4 +1,7 @@
-# M05 "The Door" v2 — Playtest Script (21-step chain)
+# M05 "The Door" v2 — Playtest Script (22-step chain)
+
+
+**M5 FINAL LOCK 2026-10-06** (README #69): the owner declared M5 final and the live test passed. The items below that were never ticked are accepted, not bugs. The RDC chapters describe the page as it was before the finishing redesign; the redesign (no skip anywhere, solid red failed route, no browser opened by itself after attach) is recorded in `docs/changelog.md` 2026-10-06.
 
 Status: **use once, disposable.** Step-by-step script for M05 as rebuilt on 2026-10-05 around the hospital web, the forensic
 portal, Cipher Desk and Remote Desktop Connection (RDC). It replaces the script of the first M05 build (SSH chain). Nothing here
@@ -37,10 +40,10 @@ Every probe line below is a temporary `trace()` (removed at FINAL LOCK); `docs/s
 | M05 | `probe:greta-seen` | `lynx` resolves Roxanne (step 6) |
 | M05 | `probe:cipher-opened id=…` and `CIPHER opened id=… mission=m05` | Cipher Desk opened a sealed text: `handoverNote` (step 7), `recoveryFormat` (step 8) |
 | M05 | `portal:login view=portal`, `contractor` or `retired` | `flatlineLogin` result (step 9) |
-| M05 | `probe:portal-seen kind=…` | a portal finding is counted (steps 10 to 14) |
+| M05 | `probe:portal-seen kind=…` | a portal finding is counted (steps 10 to 15; `kind` is `foothold`, `usb`, `separation`, `controls`, `hold` or `systems`) |
 | M05 / RDC | `probe:rdc-login cold`, `RDC login ok=…`, `RDC signal stage=…` | RDC token accepted, signal fixed |
-| M05 / RDC | `probe:rdc-attached`, `RDC attach …` | `agent attach` succeeded (step 17) |
-| M05 / RDC | `probe:rdc-read gate=N`, `RDC read …` | an archive file counted (steps 18 to 20) |
+| M05 / RDC | `probe:rdc-attached`, `RDC attach …` | `agent attach` succeeded (step 18) |
+| M05 / RDC | `probe:rdc-read gate=N`, `RDC read …` | an archive file counted (steps 19 to 21) |
 | M05 | `probe:status-note`, `probe:bedside-bonus` | optional extras |
 
 ---
@@ -115,13 +118,17 @@ and Zara Indira Abdullah leave after 2026-08-18. The only role Careers reopens i
 the other seven captures count for nothing. The step counts when **both** have been opened, in any order, and prints the `dismissed`
 trace and one personal-log entry.
 
-Each capture page shows "Capture N of 9" with Previous and Next, a Status column (Listed or Joined) and a Date column (first captured),
-the staff rows with their addresses, the shared mailboxes `servicedesk@` and `it.ops@`, a "Page last updated" stamp, a +n/-n change chip,
-a "Left" block (rows listed in the previous capture and not in this one, struck through, with their last captured date), an archivist
-note and, on the 2026-08-18 capture, a line saying the live page has been updated since. The local-part of Roxanne's address
-(`rnatnaree`) is the Cipher Desk key of step 7.
+Each capture page opens with a sticky bar (Older, "Capture N of 9" with the date and ref, Newer) and a strip of nine numbered boxes that
+jumps to any capture. Under the title and the "Page last updated" stamp comes the card "What changed since the previous capture": No longer
+listed (name, role, address, last listed date) and Newly listed (name and role), both compared with the capture before; capture 1 says there
+is nothing earlier to compare with. Below it is everyone listed on that capture in two columns (a New chip on those who joined since the
+capture before), the shared mailboxes `servicedesk@` and `it.ops@`, an archivist note and, on the 2026-08-18 capture, a line saying the live
+page has been updated since. Capture `8fq2` carries a "Cited by IT Change Record" mark, and an "Open live page" link shows once the team page
+has been seen. The index lists the captures newest first, one row each, with "N added, N removed since the capture before". The local-part of
+Roxanne's address (`rnatnaree`) is the Cipher Desk key of step 7.
 
-**Checks.** `https://echoline.net/s/zzzz/` 404s. Before the change record, the index and every capture answer 404.
+**Checks.** `https://echoline.net/s/zzzz/` 404s. Before the change record, the index and every capture answer 404. On the 2026-08-18 capture
+the first screen already shows Roxanne and Gideon under "No longer listed", and nothing scrolls sideways.
 
 ## 6. Profiling the administrator (step 6)
 
@@ -157,47 +164,57 @@ the PacificCare documents, and to take the system code and the date from the inc
 the login. After a Min change the page re-reads the state on window focus. A login before step 8 cannot advance; the next evidence
 event or portal observation retries it.
 
+**The "you're in" mail.** When the portal login counts (at the login, or at the retry), `drop@drop.null` sends one mail, subject
+"you're in": three short paragraphs, a narrative line about getting through unstopped and a vague instruction (start with who came
+through the door and from where; the portal lists what it thinks is wrong, pull the first one). It uses the slot `m05.portalLogin`,
+stays in the inbox (like the tip mail) and is never sent twice. It does not name any button.
+
 ## 9. Sign-ins (step 10)
 
-Overview flags the first alarm; "Open sign-ins". Sign-ins → **By source** (sortable headers) → find the address with location
+Overview carries the instruction. The first alarm reads "One sign-in has not been flagged for review. Find the source that belongs to
+no one here and flag it." with "Open sign-ins". Sign-ins → **By source** (sortable headers) → find the address with location
 "Unresolved, no PTR", zero failures and one account (**194.36.108.20**) → View sign-ins → **Flag** any of its five rows
 (2026-08-11 00:41 UTC first). `probe:portal-seen kind=foothold`, Min 1 (Directory and Tickets appear with a "New" badge), one
-optional NOTE log. Decoys: `svc-vendor` every 01:50, `gteoh` after the contract, Valerie's hotel, the failed storm on 9 July.
+optional NOTE log. The alarm then becomes a muted "Acknowledged" row ("Flagged for review") and a second alarm appears (§10). Decoys:
+`svc-vendor` every 01:50, `gteoh` after the contract, Valerie's hotel, the failed storm on 9 July.
 
-## 10. Tickets (step 11)
+## 10. Tickets (steps 11 and 12)
 
-Tickets → **HD-4503** (hr.ops, "Account closure: R. Natnaree"): it points to HD-4417 and 30 June. `kind=separation`, Min 2 (Config).
-HD-4481 (the USB, no reply) and HD-4496 (a hex string) are the other tickets that matter; opening them counts nothing.
+1. The second Overview alarm, "Account used from outside since 11 Aug. Check what this account reported the day before." ("Open tickets"),
+   points at **HD-4481** (rnatnaree, 2026-08-10 09:02, "Unknown USB on my desk, whose is it?", label Q3-2026-SEA, last note "(no reply)").
+   `kind=usb`, Min 2 (no new page), one optional NOTE log. The alarm turns "Acknowledged" ("Ticket read").
+2. **HD-4503** (hr.ops, "Account closure: R. Natnaree"): it points to HD-4417 and 30 June. `kind=separation`, Min 3 (Config).
+3. Order: HD-4503 opened before HD-4481 is held and counted right after HD-4481. HD-4496 (a hex string) counts nothing here (§14).
 
-## 11. Config, 30 June (step 12)
+## 11. Config, 30 June (step 13)
 
 Config → compare two snapshots around 2026-06-30 → "View change record" on **CHG-2606-022**. The card carries "Attachment:
 rollback_plan (sealed)", a 358-digit hex and "Sealed with the change ID". Open Cipher Desk (`https://cipherdesk.io`, Goagle apps or
 search `encrypt`): mode **Decrypt**, passphrase **`CHG-2606-022`**. The text says the identity-migration window was never closed and
 manual account closures are held (see HR-7). `kind=controls` is recorded when the card opens, `rollbackOpened` when Cipher opens it;
-the step counts when **both** have happened, in either order. Min 3 (no new page).
+the step counts when **both** have happened, in either order. Min 4 (no new page).
 
-## 12. Config, the legal hold (step 13)
+## 12. Config, the legal hold (step 14)
 
 Compare snapshots around 2026-08-09 to 2026-08-16 → CHG-2608-014 (Legal hold, matter **L-2608-03**, approved by the CRO's account at
-05:20 UTC). `kind=hold`, Min 4: Systems and Network appear.
+05:20 UTC). `kind=hold`, Min 5: Systems and Network appear.
 
-## 13. Systems and Network (step 14)
+## 13. Systems and Network (step 15)
 
 Systems: `arc-ir-01` is **Cold-Chart**, 192.168.1.4 (not `arc-img-02`); the note points to Remote Desktop Connection at
 `https://rdcdesk.io` and an access token. Network: IR-22 (tcp/22), the NAT table (`ssh:22` for Cold-Chart; a decoy, see §16).
 `kind=systems` counts on opening Systems.
 
-## 14. The sample token and the sealed post (step 15, optional post)
+## 14. The sample token and the sealed post (step 16, optional post)
 
 1. Tickets → HD-4496: the second note is a 120-digit hex. Cipher Desk, **Decrypt**, passphrase **`L-2608-03`** (the matter number): five
    parts `user:password:LAN address:change:tag` (`valerie.dizon:…:192.168.1.5:CHG-2608-009:PC-IT-017`). `sampleOpened` is recorded when it
-   decrypts and **counted after the hold** (step 13).
+   decrypts and **counted after the hold** (step 14).
 2. Optional: Roxanne's sealed Twotter post (hex, "Notes to self.") with passphrase `Marigold2019`: one NOTE log, nothing advances.
 
 **Checks.** A wrong passphrase prints nothing useful and records nothing. Encrypt mode never opens a sealed text.
 
-## 15. The token and the RDC login (step 16)
+## 15. The token and the RDC login (step 17)
 
 1. Build the Cold-Chart token as `user:password:LAN address:change:tag` (Roxanne's pair, 192.168.1.4, CHG-2608-014, arc-ir-01) and
    **Encrypt** it in Cipher Desk with the matter number `L-2608-03` (138 hex digits; the first digits are `3e4353425e595f55`, from `rnatnaree:rnatnaree-OT3-2026-08-14:192.168.1.4:CHG-2608-014:arc-ir-01`).
@@ -208,48 +225,53 @@ Systems: `arc-ir-01` is **Cold-Chart**, 192.168.1.4 (not `arc-img-02`); the note
 3. A valid Cold-Chart token: `probe:rdc-login cold` and the agent console. Reload the page: the console comes back
    (`flatlineRdcState`).
 
-## 16. The agent console and the display (step 17)
+## 16. The agent console and the display (step 18)
 
 `help`, `agent lease list`, `agent lease clear <pid>` (only the dead pid), `signal sources|relays`, `signal set <key> <value>`,
 `signal calibrate`, `signal apply`, `agent attach`. The puzzle is generated per run (see the Remote Desktop Connection window and
-`man signal|format|agent`). When the display is clean, `agent attach` shows the Cold-Chart desktop with the archive window.
+`man signal|format|agent|troubleshooting`). When the display is clean, `agent attach` shows the Cold-Chart desktop with the archive window.
 `probe:rdc-attached`, the `archive` trace, one personal-log entry, and the Bedside-17 half of `hospitalShells` (rule IR-3389 removed,
 port 3389 opened; the firewall rule IR-22 and Cold-Chart's port 22 are **not** touched).
+
+**Restart check (`docs/bugs.md` #70).** The puzzle seed is kept in the page's `localStorage` and in the mod (`rdcSeed` in the quest
+data, the `seed` field of `flatlineRdcState()`). After the RDC login and before `agent attach`, restart HackHub (or clear the page
+storage) and log in again with the same token: `agent lease list`, `signal show`, the head and relay files and the display mode must
+be the **same** as before the restart, and a half-set profile is allowed to be gone. After `agent attach` the desktop comes back from the mod state.
 
 **Decoy.** `ssh` to Cold-Chart's public address is refused (hold IR-22). The firewall console wants `rafael.bautista`, whose password is
 nowhere in the game. Webmail answers "This account was disabled on 2026-08-19." to Roxanne's correct pair.
 
-## 17. The three documents (steps 18 to 20)
+## 17. The three documents (steps 19 to 21)
 
 In the archive window open `acknowledgement_rnatnaree.txt` (`statement`), `decision_memo.txt` (`decisionMemo`), and
 `usb_ticket_PC-IT-017.txt` (`usbTicket`); four decoys (`finding_draft_v1`, `finding_final`, `asset_register`, `notes`) read without
 effect. Each counts only **after** `agent attach`. The gap is 02:41 to 09:02: **6 hours 21 minutes**.
 
-## 18. The report (step 21)
+## 18. The report (step 22)
 
 Reply to `drop@drop.null` with the **Mission 5 Findings** template (six empty tokens; unchanged from the first build):
 
 | field | an accepted answer | match needs |
 |---|---|---|
-| `door` | `Roxanne Anindita Natnaree` | intended: "roxanne" or "natnaree", no "gideon". **The code still checks "greta" or "souza" and rejects "gareth", so this answer fails until `docs/bugs.md` #69 is fixed** |
+| `door` | `Roxanne Anindita Natnaree` | "roxanne" or "natnaree", no "gideon" (the terms were "greta" and "souza" until `docs/bugs.md` #69) |
 | `cause` | `unauthorised USB media, employee negligence` | a USB term and a fault term, no vendor term |
 | `decider` | `Vivien Orchid` | "orchid" or "vivien" |
 | `gap` | `6 hours 21 minutes` | 6 and 21, or 381 |
 | `motive` | `insurance claim classification` | "insur", "claim" or "cover" |
 | `archive` | `Cold-Chart` | "cold chart" |
 
-Sent before steps 18 to 20 and the `greta` trace: one reply "not yet" naming the first unmet step, replaced (not stacked) on the next
+Sent before steps 19 to 21 and the `greta` trace: one reply "not yet" naming the first unmet step, replaced (not stacked) on the next
 send. Complete: the objective and the mission complete; outside focus `[FP][M05] reward paid: 3200`.
 
 ## 19. BACKTRACE
 
-Six required keys, unchanged: `dismissed`, `greta`, `archive`, `statement`, `decisionMemo`, `usbTicket`. Six **optional NOTE logs** are
-new (`MISSION_LOGS`, `backtrace-logs.ts`): foothold, separation, controls, hold (portal findings), the Theatre 3 status note and
+Six required keys, unchanged: `dismissed`, `greta`, `archive`, `statement`, `decisionMemo`, `usbTicket`. Seven **optional NOTE logs** are
+new (`MISSION_LOGS`, `backtrace-logs.ts`): foothold, the USB ticket, separation, controls, hold (portal findings), the Theatre 3 status note and
 Roxanne's sealed note; the Bedside-17 note stays. The report card must have no `—`.
 
 ## 20. Optional: Bedside-17
 
-After step 17 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:bedside-bonus`, then `found_note.txt` (one log) and
+After step 18 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:bedside-bonus`, then `found_note.txt` (one log) and
 `usb_history.log` (Log Viewer).
 
 ---
@@ -259,9 +281,9 @@ After step 17 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:
 | # | Check | Why it is unproven |
 |---|---|---|
 | R12 | Long `Exports` strings: the 138-digit token, 120-digit sample, 358-digit attachment (up to 4096 accepted) | only short strings were seen live; the 64-character chunk fallback is **not built** |
-| R15 / R16 | RDC fonts, `cursor:none`, clipboard, session restore through `flatlineRdcState()` on load | read from the engine, not seen |
+| R15 / R16 | RDC fonts, `cursor:none`, clipboard, session restore through `flatlineRdcState()` on load (the puzzle seed travels through it too, #70) | read from the engine, not seen |
 | R19 | Cipher Desk and RDC (and LeakIndex, Echoline) have no subnet or domain record | `registerDomain` needs a subnet; a site opened by host alone is read, not seen |
-| — | `Popular` grid shows both new tool sites with their own icons | static; first time in play |
+| — | `Popular` grid shows RDC and Cipher Desk with the logo from their own page header; Echoline has its own icon (not `Popular`) | static; first time in play, and where the engine draws a non-`Popular` icon is unknown |
 | — | `Events.emit` from `Exports` reaches the controller before the call returns | the portal re-reads state after 700 ms and on focus as a safety net |
 | — | A Goagle search calls `metadata()` with an empty `url` | the hospital pages skip the HTTPS check when `searchStr` is set |
 | — | Page patterns `/it/change/:id` and `/it/policy/:id` resolve through `context.params`, and the `/search` alias makes a Goagle click land on the site | read from the engine (`h2c`, `l2c`), not seen |
@@ -269,13 +291,15 @@ After step 17 port 3389 is open. `bluekeep` against `80.94.92.118:3389`: `probe:
 | — | Echoline, Cipher Desk and the hospital site search are findable by a player with no prior knowledge | the board hints and the site names are the only pointers |
 | — | The hospital photographs, set as CSS `background:url("./assets/m05/…")` inside the `frame.html` iframe, load in the game | headless Chrome only; the SDK injects a `<base>` and copies `public/` into `dist/`, but only `<img src>` has live precedent |
 | — | The lockscreen under the service notice loads, is readable and is not cropped on a narrow window | `.alert img` is capped at 220 px high on narrow windows; a 16:9 image should fit, but it was not seen in the game |
-| — | The full 21-step chain and its length | estimate 60 to 115 minutes |
+| — | The "you're in" mail arrives once, and the Overview alarm rows (the "Acknowledged" pill in the 136 px first column, the muted done rows) look right | headless Chrome and a mocked SDK only |
+| — | The five-step portal chain (Min 1 to 5) in play, including HD-4481 opened before and after HD-4503 | the page was clicked through headless; the game was not |
+| — | The full 22-step chain and its length | estimate 60 to 115 minutes |
 
 ## 22. Known follow-ups
 
-- `M05_LOG_NOTES` ("she plugged it in…") has no trigger since v2; HD-4481 counts nothing.
-- zh debt for puzzle architecture V2 (owner: English first): a zh pass on 2026-10-05 (not yet read by the owner) filled the hospital-web keys (`M05.SITE.HS.BOARD_*`, `CHG_*`, `POL_*`, `SEARCH_*`, `JOB_SA_NOTE`, the home and frame chrome) and the 22 `M05.SITE.EL_ROLE_*` titles; still English only are 28 of the 67 `M05.SITE.EL_*` Echoline page keys (capture bar, Status, Left block, stamps, notes) and `HINT_CHANGE`, `HINT_HANDOVER`. The zh of `HINT_IDENTITY`, `HINT_CREDENTIAL`, `LOG_DISMISSED_1`, `LOG_GRETA_1`, `LOG_GRETA_2` and Roxanne's Twotter posts 4 and 12 was removed because the English meaning changed; `INCIDENT_1_BODY`, `INCIDENT_2_BODY`, `NEWS_3_BODY` and the three `COMP_OT*` names keep an older zh that lacks the new sentence or code.
+- `M05_LOG_NOTES` ("she plugged it in…") has no trigger since v2.
+- zh debt cleared on 2026-10-06 (owner order, with the portal chain change): the 32 `M05.SITE.EL_*` Echoline page keys, `HINT_CHANGE`, `HINT_IDENTITY`, `HINT_CREDENTIAL`, `HINT_HANDOVER`, `LOG_DISMISSED_1`, `LOG_GRETA_1`, `LOG_GRETA_2`, Roxanne's Twotter posts 4, 12, 17 and 18, and the five older strings that lacked a new sentence or code (`INCIDENT_1_BODY`, `INCIDENT_2_BODY`, `NEWS_3_BODY`, `COMP_OT1` to `COMP_OT3`). A survey of every registered key finds none without zh (the 67 `BACKTRACE.*` keys are zh-only by design, English is inline in the app). Remote Desktop Connection and Cipher Desk stay English only (K15). None of this zh was read by the owner.
 - The zh text of the hospital web and the portal needs the owner's read.
 - The M1 hospital site was moved to M5 (README #58). On 2026-10-06 M1's eight `pacificcare-health.org` records and `M01_HOSPITAL_DOMAIN` / `M01_HOSPITAL_IP` were removed from `content/m01/network.ts` because M5 owns that domain with other addresses (README #67). The lockscreen under the service notice is now `public/assets/m05/pacificcare-lockscreen.jpg`, a flat BLACKLEDGER screen capture made on 2026-10-06 with Creative Claw; the old `.png` (the operating-theatre photo) is gone from M5 and the photo remains in the vault as `q3-notice.png`.
 - Open: `public/assets/global/backtrace-corridor.jpg` and `backtrace-receipt.jpg` (BACKTRACE thumbnails, FINAL LOCK) still show the earlier corridor and receipt, so they differ from the new vault images (README #67).
-- Open: `docs/bugs.md` #69, the report-match terms `greta`/`souza` after the rename (M5 `door`, M7 `evidence`).
+- `docs/bugs.md` #69 (report-match terms after the rename, M5 `door` and M7 `evidence`) is fixed in code; the report was not re-tested in the game.

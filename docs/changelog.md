@@ -27,6 +27,26 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-06
 
+- **[milestone] M5 "The Door" is FINAL and LOCKED; the Remote Desktop Connection (RDC) finish is installed** (README #69). The owner declared M5
+  final and its live test passed; unchecked items of `docs/m05-playtest.md` are accepted, not bugs. The last piece of M5 is the RDC
+  redesign: a mockup was reviewed in five rounds, then ported to `src/websites/global/rdcdesk/style.html` and `script.html` (no other
+  file of the page changed). Look: new graphite palette with one colour per state, tiles and lamps in the window title bars, a
+  single-rail login route with icons on the browser and host circles, a console with `.tbox` panels for `help` and `agent diag`
+  (the ASCII boxes are gone), `.tblk` command blocks with tinted output, a five-lamp signal chain, a hint bar with an icon and a
+  state colour, and a monitor footer in the style of the remote panel (status left, size | fps | bpp centred, link and fit right).
+  Behaviour: **no skips anywhere** (login route click, display-negotiation click and the global Escape are removed); the login runs
+  at 200 / 960 / 760 / 640 / 420 ms and cannot be fast-forwarded, the login card leaves for 360 ms before the workspace enters (1150 ms);
+  a failed login paints the route solid red down to the remote host and the host reads "Not reached" (idle "Awaiting token", running
+  "Connecting"); after `agent attach` the desktop shows directly and no browser window opens by itself (the finale, the restored state and
+  the pre-attach picture lost the browser); the Applications menu no longer pre-highlights its first item (mouse focuses the popover,
+  keyboard the first item, ArrowUp from the popover goes to the last item); the taskbar keeps open order (new `ro` list) while windows
+  keep focus order; new remote windows animate in once. Fixes found while porting: the shell's `.chg{margin}` and `.fl{column}` rules
+  leaked into the console cells and the monitor footer (neutralised in the RDC rules), and a focused console input showed the shell's
+  input ring. Decoy hosts (`PC-IT-017` and the others) get a single-column pipe, dark lamps and a dim hint. The console prompt starts
+  at `(agent)-[/]` (the page already did; the mockup said `/root`). Verified on the real page in headless Chrome (harness in the
+  session scratchpad): 41 + 34 + 27 checks (login, fail route and hit-tests at 1280, 900 and 520 px, terminal, attach finale, menus,
+  taskbar), non-cold host, disconnect and lock, restore from the mod mirror, reduced motion, and a computed-style comparison against
+  the mockup (only intended differences); `tsc` clean, zero comments, not built, not seen in HackHub itself. Next: M6.
 - **[mechanic] M1 LedgerVault folder Q3-2026-SEA has seven new photographs** (README #67). `public/assets/m01/q3-receipt.jpg`,
   `q3-recon.jpg`, `q3-accesskit.jpg` and `q3-visitorpass.jpg` are the owner's friend's JPGs, kept as delivered; `q3-notice.png`,
   `q3-corridor.png` and `q3-scheduling.png` came from Creative Claw (gpt-image-2.5-sunburst, 13 + 13 + 16 credits). `q3-receipt.png`
@@ -45,15 +65,46 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   1536 x 864, Creative Claw, 13 credits), not the operating-theatre photo: the notice talks about the Patient Portal and scheduling, and
   the photo spelled out "Operating Theatre 3" on a public page. The alt text is "cached lock screen: SYSTEM UNAVAILABLE, Q3-2026-SEA"
   (en and zh), the note under it is unchanged, and the old `.png` is gone.
-- **[bug] Found, not fixed: `docs/bugs.md` #69.** `M05_REPORT_DOOR_TERMS` (`greta`, `souza`; rejects `gareth`) and
-  `M07_REPORT_EVIDENCE_PERSON_TERMS` (`souza`) still hold the old surname, so the M5 `door` answer and the M7 `evidence` answer cannot
-  match the names the player reads.
+- **[bug] Found and fixed: `docs/bugs.md` #69.** `M05_REPORT_DOOR_TERMS` (`greta`, `souza`; rejected `gareth`) and
+  `M07_REPORT_EVIDENCE_PERSON_TERMS` (`souza`) still held the old surname after the rename, so the M5 `door` answer and the M7 `evidence`
+  answer could not match the names the player reads. They are now `roxanne` / `natnaree` (rejecting `gideon`) and `natnaree`
+  (`content/m05/report.ts`, `content/m07/report.ts`). Typecheck and a matcher check only; the reports were not re-tested in the game.
 - **[docs] Docs brought up to date for the rename and the images.** Names, accounts and the password are swept through
   `docs/m05-playtest.md`, `m07-playtest.md`, `network.md`, `architecture.md` and world-building 01 to 13; new
   `docs/world-building/14-rename-m5.md` and README #66 and #67; the Echoline gate, the token hex prefix, the vault and the
   BACKTRACE thumbnails are described where they live. `npx tsc -p tsconfig.json --noEmit` is clean and all 18 inline `<script>` blocks
   under `src/websites` parse (node `new Function`, which also shows the `frame.html` search script no longer has a missing `)`).
   Nothing was built with esbuild or run in the game.
+- **[mechanic] Echoline redesigned for the player (README #68).** The owner could not read the archive: nine captures that looked alike,
+  a five-column table 880 px wide, the people who left struck through at the bottom, and a different logo, number and icon style on
+  every page. A capture page now opens with a sticky bar (Older, "Capture N of 9" with date and ref, Newer), a strip of nine numbered
+  boxes with year-month, the title, a "What changed since the previous capture" card (No longer listed and Newly listed, compared with
+  the capture before; capture 1 says there is nothing earlier) and a two-column list of everyone on that capture with a New chip. The
+  index has one row per capture: number, date, "Most recent", ref and "4 added, 2 removed since the capture before". Gone: the Status
+  and Date columns, the staff filter, the Left block, the +n/-n chips and the decorative meta cards. "Previous" and "Next" are now
+  "Older" and "Newer"; the word "capture" stays. One logo (`websites/global/echoline/brand.ts`), SVG icons only, dates always
+  `YYYY-MM-DD`, text at 13, 15 and 17 px with mono only for addresses and ref codes. Capture 9 is 1587 px tall at 1000 px wide (it was
+  about 2330) and nothing overflows sideways from 360 to 1200 px. 17 new `M05.SITE.EL.*` keys (English only), 14 old keys removed.
+  Typecheck, a stub-SDK render of every page and headless Chrome only; not seen in the game.
+- **[mechanic] Site icons.** Echoline gets an icon, the header logo (a fading echo line in a circle) on a dark tile; it is not `Popular`.
+  RDC and Cipher Desk swap their generic icons for the logo each page shows in its own header (two windows with a cursor; the 3 x 3
+  colour grid), on tiles in that page's own dark colour. The M06 record page (`snapshot-record.html`) takes the new logo and name in its
+  header only; its banner, type and body are unchanged.
+- **[fix] The RDC puzzle seed survives a lost page storage, and `help` lists `man troubleshooting`** (`docs/bugs.md` #70). The seed
+  behind the heads, relays, pids and true display mode was kept only in the page's `localStorage`; it is now also stored in the quest
+  data (`rdcSeed`, first seed wins) and carried by the `flatlineRdcState()` mirror, so a restart between RDC login and `agent attach`
+  returns the same puzzle. New export `flatlineRdcSeed` and event `flatline.rdc.seed`. The agent README (`man agent`) also gains a
+  line saying where heads, relays and the display logs live. Typecheck and a seven-case check of the page
+  logic only; not seen in the game.
+- **[mechanic] The portal's first puzzle becomes a visible chain with two aids** (`docs/bugs.md` #71). Opening the USB ticket HD-4481 is now a gate
+  (`usbFound`, between the foothold and the separation ticket), so the portal has five findings (Config opens at Min 3, Systems and Network at Min 5) and
+  the chain is 22 steps. The dead drop sends a "you're in" mail when the portal login counts, and the Overview alarms became instructions that turn
+  "Acknowledged" as each step counts. `docs/m05-playtest.md` §8 to §10 and the later step numbers were updated. Typecheck, a 32-case run of the real
+  controller code with a stub SDK and a headless Chrome run of the rendered portal in en and zh; not seen in the game.
+- **[docs] Every missing Simplified Chinese string of M5 is written** (owner order, "remote is final"). 43 registered keys had no zh (32 Echoline page keys,
+  four premature hints, three logs, four Twotter posts) and five older zh strings lacked a new sentence or code (`INCIDENT_1_BODY`, `INCIDENT_2_BODY`,
+  `NEWS_3_BODY`, `COMP_OT1` to `COMP_OT3`). A survey of all registered keys now finds none without zh, every `{{t:key}}` marker (500) has both languages,
+  and a click-through of the zh portal found no English prose. Remote Desktop Connection and Cipher Desk stay English only (K15). The zh was not read by the owner.
 
 ## 2026-10-05
 
@@ -117,7 +168,7 @@ removed from the playtests on 2026-10-01; those pointers are historical.
   (`rnatnaree`, signature "R.a.N"), Gareth Lim became Gideon Bayu Teoh (`gteoh`) and 30 more names changed, with a random email
   local-part per person. The password is now `rnatnaree-OT3-2026-08-14` and the Cipher key `rnatnaree` (the Cold-Chart token is still
   138 hex digits, now starting `3e4353425e595f55`); `Marigold2019` stays the old password. Internal ids (`GRETA_*`, `gretaSeen`, the
-  BACKTRACE key `greta`) are unchanged. The lowercase report-match terms were missed (`docs/bugs.md` #69).
+  BACKTRACE key `greta`) are unchanged. The lowercase report-match terms were missed and fixed on 2026-10-06 (`docs/bugs.md` #69).
 - **[mechanic] Echoline redesigned (README #66).** Nine captures on the master timeline (C1 2024-05-14 to C9 2026-08-18; live page
   stamp 2026-09-02). A capture page shows "Capture N of 9", Status and Date columns, a Left block, the shared mailboxes `servicedesk@`
   and `it.ops@`, a per-capture "Page last updated" stamp, an archivist note, a late-capture line and +n/-n chips. Step 5 now needs
