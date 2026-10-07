@@ -17,9 +17,8 @@ import { claimLookup, type ClaimLookupResult } from "./exports.js";
 import homePage from "./home.html";
 
 const PORTAL_ICON = toolIcon(
-    '<rect width="64" height="64" rx="14" fill="#0c1a26"/>' +
-        '<path d="M32 10v34M20 24h24M14 38c2 10 10 16 18 16s16-6 18-16" fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<circle cx="32" cy="14" r="4" fill="#d9a441"/>',
+    '<rect width="64" height="64" rx="14" fill="#1a0b0e"/>' +
+        '<path d="M19 46V18l26 28V18" fill="none" stroke="#c4122f" stroke-width="5" stroke-linejoin="round"/>',
 );
 
 const homePageDefinition = (): DynamicWebsitePageDefinition => ({
