@@ -4,26 +4,27 @@ import type { PersonaPost, PersonaSpec } from "../../core/types.js";
 import { sealText } from "../../components/text-seal.js";
 import { M05_TWOTTER_KEY } from "../../i18n/m05/twotter.js";
 import { M01_LEDGERVAULT_PROJECT_LABEL } from "../global/case.js";
-import { M05_GRETA_NOTE_PLAINTEXT } from "./sealed.js";
-import { M05_GRETA_LEGACY_PASSWORD, M05_LEAKINDEX_DOMAIN } from "./network.js";
+import { M05_TWOTTER_ROXANNE_AVATAR, M05_TWOTTER_ROXANNE_BANNER } from "./assets.js";
+import { M05_ROXANNE_NOTE_PLAINTEXT } from "./sealed.js";
+import { M05_ROXANNE_LEGACY_PASSWORD, M05_LEAKINDEX_DOMAIN } from "./network.js";
 
-export const M05_GRETA_HANDLE = "@rnatnaree";
+export const M05_ROXANNE_HANDLE = "@rnatnaree";
 export const M05_GARETH_HANDLE = "@gteoh";
-export const M05_GRETA_FIRST_NAME = "Roxanne";
-export const M05_GRETA_LAST_NAME = "Anindita Natnaree";
+export const M05_ROXANNE_FIRST_NAME = "Roxanne";
+export const M05_ROXANNE_LAST_NAME = "Anindita Natnaree";
 export const M05_GARETH_FIRST_NAME = "Gideon";
 export const M05_GARETH_LAST_NAME = "Bayu Teoh";
-export const M05_GRETA_FULL_NAME = `${M05_GRETA_FIRST_NAME} ${M05_GRETA_LAST_NAME}`;
+export const M05_ROXANNE_FULL_NAME = `${M05_ROXANNE_FIRST_NAME} ${M05_ROXANNE_LAST_NAME}`;
 export const M05_GARETH_FULL_NAME = `${M05_GARETH_FIRST_NAME} ${M05_GARETH_LAST_NAME}`;
-export const M05_GRETA_TWOTTER_USERNAME = "rnatnaree";
+export const M05_ROXANNE_TWOTTER_USERNAME = "rnatnaree";
 export const M05_GARETH_TWOTTER_USERNAME = "gteoh";
-export const M05_GRETA_LYNX_INPUTS: readonly string[] = [
-    M05_GRETA_HANDLE,
-    M05_GRETA_TWOTTER_USERNAME,
-    M05_GRETA_FULL_NAME,
+export const M05_ROXANNE_LYNX_INPUTS: readonly string[] = [
+    M05_ROXANNE_HANDLE,
+    M05_ROXANNE_TWOTTER_USERNAME,
+    M05_ROXANNE_FULL_NAME,
 ];
 
-export const M05_GRETA_SEALED_HEX = sealText(M05_GRETA_NOTE_PLAINTEXT, M05_GRETA_LEGACY_PASSWORD);
+export const M05_ROXANNE_SEALED_HEX = sealText(M05_ROXANNE_NOTE_PLAINTEXT, M05_ROXANNE_LEGACY_PASSWORD);
 
 const post = (key: string, likes: number, vars?: Record<string, string>): PersonaPost => ({
     content: Localization.t(key, vars),
@@ -31,37 +32,39 @@ const post = (key: string, likes: number, vars?: Record<string, string>): Person
 });
 
 const sealedPost = (likes: number): PersonaPost => ({
-    content: `${Localization.t(M05_TWOTTER_KEY.GRETA_POST_SEALED)}\n\n${M05_GRETA_SEALED_HEX}`,
+    content: `${Localization.t(M05_TWOTTER_KEY.ROXANNE_POST_SEALED)}\n\n${M05_ROXANNE_SEALED_HEX}`,
     interaction: { likes, comments: 0, share: 0, views: likes * 9 },
 });
 
-export const buildM05GretaPersona = (): PersonaSpec => ({
-    username: M05_GRETA_TWOTTER_USERNAME,
-    firstName: M05_GRETA_FIRST_NAME,
-    lastName: M05_GRETA_LAST_NAME,
-    bio: Localization.t(M05_TWOTTER_KEY.GRETA_BIO),
+export const buildM05RoxannePersona = (): PersonaSpec => ({
+    username: M05_ROXANNE_TWOTTER_USERNAME,
+    firstName: M05_ROXANNE_FIRST_NAME,
+    lastName: M05_ROXANNE_LAST_NAME,
+    avatar: M05_TWOTTER_ROXANNE_AVATAR,
+    banner: M05_TWOTTER_ROXANNE_BANNER,
+    bio: Localization.t(M05_TWOTTER_KEY.ROXANNE_BIO),
     gender: "female",
-    tweetIdPrefix: "m05-greta",
+    tweetIdPrefix: "m05-roxanne",
     posts: [
-        post(M05_TWOTTER_KEY.GRETA_POST_1, 6),
-        post(M05_TWOTTER_KEY.GRETA_POST_2, 3),
-        post(M05_TWOTTER_KEY.GRETA_POST_3, 2),
-        post(M05_TWOTTER_KEY.GRETA_POST_4, 9),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_1, 6),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_2, 3),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_3, 2),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_4, 9),
         sealedPost(4),
-        post(M05_TWOTTER_KEY.GRETA_POST_6, 5),
-        post(M05_TWOTTER_KEY.GRETA_POST_7, 12),
-        post(M05_TWOTTER_KEY.GRETA_POST_19, 8, { host: M05_LEAKINDEX_DOMAIN }),
-        post(M05_TWOTTER_KEY.GRETA_POST_8, 8),
-        post(M05_TWOTTER_KEY.GRETA_POST_18, 7),
-        post(M05_TWOTTER_KEY.GRETA_POST_9, 7),
-        post(M05_TWOTTER_KEY.GRETA_POST_10, 3),
-        post(M05_TWOTTER_KEY.GRETA_POST_11, 11, { label: M01_LEDGERVAULT_PROJECT_LABEL }),
-        post(M05_TWOTTER_KEY.GRETA_POST_12, 4),
-        post(M05_TWOTTER_KEY.GRETA_POST_13, 14),
-        post(M05_TWOTTER_KEY.GRETA_POST_14, 21),
-        post(M05_TWOTTER_KEY.GRETA_POST_17, 17),
-        post(M05_TWOTTER_KEY.GRETA_POST_15, 10),
-        post(M05_TWOTTER_KEY.GRETA_POST_16, 5),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_6, 5),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_7, 12),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_19, 8, { host: M05_LEAKINDEX_DOMAIN }),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_8, 8),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_18, 7),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_9, 7),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_10, 3),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_11, 11, { label: M01_LEDGERVAULT_PROJECT_LABEL }),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_12, 4),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_13, 14),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_14, 21),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_17, 17),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_15, 10),
+        post(M05_TWOTTER_KEY.ROXANNE_POST_16, 5),
     ],
 });
 

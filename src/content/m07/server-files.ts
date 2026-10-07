@@ -5,7 +5,7 @@ import { M07_FILES_KEY } from "../../i18n/m07/files.js";
 import { BLACKLEDGER_LEGACY_CLAIMS } from "../global/blackledger.js";
 import {
     FINANCE_ANALYST_HANDLE,
-    GRETA_SHORT_NAME,
+    ROXANNE_SHORT_NAME,
     VIVIEN_ORCHID_SHORT_NAME,
 } from "../global/characters.js";
 import { M01_HOSPITAL_NAME, M07_INSURER_SHORT_NAME } from "../global/entities.js";
@@ -60,7 +60,7 @@ export const M07_DECOY_FILE_NAME = "backup_old";
 export const M07_DECOY_FILE_EXTENSION = "bak";
 
 export const M07_NORDHAVEN_APPROVAL_DATE = M07_HOSPITAL_APPROVED_AT;
-export const M07_EVIDENCE_CLASSIFICATION = `employee negligence (${GRETA_SHORT_NAME})`;
+export const M07_EVIDENCE_CLASSIFICATION = `employee negligence (${ROXANNE_SHORT_NAME})`;
 
 export const M07_SURVEY_CODE = "LC-07";
 export const M07_SURVEY_VISIT_DATE = "2026-08-03";
@@ -104,7 +104,7 @@ export const M07_MANIFEST_CONTENT = (): string =>
         hospitalCaseRef: RANSOM_BATCH_HOSPITAL.caseRef,
         hospitalName: M01_HOSPITAL_NAME,
         ledgerFile: `${M07_LEDGER_FILE_NAME}.${M07_LEDGER_FILE_EXTENSION}`,
-        scapegoat: GRETA_SHORT_NAME,
+        scapegoat: ROXANNE_SHORT_NAME,
         riskOfficer: VIVIEN_ORCHID_SHORT_NAME,
         insurer: M07_INSURER_SHORT_NAME,
         approvalDate: M07_NORDHAVEN_APPROVAL_DATE,

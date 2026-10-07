@@ -3,9 +3,9 @@ import { Localization } from "@hotbunny/hackhub-content-sdk";
 import { M05_I18N_KEY } from "../../i18n/m05/core.js";
 
 export const M05_LOG_DISMISSED = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_DISMISSED_1)];
-export const M05_LOG_GRETA = (): readonly string[] => [
-    Localization.t(M05_I18N_KEY.LOG_GRETA_1),
-    Localization.t(M05_I18N_KEY.LOG_GRETA_2),
+export const M05_LOG_ROXANNE = (): readonly string[] => [
+    Localization.t(M05_I18N_KEY.LOG_ROXANNE_1),
+    Localization.t(M05_I18N_KEY.LOG_ROXANNE_2),
 ];
 export const M05_LOG_FOOTHOLD = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_FOOTHOLD_1)];
 export const M05_LOG_USB = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_USB_1)];
@@ -26,9 +26,9 @@ export const M05_LOG_TICKET = (): readonly string[] => [
     Localization.t(M05_I18N_KEY.LOG_TICKET_2),
 ];
 export const M05_LOG_STATUS = (): readonly string[] => [Localization.t(M05_I18N_KEY.LOG_STATUS_1)];
-export const M05_LOG_GRETA_NOTE = (): readonly string[] => [
-    Localization.t(M05_I18N_KEY.LOG_GRETA_NOTE_1),
-    Localization.t(M05_I18N_KEY.LOG_GRETA_NOTE_2),
+export const M05_LOG_ROXANNE_NOTE = (): readonly string[] => [
+    Localization.t(M05_I18N_KEY.LOG_ROXANNE_NOTE_1),
+    Localization.t(M05_I18N_KEY.LOG_ROXANNE_NOTE_2),
 ];
 export const M05_LOG_NOTES = (): readonly string[] => [
     Localization.t(M05_I18N_KEY.LOG_NOTES_1),

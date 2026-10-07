@@ -1,12 +1,12 @@
 import {
-    M05_GRETA_HASH,
-    M05_GRETA_WORK_EMAIL,
+    M05_ROXANNE_HASH,
+    M05_ROXANNE_WORK_EMAIL,
     M05_HOSPITAL_MAIL_DOMAIN,
     M05_LEAD_APRON_HASH,
     M05_PAY_STATION_HASH,
     M05_PRINTER_HASH,
 } from "./network.js";
-import { GRETA_PRIVATE_EMAIL } from "../global/characters.js";
+import { ROXANNE_PRIVATE_EMAIL } from "../global/characters.js";
 
 export interface LeakRecord {
     readonly id: number;
@@ -17,8 +17,8 @@ export interface LeakRecord {
 }
 
 export const M05_LEAK_RECORDS: readonly LeakRecord[] = [
-    { id: 1, email: M05_GRETA_WORK_EMAIL, source: "medvendor", year: "2025", hash: M05_GRETA_HASH },
-    { id: 2, email: GRETA_PRIVATE_EMAIL, source: "foodforum", year: "2022", hash: M05_PAY_STATION_HASH },
+    { id: 1, email: M05_ROXANNE_WORK_EMAIL, source: "medvendor", year: "2025", hash: M05_ROXANNE_HASH },
+    { id: 2, email: ROXANNE_PRIVATE_EMAIL, source: "foodforum", year: "2022", hash: M05_PAY_STATION_HASH },
     { id: 3, email: `r.natnaree@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_LEAD_APRON_HASH },
     { id: 4, email: `gteoh@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PRINTER_HASH },
     { id: 5, email: `valerie.dizon@${M05_HOSPITAL_MAIL_DOMAIN}`, source: "medvendor", year: "2025", hash: M05_PAY_STATION_HASH },

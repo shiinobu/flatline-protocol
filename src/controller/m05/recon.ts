@@ -12,9 +12,8 @@ import {
     M05_HOSPITAL_HOME_DOMAIN,
     M05_TEAM_PATH,
 } from "../../content/m05/network.js";
-import { M05_GRETA_LYNX_INPUTS } from "../../content/m05/twotter.js";
+import { M05_ROXANNE_LYNX_INPUTS } from "../../content/m05/twotter.js";
 import { isM05ArchiveOpen, isM05TeamOpen, setM05TeamOpen } from "../../context/m05/progress.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { settleM05 } from "./portal.js";
 import type { M05Quest } from "./types.js";
@@ -47,7 +46,6 @@ const bindVault = (quest: M05Quest): void => {
     quest.Events.on(M01_PROJECT_OPENED_EVENT, (data: { readonly folder: string }) => {
         if (data.folder !== M01_VAULT_PROJECT_FOLDER) return;
 
-        trace("M05", "probe:vault-revisited");
         advanceStep(quest, M05_GATES, "vaultRevisited", () => setM05TeamOpen(true));
     });
 };
@@ -56,7 +54,6 @@ const bindTeamPage = (quest: M05Quest): void => {
     quest.Events.on("Browser.Meta", (data) => {
         if (!isVisit(data, M05_HOSPITAL_HOME_DOMAIN, M05_TEAM_PATH)) return;
 
-        trace("M05", "probe:team-page-seen");
         advanceStep(quest, M05_GATES, "teamPageSeen", () => settleM05(quest));
     });
 };
@@ -66,7 +63,6 @@ const bindChangeRecord = (quest: M05Quest): void => {
         if (!isVisit(data, M05_HOSPITAL_HOME_DOMAIN, M05_CHANGE_PATH) || !isM05TeamOpen()) return;
         if (quest.Data.changeSeen) return;
 
-        trace("M05", "probe:change-record-seen");
         quest.SetData("changeSeen", true);
         settleM05(quest);
     });
@@ -85,31 +81,29 @@ const bindArchive = (quest: M05Quest): void => {
         const flag = late ? "captureLateSeen" : "captureEarlySeen";
         if (quest.Data[flag]) return;
 
-        trace("M05", `probe:capture-seen ${late ? "late" : "early"}`);
         quest.SetData(flag, true);
         settleM05(quest);
     });
 };
 
-const markGreta = (quest: M05Quest): void => {
-    if (quest.Data.gretaSeen) return;
+const markRoxanne = (quest: M05Quest): void => {
+    if (quest.Data.roxanneSeen) return;
 
-    trace("M05", "probe:greta-seen");
-    quest.SetData("gretaSeen", true);
+    quest.SetData("roxanneSeen", true);
     settleM05(quest);
 };
 
-const isGretaLookup = (subject: string): boolean => M05_GRETA_LYNX_INPUTS.includes(subject);
+const isRoxanneLookup = (subject: string): boolean => M05_ROXANNE_LYNX_INPUTS.includes(subject);
 
-const bindGreta = (quest: M05Quest): void => {
+const bindRoxanne = (quest: M05Quest): void => {
     quest.Events.on("Terminal.Lynx.Lookup", (data) => {
-        if (!isGretaLookup(data.input)) return;
-        markGreta(quest);
+        if (!isRoxanneLookup(data.input)) return;
+        markRoxanne(quest);
     });
 
     quest.Events.on("Terminal.Lynx.Search", (data) => {
-        if (!isGretaLookup(data)) return;
-        markGreta(quest);
+        if (!isRoxanneLookup(data)) return;
+        markRoxanne(quest);
     });
 };
 
@@ -119,5 +113,5 @@ export const bindM05Recon = (quest: M05Quest): void => {
     bindTeamPage(quest);
     bindChangeRecord(quest);
     bindArchive(quest);
-    bindGreta(quest);
+    bindRoxanne(quest);
 };

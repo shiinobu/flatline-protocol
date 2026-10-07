@@ -1,7 +1,7 @@
 import { Localization } from "@hotbunny/hackhub-content-sdk";
 
 import { M05_I18N_KEY } from "../../i18n/m05/core.js";
-import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME } from "../global/characters.js";
+import { ROXANNE_FULL_NAME, VIVIEN_ORCHID_FULL_NAME } from "../global/characters.js";
 import { M05_COLD_CHART_CODENAME } from "./network.js";
 import { M05_GAP_TEXT, M05_GAP_TOTAL_MINUTES } from "./quest.js";
 
@@ -9,7 +9,7 @@ export const M05_REPORT_SUBJECT = (): string => Localization.t(M05_I18N_KEY.MAIL
 export const M05_REPORT_TEMPLATE_ID = "flatline.m05.report";
 export const M05_REPORT_TEMPLATE_LABEL = "Mission 5 Findings";
 
-export const M05_REPORT_DOOR = GRETA_FULL_NAME;
+export const M05_REPORT_DOOR = ROXANNE_FULL_NAME;
 export const M05_REPORT_CAUSE = "unauthorised USB media, employee negligence";
 export const M05_REPORT_DECIDER = VIVIEN_ORCHID_FULL_NAME;
 export const M05_REPORT_GAP = M05_GAP_TEXT;

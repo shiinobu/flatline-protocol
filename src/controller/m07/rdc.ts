@@ -15,11 +15,9 @@ import {
 import { M07_GATES, type M07Step } from "../../content/m07/gates.js";
 import { M07_WHATNOW_MAIL } from "../../content/m07/mail.js";
 import { M07_LOG_DOSSIER, M07_LOG_INSTRUCTION, M07_LOG_MODEL } from "../../content/m07/quest-logs.js";
-import { M07_SCOPE } from "../../content/m07/quest.js";
 import { M07_MISSION, M07_RDC_ADVANCE_CODE } from "../../content/m07/rdc.js";
 import { rdcSeedOf } from "../../content/m07/state.js";
 import { getM07RdcState, setM07LedgerRoomOpen, setM07RdcState } from "../../context/m07/progress.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { isDuelTwoWon, settleDuelTwo, startDuelTwo } from "./duel.js";
 import type { M07Quest } from "./types.js";
@@ -53,7 +51,6 @@ const bindLogin = (quest: M07Quest): void => {
     quest.Events.on(RDC_LOGIN_EVENT, (data: RdcLoginPayload) => {
         if (data.mission !== M07_MISSION || data.code !== M07_RDC_ADVANCE_CODE) return;
 
-        trace(M07_SCOPE, "probe:rdc-login chair");
         advanceStep(quest, M07_GATES, "workstationLoggedIn");
         if (quest.Data.workstationLoggedIn) patchMirror({ loggedIn: true, docs: docsRead(quest) });
     });
@@ -72,7 +69,6 @@ const bindAttach = (quest: M07Quest): void => {
     quest.Events.on(RDC_ATTACHED_EVENT, (data: RdcAttachedPayload) => {
         if (data.mission !== M07_MISSION) return;
 
-        trace(M07_SCOPE, "probe:rdc-attached");
         advanceStep(quest, M07_GATES, "displayAttached");
         if (!quest.Data.displayAttached) return;
 
@@ -87,7 +83,6 @@ const openLedgerRoom = (quest: M07Quest): void => {
     quest.SetData("whatNowSent", true);
     setM07LedgerRoomOpen(true);
     Mail.send(M07_WHATNOW_MAIL());
-    trace(M07_SCOPE, "ledger room opened after duel two");
 };
 
 const bindRead = (quest: M07Quest): void => {
@@ -97,7 +92,6 @@ const bindRead = (quest: M07Quest): void => {
         const read = READ_STEPS[data.gate];
         if (!read) return;
 
-        trace(M07_SCOPE, `probe:rdc-read gate=${data.gate}`);
         advanceStep(quest, M07_GATES, read.step, () => {
             traceBacktraceFinding("m7", read.key, read.log());
             patchMirror({ docs: docsRead(quest) });

@@ -1,6 +1,5 @@
 import { Desktop, Events, SaveStorage, Scheduler, Time, Variables } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
 import { burstDesktop, setGlitchLevel } from "./desktop-glitch.js";
 import { isDesktopMounted, onSessionLeft } from "./session-guard.js";
 
@@ -150,7 +149,6 @@ export const showIncidentBanner = (spec: IncidentBannerSpec): void => {
     publishLive(incident);
     burstDesktop(STRIKE_BURST_POWER);
     scheduleTick();
-    trace(spec.scope, `banner shown ip=${spec.ip} totalMs=${spec.totalRealMs}`);
 };
 
 export const resolveIncidentBanner = (resolution: IncidentBannerResolution): void => {
@@ -174,7 +172,6 @@ export const resolveIncidentBanner = (resolution: IncidentBannerResolution): voi
     });
     Scheduler.schedule(CLEAR_JOB, {}, { realMs: resolution.holdRealMs ?? RESOLVED_REAL_MS });
     if (resolution.outcome === "breached") burstDesktop(BREACHED_BURST_POWER);
-    trace(resolution.scope, `banner resolved outcome=${resolution.outcome}`);
 };
 
 export const dismissIncidentBanner = (): void => {

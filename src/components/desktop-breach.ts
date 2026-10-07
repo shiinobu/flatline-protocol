@@ -43,7 +43,6 @@ import {
     setRecoveryFailureHandler,
     setRecoveryStage,
 } from "./recovery-widget.js";
-import { trace } from "../helpers/logger.js";
 
 export type ComponentState = "ok" | "missing" | "corrupt" | "wrong" | "stale";
 
@@ -159,7 +158,6 @@ const runPurge = async (payload: PurgePayload): Promise<void> => {
     await removeKernelFile(INITRAMFS_FILE);
     await emptyFolder(RECOVERY_FOLDER);
     for (const path of [...payload.created].reverse()) await removeFolderIfEmpty(path);
-    trace("BREACH", "removed the recovery files, kept the incident log");
 };
 
 Scheduler.register<PurgePayload>(PURGE_JOB, (payload) => runPurge(payload));
@@ -175,7 +173,6 @@ const runCut = (): void => {
     setGlitchLevel(0);
     engageDesktopLock();
     openRecoveryConsole();
-    trace("BREACH", "desktop cut, recovery console requested");
 };
 
 const runCleanup = async (): Promise<void> => {
@@ -183,7 +180,6 @@ const runCleanup = async (): Promise<void> => {
     if (legacy === null) return;
 
     await removeTree(legacy);
-    trace("BREACH", `removed the old ${LEGACY_FOLDER} folder`);
 };
 
 Scheduler.register(CUT_JOB, runCut);
@@ -225,16 +221,13 @@ const beginBreach = async (spec: BreachSpec): Promise<boolean> => {
     burstDesktop(LEAD_IN_POWER);
     Scheduler.cancelKind(CUT_JOB);
     Scheduler.schedule(CUT_JOB, {}, { realMs: LEAD_IN_REAL_MS });
-    trace(spec.scope, `breach begun ip=${breach.ip} expectedBuild=${breach.expectedBuild}`);
     return true;
 };
 
 export const startBreach = async (spec: BreachSpec): Promise<boolean> => {
     try {
         return await beginBreach(spec);
-    } catch (error: unknown) {
-        const reason = error instanceof Error ? error.message : String(error);
-        trace(spec.scope, `breach failed: ${reason}`);
+    } catch {
         return false;
     }
 };
@@ -292,10 +285,6 @@ export const inspectRecovery = async (): Promise<RecoveryInspection | null> => {
         configState: await inspectConfig(),
         initramfsState: await inspectInitramfs(module.srcversion),
     };
-    trace(
-        breach.scope,
-        `inspect module=${module.state} config=${inspection.configState} initramfs=${inspection.initramfsState}`,
-    );
     return inspection;
 };
 
@@ -334,13 +323,11 @@ export const restoreDesktop = (text: BreachText): void => {
     if (breach === null) return;
 
     schedulePurge(breach.created ?? []);
-    trace(breach.scope, "breach repaired");
     Events.emit(DESKTOP_RESTORED_EVENT, { mission: breach.mission, ip: breach.ip });
 };
 
 const withText = (action: (text: BreachText) => void): void => {
     if (textProvider === null) {
-        trace("BREACH", "no text provider registered");
         return;
     }
 
@@ -355,7 +342,6 @@ setRecoveryFailureHandler(() => {
 Events.on(RECOVERY_READY_EVENT, () => {
     if (isBreachActive()) return;
 
-    trace("BREACH", "console opened with no active breach, closing it");
     closeRecoveryConsole();
     releaseDesktopLock();
 });
@@ -372,7 +358,6 @@ Events.on("Game.SessionStarted", () => {
         SaveStorage.set(BREACH_KEY, null);
         sweepLegacyLock();
         scheduleLegacyCleanup();
-        trace("BREACH", "dropped a breach saved by an older build");
     }
 
     if (isBreachActive()) {

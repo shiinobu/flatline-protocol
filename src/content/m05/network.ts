@@ -72,22 +72,22 @@ export const M05_PRINTER_IP = "195.133.40.17";
 export const M05_PRINTER_LAN_IP = "192.168.1.8";
 export const M05_PRINTER_USERNAME = "admin";
 
-export const M05_GRETA_USERNAME = "rnatnaree";
+export const M05_ROXANNE_USERNAME = "rnatnaree";
 export const M05_SYSTEM_CODE = "OT3";
 export const M05_INCIDENT_DATE = "2026-08-14";
-export const M05_GRETA_LEGACY_PASSWORD = "Marigold2019";
-export const M05_GRETA_PASSWORD = `${M05_GRETA_USERNAME}-${M05_SYSTEM_CODE}-${M05_INCIDENT_DATE}`;
+export const M05_ROXANNE_LEGACY_PASSWORD = "Marigold2019";
+export const M05_ROXANNE_PASSWORD = `${M05_ROXANNE_USERNAME}-${M05_SYSTEM_CODE}-${M05_INCIDENT_DATE}`;
 export const M05_GARETH_USERNAME = "gteoh";
 export const M05_PAY_STATION_PASSWORD = "billing-desk-04";
 export const M05_LEAD_APRON_PASSWORD = "radiology2021";
 export const M05_PRINTER_PASSWORD = "printroom01";
 
-export const M05_GRETA_HASH = "a3106b24578d51822fb862154d11b89d";
+export const M05_ROXANNE_HASH = "a3106b24578d51822fb862154d11b89d";
 export const M05_PAY_STATION_HASH = "2d13ee924661ff4007228f5c4d199484";
 export const M05_LEAD_APRON_HASH = "89373ed2fcad2cf734d0e7b792800909";
 export const M05_PRINTER_HASH = "f19ee082c990c2f01f0d1879b0b5cdfa";
 
-export const M05_GRETA_WORK_EMAIL = `${M05_GRETA_USERNAME}@${M05_HOSPITAL_MAIL_DOMAIN}`;
+export const M05_ROXANNE_WORK_EMAIL = `${M05_ROXANNE_USERNAME}@${M05_HOSPITAL_MAIL_DOMAIN}`;
 
 export const M05_FOOTHOLD_SOURCE_IP = "194.36.108.20";
 export const M05_FOOTHOLD_FIRST_SEEN = "2026-08-11 00:41";

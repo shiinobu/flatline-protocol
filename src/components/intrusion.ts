@@ -1,6 +1,5 @@
 import { Mail, SaveStorage, Scheduler, Time, UI, type MailDefinition } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
 import {
     dismissIncidentBanner,
     resolveIncidentBanner,
@@ -141,8 +140,6 @@ export const beginStrike = (spec: StrikeSpec): void => {
         else Mail.send(spec.mail);
     }
     if (spec.toast !== undefined) UI.toast(spec.toast, "warning");
-
-    trace(spec.scope, `strike ${spec.strikeId} started ip=${spec.ip} deadlineMs=${spec.deadlineRealMs}`);
 };
 
 const resolutionOf = (
@@ -197,7 +194,6 @@ const runDeadline = async (payload: { readonly prefix: string; readonly ip: stri
     const expired = finishStrike(payload.prefix, "breached");
     if (expired === null) return;
 
-    trace(expired.scope, `strike ${expired.strikeId} deadline expired ip=${expired.ip}`);
     await handlers.get(payload.prefix)?.onExpired(expired);
 };
 

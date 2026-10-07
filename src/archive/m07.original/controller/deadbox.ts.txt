@@ -15,7 +15,6 @@ import {
     M07_ASH_GATE_BACKUP_FILE_NAME,
 } from "../../content/m07/server-files.js";
 import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M07Quest } from "./types.js";
 import { M07_LOG_CREDENTIAL } from "../../content/m07/quest-logs.js";
@@ -33,7 +32,6 @@ const warnOnDecoy = (quest: M07Quest): void => {
         content: M07_HONEYPOT_ALERT_CONTENT(),
     });
     const charged = penalty("M07", M07_HONEYPOT_PENALTY, "Decommissioned host probed — loss");
-    trace("M07", `probe:honeypot-touched penalty=${charged}`);
 };
 
 const bindSessions = (quest: M07Quest): void => {

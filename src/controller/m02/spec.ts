@@ -11,6 +11,6 @@ export const M02_QUEST = {
     title: (): string => Localization.t(M02_I18N_KEY.QUEST_TITLE),
     description: (): string => Localization.t(M02_I18N_KEY.QUEST_DESCRIPTION),
     questsToComplete: (): string[] => questGate("m02", ["flatline.m01"]),
-    rewards: () => (isQuestDevFocus("m02") || isQuestTesterFocus("m02") ? { money: 0, xp: 0 } : M02_REWARDS),
+    rewards: () => (isQuestDevFocus("m02") || isQuestTesterFocus("m02") ? { money: 0 } : M02_REWARDS),
     objectives: () => applyDevGating(buildM02Objectives(), isQuestDevFocus("m02")),
 } as const;

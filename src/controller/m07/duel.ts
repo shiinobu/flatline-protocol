@@ -40,7 +40,6 @@ import { M07_MISSION } from "../../content/m07/rdc.js";
 import { M07_LEDGER_FILE_CONTENT, M07_LEDGER_WIPED_CONTENT } from "../../content/m07/server-files.js";
 import type { M07QuestData } from "../../content/m07/state.js";
 import { getM07RdcState, setM07RdcState } from "../../context/m07/progress.js";
-import { trace } from "../../helpers/logger.js";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { findLedgerOnTarget } from "./ledger-file.js";
 import type { M07Quest } from "./types.js";
@@ -85,8 +84,7 @@ const breachSpec = (payload: BreachPayload): BreachSpec => ({
 });
 
 const runBreach = async (payload: BreachPayload): Promise<void> => {
-    const started = await startBreach(breachSpec(payload));
-    trace(M07_SCOPE, `duel breach started=${started} alias=${payload.alias}`);
+    await startBreach(breachSpec(payload));
 };
 
 Scheduler.register<BreachPayload>(BREACH_JOB, (payload) => runBreach(payload));
@@ -97,20 +95,18 @@ const scheduleBreach = (payload: BreachPayload): void => {
 };
 
 const chargePenalty = (description: string): void => {
-    const charged = penalty(M07_SCOPE, M07_DUEL_PENALTY, description);
+    const charged = penalty(M07_DUEL_PENALTY, description);
     if (charged > 0) UI.toast(Localization.t(M07_I18N_KEY.TOAST_PENALTY, { amount: charged }), "error");
 };
 
 const wipeLedger = async (quest: M07Quest): Promise<void> => {
     const file = await findLedgerOnTarget();
     if (file === null) {
-        trace(M07_SCOPE, "ledger wipe skipped: file not reachable");
         return;
     }
 
     Files.write(file.id, M07_LEDGER_WIPED_CONTENT());
     quest.SetData("ledgerWiped", true);
-    trace(M07_SCOPE, "ledger payload wiped");
 };
 
 const restoreLedger = async (quest: M07Quest): Promise<void> => {
@@ -118,13 +114,11 @@ const restoreLedger = async (quest: M07Quest): Promise<void> => {
 
     const file = await findLedgerOnTarget();
     if (file === null) {
-        trace(M07_SCOPE, "ledger restore skipped: file not reachable");
         return;
     }
 
     Files.write(file.id, M07_LEDGER_FILE_CONTENT);
     quest.SetData("ledgerWiped", false);
-    trace(M07_SCOPE, "ledger payload restored");
 };
 
 const armDuelOne = (deadlineRealMs: number, mail?: MailDefinition, toast?: string): void => {
@@ -169,7 +163,6 @@ export const halveDuelOne = (quest: M07Quest): void => {
         M07_TRAP_MAIL(),
         Localization.t(M07_I18N_KEY.TOAST_HALVED),
     );
-    trace(M07_SCOPE, "duel one window halved");
 };
 
 export const endDuelOne = (): void => {
@@ -186,7 +179,6 @@ const loseDuelOne = async (quest: M07Quest): Promise<void> => {
     sendReplacingMail(M07_TRACED_MAIL_SLOT, M07_TRACED_MAIL());
     appendBacktraceLogs("m7", M07_LOG_DUEL_ONE_LOST(), { moment: true });
     scheduleBreach({ ip: M07_C2_IP, alias: M07_DUEL_ONE_STRIKE_ID });
-    trace(M07_SCOPE, `duel one lost losses=${quest.Data.duelOneLosses}`);
 };
 
 export const isDuelTwoWon = (data: M07QuestData): boolean =>
@@ -217,7 +209,6 @@ export const settleDuelTwo = (quest: M07Quest): void => {
     if (!isDuelTwoWon(quest.Data) || activeStrike(M07_DUEL_TWO_PREFIX) === null) return;
 
     escapeStrike(M07_DUEL_TWO_PREFIX);
-    trace(M07_SCOPE, "duel two won");
 };
 
 const loseDuelTwo = (quest: M07Quest): void => {
@@ -228,7 +219,6 @@ const loseDuelTwo = (quest: M07Quest): void => {
     setM07RdcState({ ...getM07RdcState(), loggedIn: false, attached: false });
     appendBacktraceLogs("m7", M07_LOG_DUEL_TWO_LOST(), { moment: true });
     scheduleBreach({ ip: M07_CHAIR_LAN_IP, alias: M07_DUEL_TWO_STRIKE_ID });
-    trace(M07_SCOPE, `duel two lost losses=${quest.Data.duelTwoLosses}`);
 };
 
 export const bindM07Duels = (quest: M07Quest): void => {

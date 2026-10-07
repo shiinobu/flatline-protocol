@@ -3,7 +3,7 @@ import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/
 import type { RdcDecryptResult, RdcLoginResult, RdcMirror, RdcPageProfile } from "../../../content/global/rdc.js";
 import { M05_RDC_DOMAIN } from "../../../content/m05/network.js";
 import { renderToolPage, toolIcon } from "../tool-page.js";
-import { rdcAttach, rdcDecrypt, rdcLogin, rdcProfile, rdcRead, rdcSeed, rdcSignal, rdcState } from "./exports.js";
+import { rdcAttach, rdcDecrypt, rdcLogin, rdcProfile, rdcRead, rdcSeed, rdcState } from "./exports.js";
 
 import script from "./script.html";
 import shell from "./shell.html";
@@ -30,9 +30,6 @@ export class RemoteDesktopConnectionWebsite extends Website {
 
     Exports = {
         flatlineRdcLogin: (hex: string): RdcLoginResult => rdcLogin(String(hex)),
-        flatlineRdcSignal: (stage: number): void => {
-            rdcSignal(Number(stage));
-        },
         flatlineRdcAttach: (stage: number): void => {
             if (Number(stage) === 1) rdcAttach();
         },

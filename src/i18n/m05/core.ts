@@ -38,16 +38,16 @@ export const M05_I18N_KEY = {
     DOC_DECOY_PACS: "M05.DOC.DECOY_PACS",
     DOC_DECOY_BILLING: "M05.DOC.DECOY_BILLING",
 
-    OSINT_LYNX_GRETA_1: "M05.OSINT.LYNX.GRETA_1",
-    OSINT_LYNX_GRETA_2: "M05.OSINT.LYNX.GRETA_2",
-    OSINT_LYNX_GRETA_3: "M05.OSINT.LYNX.GRETA_3",
+    OSINT_LYNX_ROXANNE_1: "M05.OSINT.LYNX.ROXANNE_1",
+    OSINT_LYNX_ROXANNE_2: "M05.OSINT.LYNX.ROXANNE_2",
+    OSINT_LYNX_ROXANNE_3: "M05.OSINT.LYNX.ROXANNE_3",
     OSINT_LYNX_GARETH_1: "M05.OSINT.LYNX.GARETH_1",
     OSINT_LYNX_GARETH_2: "M05.OSINT.LYNX.GARETH_2",
     OSINT_WHOIS_HOSPITAL_CONTACT: "M05.OSINT.WHOIS.HOSPITAL_CONTACT",
 
     LOG_DISMISSED_1: "M05.LOG.DISMISSED.1",
-    LOG_GRETA_1: "M05.LOG.GRETA.1",
-    LOG_GRETA_2: "M05.LOG.GRETA.2",
+    LOG_ROXANNE_1: "M05.LOG.ROXANNE.1",
+    LOG_ROXANNE_2: "M05.LOG.ROXANNE.2",
     LOG_FOOTHOLD_1: "M05.LOG.FOOTHOLD.1",
     LOG_USB_1: "M05.LOG.USB.1",
     LOG_SEPARATION_1: "M05.LOG.SEPARATION.1",
@@ -61,8 +61,8 @@ export const M05_I18N_KEY = {
     LOG_TICKET_1: "M05.LOG.TICKET.1",
     LOG_TICKET_2: "M05.LOG.TICKET.2",
     LOG_STATUS_1: "M05.LOG.STATUS.1",
-    LOG_GRETA_NOTE_1: "M05.LOG.GRETA_NOTE.1",
-    LOG_GRETA_NOTE_2: "M05.LOG.GRETA_NOTE.2",
+    LOG_ROXANNE_NOTE_1: "M05.LOG.ROXANNE_NOTE.1",
+    LOG_ROXANNE_NOTE_2: "M05.LOG.ROXANNE_NOTE.2",
     LOG_NOTES_1: "M05.LOG.NOTES.1",
     LOG_NOTES_2: "M05.LOG.NOTES.2",
     LOG_BEDSIDE_1: "M05.LOG.BEDSIDE.1",
@@ -155,11 +155,11 @@ Localization.registerAll({
         [M05_I18N_KEY.DOC_DECOY_PACS]: "imaging archive mount. nothing here but studies.",
         [M05_I18N_KEY.DOC_DECOY_BILLING]: "claims export staging. cleared nightly.",
 
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_1]:
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_1]:
             "Systems Administrator at a regional hospital group. Posts about work she should not post about.",
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_2]:
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_2]:
             "In August she found a USB stick on her desk with a project code on it and asked publicly what it meant.",
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_3]:
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_3]:
             "Her last post says they want her to sign something. Nothing after that.",
         [M05_I18N_KEY.OSINT_LYNX_GARETH_1]:
             "IT contractor, same hospital group. Cheerful leaving post in July when his contract ended.",
@@ -169,9 +169,9 @@ Localization.registerAll({
 
         [M05_I18N_KEY.LOG_DISMISSED_1]:
             "Roxanne Anindita Natnaree held the Systems Administrator seat on 30 June and was gone by 18 August. SA-0826 reopens that exact seat.",
-        [M05_I18N_KEY.LOG_GRETA_1]:
+        [M05_I18N_KEY.LOG_ROXANNE_1]:
             "Her public posts keep coming back to OT3, to the night of 0814, and to old access that outlives a migration.",
-        [M05_I18N_KEY.LOG_GRETA_2]: "None of it is a password. It tells you which of the hospital's own records to read again.",
+        [M05_I18N_KEY.LOG_ROXANNE_2]: "None of it is a password. It tells you which of the hospital's own records to read again.",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "The first sign-in with her credentials from outside came from 194.36.108.20 on 2026-08-11 at 00:41 UTC.",
         [M05_I18N_KEY.LOG_USB_1]:
@@ -196,9 +196,9 @@ Localization.registerAll({
         [M05_I18N_KEY.LOG_TICKET_2]:
             "Plugged in at 00:12 on August 11th, three days before they locked the hospital.",
         [M05_I18N_KEY.LOG_STATUS_1]: "Theatre 3 is not a system. The status page keeps calling it one.",
-        [M05_I18N_KEY.LOG_GRETA_NOTE_1]:
+        [M05_I18N_KEY.LOG_ROXANNE_NOTE_1]:
             "One password for the portal, the VPN, the archive and MedVendor. The reset was always after the migration.",
-        [M05_I18N_KEY.LOG_GRETA_NOTE_2]: "The migration never ends. That is the whole door, in her own words.",
+        [M05_I18N_KEY.LOG_ROXANNE_NOTE_2]: "The migration never ends. That is the whole door, in her own words.",
         [M05_I18N_KEY.LOG_NOTES_1]: "She plugged it in because the label looked like a project code. That is it.",
         [M05_I18N_KEY.LOG_NOTES_2]: "She keeps coming back to the theatre. So does the memo, in a line they removed.",
         [M05_I18N_KEY.LOG_BEDSIDE_1]:
@@ -281,18 +281,18 @@ Localization.registerAll({
         [M05_I18N_KEY.DOC_DECOY_PACS]: "影像归档挂载点。这里除了检查片子什么都没有。",
         [M05_I18N_KEY.DOC_DECOY_BILLING]: "理赔导出暂存区。每晚清空。",
 
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_1]: "某区域医院集团的系统管理员。总在网上发她不该发的工作内容。",
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_2]: "八月她在桌上发现一个写着项目代号的 U 盘，还公开问那是什么意思。",
-        [M05_I18N_KEY.OSINT_LYNX_GRETA_3]: "她最后一条帖子说，他们要她签个东西。之后再没有动静。",
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_1]: "某区域医院集团的系统管理员。总在网上发她不该发的工作内容。",
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_2]: "八月她在桌上发现一个写着项目代号的 U 盘，还公开问那是什么意思。",
+        [M05_I18N_KEY.OSINT_LYNX_ROXANNE_3]: "她最后一条帖子说，他们要她签个东西。之后再没有动静。",
         [M05_I18N_KEY.OSINT_LYNX_GARETH_1]: "同一家医院集团的 IT 外包。七月合同到期时发了条挺开心的告别帖。",
         [M05_I18N_KEY.OSINT_LYNX_GARETH_2]: "之后再没发过。他的门禁卡在这些事发生之前就已经失效了。",
         [M05_I18N_KEY.OSINT_WHOIS_HOSPITAL_CONTACT]: "PacificCare 医院 — 网络运维",
 
         [M05_I18N_KEY.LOG_DISMISSED_1]:
             "Roxanne Anindita Natnaree 在 6 月 30 日担任系统管理员，到 8 月 18 日已经不在了。SA-0826 重新开放的，正是这个岗位。",
-        [M05_I18N_KEY.LOG_GRETA_1]:
+        [M05_I18N_KEY.LOG_ROXANNE_1]:
             "她的公开帖子总是绕回 OT3、绕回 0814 那一夜，以及迁移之后依然留存的旧权限。",
-        [M05_I18N_KEY.LOG_GRETA_2]: "这些都不是密码。它们告诉你，该重读医院自己的哪些记录。",
+        [M05_I18N_KEY.LOG_ROXANNE_2]: "这些都不是密码。它们告诉你，该重读医院自己的哪些记录。",
         [M05_I18N_KEY.LOG_FOOTHOLD_1]:
             "用她的凭据从外部的第一次登录来自 194.36.108.20，时间是 2026-08-11 00:41 UTC。",
         [M05_I18N_KEY.LOG_USB_1]:
@@ -312,8 +312,8 @@ Localization.registerAll({
         [M05_I18N_KEY.LOG_TICKET_1]: "Q3-2026-SEA。和经纪人保险库里那个文件夹是同一个标签。",
         [M05_I18N_KEY.LOG_TICKET_2]: "8 月 11 日 00:12 插入，三天之后他们锁住了医院。",
         [M05_I18N_KEY.LOG_STATUS_1]: "第三手术室不是系统。状态页却一直把它当成系统。",
-        [M05_I18N_KEY.LOG_GRETA_NOTE_1]: "门户、VPN、档案、MedVendor 都是同一个密码。强制重置永远排在迁移之后。",
-        [M05_I18N_KEY.LOG_GRETA_NOTE_2]: "迁移永远不会结束。用她自己的话说，这就是那扇门。",
+        [M05_I18N_KEY.LOG_ROXANNE_NOTE_1]: "门户、VPN、档案、MedVendor 都是同一个密码。强制重置永远排在迁移之后。",
+        [M05_I18N_KEY.LOG_ROXANNE_NOTE_2]: "迁移永远不会结束。用她自己的话说，这就是那扇门。",
         [M05_I18N_KEY.LOG_NOTES_1]: "她插上它，是因为那个标签看起来像项目代号。就这么简单。",
         [M05_I18N_KEY.LOG_NOTES_2]: "她一直绕回那间手术室。那份备忘录也一样——在他们删掉的那一行里。",
         [M05_I18N_KEY.LOG_BEDSIDE_1]: "保险库里那张便条是真的。它一直就躺在那台机器上。",

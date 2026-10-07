@@ -1,8 +1,8 @@
 import { Events } from "@hotbunny/hackhub-content-sdk";
 
 import {
-    M05_GRETA_LEGACY_PASSWORD,
-    M05_GRETA_PASSWORD,
+    M05_ROXANNE_LEGACY_PASSWORD,
+    M05_ROXANNE_PASSWORD,
     M05_PRINTER_PASSWORD,
 } from "../../../content/m05/network.js";
 import {
@@ -14,7 +14,6 @@ import {
 } from "../../../content/m05/portal.js";
 import { areMissionSitesOpen } from "../../../context/global/site-access.js";
 import { getM05PortalMin, getM05PortalUser, setM05PortalUser } from "../../../context/m05/progress.js";
-import { trace } from "../../../helpers/logger.js";
 import type { PortalView } from "./render.js";
 
 const MAX_FIELD_LENGTH = 128;
@@ -31,7 +30,6 @@ const clip = (value: unknown): string => String(value).slice(0, MAX_FIELD_LENGTH
 const signIn = (user: string, view: PortalLoginResult): PortalLoginResult => {
     setM05PortalUser(user);
     Events.emit(M05_LOGIN_EVENT, { user });
-    trace("M05", `portal:login view=${view}`);
 
     return view;
 };
@@ -42,11 +40,10 @@ export const portalLogin = (user: unknown, password: unknown): PortalLoginResult
     const name = clip(user);
     const secret = clip(password);
 
-    if (name === M05_PORTAL_LOGIN_USER && secret === M05_GRETA_PASSWORD) return signIn(name, "portal");
+    if (name === M05_PORTAL_LOGIN_USER && secret === M05_ROXANNE_PASSWORD) return signIn(name, "portal");
     if (name === M05_PORTAL_CONTRACTOR_USER && secret === M05_PRINTER_PASSWORD) return signIn(name, "contractor");
 
-    if (name === M05_PORTAL_LOGIN_USER && secret === M05_GRETA_LEGACY_PASSWORD) {
-        trace("M05", "portal:login retired");
+    if (name === M05_PORTAL_LOGIN_USER && secret === M05_ROXANNE_LEGACY_PASSWORD) {
         return "retired";
     }
 

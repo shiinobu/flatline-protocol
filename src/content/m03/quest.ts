@@ -56,6 +56,5 @@ export const buildM03Objectives = (): QuestObjectiveDefinition[] => [
 ];
 
 export const M03_REWARDS = {
-    money: 600,
-    xp: 140,
+    money: 1000,
 } as const;

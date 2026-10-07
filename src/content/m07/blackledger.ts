@@ -1,6 +1,6 @@
 import { BLACKLEDGER_LEGACY_CLAIM_EU, BLACKLEDGER_LEGACY_CLAIM_NA } from "../global/blackledger.js";
 import { M01_CASE_ID, M01_LEDGERVAULT_PROJECT_LABEL } from "../global/case.js";
-import { ARCHITECT_REAL_NAME, GRETA_SHORT_NAME, VIVIEN_ORCHID_SHORT_NAME } from "../global/characters.js";
+import { ARCHITECT_REAL_NAME, ROXANNE_SHORT_NAME, VIVIEN_ORCHID_SHORT_NAME } from "../global/characters.js";
 import { M01_HOSPITAL_NAME, M02_SHELL_COMPANY_NAME, M07_INSURER_NAME } from "../global/entities.js";
 import {
     RANSOM_BATCH_EU,
@@ -280,7 +280,7 @@ export const M07_LEDGER_PROOF: readonly LedgerProofItem[] = [
     },
     {
         title: "Classification",
-        body: `${M01_CASE_ID}: retained risk, employee negligence (${GRETA_SHORT_NAME}). Prepared with ${VIVIEN_ORCHID_SHORT_NAME}. Approved by ${M07_INSURER_NAME}. The label keeps the claim in force.`,
+        body: `${M01_CASE_ID}: retained risk, employee negligence (${ROXANNE_SHORT_NAME}). Prepared with ${VIVIEN_ORCHID_SHORT_NAME}. Approved by ${M07_INSURER_NAME}. The label keeps the claim in force.`,
     },
     {
         title: `Loss-control survey ${M07_SURVEY_CODE}`,

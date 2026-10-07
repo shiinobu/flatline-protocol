@@ -14,7 +14,7 @@ export const buildM07Objectives = (): QuestObjectiveDefinition[] => [
     },
 ];
 
-export const M07_REWARD_MONEY = 5000;
+export const M07_REWARD_MONEY = 4500;
 export const M07_REWARD_DESCRIPTION = "The Architect — contract settled";
 
 export const M07_SAVE_PREFIX = "flatline.m07";

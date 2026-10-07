@@ -4,7 +4,6 @@ import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-re
 import { M07_GATES } from "../../content/m07/gates.js";
 import { M07_C2_IP } from "../../content/m07/network.js";
 import { M07_LOG_C2, M07_LOG_MANIFEST, M07_LOG_ORDERS, M07_LOG_SURVEY } from "../../content/m07/quest-logs.js";
-import { M07_SCOPE } from "../../content/m07/quest.js";
 import {
     M07_LEDGER_FILE_EXTENSION,
     M07_LEDGER_FILE_NAME,
@@ -15,7 +14,6 @@ import {
     M07_SURVEY_FILE_EXTENSION,
     M07_SURVEY_FILE_NAME,
 } from "../../content/m07/server-files.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { halveDuelOne, resumeDuelOne, startDuelOne } from "./duel.js";
 import type { M07Quest } from "./types.js";
@@ -33,7 +31,6 @@ const bindSession = (quest: M07Quest): void => {
     quest.Events.on("RemoteConnection.Established", async (data) => {
         if (data.t !== "METASPLOIT" || data.targetIp !== M07_C2_IP) return;
 
-        trace(M07_SCOPE, `probe:c2-session port=${data.targetPort}`);
         const first = advanceStep(quest, M07_GATES, "shellObtained", () => {
             traceBacktraceFinding("m7", "c2", M07_LOG_C2());
             startDuelOne(quest);

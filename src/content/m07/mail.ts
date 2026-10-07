@@ -1,7 +1,7 @@
 import { Localization, type MailDefinition } from "@hotbunny/hackhub-content-sdk";
 
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
-import { DEAD_DROP_CONTACT, GRETA_PRIVATE_EMAIL, M04_ARCHITECT_VPN_IP } from "../global/characters.js";
+import { DEAD_DROP_CONTACT, ROXANNE_PRIVATE_EMAIL, M04_ARCHITECT_VPN_IP } from "../global/characters.js";
 import { M07_INSURER_NAME } from "../global/entities.js";
 import { M04_HUNTER_EMAIL } from "../m04/network.js";
 import { M07_CHOICE_DESTROY, M07_CHOICE_EXPOSE, M07_CHOICE_HANDOFF } from "./choice.js";
@@ -57,18 +57,18 @@ export const M07_WHATNOW_MAIL = (): MailDefinition => ({
     content: Localization.t(M07_I18N_KEY.MAIL_WHATNOW_CONTENT),
 });
 
-export const M07_GRETA_LETTER = (choice: string): MailDefinition | null => {
+export const M07_ROXANNE_LETTER = (choice: string): MailDefinition | null => {
     const key =
         choice === M07_CHOICE_EXPOSE
-            ? M07_I18N_KEY.MAIL_GRETA_EXPOSE
+            ? M07_I18N_KEY.MAIL_ROXANNE_EXPOSE
             : choice === M07_CHOICE_HANDOFF
-              ? M07_I18N_KEY.MAIL_GRETA_HANDOFF
+              ? M07_I18N_KEY.MAIL_ROXANNE_HANDOFF
               : null;
     if (key === null) return null;
 
     return {
-        from: GRETA_PRIVATE_EMAIL,
-        subject: Localization.t(M07_I18N_KEY.MAIL_GRETA_SUBJECT),
+        from: ROXANNE_PRIVATE_EMAIL,
+        subject: Localization.t(M07_I18N_KEY.MAIL_ROXANNE_SUBJECT),
         content: Localization.t(key),
     };
 };

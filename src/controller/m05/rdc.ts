@@ -20,7 +20,6 @@ import { M05_MISSION, M05_RDC_ADVANCE_CODE } from "../../content/m05/rdc.js";
 import { rdcSeedOf } from "../../content/m05/state.js";
 import { setM05RdcState } from "../../context/m05/progress.js";
 import { unlock } from "../../core/index.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { settleM05 } from "./portal.js";
 import type { M05Quest } from "./types.js";
@@ -60,7 +59,6 @@ const bindLogin = (quest: M05Quest): void => {
         if (data.mission !== M05_MISSION || data.code !== M05_RDC_ADVANCE_CODE) return;
 
         settleM05(quest);
-        trace("M05", "probe:rdc-login cold");
         advanceStep(quest, M05_GATES, "rdcLoggedIn", () => writeMirror(quest));
     });
 };
@@ -78,7 +76,6 @@ const bindAttach = (quest: M05Quest): void => {
     quest.Events.on(RDC_ATTACHED_EVENT, (data: RdcAttachedPayload) => {
         if (data.mission !== M05_MISSION) return;
 
-        trace("M05", "probe:rdc-attached");
         advanceStep(quest, M05_GATES, "displayAttached", () => {
             unlock(M05_WORLD, "hospitalShells");
             traceBacktraceFinding("m5", "archive", M05_LOG_ARCHIVE());
@@ -94,7 +91,6 @@ const bindRead = (quest: M05Quest): void => {
         const read = READ_STEPS[data.gate];
         if (!read) return;
 
-        trace("M05", `probe:rdc-read gate=${data.gate}`);
         advanceStep(quest, M05_GATES, read.step, () => {
             traceBacktraceFinding("m5", read.key, read.log());
             writeMirror(quest);

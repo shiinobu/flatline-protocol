@@ -22,7 +22,6 @@ import {
 } from "../../content/m05/quest-logs.js";
 import type { M05QuestData } from "../../content/m05/state.js";
 import { getM05PortalUser, setM05PortalMin, setM05PortalUser } from "../../context/m05/progress.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { settleEvidence } from "./evidence.js";
 import type { M05Quest } from "./types.js";
@@ -102,7 +101,6 @@ const recordObservation = (quest: M05Quest, kind: M05PortalKind): void => {
     if (quest.Data[flag]) return;
 
     quest.SetData(flag, true);
-    trace("M05", `probe:portal-seen kind=${kind}`);
     settleM05(quest);
 };
 
@@ -118,7 +116,6 @@ const bindLogin = (quest: M05Quest): void => {
 
         if (data.user === M05_PORTAL_CONTRACTOR_USER) {
             setM05PortalUser(M05_PORTAL_CONTRACTOR_USER);
-            trace("M05", "probe:portal-login contractor");
         }
     });
 };

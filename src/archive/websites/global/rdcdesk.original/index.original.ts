@@ -4,7 +4,7 @@ import type { RdcLoginResult } from "../../../../content/global/rdc.js";
 import { M05_RDC_DOMAIN } from "../../../../content/m05/network.js";
 import type { M05RdcMirror } from "../../../../context/m05/progress.js";
 import { renderToolPage, toolIcon } from "../../../../websites/global/tool-page.js";
-import { rdcAttach, rdcLogin, rdcRead, rdcSeed, rdcSignal, rdcState } from "./exports.original.js";
+import { rdcAttach, rdcLogin, rdcRead, rdcSeed, rdcState } from "./exports.original.js";
 
 import script from "./script.original.html";
 import shell from "./shell.original.html";
@@ -31,9 +31,6 @@ export class RemoteDesktopConnectionWebsite extends Website {
 
     Exports = {
         flatlineRdcLogin: (hex: string): RdcLoginResult => rdcLogin(String(hex)),
-        flatlineRdcSignal: (stage: number): void => {
-            rdcSignal(Number(stage));
-        },
         flatlineRdcAttach: (stage: number): void => {
             if (Number(stage) === 1) rdcAttach();
         },

@@ -47,9 +47,9 @@ export const M07_I18N_KEY = {
 
     MAIL_WHATNOW_SUBJECT: "M07.MAIL.WHATNOW.SUBJECT",
     MAIL_WHATNOW_CONTENT: "M07.MAIL.WHATNOW.CONTENT",
-    MAIL_GRETA_SUBJECT: "M07.MAIL.GRETA.SUBJECT",
-    MAIL_GRETA_EXPOSE: "M07.MAIL.GRETA.EXPOSE",
-    MAIL_GRETA_HANDOFF: "M07.MAIL.GRETA.HANDOFF",
+    MAIL_ROXANNE_SUBJECT: "M07.MAIL.ROXANNE.SUBJECT",
+    MAIL_ROXANNE_EXPOSE: "M07.MAIL.ROXANNE.EXPOSE",
+    MAIL_ROXANNE_HANDOFF: "M07.MAIL.ROXANNE.HANDOFF",
     MAIL_CLOSING_SUBJECT: "M07.MAIL.CLOSING.SUBJECT",
     MAIL_CLOSING_EXPOSE: "M07.MAIL.CLOSING.EXPOSE",
     MAIL_CLOSING_HANDOFF: "M07.MAIL.CLOSING.HANDOFF",
@@ -202,8 +202,8 @@ Localization.registerAll({
             "",
             "Put the word in the decision field of your report. I will not argue with any of them.",
         ].join("\n"),
-        [M07_I18N_KEY.MAIL_GRETA_SUBJECT]: "you don't know me",
-        [M07_I18N_KEY.MAIL_GRETA_EXPOSE]: [
+        [M07_I18N_KEY.MAIL_ROXANNE_SUBJECT]: "you don't know me",
+        [M07_I18N_KEY.MAIL_ROXANNE_EXPOSE]: [
             "You don't know me. I was the name in the incident report.",
             "",
             "Someone sent me a copy of what came out. My file says the cause was never me, and the hospital",
@@ -219,7 +219,7 @@ Localization.registerAll({
             "",
             "-- R.a.N",
         ].join("\n"),
-        [M07_I18N_KEY.MAIL_GRETA_HANDOFF]: [
+        [M07_I18N_KEY.MAIL_ROXANNE_HANDOFF]: [
             "You don't know me. I was the name in the incident report.",
             "",
             "A lawyer called me. She says there is a file now, with my name on the right side of it,",
@@ -380,8 +380,8 @@ Localization.registerAll({
             "",
             "把那个词填进报告的决定栏。无论你选哪一个，我都不会争。",
         ].join("\n"),
-        [M07_I18N_KEY.MAIL_GRETA_SUBJECT]: "你不认识我",
-        [M07_I18N_KEY.MAIL_GRETA_EXPOSE]: [
+        [M07_I18N_KEY.MAIL_ROXANNE_SUBJECT]: "你不认识我",
+        [M07_I18N_KEY.MAIL_ROXANNE_EXPOSE]: [
             "你不认识我。我就是事故报告里的那个名字。",
             "",
             "有人把公开出来的东西寄给了我一份。我的档案里写着，原因从来不是我，而医院已经不再回电话了。",
@@ -397,7 +397,7 @@ Localization.registerAll({
             "",
             "-- R.a.N",
         ].join("\n"),
-        [M07_I18N_KEY.MAIL_GRETA_HANDOFF]: [
+        [M07_I18N_KEY.MAIL_ROXANNE_HANDOFF]: [
             "你不认识我。我就是事故报告里的那个名字。",
             "",
             "一位律师给我打了电话。她说现在有了一份卷宗，我的名字站在了对的一边，",

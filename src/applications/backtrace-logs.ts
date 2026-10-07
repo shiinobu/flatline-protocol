@@ -33,8 +33,8 @@ import {
     M05_LOG_CONTROLS,
     M05_LOG_DISMISSED,
     M05_LOG_FOOTHOLD,
-    M05_LOG_GRETA,
-    M05_LOG_GRETA_NOTE,
+    M05_LOG_ROXANNE,
+    M05_LOG_ROXANNE_NOTE,
     M05_LOG_HOLD,
     M05_LOG_MEMO,
     M05_LOG_NOTES,
@@ -124,7 +124,7 @@ const MISSION_LOGS: Readonly<Record<BacktraceMissionId, readonly BacktraceLogGro
     ],
     m5: [
         { read: M05_LOG_DISMISSED, key: "dismissed" },
-        { read: M05_LOG_GRETA, key: "greta" },
+        { read: M05_LOG_ROXANNE, key: "roxanne" },
         { read: M05_LOG_FOOTHOLD, note: true, optional: true },
         { read: M05_LOG_USB, note: true, optional: true },
         { read: M05_LOG_SEPARATION, note: true, optional: true },
@@ -136,7 +136,7 @@ const MISSION_LOGS: Readonly<Record<BacktraceMissionId, readonly BacktraceLogGro
         { read: M05_LOG_MEMO, key: "decisionMemo" },
         { read: M05_LOG_TICKET, key: "usbTicket" },
         { read: M05_LOG_STATUS, note: true, optional: true },
-        { read: M05_LOG_GRETA_NOTE, note: true, optional: true },
+        { read: M05_LOG_ROXANNE_NOTE, note: true, optional: true },
         { read: M05_LOG_BEDSIDE, note: true, optional: true },
     ],
     m6: [

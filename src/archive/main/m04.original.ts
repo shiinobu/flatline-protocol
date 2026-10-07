@@ -7,7 +7,6 @@ import {
     Shell,
 } from "@hotbunny/hackhub-content-sdk";
 
-import { ATTRCHECK_REVEALED_EVENT } from "../../commands/attrcheck.js";
 import {
     M04_ARCHITECT_IP,
     M04_ARCHITECT_NMAP_RESULT,
@@ -39,6 +38,8 @@ import {
     M04_TRAP_WARNING_SUBJECT,
 } from "../content/m04.original.js";
 import { applyDevGating, isQuestDevFocus, questGate } from "../../guard/flags.js";
+
+const ATTRCHECK_REVEALED_EVENT = "flatline.m04.attrcheckRevealed";
 
 interface M04QuestData {
     readonly leadReviewed: boolean;

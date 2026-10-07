@@ -3,7 +3,7 @@ import { Localization } from "@hotbunny/hackhub-content-sdk";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import {
     FINANCE_ANALYST_HANDLE,
-    GRETA_SHORT_NAME,
+    ROXANNE_SHORT_NAME,
     VIVIEN_ORCHID_SHORT_NAME,
 } from "../global/characters.js";
 import { BLACKLEDGER_LEGACY_CLAIMS } from "../global/blackledger.js";
@@ -32,7 +32,7 @@ export const M07_DECOY_FILE_NAME = "backup_old";
 export const M07_DECOY_FILE_EXTENSION = "bak";
 
 export const M07_NORDHAVEN_APPROVAL_DATE = "2026-08-17";
-export const M07_EVIDENCE_CLASSIFICATION = `employee negligence (${GRETA_SHORT_NAME})`;
+export const M07_EVIDENCE_CLASSIFICATION = `employee negligence (${ROXANNE_SHORT_NAME})`;
 
 const legacyAccountLine = (claim: { readonly name: string; readonly year: string; readonly region: string }): string =>
     Localization.t(M07_I18N_KEY.DEVICE_MANIFEST_LEGACY_ACCOUNT, {
@@ -57,7 +57,7 @@ export const M07_MANIFEST_CONTENT = (): string =>
         hospitalCaseRef: RANSOM_BATCH_HOSPITAL.caseRef,
         hospitalName: M01_HOSPITAL_NAME,
         ledgerFile: `${M07_LEDGER_FILE_NAME}.${M07_LEDGER_FILE_EXTENSION}`,
-        scapegoat: GRETA_SHORT_NAME,
+        scapegoat: ROXANNE_SHORT_NAME,
         riskOfficer: VIVIEN_ORCHID_SHORT_NAME,
         insurer: M07_INSURER_SHORT_NAME,
         approvalDate: M07_NORDHAVEN_APPROVAL_DATE,

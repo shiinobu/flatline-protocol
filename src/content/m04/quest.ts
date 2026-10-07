@@ -13,7 +13,7 @@ export const buildM04Objectives = (): QuestObjectiveDefinition[] => [
     },
 ];
 
-export const M04_REWARD_MONEY = 2400;
+export const M04_REWARD_MONEY = 1500;
 export const M04_REWARD_DESCRIPTION = "Burn Notice — contract settled";
 
 export const M04_SAVE_PREFIX = "flatline.m04";

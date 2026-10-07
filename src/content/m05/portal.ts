@@ -2,7 +2,7 @@ import {
     M05_COLD_CHART_CHANGE,
     M05_FOOTHOLD_SOURCE_IP,
     M05_GARETH_USERNAME,
-    M05_GRETA_USERNAME,
+    M05_ROXANNE_USERNAME,
 } from "./network.js";
 
 export const M05_LOGIN_EVENT = "flatline.m05.login";
@@ -49,6 +49,6 @@ export const isM05PortalKind = (value: string): value is M05PortalKind =>
 export const matchesM05PortalObservation = (kind: string, ref: string): boolean =>
     isM05PortalKind(kind) && PORTAL_REFS[kind] === ref;
 
-export const M05_PORTAL_LOGIN_USER = M05_GRETA_USERNAME;
+export const M05_PORTAL_LOGIN_USER = M05_ROXANNE_USERNAME;
 export const M05_PORTAL_CONTRACTOR_USER = M05_GARETH_USERNAME;
 export const M05_PORTAL_MIN_STEPS: readonly M05PortalKind[] = ["foothold", "usb", "separation", "controls", "hold"];

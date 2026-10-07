@@ -2,7 +2,6 @@ import { Desktop, Events, SaveStorage, Scheduler } from "@hotbunny/hackhub-conte
 
 import { injectCss, removeCss } from "./css-inject.js";
 import { isDesktopMounted, onSessionLeft } from "./session-guard.js";
-import { trace } from "../helpers/logger.js";
 
 declare module "@hotbunny/hackhub-content-sdk" {
     interface ModEventMap {
@@ -60,16 +59,10 @@ const findFrame = (): HTMLIFrameElement | undefined =>
 const tagHost = (): void => {
     const host = findFrame()?.parentElement;
     if (host === null || host === undefined) {
-        trace("RECOVERY", "console frame not found, keeping the fixed size");
         return;
     }
 
     host.classList.add(HOST_CLASS);
-    const rect = host.getBoundingClientRect();
-    trace(
-        "RECOVERY",
-        `host at ${Math.round(rect.left)},${Math.round(rect.top)} ${Math.round(rect.width)}x${Math.round(rect.height)} in viewport ${window.innerWidth}x${window.innerHeight}`,
-    );
 };
 
 const scheduleReadyCheck = (): void => {
@@ -104,7 +97,6 @@ export const openRecoveryConsole = (): void => {
         transparent: false,
     });
     scheduleReadyCheck();
-    trace("RECOVERY", `console requested at ${width}x${height} below ${top}px`);
 };
 
 export const closeRecoveryConsole = (): void => {
@@ -118,7 +110,6 @@ export const closeRecoveryConsole = (): void => {
 Scheduler.register(READY_JOB, () => {
     if (consoleReady || !isDesktopMounted()) return;
 
-    trace("RECOVERY", "console did not report ready, falling back");
     closeRecoveryConsole();
     failureHandler?.();
 });
@@ -134,5 +125,4 @@ Events.on(RECOVERY_READY_EVENT, () => {
     consoleReady = true;
     Scheduler.cancelKind(READY_JOB);
     tagHost();
-    trace("RECOVERY", "console ready");
 });

@@ -8,15 +8,14 @@ import { M07_GATES, M07_STEP_ORDER } from "../../content/m07/gates.js";
 import {
     M07_CLOSING_MAIL,
     M07_DEAD_DROP_EMAIL,
-    M07_GRETA_LETTER,
+    M07_ROXANNE_LETTER,
     M07_PREMATURE_MAIL_SLOT,
     buildM07PrematureReply,
 } from "../../content/m07/mail.js";
 import { M07_LOG_ENDING } from "../../content/m07/quest-logs.js";
-import { M07_OBJECTIVE_IDS, M07_SCOPE } from "../../content/m07/quest.js";
+import { M07_OBJECTIVE_IDS } from "../../content/m07/quest.js";
 import type { M07Choice } from "../../content/m07/state.js";
 import { unregister } from "../../core/index.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep, firstUnmetStep } from "../../middleware/gate.js";
 import { isDuelTwoWon } from "./duel.js";
 import { findLedgerOnTarget } from "./ledger-file.js";
@@ -29,7 +28,6 @@ const removeLedgerFromHost = async (): Promise<void> => {
     if (ledger === null) return;
 
     Files.remove(ledger.id);
-    trace(M07_SCOPE, "ledger removed from the host");
 };
 
 const applyEnding = (quest: M07Quest, choice: M07Choice): void => {
@@ -38,19 +36,16 @@ const applyEnding = (quest: M07Quest, choice: M07Choice): void => {
     quest.SetData("endingApplied", true);
     appendBacktraceLogs("m7", M07_LOG_ENDING(choice), { moment: true });
 
-    const letter = M07_GRETA_LETTER(choice);
+    const letter = M07_ROXANNE_LETTER(choice);
     if (letter !== null) Mail.send(letter);
 
     const closing = M07_CLOSING_MAIL(choice);
     if (closing !== null) Mail.send(closing);
-
-    trace(M07_SCOPE, `ending applied choice=${choice} letter=${letter !== null}`);
 };
 
 const destroyNetwork = async (): Promise<void> => {
     await removeLedgerFromHost();
     unregister(M07_WORLD);
-    trace(M07_SCOPE, "C2 network torn down (destroy ending)");
 };
 
 const parseChoice = (content: string): M07Choice | null => {

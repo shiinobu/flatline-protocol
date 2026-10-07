@@ -37,7 +37,7 @@ import {
     M03_VPN_PEER_LABEL,
     M03_INTERNAL_NETWORK_FACT,
 } from "../content/m03/network.js";
-import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME, VIVIEN_ORCHID_SHORT_NAME } from "../content/global/characters.js";
+import { ROXANNE_FULL_NAME, VIVIEN_ORCHID_FULL_NAME, VIVIEN_ORCHID_SHORT_NAME } from "../content/global/characters.js";
 import { M01_HOSPITAL_NAME, M07_INSURER_NAME } from "../content/global/entities.js";
 import { M05_BEDSIDE_ASSET_TAG, M05_COLD_CHART_CODENAME } from "../content/m05/network.js";
 import { M05_ACK_DATE, M05_NEGOTIATOR, M05_USB_DATE } from "../content/m05/server-files.js";
@@ -109,7 +109,7 @@ export const BACKTRACE_KEYS = {
     m2: ["developer", "ransom", "deployLog", "homeLead", "firewall", "workstation", "shellCompany"],
     m3: ["portal", "pivot", "parentEntity", "gateway", "vpnPeer", "accomplice"],
     m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
-    m5: ["dismissed", "greta", "archive", "statement", "decisionMemo", "usbTicket"],
+    m5: ["dismissed", "roxanne", "archive", "statement", "decisionMemo", "usbTicket"],
     m6: ["nominees", "registeredAgent", "ownershipChange", "insurer", "infra", "architect"],
     m7: [
         "claims",
@@ -227,9 +227,9 @@ const buildM4Facts = (): BacktraceFacts => ({
 });
 
 const buildM5Facts = (): BacktraceFacts => ({
-    dismissed: `${GRETA_FULL_NAME} removed from the staff list`,
-    greta: `${GRETA_FULL_NAME}, Systems Administrator`,
-    gretaName: GRETA_FULL_NAME,
+    dismissed: `${ROXANNE_FULL_NAME} removed from the staff list`,
+    roxanne: `${ROXANNE_FULL_NAME}, Systems Administrator`,
+    roxanneName: ROXANNE_FULL_NAME,
     archive: `${M05_COLD_CHART_CODENAME} opened with her own credential`,
     statement: `acknowledgement signed ${M05_ACK_DATE}`,
     decisionMemo: `paid ${M05_PAID_AT} UTC, classified employee negligence`,

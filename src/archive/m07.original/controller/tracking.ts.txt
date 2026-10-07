@@ -24,7 +24,6 @@ import {
     M07_LEDGER_FILE_NAME,
     M07_LEDGER_WIPED_CONTENT,
 } from "../../content/m07/server-files.js";
-import { trace } from "../../helpers/logger.js";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { buildM07IncidentLog } from "./incident.js";
 import type { M07Quest } from "./types.js";
@@ -68,13 +67,11 @@ const findLedgerOnTarget = async (): Promise<FileInfo | null> => {
 const wipeLedger = async (quest: M07Quest): Promise<void> => {
     const file = await findLedgerOnTarget();
     if (file === null) {
-        trace(M07_SCOPE, "ledger wipe skipped: file not reachable");
         return;
     }
 
     Files.write(file.id, M07_LEDGER_WIPED_CONTENT());
     quest.SetData("ledgerWiped", true);
-    trace(M07_SCOPE, "ledger payload wiped");
 };
 
 const restoreLedger = async (quest: M07Quest): Promise<void> => {
@@ -82,13 +79,11 @@ const restoreLedger = async (quest: M07Quest): Promise<void> => {
 
     const file = await findLedgerOnTarget();
     if (file === null) {
-        trace(M07_SCOPE, "ledger restore skipped: file not reachable");
         return;
     }
 
     Files.write(file.id, M07_LEDGER_FILE_CONTENT);
     quest.SetData("ledgerWiped", false);
-    trace(M07_SCOPE, "ledger payload restored");
 };
 
 export const bindM07Tracking = (quest: M07Quest): void => {
@@ -97,7 +92,6 @@ export const bindM07Tracking = (quest: M07Quest): void => {
             if (quest.Data.fileExtracted) return;
 
             const charged = penalty(M07_SCOPE, M07_TRACE_PENALTY, "Traced session — loss");
-            trace(M07_SCOPE, `trace expired penalty=${charged}`);
             await wipeLedger(quest);
             await startBreach({
                 scope: M07_SCOPE,
@@ -131,7 +125,6 @@ export const halveM07Trace = (quest: M07Quest): void => {
     Mail.send(M07_TRACE_WARNING_MAIL());
     UI.toast(Localization.t(M07_I18N_KEY.TOAST_HALVED), "warning");
     armTrace(remaining === null ? M07_TRACE_HALVED_REAL_MS : Math.min(remaining, M07_TRACE_HALVED_REAL_MS));
-    trace(M07_SCOPE, "trace window halved");
 };
 
 export const endM07Trace = (): void => {

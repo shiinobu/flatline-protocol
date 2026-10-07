@@ -1,6 +1,5 @@
 import { injectCss, removeCss } from "./css-inject.js";
 import { isDesktopMounted, onSessionLeft } from "./session-guard.js";
-import { trace } from "../helpers/logger.js";
 
 const LOCK_CSS_MARKER = "--flatline-session-lock";
 const LEGACY_LOCK_MARKER = "--flatline-lock";
@@ -26,19 +25,16 @@ export const engageDesktopLock = (): void => {
     if (lockCssId !== null || !isDesktopMounted()) return;
 
     lockCssId = injectCss(LOCK_CSS, LOCK_CSS_MARKER);
-    trace("LOCK", "desktop lock engaged");
 };
 
 export const sweepLegacyLock = (): void => {
-    const swept = removeCss(null, LEGACY_LOCK_MARKER) + removeCss(null, LEGACY_BLINK_MARKER);
-    if (swept > 0) trace("LOCK", `removed ${swept} stylesheet(s) left by an older build`);
+    removeCss(null, LEGACY_LOCK_MARKER);
+    removeCss(null, LEGACY_BLINK_MARKER);
 };
 
 export const releaseDesktopLock = (): void => {
-    const swept = removeCss(lockCssId, LOCK_CSS_MARKER);
-    const wasLocked = lockCssId !== null;
+    removeCss(lockCssId, LOCK_CSS_MARKER);
     lockCssId = null;
-    if (wasLocked || swept > 0) trace("LOCK", `desktop lock released swept=${swept}`);
 };
 
 onSessionLeft(releaseDesktopLock);

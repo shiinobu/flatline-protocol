@@ -11,13 +11,12 @@ import {
 } from "../../content/m07/mail.js";
 import { M07_ASHVECTOR_IP, M07_FIREWALL_IP, M07_NULLCROWN_IP } from "../../content/m07/network.js";
 import { M07_LOG_CREDENTIAL, M07_LOG_DECOY, M07_LOG_EDGE } from "../../content/m07/quest-logs.js";
-import { M07_HONEYPOT_PENALTY, M07_SCOPE } from "../../content/m07/quest.js";
+import { M07_HONEYPOT_PENALTY } from "../../content/m07/quest.js";
 import {
     M07_ASH_GATE_BACKUP_FILE_EXTENSION,
     M07_ASH_GATE_BACKUP_FILE_NAME,
 } from "../../content/m07/server-files.js";
 import { unlock } from "../../core/index.js";
-import { trace } from "../../helpers/logger.js";
 import { advanceStep } from "../../middleware/gate.js";
 import type { M07Quest } from "./types.js";
 import { M07_WORLD } from "./world.js";
@@ -35,8 +34,7 @@ const warnOnDecoy = (quest: M07Quest): void => {
         content: M07_HONEYPOT_ALERT_CONTENT(),
     });
     traceBacktraceFinding("m7", "decoy", M07_LOG_DECOY());
-    const charged = penalty(M07_SCOPE, M07_HONEYPOT_PENALTY, "Decommissioned host probed — loss");
-    trace(M07_SCOPE, `probe:honeypot-touched penalty=${charged}`);
+    penalty(M07_HONEYPOT_PENALTY, "Decommissioned host probed — loss");
 };
 
 const bindDeadBoxes = (quest: M07Quest): void => {

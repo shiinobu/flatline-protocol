@@ -1,6 +1,6 @@
 import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { M05_GATES, type M05Step } from "../../content/m05/gates.js";
-import { M05_LOG_DISMISSED, M05_LOG_GRETA } from "../../content/m05/quest-logs.js";
+import { M05_LOG_DISMISSED, M05_LOG_ROXANNE } from "../../content/m05/quest-logs.js";
 import type { M05QuestData } from "../../content/m05/state.js";
 import { setM05ArchiveOpen } from "../../context/m05/progress.js";
 import { advanceStep } from "../../middleware/gate.js";
@@ -20,9 +20,9 @@ const EVIDENCE_RULES: readonly EvidenceRule[] = [
         effect: () => traceBacktraceFinding("m5", "dismissed", M05_LOG_DISMISSED()),
     },
     {
-        step: "gretaProfiled",
-        ready: (data) => data.gretaSeen,
-        effect: () => traceBacktraceFinding("m5", "greta", M05_LOG_GRETA()),
+        step: "roxanneProfiled",
+        ready: (data) => data.roxanneSeen,
+        effect: () => traceBacktraceFinding("m5", "roxanne", M05_LOG_ROXANNE()),
     },
     { step: "handoverOpened", ready: (data) => data.handoverDecrypted },
     { step: "policyRead", ready: (data) => data.formatDecrypted },

@@ -10,7 +10,7 @@ export const M05_STEP_ORDER: readonly M05Step[] = [
     "teamPageSeen",
     "changeRecordRead",
     "staffArchiveCompared",
-    "gretaProfiled",
+    "roxanneProfiled",
     "handoverOpened",
     "policyRead",
     "portalLoggedIn",
@@ -43,8 +43,8 @@ export const M05_GATES: readonly Gate<M05QuestData>[] = [
     { step: "teamPageSeen", requires: ["vaultRevisited"] },
     { step: "changeRecordRead", requires: ["teamPageSeen"] },
     { step: "staffArchiveCompared", requires: ["changeRecordRead"] },
-    { step: "gretaProfiled", requires: ["staffArchiveCompared"] },
-    { step: "handoverOpened", requires: ["gretaProfiled"] },
+    { step: "roxanneProfiled", requires: ["staffArchiveCompared"] },
+    { step: "handoverOpened", requires: ["roxanneProfiled"] },
     { step: "policyRead", requires: ["handoverOpened"] },
     { step: "portalLoggedIn", requires: ["policyRead"] },
     { step: "footholdFlagged", requires: ["portalLoggedIn"] },
@@ -59,7 +59,7 @@ export const M05_GATES: readonly Gate<M05QuestData>[] = [
     { step: "statementRead", requires: ["displayAttached"] },
     { step: "memoRead", requires: ["displayAttached"] },
     { step: "ticketRead", requires: ["displayAttached"] },
-    { step: "reportSent", requires: ["statementRead", "memoRead", "ticketRead", "gretaProfiled"] },
+    { step: "reportSent", requires: ["statementRead", "memoRead", "ticketRead", "roxanneProfiled"] },
 ];
 
 export const M05_UNLOCKS: readonly Unlock<M05QuestData>[] = [

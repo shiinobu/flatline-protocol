@@ -1,7 +1,5 @@
 import { Events } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
-
 type LeaveHandler = () => void;
 
 const DESKTOP_SELECTOR = ".desktopBounds";
@@ -23,12 +21,11 @@ const stopWatching = (): void => {
 
 const runLeaveHandlers = (): void => {
     stopWatching();
-    trace("SESSION", "desktop unmounted, taking the injected styles and widgets back");
     for (const handler of leaveHandlers) {
         try {
             handler();
-        } catch (error: unknown) {
-            trace("SESSION", `leave handler failed: ${error instanceof Error ? error.message : String(error)}`);
+        } catch {
+            continue;
         }
     }
 };

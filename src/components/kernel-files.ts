@@ -1,6 +1,5 @@
 import { Files, type FileInfo } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
 import { pathOf, type KernelFile } from "./kernel-layout.js";
 import { asLogData, type LogEntry } from "./log-file.js";
 
@@ -45,7 +44,6 @@ const removeCopies = async (file: KernelFile): Promise<number> => {
         await settled(async () => (await copiesOf(file)).length === 0);
         remaining = await copiesOf(file);
     }
-    if (remaining.length > 0) trace("KERNEL", `${pathOf(file)}: ${remaining.length} copies would not go away`);
     return found.length;
 };
 
@@ -79,23 +77,18 @@ export const readKernelFile = async (file: KernelFile): Promise<string | null> =
     return info === null ? null : (Files.read(info.id) ?? "");
 };
 
-const writeFile = async (file: KernelFile, data: string, expected: string | null): Promise<readonly string[]> => {
+const writeFile = async (file: KernelFile, data: string): Promise<readonly string[]> => {
     const created = await ensureFolder(file.folder);
     await removeCopies(file);
     await Files.createTree(file.folder, [{ name: file.name, extension: file.extension, data }]);
-
-    const info = await findKernelFile(file);
-    if (info === null || (expected !== null && Files.read(info.id) !== expected)) {
-        trace("KERNEL", `${pathOf(file)}: the written content did not stick`);
-    }
     return created;
 };
 
 export const writeKernelFile = (file: KernelFile, data: string): Promise<readonly string[]> =>
-    writeFile(file, data, data);
+    writeFile(file, data);
 
 export const writeKernelLog = (file: KernelFile, entries: readonly LogEntry[]): Promise<readonly string[]> =>
-    writeFile(file, asLogData(entries), null);
+    writeFile(file, asLogData(entries));
 
 export const removeKernelFile = async (file: KernelFile): Promise<boolean> => (await removeCopies(file)) > 0;
 

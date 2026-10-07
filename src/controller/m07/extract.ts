@@ -4,10 +4,8 @@ import { traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { isNamedFile, onFileRead, type ReadFile } from "../../components/file-reads.js";
 import { M07_GATES } from "../../content/m07/gates.js";
 import { M07_LOG_LEDGER } from "../../content/m07/quest-logs.js";
-import { M07_SCOPE } from "../../content/m07/quest.js";
 import { M07_LEDGER_FILE_EXTENSION, M07_LEDGER_FILE_NAME } from "../../content/m07/server-files.js";
 import { setM07ReservesOpen } from "../../context/m07/progress.js";
-import { trace } from "../../helpers/logger.js";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { endDuelOne } from "./duel.js";
@@ -34,7 +32,6 @@ const bindTransfer = (quest: M07Quest): void => {
         if (taken || quest.Data.ledgerTaken) return;
 
         UI.toast(Localization.t(M07_I18N_KEY.TOAST_READ_FIRST), "warning");
-        trace(M07_SCOPE, "ledger download ignored: manifest, orders and survey not all read");
     });
 };
 

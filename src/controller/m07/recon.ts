@@ -18,7 +18,6 @@ import {
     M07_ROUTER_IP,
 } from "../../content/m07/network.js";
 import { M07_LOG_CLAIMS, M07_LOG_LEDGER_ROOM, M07_LOG_NODES } from "../../content/m07/quest-logs.js";
-import { M07_SCOPE } from "../../content/m07/quest.js";
 import {
     isM07LedgerRoomOpen,
     isM07PortalOpen,
@@ -26,7 +25,6 @@ import {
     setM07PortalOpen,
 } from "../../context/m07/progress.js";
 import { unlock } from "../../core/index.js";
-import { trace } from "../../helpers/logger.js";
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { advanceStep } from "../../middleware/gate.js";
 import { settleSealRead } from "./extract.js";
@@ -59,7 +57,6 @@ const bindPortal = (quest: M07Quest): void => {
     quest.Events.on("Browser.Meta", (data) => {
         if (!isVisit(data, M07_PORTAL_HOST, "/") || !isM07PortalOpen()) return;
 
-        trace(M07_SCOPE, "probe:portal-seen");
         advanceStep(quest, M07_GATES, "claimsPortalSeen");
     });
 };
@@ -69,7 +66,6 @@ const recordPaidClaim = (quest: M07Quest, ref: string): void => {
 
     const found = [...quest.Data.claimsFound, ref];
     quest.SetData("claimsFound", found);
-    trace(M07_SCOPE, `probe:claim-found ${found.length}/${M07_PAID_CLAIM_REFS.length}`);
 
     if (!includesAll(found, M07_PAID_CLAIM_REFS)) return;
 
@@ -83,7 +79,6 @@ const recordReserve = (quest: M07Quest, ref: string): void => {
 
     const found = [...quest.Data.reservesFound, ref];
     quest.SetData("reservesFound", found);
-    trace(M07_SCOPE, `probe:reserve-found ${found.length}/${M07_RESERVE_REFS.length}`);
 
     if (!includesAll(found, M07_RESERVE_REFS)) return;
 
@@ -131,7 +126,6 @@ const bindLedgerRoom = (quest: M07Quest): void => {
     quest.Events.on("Browser.Meta", (data) => {
         if (!isVisit(data, BLACKLEDGER_DOMAIN, "/") || !isM07LedgerRoomOpen()) return;
 
-        trace(M07_SCOPE, "probe:ledger-room-seen");
         advanceStep(quest, M07_GATES, "blackledgerSeen", () => {
             traceBacktraceFinding("m7", "ledgerRoom", M07_LOG_LEDGER_ROOM());
             UI.toast(Localization.t(M07_I18N_KEY.TOAST_LAST_EVENT), "success");

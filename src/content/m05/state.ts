@@ -3,7 +3,7 @@ export interface M05QuestData {
     readonly vaultRevisited: boolean;
     readonly teamPageSeen: boolean;
     readonly staffArchiveCompared: boolean;
-    readonly gretaProfiled: boolean;
+    readonly roxanneProfiled: boolean;
     readonly changeRecordRead: boolean;
     readonly handoverOpened: boolean;
     readonly policyRead: boolean;
@@ -24,7 +24,7 @@ export interface M05QuestData {
     readonly changeSeen: boolean;
     readonly captureEarlySeen: boolean;
     readonly captureLateSeen: boolean;
-    readonly gretaSeen: boolean;
+    readonly roxanneSeen: boolean;
     readonly handoverDecrypted: boolean;
     readonly formatDecrypted: boolean;
     readonly footholdSeen: boolean;
@@ -35,7 +35,7 @@ export interface M05QuestData {
     readonly systemsSeen: boolean;
     readonly rollbackOpened: boolean;
     readonly sampleDecrypted: boolean;
-    readonly gretaNoteOpened: boolean;
+    readonly roxanneNoteOpened: boolean;
     readonly statusNoted: boolean;
     readonly bedsideVisited: boolean;
     readonly networkBuilt: boolean;
@@ -47,7 +47,7 @@ export const createM05Data = (): M05QuestData => ({
     vaultRevisited: false,
     teamPageSeen: false,
     staffArchiveCompared: false,
-    gretaProfiled: false,
+    roxanneProfiled: false,
     changeRecordRead: false,
     handoverOpened: false,
     policyRead: false,
@@ -68,7 +68,7 @@ export const createM05Data = (): M05QuestData => ({
     changeSeen: false,
     captureEarlySeen: false,
     captureLateSeen: false,
-    gretaSeen: false,
+    roxanneSeen: false,
     handoverDecrypted: false,
     formatDecrypted: false,
     footholdSeen: false,
@@ -79,7 +79,7 @@ export const createM05Data = (): M05QuestData => ({
     systemsSeen: false,
     rollbackOpened: false,
     sampleDecrypted: false,
-    gretaNoteOpened: false,
+    roxanneNoteOpened: false,
     statusNoted: false,
     bedsideVisited: false,
     networkBuilt: false,

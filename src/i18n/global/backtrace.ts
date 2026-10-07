@@ -130,10 +130,10 @@ Localization.registerAll({
             "那台主机登记在 <span data-fact=\"m4.origin\">—</span> 名下——与 <span class=\"code\" data-fact=\"m4.architectVpn\">—</span> 是同一个注册人，而那正是付款早已指向的端点。",
         [BACKTRACE_I18N_KEY.M4_FINDING_7]: "同一份档案里还有一张简短的目标清单：一名仍被盯着的财务分析师，一桩已结束的医院任务，以及只写着“next: 正在准备”的一行。",
         [BACKTRACE_I18N_KEY.M5_SUMMARY]:
-            "在 <span class=\"code\" data-fact=\"m5.caseId\">—</span> 名下付了款的那家医院，用“指认一扇门和一个该为此负责的人”来给自己的事件结案。可医院自己为这项决定留下的档案却说了别的：被使用的账号是 <span data-fact=\"m5.greta\">—</span>，她的工作邮箱躺在一份流传的泄露数据里，密码至今仍在使用；而最终结论所依据的那个存储介质，接入的是一台从来都不是她的机器。付款的决定，是在勒索通知到达 <span class=\"code\" data-fact=\"m5.gap\">—</span> 之后作出的——那时这一切都还不可能被查清。",
+            "在 <span class=\"code\" data-fact=\"m5.caseId\">—</span> 名下付了款的那家医院，用“指认一扇门和一个该为此负责的人”来给自己的事件结案。可医院自己为这项决定留下的档案却说了别的：被使用的账号是 <span data-fact=\"m5.roxanne\">—</span>，她的工作邮箱躺在一份流传的泄露数据里，密码至今仍在使用；而最终结论所依据的那个存储介质，接入的是一台从来都不是她的机器。付款的决定，是在勒索通知到达 <span class=\"code\" data-fact=\"m5.gap\">—</span> 之后作出的——那时这一切都还不可能被查清。",
         [BACKTRACE_I18N_KEY.M5_FINDING_1]:
             "同一个公开团队页面的两份带日期快照对不上：<span data-fact=\"m5.dismissed\">—</span>。后一份里少了两个名字：一位是合同在其自身标明的日期到期的外包，另一位的离开则没有任何到期日可言。",
-        [BACKTRACE_I18N_KEY.M5_FINDING_2]: "被移除的人是 <span data-fact=\"m5.greta\">—</span>——页面上唯一一个对临床档案库拥有长期访问权限的角色。",
+        [BACKTRACE_I18N_KEY.M5_FINDING_2]: "被移除的人是 <span data-fact=\"m5.roxanne\">—</span>——页面上唯一一个对临床档案库拥有长期访问权限的角色。",
         [BACKTRACE_I18N_KEY.M5_FINDING_3]: "她的工作邮箱出现在一个供应商门户被收录的泄露数据里，以弱哈希形式存储，而这个密码此后一直没有更换。要找到这条记录，并不需要任何入侵。",
         [BACKTRACE_I18N_KEY.M5_FINDING_4]:
             "临床档案库印证了这次使用：<span data-fact=\"m5.archive\">—</span>。记录显示的是一个状态正常的账号，而不是一扇被撬开的门。",

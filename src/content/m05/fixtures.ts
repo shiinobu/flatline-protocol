@@ -30,9 +30,9 @@ import { M05_SITE_NMAP_RESULT } from "./scan.js";
 import {
     M05_GARETH_FULL_NAME,
     M05_GARETH_HANDLE,
-    M05_GRETA_FULL_NAME,
-    M05_GRETA_HANDLE,
-    M05_GRETA_TWOTTER_USERNAME,
+    M05_ROXANNE_FULL_NAME,
+    M05_ROXANNE_HANDLE,
+    M05_ROXANNE_TWOTTER_USERNAME,
 } from "./twotter.js";
 
 const lynx = (input: string, handle: string, lines: readonly string[]): FixtureEntry => ({
@@ -78,10 +78,10 @@ export const buildM05Fixtures = (): FixtureEntry[] => [
 ];
 
 export const buildM05TeamPageFixtures = (): FixtureEntry[] => {
-    const gretaLines = [
-        Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_1),
-        Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_2),
-        Localization.t(M05_I18N_KEY.OSINT_LYNX_GRETA_3),
+    const roxanneLines = [
+        Localization.t(M05_I18N_KEY.OSINT_LYNX_ROXANNE_1),
+        Localization.t(M05_I18N_KEY.OSINT_LYNX_ROXANNE_2),
+        Localization.t(M05_I18N_KEY.OSINT_LYNX_ROXANNE_3),
     ];
     const garethLines = [
         Localization.t(M05_I18N_KEY.OSINT_LYNX_GARETH_1),
@@ -89,9 +89,9 @@ export const buildM05TeamPageFixtures = (): FixtureEntry[] => {
     ];
 
     return [
-        lynx(M05_GRETA_HANDLE, M05_GRETA_HANDLE, gretaLines),
-        lynx(M05_GRETA_TWOTTER_USERNAME, M05_GRETA_HANDLE, gretaLines),
-        lynx(M05_GRETA_FULL_NAME, M05_GRETA_HANDLE, gretaLines),
+        lynx(M05_ROXANNE_HANDLE, M05_ROXANNE_HANDLE, roxanneLines),
+        lynx(M05_ROXANNE_TWOTTER_USERNAME, M05_ROXANNE_HANDLE, roxanneLines),
+        lynx(M05_ROXANNE_FULL_NAME, M05_ROXANNE_HANDLE, roxanneLines),
         lynx(M05_GARETH_HANDLE, M05_GARETH_HANDLE, garethLines),
         lynx(M05_GARETH_FULL_NAME, M05_GARETH_HANDLE, garethLines),
     ];

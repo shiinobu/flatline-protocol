@@ -18,9 +18,9 @@ export const ANONYMOUS_TIPSTER: FlatlineContact = {
 
 export const M04_ARCHITECT_VPN_IP = "203.0.113.160";
 
-export const GRETA_FULL_NAME = "Roxanne Anindita Natnaree";
-export const GRETA_SHORT_NAME = "R. Natnaree";
-export const GRETA_PRIVATE_EMAIL = "roxanne.natnaree@postbox.my";
+export const ROXANNE_FULL_NAME = "Roxanne Anindita Natnaree";
+export const ROXANNE_SHORT_NAME = "R. Natnaree";
+export const ROXANNE_PRIVATE_EMAIL = "roxanne.natnaree@postbox.my";
 
 export const VIVIEN_ORCHID_FULL_NAME = "Vivien Orchid";
 export const VIVIEN_ORCHID_SHORT_NAME = "V. Orchid";

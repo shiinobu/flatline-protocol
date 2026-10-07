@@ -17,7 +17,7 @@ export const M01_QUEST = {
     description: (): string => Localization.t(M01_I18N_KEY.QUEST_DESCRIPTION),
     autoStart: (): boolean => isQuestDevFocus("m01"),
     questsToComplete: (): string[] => questGate("m01", []),
-    rewards: () => (isQuestDevFocus("m01") || isQuestTesterFocus("m01") ? { money: 0, xp: 0 } : M01_REWARDS),
+    rewards: () => (isQuestDevFocus("m01") || isQuestTesterFocus("m01") ? { money: 0 } : M01_REWARDS),
     hackhubPost: () => ({
         content: M01_HACKHUB_POST_CONTENT(),
         media: M01_HACKHUB_POST_MEDIA,

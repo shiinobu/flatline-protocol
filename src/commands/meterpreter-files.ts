@@ -1,7 +1,5 @@
 import { Events, Files, type FileInfo } from "@hotbunny/hackhub-content-sdk";
 
-import { trace } from "../helpers/logger.js";
-
 const LOCAL_HOME_PREFIX = "~";
 
 let activeTargetIp: string | undefined;
@@ -10,14 +8,12 @@ Events.on("RemoteConnection.Established", (connection) => {
     if (connection.t !== "METASPLOIT") return;
 
     activeTargetIp = connection.targetIp;
-    trace("OPEN", `meterpreter session tracked for ${connection.targetIp}`);
 });
 
 Events.on("RemoteConnection.Disconnected", (connection) => {
     if (connection.t !== "METASPLOIT" || connection.targetIp !== activeTargetIp) return;
 
     activeTargetIp = undefined;
-    trace("OPEN", `meterpreter session cleared for ${connection.targetIp}`);
 });
 
 const fileLabel = (file: FileInfo): string =>
@@ -39,7 +35,6 @@ export const findMeterpreterFile = async (target: string): Promise<FileInfo | nu
 
     const root = Files.getById(activeTargetIp);
     if (!root) {
-        trace("OPEN", `meterpreter target ${activeTargetIp} has no root file`);
         return null;
     }
 
@@ -48,7 +43,6 @@ export const findMeterpreterFile = async (target: string): Promise<FileInfo | nu
         root,
         absolutePath.split("/").filter((segment) => segment !== ""),
     );
-    trace("OPEN", `meterpreter lookup ${absolutePath} on ${activeTargetIp}: ${found ? "found" : "missing"}`);
 
     return found;
 };

@@ -36,7 +36,7 @@ const row = (name: string, roleKey: StaffRoleKey, account: string): StaffRow => 
     account: `${account}@${M05_HOSPITAL_MAIL_DOMAIN}`,
 });
 
-const GRETA = row("Roxanne Anindita Natnaree", "sysadmin", "rnatnaree");
+const ROXANNE = row("Roxanne Anindita Natnaree", "sysadmin", "rnatnaree");
 const GARETH = row("Gideon Bayu Teoh", "contractor", "gteoh");
 const TARA = row("Valerie Kirana Dizon", "servicedesk", "valerie.dizon");
 const RUBEN = row("Rafael Surya Bautista", "network", "rafael.bautista");
@@ -95,49 +95,49 @@ export const M05_ECHOLINE_CAPTURES: readonly EcholineCapture[] = [
         path: "/s/1d7k/",
         date: "2024-05-14",
         lastUpdated: null,
-        staff: [GRETA, TARA, RUBEN, DANIEL, HELENA, VICTOR],
+        staff: [ROXANNE, TARA, RUBEN, DANIEL, HELENA, VICTOR],
     },
     {
         path: "/s/5mw3/",
         date: "2024-10-18",
         lastUpdated: "2024-06-03",
-        staff: [GRETA, TARA, RUBEN, DANIEL, HELENA, VICTOR, PRIYA, SAMIR],
+        staff: [ROXANNE, TARA, RUBEN, DANIEL, HELENA, VICTOR, PRIYA, SAMIR],
     },
     {
         path: "/s/9pt6/",
         date: "2025-03-12",
         lastUpdated: "2024-11-04",
-        staff: [GRETA, TARA, RUBEN, DANIEL, PRIYA, SAMIR, ALINA, MINH],
+        staff: [ROXANNE, TARA, RUBEN, DANIEL, PRIYA, SAMIR, ALINA, MINH],
     },
     {
         path: "/s/3zx8/",
         date: "2025-07-29",
         lastUpdated: "2025-04-07",
-        staff: [GRETA, TARA, RUBEN, PRIYA, SAMIR, ALINA, MINH, JOSHUA, CHEN],
+        staff: [ROXANNE, TARA, RUBEN, PRIYA, SAMIR, ALINA, MINH, JOSHUA, CHEN],
     },
     {
         path: "/s/8fq2/",
         date: "2025-11-03",
         lastUpdated: "2025-11-03",
-        staff: [GRETA, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA],
+        staff: [ROXANNE, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA],
     },
     {
         path: "/s/6rn4/",
         date: "2026-01-22",
         lastUpdated: "2025-12-01",
-        staff: [GRETA, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA, MARCUS, NADIA],
+        staff: [ROXANNE, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA, MARCUS, NADIA],
     },
     {
         path: "/s/2vb7/",
         date: "2026-03-18",
         lastUpdated: "2026-02-02",
-        staff: [GRETA, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA, MARCUS, NADIA, MEI, OMAR],
+        staff: [ROXANNE, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, CHEN, BIANCA, MARCUS, NADIA, MEI, OMAR],
     },
     {
         path: "/s/7ha5/",
         date: "2026-06-30",
         lastUpdated: "2026-04-06",
-        staff: [GRETA, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, BIANCA, MARCUS, NADIA, MEI, OMAR, NOOR, SITI],
+        staff: [ROXANNE, GARETH, TARA, RUBEN, PRIYA, ALINA, JOSHUA, BIANCA, MARCUS, NADIA, MEI, OMAR, NOOR, SITI],
     },
     {
         path: "/s/4ec9/",
