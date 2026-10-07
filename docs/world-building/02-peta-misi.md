@@ -101,7 +101,7 @@ implementasi.
 
 - **Fungsi.** Finale. Menjawab semua benang terbuka M1-M6 dengan dokumen milik Conrad sendiri, lalu pilihan A/B/C (`05-ending.md`). Spesifikasi di `11-spec-m7.md` (v1 lama di `11-spec-m7.v1.md`).
 - **Gagasan pengunci.** Asuransi memasang cadangan klaim sebelum kejadian: FIN-EU-2214 (2026-06-18) dan MED-APAC-6689 (2026-07-14), sama dengan baris ledger broker M1. Itu menjawab "next: prepping" dan "Q3 closes: 4".
-- **Rantai.** 23 langkah transitif dalam enam bagian: cocokkan klaim di portal asuransi (halaman), peta dan tembus tepi (jaringan), host indeks di bawah Duel 1, segel Cipher (di rumah), komputer pribadi Conrad lewat RDC di bawah Duel 2, laporan dengan `choice`.
+- **Rantai.** 23 langkah transitif dalam tujuh bagian: cocokkan klaim di portal asuransi (halaman), peta dan tembus tepi (jaringan), host indeks di bawah Duel 1, segel Cipher (di rumah), komputer pribadi Conrad lewat RDC di bawah Duel 2, ruang buku BLACKLEDGER (situs dari M2, kini kunci terakhir, D16), laporan dengan `choice`.
 - **Lawan.** Conrad adalah `SENTRY`, operator yang menyetujui rilis 2026-08-14 02:11 UTC dan menyerang pemain di M4.
 - **Mekanik.** Hanya yang sudah dialami pemain di M1-M6. Dibuang: HoneyCheck, `attrcheck`. Tidak dipakai: Playfair (hanya M6).
 - **Efek ending nyata.** `expose` dan `handoff` melepas bukti; `destroy` menghancurkan jaringan C2. Penutup lengkap per ending (Roxanne, Reyes, TR4C3404, Orchid, dua korban berikutnya, OT3).

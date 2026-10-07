@@ -59,8 +59,7 @@ prior-step gate" remark in node 23 is obsolete.
 
 M2's TR4C3404 site answers the 404 page before M2 starts and after it
 completes; it is open only while M2 runs (`gateMissionPages`,
-`docs/architecture.md` "Website access"). `blkledger.dark` stays open on
-purpose.
+`docs/architecture.md` "Website access"). The BLACKLEDGER site was removed from M2 on 2026-10-07 and lives in M7 (README #83); `deploy.log` no longer names a domain.
 
 ## 1. Tip mail
 

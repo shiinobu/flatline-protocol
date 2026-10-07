@@ -20,7 +20,7 @@ Hartley) belum ditentukan. Dokumen ini menulis mereka tanpa kata ganti gender.
 | **Skynet Import-Export Co.** | Perusahaan cangkang. Menyimpan 10% | `content/global/entities.ts`; `content/global/finance.ts` |
 | **SKN Capital Nominees** | Entitas induk. Menerima 60% ("management fee") | `content/global/entities.ts`; `content/global/finance.ts` |
 | **PacificCare Health** | Rumah sakit regional SEA (`pacificcare-health.org`). Kasus `CASE-A7X-0417` | `content/m01/network.ts`; `content/global/case.ts` |
-| **BLACKLEDGER** | Sindikat ransomware-as-a-service. Situs `blkledger.dark` | `content/global/blackledger.ts` |
+| **BLACKLEDGER** | Sindikat ransomware-as-a-service. Situs ruang buku di M7 (host acak `.blackledger`, `11-spec-m7.md` H.2); dulu `blkledger.dark` di M2 | `content/global/blackledger.ts` |
 
 ## B. Tokoh baru dan keputusan karakter
 

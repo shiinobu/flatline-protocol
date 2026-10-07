@@ -421,7 +421,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    the controller calls `openMissionSites` in `OnObjectivesStart` and
    `closeMissionSites` in `OnComplete` / `OnAbandon`
    (`context/global/site-access.ts`). A site that must outlive its mission
-   (LedgerVault, BLACKLEDGER) is the explicit exception.
+   (LedgerVault) is the explicit exception. The BLACKLEDGER site is no longer one: since 2026-10-07 it is an M7 mission site (README #83).
 4. **Early completion gets a reply, not silence**: a submission that is
    correct but premature is answered once (`sendReplacingMail`, tracked by id).
 5. **Mails**: `Mail.send` mail survives `mods.reset` and `getInbox().subject` is

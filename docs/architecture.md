@@ -179,7 +179,7 @@ HostTrail (M6), HoneyCheck and the C2 dashboard (M7), and the Echoline captures
 groups that are open). A closed page with `seo: true`
 answers a Goagle search with `null` and a visit by address with the 404 page (`bugs.md` #63). Not gated,
 on purpose: Cipher Desk and Remote Desktop Connection (permanent `Popular` tool sites), LedgerVault (its domain is permanent and it has its own seal,
-`isM01VaultSealed`) and BLACKLEDGER (a static story page with no network). The
+`isM01VaultSealed`) (BLACKLEDGER used to be a second exception; since 2026-10-07 its site is an M7 mission site gated by `gateMissionPages("m07")` plus the `ledgerRoomOpen` mirror, README #83). The
 mirror is session-only and only written by controllers, so a game that starts
 with a finished mission has every gated site closed.
 
@@ -339,24 +339,26 @@ case file), as six flat files:
     (hosts), a boss card (the Architect) and an envelope (the ending);
     evidence documents sit between the objects they link or hang below one.
     Every object has a fixed spot and a small tilt in the `ENTITIES` and
-    `DOCS` tables, and straight red threads run centre to centre beneath
-    them. Hovering or selecting an object dims the rest and lights its
+    `DOCS` tables, and red threads run centre to centre beneath them. Most
+    are straight; six links that have no clear straight path use elbow
+    routes from the `ROUTES` table, keyed `a|b` (an entity key or
+    `ev:<doc id>`, either order), which `threadPath` draws as orthogonal
+    polylines and adds to the board bounds. Hovering or selecting an object dims the rest and lights its
     threads; selecting opens the entity drawer or the evidence sheet. A
     document appears once its mission is complete and either the object it
     hangs from (`attach`) or at least two of the objects it links (`links`)
-    are on the board. The view fits the visible objects (zoom 50-200%, drag
-    to pan). Around the objects, the `FILL` layer (`aria-hidden`, no pointer
-    events) adds an analyst note per mission, a Key card and props: an
-    evidence bag, a torn clipping, a barcode label, a loose red string, an
-    UNDER REVIEW stamp and two photographs, `backtrace-receipt.jpg` (M1) and
-    `backtrace-corridor.jpg` (M5), 480 px copies of the earlier vault scans
-    `q3-receipt.png` and `q3-corridor.png`. The vault now holds a new
-    `public/assets/m01/q3-receipt.jpg` and `q3-corridor.png` (2026-10-06,
-    README #67); the thumbnails were not regenerated because the app is
-    under FINAL LOCK. A fill item
+    are on the board. The view opens at 60% (`OPEN_ZOOM`, zoom 30-200%,
+    drag to pan) and the reset button returns to it. Around the objects,
+    the `FILL` layer (`aria-hidden`, no pointer events) adds analyst notes
+    next to the cases they belong to, a Key card and props: an evidence bag,
+    two torn clippings, a barcode label, a loose red string, stamps
+    (UNDER REVIEW, PAID, CLOSED) and a masking-tape date label per mission
+    (`tape`, the date comes from `STORY_DATES`). The two photographs that
+    used to hang there, `backtrace-receipt.jpg` and `backtrace-corridor.jpg`,
+    were removed from the board on 2026-10-07 (README #84); the files stay
+    in `public/assets/global/` unused. A fill item
     appears once its mission is complete and the objects it `needs` are on
-    the board; the M1 photograph is `outside` the frame, so it does not move
-    the fit. A name inside a note is a `{key}` token resolved to the name on
+    the board. A name inside a note is a `{key}` token resolved to the name on
     that entity's card, so the notes hardcode no story fact. While a
     mission is open its card shows only the "TRACED SO FAR // x OF N" panel:
     one row (title + value) per key, no descriptions;

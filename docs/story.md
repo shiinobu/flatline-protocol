@@ -42,10 +42,12 @@ the user first. This is explicit and repeated — not a suggestion.
 ## 3. Story
 
 **GHOSTWIRE** (player alias) is an independent hacktivist/vigilante.
-~8-12 months before the story starts, GHOSTWIRE's **younger sibling** died
+Five weeks before the story starts (the attack hit on 2026-08-14, the story
+opens on 2026-09-18), GHOSTWIRE's **younger sibling** died
 because a ransomware attack by the syndicate **BLACKLEDGER** locked a
 hospital's systems during the sibling's critical operation. The hospital
 quietly paid the ransom and the official investigation was shut down fast
+(closed on 2026-08-24, ten days after the attack)
 — corporate pressure/cover-up, not a state conspiracy — so GHOSTWIRE goes
 after BLACKLEDGER personally.
 
