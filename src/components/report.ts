@@ -12,20 +12,29 @@ export const registerReportTemplate = (spec: ReportSpec): void => {
     });
 };
 
-const isTemplateSubmission = (spec: ReportSpec, subject: string, content: string): boolean => {
-    if (subject !== spec.templateId) return false;
+const parseTemplateFields = (spec: ReportSpec, subject: string, content: string): Record<string, unknown> | null => {
+    if (subject !== spec.templateId) return null;
 
     let fields: unknown;
     try {
         fields = JSON.parse(content);
     } catch {
-        return false;
+        return null;
     }
 
-    if (!fields || typeof fields !== "object") return false;
+    if (!fields || typeof fields !== "object") return null;
 
-    return spec.matchesFields(fields as Record<string, unknown>);
+    return fields as Record<string, unknown>;
 };
+
+const isTemplateSubmission = (spec: ReportSpec, subject: string, content: string): boolean => {
+    const fields = parseTemplateFields(spec, subject, content);
+
+    return fields !== null && spec.matchesFields(fields);
+};
+
+export const isReportTemplateAttempt = (spec: ReportSpec, subject: string, content: string): boolean =>
+    parseTemplateFields(spec, subject, content) !== null;
 
 const isFreehandSubmission = (spec: ReportSpec, subject: string, content: string): boolean =>
     spec.body !== undefined &&

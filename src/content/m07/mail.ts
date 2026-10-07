@@ -2,9 +2,11 @@ import { Localization, type MailDefinition } from "@hotbunny/hackhub-content-sdk
 
 import { M07_I18N_KEY } from "../../i18n/m07/core.js";
 import { DEAD_DROP_CONTACT, GRETA_PRIVATE_EMAIL, M04_ARCHITECT_VPN_IP } from "../global/characters.js";
+import { M07_INSURER_NAME } from "../global/entities.js";
 import { M04_HUNTER_EMAIL } from "../m04/network.js";
 import { M07_CHOICE_DESTROY, M07_CHOICE_EXPOSE, M07_CHOICE_HANDOFF } from "./choice.js";
 import type { M07Step } from "./gates.js";
+import { M07_PORTAL_HOST } from "./network.js";
 
 export const M07_DEAD_DROP_EMAIL = DEAD_DROP_CONTACT.email;
 export const M07_WATCHDOG_EMAIL = "watchdog@architect-c2.dark";
@@ -12,13 +14,29 @@ export const M07_SENTRY_EMAIL = M04_HUNTER_EMAIL;
 
 export const M07_TIP_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_TIP_SUBJECT);
 export const M07_TIP_CONTENT = (): string =>
-    Localization.t(M07_I18N_KEY.MAIL_TIP_CONTENT, { endpoint: M04_ARCHITECT_VPN_IP });
+    Localization.t(M07_I18N_KEY.MAIL_TIP_CONTENT, {
+        endpoint: M04_ARCHITECT_VPN_IP,
+        insurer: M07_INSURER_NAME,
+        portal: M07_PORTAL_HOST,
+    });
 
-export const M07_HONEYPOT_ALERT_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_HONEYPOT_SUBJECT);
+export const M07_HINT_MAIL = (): MailDefinition => ({
+    from: M07_DEAD_DROP_EMAIL,
+    subject: Localization.t(M07_I18N_KEY.MAIL_HINT_SUBJECT),
+    content: Localization.t(M07_I18N_KEY.MAIL_HINT_CONTENT),
+});
+
+export const M07_HONEYPOT_ALERT_SUBJECT =(): string => Localization.t(M07_I18N_KEY.MAIL_HONEYPOT_SUBJECT);
 export const M07_HONEYPOT_ALERT_CONTENT = (): string => Localization.t(M07_I18N_KEY.MAIL_HONEYPOT_CONTENT);
 
 export const M07_TRAP_WARNING_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_TRAP_SUBJECT);
 export const M07_TRAP_WARNING_CONTENT = (): string => Localization.t(M07_I18N_KEY.MAIL_TRAP_CONTENT);
+
+export const M07_TRAP_MAIL = (): MailDefinition => ({
+    from: M07_WATCHDOG_EMAIL,
+    subject: M07_TRAP_WARNING_SUBJECT(),
+    content: M07_TRAP_WARNING_CONTENT(),
+});
 
 export const M07_TRACED_MAIL = (): MailDefinition => ({
     from: M07_WATCHDOG_EMAIL,
@@ -73,6 +91,9 @@ export const M07_CLOSING_MAIL = (choice: string): MailDefinition | null => {
 };
 
 export const M07_PREMATURE_MAIL_SLOT = "m07.prematureReply";
+export const M07_SENTRY_MAIL_SLOT = "m07.sentry";
+export const M07_TRAP_MAIL_SLOT = "m07.trapWarning";
+export const M07_TRACED_MAIL_SLOT = "m07.traced";
 export const M07_PREMATURE_SUBJECT = (): string => Localization.t(M07_I18N_KEY.MAIL_PREMATURE_SUBJECT);
 
 const M07_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M07Step, string>>> = {
@@ -92,19 +113,25 @@ const M07_PREMATURE_HINT_KEYS: Readonly<Partial<Record<M07Step, string>>> = {
     surveyRead: M07_I18N_KEY.MAIL_PREMATURE_HINT_READ,
     ledgerTaken: M07_I18N_KEY.MAIL_PREMATURE_HINT_LEDGER,
     reservesChecked: M07_I18N_KEY.MAIL_PREMATURE_HINT_RESERVES,
-    sealRead: M07_I18N_KEY.MAIL_PREMATURE_HINT_SEAL,
-    sealOneOpened: M07_I18N_KEY.MAIL_PREMATURE_HINT_SEAL,
-    sealTwoOpened: M07_I18N_KEY.MAIL_PREMATURE_HINT_SEAL,
+    sealRead: M07_I18N_KEY.MAIL_PREMATURE_HINT_SEAL_READ,
+    sealOpened: M07_I18N_KEY.MAIL_PREMATURE_HINT_SEAL,
     workstationLoggedIn: M07_I18N_KEY.MAIL_PREMATURE_HINT_TOKEN,
     displayAttached: M07_I18N_KEY.MAIL_PREMATURE_HINT_ATTACH,
     instructionRead: M07_I18N_KEY.MAIL_PREMATURE_HINT_INSTRUCTION,
+    blackledgerSeen: M07_I18N_KEY.MAIL_PREMATURE_HINT_LEDGER_ROOM,
 };
 
-export const buildM07PrematureReply = (unmetStep: M07Step | undefined): MailDefinition => {
-    const hintKey = unmetStep ? M07_PREMATURE_HINT_KEYS[unmetStep] : undefined;
+const prematureHintKey = (unmetStep: M07Step | undefined, duelTwoWon: boolean): string | undefined => {
+    if (unmetStep === "blackledgerSeen" && !duelTwoWon) return M07_I18N_KEY.MAIL_PREMATURE_HINT_READ_ALL;
+
+    return unmetStep ? M07_PREMATURE_HINT_KEYS[unmetStep] : undefined;
+};
+
+export const buildM07PrematureReply = (unmetStep: M07Step | undefined, duelTwoWon = false): MailDefinition => {
+    const hintKey = prematureHintKey(unmetStep, duelTwoWon);
     const paragraphs = [
         Localization.t(M07_I18N_KEY.MAIL_PREMATURE_INTRO),
-        ...(hintKey ? [Localization.t(hintKey)] : []),
+        ...(hintKey ? [Localization.t(hintKey, { insurer: M07_INSURER_NAME, portal: M07_PORTAL_HOST })] : []),
         Localization.t(M07_I18N_KEY.MAIL_PREMATURE_OUTRO),
     ];
 

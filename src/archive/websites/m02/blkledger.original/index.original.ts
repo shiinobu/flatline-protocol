@@ -1,8 +1,8 @@
 import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/hackhub-content-sdk";
 
-import { BLACKLEDGER_DOMAIN } from "../../../content/global/blackledger.js";
+import { BLACKLEDGER_DOMAIN } from "../../../../content/global/blackledger.js";
 
-import homePage from "./home.html";
+import homePage from "./home.original.html";
 
 @RegisterWebsite
 export class BlackledgerWebsite extends Website {

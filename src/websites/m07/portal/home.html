@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t:M07.SITE.PORTAL.BRAND}}</title>
+<style>
+*{box-sizing:border-box}
+:root{--harbour:#0c1a26;--sea:#16364b;--chart:#e9edef;--paper:#fbfbf8;--rule:#c8d1d6;--ink:#142129;--mute:#566872;--brass:#d9a441;--paid:#1b6a49;--reserve:#a3262a;--head:Bahnschrift,"Segoe UI Semibold","Arial Narrow",system-ui,sans-serif;--sans:"Segoe UI",system-ui,-apple-system,sans-serif;--mono:Consolas,"Cascadia Mono","Courier New",monospace}
+body{margin:0;background:var(--chart);color:var(--ink);font:15px/1.6 var(--sans)}
+.bar{background:var(--harbour);color:#e6edf1;border-bottom:4px solid var(--brass)}
+.bar-in{max-width:880px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.mark{flex:0 0 auto;width:38px;height:38px}
+.brand{font:600 21px/1.15 var(--head);letter-spacing:.01em}
+.tagline{font-size:12.5px;color:#9db1bd}
+.nav{margin-left:auto;font-size:13px;color:var(--brass);border-bottom:1px solid #6f5a2a;padding-bottom:1px}
+.wrap{max-width:880px;margin:0 auto;padding:34px 20px 20px}
+h1{font:600 32px/1.15 var(--head);margin:0 0 8px;letter-spacing:.005em}
+.lead{max-width:60ch;color:#33454f;margin:0 0 22px}
+.lookup{display:block;padding:20px 20px 22px;background:var(--sea);color:#e6edf1;border-radius:3px}
+.lookup label{display:block;font-size:13px;color:#a9bfcc;margin-bottom:8px}
+.row{display:flex;gap:10px}
+input{flex:1 1 auto;min-width:0;padding:12px 14px;border:2px solid #0c1a26;border-radius:2px;background:#f4f6f6;color:var(--ink);font:600 19px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+input::placeholder{color:#8a9aa3;font-weight:400}
+button{flex:0 0 auto;padding:12px 24px;border:0;border-radius:2px;background:var(--brass);color:#1a1405;font:700 15px/1.2 var(--head);letter-spacing:.02em;cursor:pointer}
+button:hover{background:#e5b45a}
+input:focus-visible,button:focus-visible{outline:3px solid #ffffff;outline-offset:2px}
+.state{margin:20px 0 0;font-size:14px;color:var(--mute)}
+.docket{position:relative;margin:24px 0 0;background:var(--paper);border:1px solid var(--rule);border-left:30px solid #dfe5e8;box-shadow:0 1px 0 #fff inset,0 10px 24px -18px rgba(12,26,38,.55)}
+.docket::before{content:"";position:absolute;left:-22px;top:14px;bottom:14px;width:12px;background:radial-gradient(circle at 6px 6px,var(--chart) 0 4px,transparent 4.5px) 0 0/12px 26px repeat-y}
+.docket.hide,.state.hide{display:none}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:20px 24px 14px;border-bottom:2px solid var(--ink)}
+.refno{font:700 26px/1.15 var(--mono);letter-spacing:.04em}
+.refcap{font-size:12.5px;color:var(--mute);margin-bottom:2px}
+.stamp{flex:0 0 auto;padding:5px 16px 6px;border:3px double currentColor;border-radius:3px;font:700 20px/1.2 var(--head);letter-spacing:.12em;text-transform:uppercase;transform:rotate(-5deg);opacity:.92}
+.stamp.paid{color:var(--paid)}
+.stamp.reserve{color:var(--reserve)}
+.docket.fresh .stamp{animation:press .2s ease-out}
+@keyframes press{from{transform:rotate(-5deg) scale(1.45);opacity:0}to{transform:rotate(-5deg) scale(1);opacity:.92}}
+dl{display:grid;grid-template-columns:190px 1fr;margin:0;padding:6px 24px 16px}
+dt,dd{padding:10px 0;border-bottom:1px dotted var(--rule)}
+dt{color:var(--mute);font-size:13.5px;padding-right:14px}
+dd{margin:0}
+dl>dt:last-of-type,dl>dd:last-of-type{border-bottom:0}
+.docket.reserve-docket dd.notice{color:var(--reserve);font-weight:600}
+.help{margin:22px 0 0;max-width:62ch;font-size:13.5px;color:var(--mute)}
+footer{max-width:880px;margin:0 auto;padding:16px 20px 36px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--mute)}
+.updated{margin-top:2px}
+@media(max-width:720px){.wrap{padding:24px 16px 16px}.bar-in{padding:12px 16px}.row{flex-direction:column}button{width:100%}.top{flex-direction:column;padding:16px 16px 12px}dl{grid-template-columns:1fr;padding:4px 16px 14px}dt{padding-bottom:0;border-bottom:0}dd{padding-top:2px}.docket{border-left-width:18px}.docket::before{left:-14px}footer{padding:14px 16px 28px}}
+@media(prefers-reduced-motion:reduce){.docket.fresh .stamp{animation:none}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+<svg class="mark" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="7" fill="#16364b"/><path d="M19 7v21M12 14h14M8 23c1 6 6 9 11 9s10-3 11-9" fill="none" stroke="#d9a441" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2.4" fill="#d9a441"/></svg>
+<div><div class="brand">{{t:M07.SITE.PORTAL.BRAND}}</div><div class="tagline">{{t:M07.SITE.PORTAL.TAGLINE}}</div></div>
+<div class="nav">{{t:M07.SITE.PORTAL.NAV}}</div>
+</div></header>
+<main class="wrap">
+<h1>{{t:M07.SITE.PORTAL.TITLE}}</h1>
+<p class="lead">{{t:M07.SITE.PORTAL.LEAD}}</p>
+<section class="lookup">
+  <label for="ref">{{t:M07.SITE.PORTAL.LABEL}}</label>
+  <div class="row">
+    <input id="ref" type="text" autocomplete="off" spellcheck="false" maxlength="32"
+           placeholder="{{t:M07.SITE.PORTAL.PLACEHOLDER}}" aria-label="{{t:M07.SITE.PORTAL.LABEL}}">
+    <button id="go" type="button">{{t:M07.SITE.PORTAL.BUTTON}}</button>
+  </div>
+</section>
+<section aria-live="polite">
+  <p id="empty" class="state">{{t:M07.SITE.PORTAL.EMPTY}}</p>
+  <p id="none" class="state hide"></p>
+  <article id="docket" class="docket hide">
+    <div class="top">
+      <div><div class="refcap">{{t:M07.SITE.PORTAL.ROW_REF}}</div><div id="refno" class="refno"></div></div>
+      <div id="stamp" class="stamp"></div>
+    </div>
+    <dl id="rows"></dl>
+  </article>
+</section>
+<p class="help">{{t:M07.SITE.PORTAL.HELP}}</p>
+</main>
+<footer>{{t:M07.SITE.PORTAL.FOOTER}}<div class="updated">{{t:M07.SITE.PORTAL.UPDATED}}</div></footer>
+<script>
+(function () {
+  var UNAVAILABLE = "{{t:M07.SITE.PORTAL.UNAVAILABLE}}";
+  var input = document.getElementById("ref");
+  var empty = document.getElementById("empty");
+  var none = document.getElementById("none");
+  var docket = document.getElementById("docket");
+  var rows = document.getElementById("rows");
+  var refno = document.getElementById("refno");
+  var stamp = document.getElementById("stamp");
+
+  function setHidden(el, hidden) {
+    var cls = el.className.replace(/\s*hide\s*/g, " ").trim();
+    el.className = hidden ? (cls + " hide").trim() : cls;
+  }
+
+  function lookup(raw) {
+    try { return typeof flatlineClaimLookup === "function" ? flatlineClaimLookup(String(raw)) : null; } catch (e) { return null; }
+  }
+
+  function clearRows() { while (rows.firstChild) rows.removeChild(rows.firstChild); }
+
+  function showMessage(text) {
+    clearRows();
+    setHidden(empty, true);
+    setHidden(docket, true);
+    none.textContent = text;
+    setHidden(none, false);
+  }
+
+  function showResult(result) {
+    clearRows();
+    setHidden(empty, true);
+    setHidden(none, true);
+    refno.textContent = result.ref;
+    stamp.textContent = result.badge;
+    stamp.className = "stamp " + result.tone;
+    for (var i = 0; i < result.rows.length; i += 1) {
+      var dt = document.createElement("dt");
+      var dd = document.createElement("dd");
+      dt.textContent = result.rows[i].label;
+      dd.textContent = result.rows[i].value;
+      if (result.tone === "reserve" && i === result.rows.length - 1) dd.className = "notice";
+      rows.appendChild(dt);
+      rows.appendChild(dd);
+    }
+    docket.className = "docket" + (result.tone === "reserve" ? " reserve-docket" : "");
+    void docket.offsetWidth;
+    docket.className += " fresh";
+  }
+
+  function run() {
+    var raw = String(input.value || "").trim();
+    if (raw === "") {
+      clearRows();
+      setHidden(none, true);
+      setHidden(docket, true);
+      setHidden(empty, false);
+      return;
+    }
+    var result = lookup(raw);
+    if (result === null || typeof result !== "object") { showMessage(UNAVAILABLE); return; }
+    if (!result.found) { showMessage(result.message); return; }
+    showResult(result);
+  }
+
+  document.getElementById("go").addEventListener("click", run);
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") run(); });
+})();
+</script>
+</body>
+</html>

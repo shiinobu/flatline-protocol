@@ -1,3 +1,4 @@
+import { BLACKLEDGER_DOMAIN } from "../global/blackledger.js";
 import type { RdcArchiveDoc, RdcNarrative, RdcProfile, RdcTarget } from "../global/rdc.js";
 import {
     M07_CHAIR_LAN_IP,
@@ -19,6 +20,10 @@ export const M07_CHAIR_USERNAME = "clindqvist";
 export const M07_CHAIR_PASSWORD = "Reserve-Flat-1967";
 export const M07_CHAIR_HOST_NAME = "Steady-State";
 
+export const M07_INSTRUCTION_DATE = "2026-06-24";
+export const M07_MODEL_NOTE_QUOTE = "keep the supply managed, the line stays flat";
+export const M07_DOSSIER_SUMMARY = "file GHOSTWIRE: relative of an OT3 patient, kept under watch";
+
 export const M07_ARCHIVE_INSTRUCTION = "instruction_2026-06-24.txt";
 export const M07_ARCHIVE_MODEL = "model_note.txt";
 export const M07_ARCHIVE_WATCH = "file_ghostwire.txt";
@@ -27,6 +32,9 @@ const HOME_DIR = `/home/${M07_CHAIR_USERNAME}`;
 const CHAIR_DIR = `${HOME_DIR}/chair`;
 const PRIVATE_DIR = `${HOME_DIR}/private`;
 const COMMITTEE_DIR = `${HOME_DIR}/committee`;
+const ETC_DIR = "/etc";
+const LIB_DIR = "/lib";
+const LOGS_DIR = "/logs";
 
 const M07_RDC_TARGETS: readonly RdcTarget[] = [
     {
@@ -85,6 +93,7 @@ const MODEL_NOTE = [
     "  2. Reserves are pre-notified to the settlement desk. The insured are not told.",
     "  3. When the event lands, the claim pays against a reserve that already exists.",
     "  4. Settlement runs the same day. Most of it moves to the account held through SKN.",
+    `  5. The account is posted to the ledger room the same hour: ${BLACKLEDGER_DOMAIN}`,
     "",
     "Standing this year",
     "  FIN-EU-2214     reserved 2026-06-18",
@@ -102,6 +111,7 @@ const WATCH_FILE = [
     "",
     "Assessment: asking the same question as the others, only louder.",
     "Action 2026-09-24: the hunter was set on the first reachable address.",
+    `Filed under Q3-2026-SEA in the ledger room (${BLACKLEDGER_DOMAIN}).`,
     "Keep watching. Do not approach.",
 ].join("\n");
 
@@ -135,13 +145,30 @@ const NOTES = [
     "only part anyone would find hard to forgive.",
 ].join("\n");
 
+const HOSTNAME_FILE = `${M07_CHAIR_TAG}\n`;
+
+const AGENT_SYNC_NOTE = [
+    "agent-sync 4.2.1",
+    "Mirrors the committee workspace to the chair copy every hour.",
+    "Not for manual use.",
+].join("\n");
+
+const AGENT_SYNC_LOG = [
+    "2026-10-03 06:00:03 agent-sync: mirrored 0 changes",
+    "2026-10-03 07:00:01 agent-sync: mirrored 0 changes",
+    "2026-10-03 08:00:02 agent-sync: mirrored 0 changes",
+].join("\n");
+
 const M07_RDC_DOCS: readonly RdcArchiveDoc[] = [
-    { name: M07_ARCHIVE_INSTRUCTION, dir: CHAIR_DIR, gate: 1, label: "Instruction", text: INSTRUCTION },
-    { name: M07_ARCHIVE_MODEL, dir: CHAIR_DIR, gate: 2, label: "Model note", text: MODEL_NOTE },
-    { name: M07_ARCHIVE_WATCH, dir: PRIVATE_DIR, gate: 3, label: "Watch file", text: WATCH_FILE },
+    { name: M07_ARCHIVE_INSTRUCTION, dir: CHAIR_DIR, gate: 1, label: "Instruction", text: INSTRUCTION, sealed: true },
+    { name: M07_ARCHIVE_MODEL, dir: CHAIR_DIR, gate: 2, label: "Model note", text: MODEL_NOTE, sealed: true },
+    { name: M07_ARCHIVE_WATCH, dir: PRIVATE_DIR, gate: 3, label: "Watch file", text: WATCH_FILE, sealed: true, trashed: true },
     { name: "minutes_2023_Q4_draft.txt", dir: COMMITTEE_DIR, gate: 0, text: MINUTES_DRAFT },
     { name: "calendar.txt", dir: HOME_DIR, gate: 0, text: CALENDAR },
     { name: "notes.txt", dir: HOME_DIR, gate: 0, text: NOTES },
+    { name: "hostname", dir: ETC_DIR, gate: 0, text: HOSTNAME_FILE },
+    { name: "agent-sync.txt", dir: LIB_DIR, gate: 0, text: AGENT_SYNC_NOTE },
+    { name: "agent-sync.log", dir: LOGS_DIR, gate: 0, text: AGENT_SYNC_LOG },
 ];
 
 const nl = (lines: readonly string[]): string => `${lines.join("\n")}\n`;
@@ -248,6 +275,8 @@ const M07_RDC_NARRATIVE: RdcNarrative = {
     browserPill: "Chair copy, view only",
     browserUrl: "https://nma-cl-01.nordhaven-mutual.com/chair/files",
     archiveHeading: "Folders",
+    browserArchive: "off",
+    fsTree: "on",
 };
 
 export const buildM07RdcProfile = (): RdcProfile => ({

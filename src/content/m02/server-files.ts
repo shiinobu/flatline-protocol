@@ -1,7 +1,6 @@
 import { Localization } from "@hotbunny/hackhub-content-sdk";
 
 import { M02_I18N_KEY } from "../../i18n/m02/core.js";
-import { BLACKLEDGER_DOMAIN } from "../global/blackledger.js";
 import { M01_CASE_ID } from "../global/case.js";
 import { M04_ARCHITECT_VPN_IP } from "../global/characters.js";
 import { M02_SHELL_COMPANY_NAME } from "../global/entities.js";
@@ -19,7 +18,6 @@ export const M02_DEPLOY_LOG_CONTENT = (): string =>
         caseId: M01_CASE_ID,
         amount: formatUsd(RANSOM_BATCH_HOSPITAL.gross),
         batch: RANSOM_BATCH_HOSPITAL.ref,
-        ledgerDomain: BLACKLEDGER_DOMAIN,
     });
 
 export const M02_SYNC_SCRIPT_FILE_NAME = "sync-home";

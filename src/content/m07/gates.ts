@@ -22,11 +22,11 @@ export const M07_STEP_ORDER: readonly M07Step[] = [
     "ledgerTaken",
     "reservesChecked",
     "sealRead",
-    "sealOneOpened",
-    "sealTwoOpened",
+    "sealOpened",
     "workstationLoggedIn",
     "displayAttached",
     "instructionRead",
+    "blackledgerSeen",
 ];
 
 export const M07_GATES: readonly Gate<M07QuestData>[] = [
@@ -46,12 +46,12 @@ export const M07_GATES: readonly Gate<M07QuestData>[] = [
     { step: "ledgerTaken", requires: ["surveyRead"] },
     { step: "reservesChecked", requires: ["ledgerTaken"] },
     { step: "sealRead", requires: ["reservesChecked"] },
-    { step: "sealOneOpened", requires: ["sealRead"] },
-    { step: "sealTwoOpened", requires: ["sealOneOpened"] },
-    { step: "workstationLoggedIn", requires: ["sealTwoOpened"] },
+    { step: "sealOpened", requires: ["sealRead"] },
+    { step: "workstationLoggedIn", requires: ["sealOpened"] },
     { step: "displayAttached", requires: ["workstationLoggedIn"] },
     { step: "instructionRead", requires: ["displayAttached"] },
-    { step: "reportSent", requires: ["instructionRead"] },
+    { step: "blackledgerSeen", requires: ["instructionRead"] },
+    { step: "reportSent", requires: ["blackledgerSeen"] },
 ];
 
 export const M07_UNLOCKS: readonly Unlock<M07QuestData>[] = [

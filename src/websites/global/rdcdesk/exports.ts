@@ -7,9 +7,11 @@ import {
     RDC_READ_EVENT,
     RDC_SEED_EVENT,
     checkRdcToken,
+    decryptRdcDoc,
     gatedDocCount,
     getRdcProfile,
     type RdcAttachedPayload,
+    type RdcDecryptResult,
     toRdcPageProfile,
     type RdcLoginPayload,
     type RdcLoginResult,
@@ -63,6 +65,13 @@ export const rdcRead = (gate: number): void => {
     trace("RDC", `read mission=${profile.mission} gate=${gate}`);
     const payload: RdcReadPayload = { mission: profile.mission, gate };
     Events.emit(RDC_READ_EVENT, payload);
+};
+
+export const rdcDecrypt = (name: string, key: string): RdcDecryptResult => {
+    const result = decryptRdcDoc(getRdcProfile(), name, key);
+
+    trace("RDC", `decrypt ok=${result.ok} name=${name}`);
+    return result;
 };
 
 export const rdcSeed = (seed: number): void => {

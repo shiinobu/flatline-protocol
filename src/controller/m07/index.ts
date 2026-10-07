@@ -18,18 +18,29 @@ import {
 } from "../../content/m07/quest.js";
 import { M07_MISSION, buildM07RdcProfile } from "../../content/m07/rdc.js";
 import { M07_SEALED_ARTIFACTS } from "../../content/m07/sealed.js";
+import { rdcSeedOf, type M07QuestData } from "../../content/m07/state.js";
 import { closeMissionSites, openMissionSites } from "../../context/global/site-access.js";
 import { refreshSiteStrings } from "../../context/global/site-strings.js";
 import {
     clearM07Progress,
     setM07DashboardOpen,
+    setM07LedgerRoomOpen,
     setM07PortalOpen,
+    setM07RdcState,
     setM07ReservesOpen,
 } from "../../context/m07/progress.js";
 import { bindWorld, register, seed } from "../../core/index.js";
 import { isQuestDevFocus, isQuestTesterFocus } from "../../guard/flags.js";
 import { reachedUnlocks } from "../../middleware/gate.js";
+import { bindM07Access } from "./access.js";
+import { bindM07Cipher } from "./cipher.js";
+import { bindM07Duels, cancelM07DuelJobs, isDuelTwoWon } from "./duel.js";
+import { bindM07Report } from "./ending.js";
+import { bindM07Extract } from "./extract.js";
+import { bindM07Rdc } from "./rdc.js";
+import { bindM07Recon } from "./recon.js";
 import { M07_REPORT_SPEC } from "./report.js";
+import { bindM07Shell } from "./shell.js";
 import type { M07Quest } from "./types.js";
 import { M07_WORLD } from "./world.js";
 
@@ -40,16 +51,30 @@ bindWorld(M07_WORLD);
 
 export const onStartM07 = (): void => {
     if (isQuestDevFocus("m07")) withdrawMailFrom(FLATLINE_MAIL_SENDERS);
+    abandonStrike(M07_DUEL_ONE_PREFIX);
+    abandonStrike(M07_DUEL_TWO_PREFIX);
+    cancelM07DuelJobs();
     setBacktraceMission("m7", "progress");
     seed(M07_INTRO);
+};
+
+const restoreMirrors = (data: M07QuestData): void => {
+    setM07PortalOpen(data.tipReviewed);
+    setM07DashboardOpen(data.edgeScanned);
+    setM07ReservesOpen(data.ledgerTaken);
+    setM07LedgerRoomOpen(isDuelTwoWon(data));
+    setM07RdcState({
+        loggedIn: data.workstationLoggedIn,
+        attached: data.displayAttached,
+        docs: [data.instructionRead ? 1 : 0, data.modelRead ? 2 : 0, data.dossierRead ? 3 : 0].filter((n) => n > 0),
+        seed: rdcSeedOf(data),
+    });
 };
 
 export const onObjectivesStartM07 = (quest: M07Quest): void => {
     openMissionSites("m07");
     refreshSiteStrings();
-    setM07PortalOpen(quest.Data.tipReviewed);
-    setM07DashboardOpen(quest.Data.edgeScanned);
-    setM07ReservesOpen(quest.Data.ledgerTaken);
+    restoreMirrors(quest.Data);
 
     const networkBuilt = register(M07_WORLD, {
         networkBuilt: quest.Data.networkBuilt,
@@ -59,6 +84,15 @@ export const onObjectivesStartM07 = (quest: M07Quest): void => {
     setSealedArtifacts(M07_MISSION, M07_SEALED_ARTIFACTS);
     setRdcProfile(buildM07RdcProfile());
     registerReportTemplate(M07_REPORT_SPEC);
+
+    bindM07Recon(quest);
+    bindM07Access(quest);
+    bindM07Shell(quest);
+    bindM07Duels(quest);
+    bindM07Extract(quest);
+    bindM07Cipher(quest);
+    bindM07Rdc(quest);
+    bindM07Report(quest);
 
     if (networkBuilt) quest.SetData("networkBuilt", true);
 };
@@ -72,6 +106,7 @@ export const onCompleteM07 = (): void => {
     clearRdcProfile(M07_MISSION);
     abandonStrike(M07_DUEL_ONE_PREFIX);
     abandonStrike(M07_DUEL_TWO_PREFIX);
+    cancelM07DuelJobs();
     payReward({
         scope: M07_SCOPE,
         amount: M07_REWARD_MONEY,

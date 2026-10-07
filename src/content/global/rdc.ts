@@ -1,4 +1,4 @@
-import { openSealed } from "../../components/text-seal.js";
+import { openSealed, sealText } from "../../components/text-seal.js";
 
 export interface RdcTarget {
     readonly code: number;
@@ -16,6 +16,8 @@ export interface RdcArchiveDoc {
     readonly gate: number;
     readonly label?: string;
     readonly text: string;
+    readonly sealed?: boolean;
+    readonly trashed?: boolean;
 }
 
 export type RdcNarrative = Readonly<Record<string, string>>;
@@ -68,7 +70,15 @@ export const toRdcPageProfile = (profile: RdcProfile | null): RdcPageProfile | n
                   os,
                   hasDisplay,
               })),
-              docs: profile.docs.map(({ name, dir, gate, label, text }) => ({ name, dir, gate, label, text })),
+              docs: profile.docs.map(({ name, dir, gate, label, text, sealed, trashed }) => ({
+                  name,
+                  dir,
+                  gate,
+                  label,
+                  text: sealed ? sealText(text, profile.key) : text,
+                  ...(sealed ? { sealed } : {}),
+                  ...(trashed ? { trashed } : {}),
+              })),
               narrative: profile.narrative,
           };
 
@@ -125,6 +135,22 @@ export const getRdcProfile = (): RdcProfile | null => active;
 
 export const gatedDocCount = (profile: RdcProfile): number =>
     profile.docs.filter((doc) => doc.gate > 0).length;
+
+export interface RdcDecryptResult {
+    readonly ok: boolean;
+    readonly text: string;
+}
+
+const MAX_KEY_LENGTH = 64;
+
+export const decryptRdcDoc = (profile: RdcProfile | null, name: string, key: string): RdcDecryptResult => {
+    const doc = profile?.docs.find((entry) => entry.name === name && entry.sealed === true);
+    if (!profile || !doc || key.length === 0 || key.length > MAX_KEY_LENGTH) return { ok: false, text: "" };
+
+    return sealText(doc.text, key) === sealText(doc.text, profile.key)
+        ? { ok: true, text: doc.text }
+        : { ok: false, text: "" };
+};
 
 export const checkRdcToken = (hex: string, profile: RdcProfile | null): RdcLoginResult => {
     if (!profile) return { ok: false, msg: RDC_MESSAGES.unreadable };

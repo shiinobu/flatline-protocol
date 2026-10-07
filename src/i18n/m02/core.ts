@@ -141,7 +141,7 @@ Localization.registerAll({
             "{{date}} 02:41 UTC — client {{caseId}} confirmed lock, ransom note delivered.",
             "{{date}} 09:02 UTC — client escrow released ({{amount}}), payout queued as batch {{batch}}.",
             "{{date}} 09:15 UTC — payout paperwork archived to the home workstation per usual, don't leave it on the panel server.",
-            "{{date}} 09:20 UTC — sync confirmed with {{ledgerDomain}}, batch closed.",
+            "{{date}} 09:20 UTC — sync confirmed with the master ledger, batch closed.",
         ].join("\n"),
         [M02_I18N_KEY.DEVICE_SYNC_SCRIPT]: [
             "#!/bin/bash",
@@ -287,7 +287,7 @@ Localization.registerAll({
             "{{date}} 02:41 UTC — 客户 {{caseId}} 确认已锁定，勒索通知已送达。",
             "{{date}} 09:02 UTC — 客户托管款项已释放（{{amount}}），付款排入批次 {{batch}}。",
             "{{date}} 09:15 UTC — 付款文件照例归档到家里的工作站，别留在面板服务器上。",
-            "{{date}} 09:20 UTC — 已与 {{ledgerDomain}} 同步确认，批次关闭。",
+            "{{date}} 09:20 UTC — 已与总账同步确认，批次关闭。",
         ].join("\n"),
         [M02_I18N_KEY.DEVICE_SYNC_SCRIPT]: [
             "#!/bin/bash",

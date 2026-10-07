@@ -55,11 +55,20 @@ import {
 } from "../content/m06/quest-logs.js";
 import {
     M07_LOG_C2,
+    M07_LOG_CLAIMS,
     M07_LOG_CREDENTIAL,
+    M07_LOG_DECOY,
+    M07_LOG_DOSSIER,
     M07_LOG_EDGE,
+    M07_LOG_INSTRUCTION,
     M07_LOG_LEDGER,
+    M07_LOG_LEDGER_ROOM,
     M07_LOG_MANIFEST,
+    M07_LOG_MODEL,
     M07_LOG_NODES,
+    M07_LOG_ORDERS,
+    M07_LOG_SEAL,
+    M07_LOG_SURVEY,
 } from "../content/m07/quest-logs.js";
 import type { BacktraceMissionId } from "./backtrace-state.js";
 
@@ -140,12 +149,21 @@ const MISSION_LOGS: Readonly<Record<BacktraceMissionId, readonly BacktraceLogGro
         { read: M06_LOG_CAPTURE, note: true, optional: true },
     ],
     m7: [
+        { read: M07_LOG_CLAIMS, key: "claims" },
         { read: M07_LOG_NODES, key: "nodes" },
         { read: M07_LOG_CREDENTIAL, key: "credential" },
         { read: M07_LOG_EDGE, key: "firewall" },
         { read: M07_LOG_C2, key: "c2" },
         { read: M07_LOG_MANIFEST, key: "manifest" },
+        { read: M07_LOG_ORDERS, key: "orders" },
+        { read: M07_LOG_SURVEY, key: "survey" },
         { read: M07_LOG_LEDGER, key: "ledger" },
+        { read: M07_LOG_SEAL, key: "seal" },
+        { read: M07_LOG_INSTRUCTION, key: "instruction" },
+        { read: M07_LOG_DECOY, key: "decoy", optional: true },
+        { read: M07_LOG_MODEL, key: "model", optional: true },
+        { read: M07_LOG_DOSSIER, key: "dossier", optional: true },
+        { read: M07_LOG_LEDGER_ROOM, key: "ledgerRoom" },
     ],
 };
 

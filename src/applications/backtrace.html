@@ -327,9 +327,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sil { position: absolute; left: 50%; bottom: 0; width: 88%; height: 92%; transform: translateX(-50%); fill: #05090a; stroke: none; }
 .photo .m-tab { position: absolute; left: 0; top: 0; z-index: 1; background: #0c0708; color: #e8dfe2; }
 .plate { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 3px; }
-.form-portrait .node-type { white-space: normal; line-height: 12px; letter-spacing: .12em; color: #4f444a; }
+.form-portrait .node-type { white-space: normal; line-height: 12px; letter-spacing: .07em; color: #4f444a; }
 .form-portrait .node-name { font: 700 14.5px/1.15 var(--mono); color: #150d10; }
-.form-portrait:not([data-tech]) .node-name { font: 800 18px/1.02 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.form-portrait:not([data-tech]) .node-name { font: 800 16px/1.02 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.form-portrait.is-long:not([data-tech]) .node-name { font-size: 14px; line-height: .98; letter-spacing: .01em; }
 .form-boss .node-type { white-space: normal; font-size: 12px; color: #f6cdd2; }
 .form-boss .node-name { font: 800 22px/1.02 var(--display); letter-spacing: .05em; text-transform: uppercase; color: #fff; }
 
@@ -391,12 +392,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 @keyframes fillIn { from { opacity: 0; } to { opacity: 1; } }
 
 .fill-note { padding: 14px 11px 8px; background: #cbc2ac; border: 1px solid #8f8670; border-top: 3px solid #b4414f; box-shadow: 0 7px 7px rgba(0, 0, 0, .6); color: #1b1512; }
-.fill-note .tape, .fill-polaroid .tape { position: absolute; left: 50%; top: -11px; width: 56px; height: 16px; margin-left: -28px; background: rgba(205, 205, 205, .3); border: 1px solid rgba(255, 255, 255, .14); transform: rotate(-3deg); }
+.fill-note .tape { position: absolute; left: 50%; top: -11px; width: 56px; height: 16px; margin-left: -28px; background: rgba(205, 205, 205, .3); border: 1px solid rgba(255, 255, 255, .14); transform: rotate(-3deg); }
 .fill-note .note-tab { position: absolute; left: 0; top: 0; padding: 0 6px; background: #0c0708; color: #e8dfe2; font: 700 11.5px/16px var(--mono); }
 .fill-note p { margin: 12px 0 0; font: 600 14px/1.25 var(--mono); }
 
 .fill-stamp { display: grid; place-items: center; border: 3px double rgba(255, 92, 108, .6); border-radius: 3px; color: rgba(255, 92, 108, .66); }
 .fill-stamp span { font: 800 25px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
+.fill-tape { filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .55)); }
+.fill-tape span { display: grid; place-items: center; width: 100%; height: 100%; background: rgba(212, 198, 156, .92); color: #2b2116; font: 700 13px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; white-space: pre; clip-path: polygon(0 14%, 2.5% 0, 5% 16%, 7.5% 0, 92.5% 0, 95% 16%, 97.5% 0, 100% 14%, 100% 86%, 97.5% 100%, 95% 84%, 92.5% 100%, 7.5% 100%, 5% 84%, 2.5% 100%, 0 86%); }
 
 
 .fill-legend { padding: 8px 10px; background: rgba(12, 7, 8, .85); border: 1px solid #3a0f16; box-shadow: 0 7px 7px rgba(0, 0, 0, .5); }
@@ -438,9 +441,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .str-fray { fill: none; stroke: rgba(255, 92, 108, .7); stroke-width: 1.1; stroke-linecap: round; }
 .str-pin { fill: #cfc6c8; stroke: #4b3e42; stroke-width: 1.5; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .75)); }
 
-.fill-polaroid { padding: 9px 9px 0; background: #e4ddcc; border: 1px solid #a49b84; box-shadow: 0 8px 8px rgba(0, 0, 0, .65); }
-.fill-polaroid img { display: block; width: 100%; height: auto; filter: saturate(.85) contrast(1.06); outline: 1px solid rgba(0, 0, 0, .45); }
-.fill-polaroid::after { content: ""; position: absolute; left: 9px; right: 9px; top: 9px; bottom: 30px; background: linear-gradient(118deg, rgba(255, 255, 255, .1) 0 24%, transparent 24%); pointer-events: none; }
 .board-controls { position: absolute; right: 20px; top: 16px; z-index: 5; display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--panel-solid); border: 1px solid var(--edge); }
 .tool { width: 30px; height: 28px; text-align: center; font: 700 15px/28px var(--mono); color: var(--soft); }
 .tool:hover { background: rgba(255, 40, 60, .16); color: var(--bright); }
@@ -514,7 +514,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 <symbol id="s-operator" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><path d="M20 100C20 74 16 22 50 12C84 22 80 74 80 100Z"/><circle cx="41" cy="46" r="2.8" fill="#ff3b4e"/><circle cx="59" cy="46" r="2.8" fill="#ff3b4e"/></symbol>
 <symbol id="s-greta" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><path d="M32 40C32 74 29 82 26 88H74C71 82 68 74 68 40Z"/><circle cx="50" cy="42" r="16"/><path d="M33 40C33 18 67 18 67 40Z"/></symbol>
 <symbol id="s-decider" viewBox="0 0 100 100"><path d="M2 100C2 77 22 67 50 67S98 77 98 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><path d="M38 67L50 87L62 67Z" fill="#2c3b40"/><path d="M47.5 76L50 100L52.5 76Z"/></symbol>
-<symbol id="s-architect" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="16"/><circle cx="50" cy="42" r="30" fill="none" stroke="#ff3b4e" stroke-width="1.6" stroke-dasharray="4 4"/><path d="M50 4V13M50 71V80M12 42H21M79 42H88" fill="none" stroke="#ff3b4e" stroke-width="1.6"/></symbol>
+<symbol id="s-architect" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="16"/><circle cx="50" cy="42" r="30" fill="none" stroke="#ff3b4e" stroke-width="1.6" stroke-dasharray="4 4"/><path d="M50 4V13M50 71V80M12 42H21M79 42H88" fill="none" stroke="#ff3b4e" stroke-width="1.6"/></symbol><symbol id="s-visitor" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><path d="M33 36C33 18 67 18 67 36Z"/><path d="M33 34H70L66 39H33Z"/><path d="M42 69L50 88L58 69Z" fill="#2c3b40"/><rect x="45" y="80" width="10" height="13" rx="1.5" fill="#2c3b40"/></symbol><symbol id="s-analyst" viewBox="0 0 100 100"><path d="M4 100C4 76 22 67 50 67S96 76 96 100Z"/><rect x="42" y="55" width="16" height="16"/><circle cx="50" cy="42" r="15"/><path d="M34 40C34 20 66 20 66 40C60 30 40 30 34 40Z"/><rect x="37" y="40" width="11" height="7" rx="2" fill="#2c3b40"/><rect x="52" y="40" width="11" height="7" rx="2" fill="#2c3b40"/><path d="M48 43H52" fill="none" stroke="#2c3b40" stroke-width="1.6"/></symbol>
 </defs></svg>
 <div class="app">
   <header class="topbar">
@@ -568,7 +568,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
           <p class="report-meta">Why this case exists</p>
         </header>
         <div class="prologue">
-          <p data-i18n="BACKTRACE.STORY">Eight months ago my sibling went into surgery. Should have been routine. Mid-procedure, the hospital's systems locked up — ransomware, dropped clean and fast. Whoever did it knew exactly what they were doing. The hospital paid to get the systems back online. My sibling never came out of that operating room. The official investigation ran for three weeks, then just stopped. Nobody explained why. I stopped waiting for an explanation and started tracing the money instead. I'm not police. I'm not press. I don't have a client, a badge, or a deadline. I have one name — BLACKLEDGER — and I'm not stopping until I have every name behind it.</p>
+          <p data-i18n="BACKTRACE.STORY">Five weeks ago my sibling went into surgery. Should have been routine. Mid-procedure, the hospital's systems locked up — ransomware, dropped clean and fast. Whoever did it knew exactly what they were doing. The hospital paid to get the systems back online. My sibling never came out of that operating room. The official investigation ran for ten days, then just stopped. Nobody explained why. I stopped waiting for an explanation and started tracing the money instead. I'm not police. I'm not press. I don't have a client, a badge, or a deadline. I have one name — BLACKLEDGER — and I'm not stopping until I have every name behind it.</p>
           <div class="prologue-sign">— GHOSTWIRE</div>
         </div>
       </article></div>
@@ -879,18 +879,24 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         </header>
         <div class="report-grid">
           <div class="report-main">
-            <p class="summary" data-i18n="BACKTRACE.M7.SUMMARY">The payouts answered to one box behind the endpoint the money already walked to. Its own node table still listed the two machines written off years ago, and the one that was genuinely forgotten still held the credential for the filter in front of the index host. Behind that filter, <span class="code" data-fact="m7.c2">—</span> kept a single file: every account the syndicate had ever settled, and the line where a hospital's own cause of loss was assigned to a systems administrator who had nothing to do with it.</p>
+            <p class="summary" data-i18n="BACKTRACE.M7.SUMMARY">The insurer pays the ransom. The money lands in an account held through the same nominee company the committee booked in 2023, and the loss line stays flat because a reserve is set before every event. The proof sat in one box behind the endpoint the payouts already walked to: <span class="code" data-fact="m7.c2">—</span>. A forgotten relay held the key to the filter in front of it, the ledger it kept was sealed with the account that holds the reserves, and it opened onto the Chair's own console, where the order was written in his own hand.</p>
             <section class="block">
               <h2>Key findings</h2>
               <ul class="findings">
-        <li data-i18n="BACKTRACE.M7.FINDING.1">The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.2">The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.3">That account opened the edge filter and the index host's remote port: <span class="code" data-fact="m7.firewall">—</span>.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.4">A session on <span class="code" data-fact="m7.c2">—</span> reached the file the whole chain pointed at.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.5">The master ledger index carries <span class="code" data-fact="m7.manifest">—</span>, totalling <span class="code" data-fact="m7.allBatches">—</span>, of which <span class="code" data-fact="m7.allToParent">—</span> went to <span data-fact="m7.parentEntity">—</span>.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.6">The hospital's entry (<span class="code" data-fact="m7.caseId">—</span>) is classified <span class="code" data-fact="m7.evidence">—</span>, prepared with the hospital's own risk officer and approved by the insurer three days after the payout.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.7">The backup was taken whole rather than opened: <span class="code" data-fact="m7.ledger">—</span>.</li>
-        <li data-i18n="BACKTRACE.M7.FINDING.8">The Architect is <span data-fact="m7.architect">—</span>, who priced the losses he was arranging and booked them as a flat line.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.1">The insurer's own claims desk answered for all three references we held: <span data-fact="m7.claims">—</span>. Each is marked Paid on the day the syndicate's books settled it.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.2">The index host's own console published its inventory: <span data-fact="m7.nodes">—</span>. One of them was answering with a current service banner, which is not what a box written off years ago does.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.3">The forgotten relay still held a plaintext configuration backup with the edge filter's only valid account, <span class="code" data-fact="m7.credential">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.4">That account opened the edge filter and the index host's remote port: <span class="code" data-fact="m7.firewall">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.5">A session on <span class="code" data-fact="m7.c2">—</span> reached the files the whole chain pointed at, under a trace the host kept running.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.6">The master ledger index lists <span class="code" data-fact="m7.manifest">—</span>, totalling <span class="code" data-fact="m7.allBatches">—</span>, of which <span class="code" data-fact="m7.allToParent">—</span> went to <span data-fact="m7.parentEntity">—</span>. Two more lines are not settlements but reserves, <span class="code" data-fact="m7.reserves">—</span>, set before anything had happened to the insured.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.7">The hospital's entry (<span class="code" data-fact="m7.caseId">—</span>) is classified <span class="code" data-fact="m7.evidence">—</span>, prepared with the hospital's own risk officer and approved by the insurer three days after the payout.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.8">The release orders say who gave the word: <span data-fact="m7.orders">—</span>. The sessions that led up to it were all opened with the credentials of the administrator who was blamed.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.9">The insurer's own register puts a visitor on site before the intrusion: <span data-fact="m7.survey">—</span>. The register keeps a code for the visit and no name for the visitor.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.10">The backup was taken whole rather than opened on the host: <span class="code" data-fact="m7.ledger">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.11">The seal opened on the account that holds the reserves: <span data-fact="m7.seal">—</span>. It is the account the 2023 committee minute released two settlements into.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.12">At the Chair's own console the instruction is in his own words: <span data-fact="m7.instruction">—</span>. The paused directory sync and the loosened removable-media rule that came before the intrusion were an instruction, not an accident.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.13">The syndicate keeps its books in a room of its own: <span class="code" data-fact="m7.ledgerRoom">—</span>. <span data-fact="m7.accounts">—</span>, with the split written out (<span data-fact="m7.split">—</span>) and every page signed BLACKLEDGER. The order for the very first locker is kept there too: <span data-fact="m7.orderChat">—</span>.</li>
+        <li data-i18n="BACKTRACE.M7.FINDING.14">The Architect is <span data-fact="m7.architect">—</span>. The release was authorised under the account <span class="code" data-fact="m7.sentry">—</span>, the operator tag that hunted this investigation. He priced the losses he was arranging and booked them as a flat line.</li>
               </ul>
             </section>
           </div>
@@ -961,7 +967,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
           <button class="tool" id="zoomOut" type="button" aria-label="Zoom out">−</button>
           <span class="zoom-label" id="zoomLabel">100%</span>
           <button class="tool" id="zoomIn" type="button" aria-label="Zoom in">+</button>
-          <button class="tool" id="zoomReset" type="button" aria-label="Fit the board to the window">↺</button>
+          <button class="tool" id="zoomReset" type="button" aria-label="Reset the view">↺</button>
         </div>
         <div class="board-canvas" id="boardCanvas">
           <svg class="board-svg" id="boardSvg" viewBox="0 0 1400 800" aria-hidden="true"></svg>
@@ -1015,9 +1021,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     m4: { probe: 'Intruder address', breach: 'Desktop breach', relay1: 'Relay 1', relay2: 'Relay 2', control: 'Control host', origin: 'Origin registrant' },
     m5: { dismissed: 'Staff list changed', greta: 'Named administrator', archive: 'Archive access', statement: 'Signed acknowledgement', decisionMemo: 'Decision memo', usbTicket: 'USB ticket' },
     m6: { nominees: 'Nominee company', registeredAgent: 'Registered agent', ownershipChange: 'Ownership change', insurer: 'Insurer linked', infra: 'Shared certificate', architect: 'Named officer' },
-    m7: { nodes: 'Node inventory', credential: 'Edge credential', firewall: 'Edge opened', c2: 'Index host session', manifest: 'Master ledger index', ledger: 'Ledger extracted' }
+    m7: { claims: 'Paid claims', nodes: 'Node inventory', credential: 'Edge credential', firewall: 'Edge opened', c2: 'Index host session', manifest: 'Master ledger index', orders: 'Release orders', survey: 'Loss-control survey', ledger: 'Ledger extracted', seal: 'Settlement account', instruction: 'Chair instruction', decoy: 'Decoy touched', model: 'Model note', dossier: 'Watch file', ledgerRoom: 'Ledger room' }
   };
-  const OPTIONAL_KEYS = { m3: ['accomplice'], m4: ['probe'] };
+  const OPTIONAL_KEYS = { m3: ['accomplice'], m4: ['probe'], m7: ['decoy', 'model', 'dossier'] };
   const STORY_DATES = {
     m1: '18 Sep 2026',
     m2: '19 Sep 2026',
@@ -1035,12 +1041,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   };
 
   const BOUNDS_PAD = 28;
-  const FIT_PADDING = 24;
   const BOOT_STEP = 64;
   const NODE_BOOT = 550;
   const WIRE_LAG = 300;
   const FORM = {
-    portrait: { w: 136, h: 172, px: 68, py: 8 },
+    portrait: { w: 156, h: 172, px: 78, py: 8 },
     boss: { w: 184, h: 226, px: 92, py: 9 },
     folder: { w: 172, h: 110, px: 86, py: 24 },
     screen: { w: 172, h: 108, px: 86, py: 10 },
@@ -1052,64 +1057,94 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   };
   const BOARD_W = 1400;
   const BOARD_H = 800;
-  const ZOOM_MIN = 0.5;
+  const ZOOM_MIN = 0.3;
+  const OPEN_ZOOM = 0.6;
   const ZOOM_MAX = 2;
 
   const ENTITIES = {
-    operator: { type: 'Operator tag', refs: 'm4.hunter', form: 'portrait', sil: 'operator', x: 1463, y: 420, tilt: 0.8, ev: ['EV-M4-01', 'EV-M4-02'], tech: true },
-    control: { type: 'Control host', refs: 'm4.control', form: 'screen', x: 1257, y: 722, tilt: -1.2, ev: ['EV-M4-02'], tech: true },
-    registrant: { type: 'Registrant', refs: 'm4.origin', form: 'folder', x: 809, y: 721, tilt: 0.6, ev: ['EV-M4-02', 'EV-M6-02'] },
-    endpoint: { type: 'Tunnel endpoint', refs: 'm3.architectVpn', form: 'screen', x: 584, y: 492, tilt: -0.7, ev: ['EV-M4-02', 'EV-M6-02'], tech: true },
-    broker: { type: 'Broker', refs: 'm1.broker', form: 'portrait', sil: 'broker', x: 3, y: 0, tilt: -1.1, ev: ['EV-M1-01'], tech: true },
-    buyer: { type: 'Buyer', refs: 'm1.buyer,m2.buyer', form: 'portrait', sil: 'buyer', x: 3, y: 690, tilt: 0.9, ev: ['EV-M1-01', 'EV-M2-01'], tech: true },
-    shell: { type: 'Shell company', refs: 'm2.shellCompany', form: 'folder', x: 369, y: 721, tilt: -0.6, ev: ['EV-M2-01', 'EV-M3-01'] },
-    parent: { type: 'Parent entity', refs: 'm3.parentEntity', form: 'folder', x: 369, y: 341, tilt: 1, ev: ['EV-M3-01', 'EV-M7-02'] },
-    greta: { type: 'Blamed administrator', refs: 'm5.gretaName', form: 'portrait', sil: 'greta', x: 1463, y: 0, tilt: 1.2, ev: ['EV-M5-02'] },
-    decider: { type: 'Decision maker', refs: 'm5.decider', form: 'portrait', sil: 'decider', x: 1257, y: 0, tilt: -0.8, ev: ['EV-M5-01'] },
-    insurer: { type: 'Insurer', refs: 'm5.insurer', form: 'folder', x: 809, y: 31, tilt: 0.7, ev: ['EV-M5-01', 'EV-M6-02', 'EV-M6-03'] },
-    holdings: { type: 'Holding company', refs: 'm6.holdings', form: 'folder', x: 369, y: 31, tilt: -1, ev: ['EV-M6-01'] },
-    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', form: 'boss', sil: 'architect', x: 803, y: 283, tilt: 0, ev: ['EV-M6-02', 'EV-M6-03', 'EV-M7-02'] },
-    ending: { type: 'Ending', refs: '', gate: true, name: 'The decision', found: 'm7', requires: 'm7', form: 'envelope', x: 809, y: 555, tilt: 0.6, ev: ['EV-M7-01'] }
+    operator: { type: 'Operator tag', refs: 'm4.hunter', form: 'portrait', x: 1992, y: 904, tilt: 0.8, ev: ['EV-M4-01','EV-M4-02','EV-M7-03'], sil: 'operator', tech: true },
+    control: { type: 'Control host', refs: 'm4.control', form: 'screen', x: 1984, y: 1226, tilt: -1.2, ev: ['EV-M4-02'], tech: true },
+    relay2: { type: 'Relay 2', refs: 'm4.relay2', form: 'screen', x: 2354, y: 1226, tilt: 1, ev: ['EV-M4-01'], tech: true },
+    relay1: { type: 'Relay 1', refs: 'm4.relay1', form: 'screen', x: 2354, y: 936, tilt: -0.8, ev: ['EV-M4-01'], tech: true },
+    registrant: { type: 'Registrant', refs: 'm4.origin', form: 'folder', x: 1244, y: 1225, tilt: 0.6, ev: ['EV-M4-02','EV-M6-02'] },
+    endpoint: { type: 'Tunnel endpoint', refs: 'm3.architectVpn', form: 'screen', x: 1244, y: 936, tilt: -0.7, ev: ['EV-M4-02','EV-M6-02','EV-M7-01'], tech: true },
+    indexhost: { type: 'Index host', refs: 'm7.indexHost', form: 'screen', x: 1504, y: 1346, tilt: 1.2, ev: ['EV-M7-01'], tech: true },
+    broker: { type: 'Broker', refs: 'm1.broker', form: 'portrait', x: 142, y: 634, tilt: -1.1, ev: ['EV-M1-01'], sil: 'broker', tech: true },
+    buyer: { type: 'Buyer', refs: 'm1.buyer,m2.buyer', form: 'portrait', x: 512, y: 634, tilt: 0.9, ev: ['EV-M1-01','EV-M2-01','EV-M7-05'], sil: 'buyer', tech: true },
+    syndicate: { type: 'Syndicate', refs: 'm7.syndicate', form: 'screen', x: 2354, y: 666, tilt: -1, ev: ['EV-M7-05','EV-M7-06'], tech: true },
+    shell: { type: 'Shell company', refs: 'm2.shellCompany', form: 'folder', x: 874, y: 665, tilt: -0.6, ev: ['EV-M2-01','EV-M3-01'] },
+    reyes: { type: 'Finance analyst', refs: 'm3.accomplice', form: 'portrait', x: 882, y: 904, tilt: 1.1, ev: ['EV-M3-01'], sil: 'analyst', tech: true },
+    account: { type: 'Account', refs: 'm7.account', form: 'folder', x: 874, y: 345, tilt: -0.8, ev: ['EV-M7-02'] },
+    parent: { type: 'Parent entity', refs: 'm3.parentEntity', form: 'folder', x: 1244, y: 665, tilt: 1, ev: ['EV-M3-01','EV-M7-02'] },
+    hospital: { type: 'Hospital', refs: 'm5.hospital', form: 'folder', x: 1984, y: 75, tilt: 0.7, ev: ['EV-M5-01','EV-M5-02'] },
+    visitor: { type: 'Unnamed visitor', refs: 'm7.visitor', form: 'portrait', x: 1622, y: 44, tilt: -1.3, ev: ['EV-M7-03'], sil: 'visitor' },
+    greta: { type: 'Blamed administrator', refs: 'm5.gretaName', form: 'portrait', x: 2362, y: 314, tilt: 1.2, ev: ['EV-M5-02'], sil: 'greta' },
+    decider: { type: 'Decision maker', refs: 'm5.decider', form: 'portrait', x: 1992, y: 314, tilt: -0.8, ev: ['EV-M5-01','EV-M7-04'], sil: 'decider' },
+    insurer: { type: 'Insurer', refs: 'm5.insurer', form: 'folder', x: 1614, y: 345, tilt: 0.7, ev: ['EV-M5-01','EV-M6-02','EV-M6-03','EV-M7-02','EV-M7-03'] },
+    holdings: { type: 'Holding company', refs: 'm6.holdings', form: 'folder', x: 1244, y: 345, tilt: -1, ev: ['EV-M6-01'] },
+    architect: { type: 'The Architect', refs: 'm7.architect,m6.architectName', form: 'boss', x: 1608, y: 607, tilt: 0, ev: ['EV-M6-02','EV-M6-03','EV-M7-02','EV-M7-03','EV-M7-04','EV-M7-06'], sil: 'architect' },
+    ending: { type: 'Ending', refs: '', form: 'envelope', x: 1614, y: 932, tilt: 0.6, ev: ['EV-M7-01'], gate: true, name: 'The decision', found: 'm7', requires: 'm7' }
   };
   const DOCS = {
-    'EV-M1-01': { form: 'log', links: ['broker', 'buyer'], x: 0, y: 346, tilt: -2 },
-    'EV-M2-01': { form: 'memo', links: ['buyer', 'shell'], x: 183, y: 726, tilt: 2 },
-    'EV-M3-01': { form: 'ledger', links: ['shell', 'parent'], x: 384, y: 536, tilt: -1.5 },
-    'EV-M4-01': { form: 'log', attach: 'operator', x: 1460, y: 584, tilt: 3 },
-    'EV-M4-02': { form: 'memo', links: ['control', 'operator', 'registrant'], x: 1045, y: 726, tilt: -2 },
-    'EV-M5-01': { form: 'memo', links: ['decider', 'insurer'], x: 1045, y: 36, tilt: 1.5 },
-    'EV-M5-02': { form: 'ticket', attach: 'greta', x: 1460, y: 164, tilt: -3 },
-    'EV-M6-01': { form: 'memo', links: ['holdings', 'parent'], x: 384, y: 191, tilt: -3 },
-    'EV-M6-02': { form: 'memo', links: ['endpoint', 'registrant'], x: 599, y: 726, tilt: 1.5 },
-    'EV-M6-03': { form: 'memo', links: ['architect', 'insurer'], x: 824, y: 180, tilt: 2 },
-    'EV-M7-01': { form: 'ledger', links: ['architect'], x: 1045, y: 346, tilt: 2.5 },
-    'EV-M7-02': { form: 'ledger', links: ['parent', 'architect'], x: 599, y: 196, tilt: -1.5 }
+    'EV-M1-01': { form: 'log', x: 334, y: 670, tilt: -2, links: ['broker','buyer'] },
+    'EV-M2-01': { form: 'memo', x: 704, y: 670, tilt: 2, links: ['buyer','shell'] },
+    'EV-M3-01': { form: 'ledger', x: 1074, y: 670, tilt: -1.5, links: ['shell','parent'] },
+    'EV-M4-01': { form: 'log', x: 2184, y: 940, tilt: 3, links: ['operator','relay1'] },
+    'EV-M4-02': { form: 'memo', x: 1999, y: 1100, tilt: -2, links: ['control','operator'] },
+    'EV-M5-01': { form: 'memo', x: 1814, y: 350, tilt: 1.5, links: ['decider','insurer'] },
+    'EV-M5-02': { form: 'ticket', x: 2184, y: 225, tilt: -3, links: ['greta','hospital'] },
+    'EV-M6-01': { form: 'memo', x: 1259, y: 510, tilt: -3, links: ['holdings','parent'] },
+    'EV-M6-02': { form: 'memo', x: 1259, y: 1085, tilt: 1.5, links: ['endpoint','registrant'] },
+    'EV-M6-03': { form: 'memo', x: 1629, y: 484, tilt: 2, links: ['architect','insurer'] },
+    'EV-M7-01': { form: 'ledger', x: 1519, y: 1140, tilt: 2.5, links: ['indexhost','architect'] },
+    'EV-M7-02': { form: 'ledger', x: 1444, y: 670, tilt: -1.5, links: ['parent','architect'] },
+    'EV-M7-03': { form: 'log', x: 1814, y: 805, tilt: 2, links: ['architect','operator'] },
+    'EV-M7-04': { form: 'ticket', x: 1814, y: 520, tilt: -3, links: ['decider','architect'] },
+    'EV-M7-05': { form: 'log', x: 519, y: -30, tilt: -2, links: ['syndicate','buyer'] },
+    'EV-M7-06': { form: 'ledger', x: 1999, y: 670, tilt: 2, links: ['syndicate','architect'] }
   };
   const MISSION_ENTITIES = {
-    m1: ['broker', 'buyer'],
-    m2: ['buyer', 'shell'],
-    m3: ['shell', 'parent', 'endpoint'],
-    m4: ['registrant', 'control', 'operator'],
-    m5: ['greta', 'decider', 'insurer'],
-    m6: ['holdings', 'insurer', 'architect'],
-    m7: ['architect', 'parent']
+    m1: ['broker','buyer'],
+    m2: ['buyer','shell'],
+    m3: ['shell','parent','endpoint','reyes'],
+    m4: ['registrant','control','operator','relay1','relay2'],
+    m5: ['greta','decider','insurer','hospital'],
+    m6: ['holdings','insurer','architect'],
+    m7: ['architect','parent','insurer','operator','decider','syndicate','account','indexhost','visitor']
   };
+  const ROUTES = {"ev:EV-M7-01|architect":[[1590,1190],[1590,860],[1630,860],[1630,720]],"insurer|account":[[1636,400],[1640,320],[1020,320],[1016,400]],"syndicate|ev:EV-M7-05":[[2440,700],[2560,700],[2560,20],[590,20]],"ev:EV-M7-05|buyer":[[590,20],[590,720]],"syndicate|broker":[[2440,740],[2580,740],[2580,-60],[220,-60],[220,720]],"indexhost|ev:EV-M7-01":[[1590,1400],[1590,1190]],"indexhost|registrant":[[1590,1400],[1330,1400],[1330,1280]]};
   const LINKS = [
-    ['broker', 'buyer', 'linked to', 'linked to', 'money'],
-    ['buyer', 'shell', 'associated with', 'associated with', 'money'],
-    ['shell', 'parent', 'money ends at', 'receives money from', 'money'],
-    ['parent', 'endpoint', 'noted as owner of', 'owner noted as', 'money'],
-    ['endpoint', 'registrant', 'registered to', 'registrant of', 'infra'],
-    ['control', 'registrant', 'registered to', 'registrant of', 'infra'],
-    ['control', 'operator', 'profile names', 'named in the profile of', 'infra'],
-    ['greta', 'decider', 'blamed in a decision approved by', 'approved the decision that blamed', 'people'],
-    ['decider', 'insurer', 'Head of Cyber Risk at', 'Head of Cyber Risk', 'people'],
-    ['insurer', 'holdings', 'shareholder of', 'shareholder', 'people'],
-    ['holdings', 'parent', 'new owner of', 'new owner', 'people'],
-    ['insurer', 'architect', 'risk committee chaired by', 'chairs the risk committee of', 'people'],
-    ['endpoint', 'architect', 'Certificate comparison', 'Certificate comparison', 'infra', 'EV-M6-02'],
-    ['parent', 'architect', 'Master ledger index', 'Master ledger index', 'money', 'EV-M7-02'],
-    ['architect', 'ending', 'leads to', 'follows', 'ending']
+    ['broker','buyer','linked to','linked to','money'],
+    ['buyer','shell','associated with','associated with','money'],
+    ['reyes','shell','finance analyst at','employs the analyst','people'],
+    ['shell','parent','money ends at','receives money from','money'],
+    ['parent','endpoint','noted as owner of','owner noted as','money'],
+    ['endpoint','registrant','registered to','registrant of','infra'],
+    ['control','registrant','registered to','registrant of','infra'],
+    ['indexhost','registrant','registered to','registrant of','infra'],
+    ['control','operator','profile names','named in the profile of','infra'],
+    ['relay1','relay2','hands the session to','receives the session from','infra'],
+    ['relay2','control','holds the profile of','profile held on','infra'],
+    ['greta','decider','blamed in a decision approved by','approved the decision that blamed','people'],
+    ['decider','insurer','Head of Cyber Risk at','Head of Cyber Risk','people'],
+    ['hospital','greta','removed from the staff of','removed from the staff list by','people'],
+    ['hospital','decider','Chief Risk Officer of','Chief Risk Officer','people'],
+    ['insurer','visitor','sent the loss-control survey','survey code issued by','people','EV-M7-03'],
+    ['visitor','hospital','visited on site','visited by','people','EV-M7-03'],
+    ['insurer','parent','paid claims into an account held through','holds the account that receives paid claims from','money','EV-M7-02'],
+    ['account','parent','held through','holds the account of','money','EV-M7-02'],
+    ['insurer','holdings','shareholder of','shareholder','people'],
+    ['holdings','parent','new owner of','new owner','people'],
+    ['insurer','architect','risk committee chaired by','chairs the risk committee of','people'],
+    ['endpoint','architect','Certificate comparison','Certificate comparison','infra','EV-M6-02'],
+    ['parent','architect','Master ledger index','Master ledger index','money','EV-M7-02'],
+    ['architect','operator','approved the release as','approved the release as','people','EV-M7-03'],
+    ['architect','decider','instructed','instructed by','people','EV-M7-04'],
+    ['architect','syndicate','runs','run by','people','EV-M7-06'],
+    ['insurer','account','pays claims into','receives paid claims from','money','EV-M7-02'],
+    ['syndicate','broker','pays 5% brokerage to','paid 5% by','money','EV-M7-06'],
+    ['syndicate','buyer','ordered the locker from','built the locker for','people','EV-M7-05'],
+    ['architect','ending','leads to','follows','ending']
   ];
 
   const EVIDENCE = {
@@ -1168,12 +1203,34 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     'EV-M7-01': {
       mission: 'm7',
       title: 'Recovered ledger backup',
-      rows: [['file', 'm7.ledger'], ['session host', 'm7.c2'], ['case', 'm7.caseId'], ['classification', 'm7.evidence'], ['parent entity', 'm7.parentEntity']]
+      rows: [['file', 'm7.ledger'], ['session host', 'm7.c2'], ['settlement account', 'm7.seal'], ['reserves', 'm7.reserves'], ['case', 'm7.caseId'], ['classification', 'm7.evidence']]
     },
     'EV-M7-02': {
       mission: 'm7',
       title: 'Master ledger index',
-      rows: [['entries', 'm7.manifest'], ['total', 'm7.allBatches'], ['to parent', 'm7.allToParent'], ['architect', 'm7.architect'], ['edge access', 'm7.firewall']]
+      rows: [['entries', 'm7.manifest'], ['total', 'm7.allBatches'], ['to parent', 'm7.allToParent'], ['paid claims', 'm7.claims'], ['reserves', 'm7.reserves'], ['edge access', 'm7.firewall']]
+    },
+    'EV-M7-03': {
+      mission: 'm7',
+      title: 'Release order log',
+      rows: [['release', 'm7.orders'], ['approving account', 'm7.sentry'], ['operator tag', 'm7.hunter,m4.hunter'], ['session source', 'm7.brokerInfra'], ['survey visit', 'm7.survey']]
+    },
+    'EV-M7-04': {
+      mission: 'm7',
+      title: 'Chair console documents',
+      flag: 'Private',
+      rows: [['instruction', 'm7.instruction'], ['model note', 'm7.model'], ['watch file', 'm7.dossier']]
+    },
+    'EV-M7-05': {
+      mission: 'm7',
+      title: 'Locker order',
+      rows: [['prototype', 'm7.prototype'], ['order', 'm7.orderChat'], ['developer', 'm1.buyer'], ['ordered by', 'm7.sentry'], ['split', 'm7.split']]
+    },
+    'EV-M7-06': {
+      mission: 'm7',
+      title: 'Ledger room',
+      flag: 'Chair session',
+      rows: [['host', 'm7.ledgerRoom'], ['accounts', 'm7.accounts'], ['affiliates', 'm7.affiliates'], ['viewer', 'm7.sentry']]
     }
   };
 
@@ -1720,21 +1777,35 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
 
   const FILL = [
-    { id: 'note-m1', art: 'note', mission: 'm1', needs: ['broker'], x: 174, y: 26, w: 164, h: 120, tilt: -2, text: 'Broker sells, buyer pays. Where does the money go next?', clip: true },
-    { id: 'note-m6', art: 'note', mission: 'm6', needs: ['holdings'], x: 174, y: 196, w: 164, h: 120, tilt: 1.5, text: 'Same name on the insurer and the holding company. Same owners?' },
-    { id: 'note-m2', art: 'note', mission: 'm2', needs: ['shell'], x: 174, y: 560, w: 164, h: 120, tilt: 2, text: 'Buyer pays a shell. Who owns the shell?' },
-    { id: 'note-m3', art: 'note', mission: 'm3', needs: ['parent', 'endpoint'], x: 596, y: 346, w: 164, h: 116, tilt: -1.5, text: '{parent}: names on paper. Whose names?' },
-    { id: 'note-m4', art: 'note', mission: 'm4', needs: ['operator', 'control'], x: 1462, y: 722, w: 140, h: 128, tilt: 2, text: '{operator} runs the control host. Both hang off one registrant.' },
-    { id: 'note-m5', art: 'note', mission: 'm5', needs: ['decider', 'greta'], x: 1040, y: 190, w: 164, h: 120, tilt: 1.5, text: '{decider} decided; {greta} carries the blame.', clip: true },
-    { id: 'note-m7', art: 'note', mission: 'm7', needs: ['architect', 'ending'], x: 1040, y: 520, w: 164, h: 120, tilt: -2, text: 'All threads end at {architect}. Only the decision is left.', clip: true },
-    { id: 'card-key', art: 'legend', mission: null, needs: ['operator', 'greta'], x: 1452, y: 274, w: 150, h: 126, tilt: -1 },
-    { id: 'prop-stamp', art: 'stamp', mission: 'm5', needs: ['holdings', 'insurer'], x: 575, y: 6, w: 200, h: 54, tilt: -5, text: 'Under review' },
-    { id: 'prop-bag', art: 'bag', mission: 'm6', needs: ['holdings'], x: 196, y: 346, w: 128, h: 176, tilt: -3 },
-    { id: 'prop-clip', art: 'clip', mission: 'm4', needs: ['operator', 'control'], x: 1232, y: 452, w: 170, h: 112, tilt: 2 },
-    { id: 'prop-barcode', art: 'barcode', mission: 'm5', needs: ['holdings', 'insurer'], x: 600, y: 114, w: 150, h: 50, tilt: 3 },
-    { id: 'prop-string', art: 'string', mission: 'm6', needs: ['holdings', 'insurer'], x: 772, y: 182, w: 96, h: 76, tilt: 0 },
-    { id: 'prop-polaroid', art: 'polaroid', mission: 'm5', needs: ['greta', 'decider'], x: 1226, y: 243, w: 188, h: 168, tilt: -3, src: './assets/global/backtrace-corridor.jpg' },
-    { id: 'prop-receipt', art: 'polaroid', mission: 'm1', needs: ['broker'], x: -178, y: 179, w: 150, h: 160, tilt: -4, src: './assets/global/backtrace-receipt.jpg', outside: true }
+    { id: 'note-m1', art: 'note', mission: 'm1', needs: ['broker'], x: 152, y: 830, w: 164, h: 120, tilt: -2, text: 'Broker sells, buyer pays. Where does the money go next?', clip: true },
+    { id: 'note-m2', art: 'note', mission: 'm2', needs: ['shell'], x: 882, y: 520, w: 164, h: 120, tilt: 2, text: 'Buyer pays a shell. Who owns the shell?' },
+    { id: 'note-m3', art: 'note', mission: 'm3', needs: ['parent','endpoint'], x: 1052, y: 800, w: 164, h: 116, tilt: -1.5, text: '{parent}: names on paper. Whose names?' },
+    { id: 'note-m4', art: 'note', mission: 'm4', needs: ['operator','control'], x: 1832, y: 1070, w: 140, h: 128, tilt: 2, text: '{operator} runs the control host. Both hang off one registrant.' },
+    { id: 'note-m5', art: 'note', mission: 'm5', needs: ['decider','greta'], x: 2172, y: 420, w: 164, h: 120, tilt: 1.5, text: '{decider} decided; {greta} carries the blame.', clip: true },
+    { id: 'note-m6', art: 'note', mission: 'm6', needs: ['holdings'], x: 1252, y: 180, w: 164, h: 120, tilt: 1.5, text: 'Same name on the insurer and the holding company. Same owners?' },
+    { id: 'note-m7', art: 'note', mission: 'm7', needs: ['architect','ending'], x: 1982, y: 520, w: 164, h: 120, tilt: -2, text: 'All threads end at {architect}. Only the decision is left.', clip: true },
+    { id: 'card-key', art: 'legend', mission: null, needs: ['operator','greta'], x: 812, y: 50, w: 150, h: 126, tilt: -1 },
+    { id: 'prop-stamp', art: 'stamp', mission: 'm5', needs: ['holdings','insurer'], x: 1442, y: 250, w: 200, h: 54, tilt: -5, text: 'Under review' },
+    { id: 'prop-bag', art: 'bag', mission: 'm6', needs: ['holdings'], x: 1102, y: 50, w: 128, h: 176, tilt: -3 },
+    { id: 'note-m5b', art: 'note', mission: 'm5', needs: ['hospital','greta'], x: 2182, y: 60, w: 164, h: 120, tilt: -1.5, text: '{greta} is off the {hospital} staff list. Who pushed it?' },
+    { id: 'note-m7a', art: 'note', mission: 'm7', needs: ['visitor','hospital'], x: 1792, y: 150, w: 164, h: 120, tilt: 2, text: '{visitor} was sent by the insurer. Why walk the hospital floor?' },
+    { id: 'note-m7b', art: 'note', mission: 'm7', needs: ['account','parent'], x: 832, y: 200, w: 164, h: 120, tilt: -2, text: 'Paid claims land in {account}, held through {parent}.' },
+    { id: 'note-m7c', art: 'note', mission: 'm7', needs: ['syndicate','broker'], x: 2362, y: 520, w: 164, h: 120, tilt: 1.5, text: '{syndicate} ordered the locker and paid the broker 5%.', clip: true },
+    { id: 'note-m7d', art: 'note', mission: 'm7', needs: ['indexhost','registrant'], x: 1702, y: 1330, w: 164, h: 120, tilt: -1, text: '{indexhost} hangs off the same registrant as the control host.' },
+    { id: 'prop-clip', art: 'clip', mission: 'm4', needs: ['operator','control'], x: 2172, y: 1080, w: 170, h: 112, tilt: 2 },
+    { id: 'prop-clip2', art: 'clip', mission: 'm7', needs: ['architect','syndicate'], x: 2162, y: 800, w: 170, h: 112, tilt: -2 },
+    { id: 'prop-barcode', art: 'barcode', mission: 'm5', needs: ['holdings','insurer'], x: 1442, y: 180, w: 150, h: 50, tilt: 3 },
+    { id: 'prop-string', art: 'string', mission: 'm6', needs: ['holdings','insurer'], x: 1462, y: 420, w: 96, h: 76, tilt: 0 },
+    { id: 'prop-paid', art: 'stamp', mission: 'm7', needs: ['account','insurer'], x: 1022, y: 250, w: 132, h: 54, tilt: 6, text: 'Paid' },
+    { id: 'prop-closed', art: 'stamp', mission: 'm5', needs: ['hospital','greta','decider'], x: 2352, y: 230, w: 156, h: 54, tilt: -4, text: 'Closed' },
+    { id: 'tag-m1', art: 'tape', mission: 'm1', needs: ['broker'], x: 242, y: 580, w: 96, h: 30, tilt: -3 },
+    { id: 'tag-m2', art: 'tape', mission: 'm2', needs: ['shell'], x: 842, y: 800, w: 96, h: 30, tilt: 2 },
+    { id: 'tag-m3', art: 'tape', mission: 'm3', needs: ['parent'], x: 1352, y: 800, w: 96, h: 30, tilt: -2 },
+    { id: 'tag-m4', art: 'tape', mission: 'm4', needs: ['control'], x: 2022, y: 1360, w: 96, h: 30, tilt: 3 },
+    { id: 'tag-m5', art: 'tape', mission: 'm5', needs: ['hospital'], x: 2022, y: -30, w: 96, h: 30, tilt: -3 },
+    { id: 'tag-m6', art: 'tape', mission: 'm6', needs: ['holdings'], x: 1122, y: 380, w: 96, h: 30, tilt: 2 },
+    { id: 'tag-m7', art: 'tape', mission: 'm7', needs: ['architect'], x: 1822, y: 670, w: 96, h: 30, tilt: -2 },
+    { id: 'tag-attack', art: 'tape', mission: 'm5', needs: ['hospital'], x: 1812, y: -30, w: 188, h: 30, tilt: 2, text: '14 Aug  attack' }
   ];
 
   function fillVisible(item, byKey) {
@@ -1749,6 +1820,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const FILL_BODY = {
     note: (item, byKey) => `<i class="tape"></i><b class="note-tab">M${MISSION_IDS.indexOf(item.mission) + 1}</b><p>${esc(noteText(item, byKey))}</p>`,
     stamp: (item) => `<span>${esc(item.text)}</span>`,
+    tape: (item) => `<span>${esc(item.text || STORY_DATES[item.mission].slice(0, 6))}</span>`,
     bag: () => '<span class="bag-seal">Evidence</span><svg class="bag-usb" viewBox="0 0 60 92" aria-hidden="true"><rect class="usb-metal" x="17" y="1" width="26" height="28" rx="2"/><rect class="usb-hole" x="23" y="7" width="5" height="8"/><rect class="usb-hole" x="32" y="7" width="5" height="8"/><rect class="usb-body" x="8" y="28" width="44" height="62" rx="9"/><circle class="usb-led" cx="30" cy="42" r="3.2"/><rect class="usb-hole" x="24" y="76" width="12" height="5" rx="2.5"/></svg><span class="bag-tag">Sealed</span>',
     clip: () => '<svg viewBox="0 0 170 112" aria-hidden="true"><path class="clip-paper" d="M2 6L14 2L26 7L40 2L55 6L70 1L86 6L102 2L118 7L134 2L150 6L168 3L166 40L169 76L167 108L152 111L138 106L122 111L104 106L88 111L70 106L54 110L38 105L22 110L8 106L1 108L3 70L0 36Z"/><g class="clip-head"><rect x="12" y="14" width="112" height="9"/><rect x="12" y="27" width="72" height="9"/></g><g class="clip-ink"><rect x="12" y="46" width="146" height="3"/><rect x="12" y="54" width="132" height="3"/><rect x="12" y="62" width="146" height="3"/><rect x="12" y="78" width="120" height="3"/><rect x="12" y="86" width="140" height="3"/><rect x="12" y="94" width="96" height="3"/></g><g class="clip-redact"><rect x="12" y="60" width="70" height="7"/><rect x="92" y="76" width="54" height="7"/></g></svg>',
     barcode: () => {
@@ -1761,7 +1833,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       return `<svg viewBox="0 0 150 50" aria-hidden="true"><rect class="bc-paper" x=".5" y=".5" width="149" height="49"/><g class="bc-bars">${bars}</g><text x="12" y="45">EVIDENCE</text></svg>`;
     },
     string: () => '<svg viewBox="0 0 96 76" aria-hidden="true"><path class="str" d="M12 10C14 38 52 26 62 56"/><path class="str-fray" d="M62 56L57 69M62 56L64 72M62 56L71 67"/><circle class="str-pin" cx="12" cy="10" r="6"/></svg>',
-    polaroid: (item) => `<i class="tape"></i><img src="${item.src}" alt="" draggable="false">`,
     legend: () => '<span class="key-title">Key</span><span class="key-row"><i class="k-person"></i>Person</span><span class="key-row"><i class="k-company"></i>Company</span><span class="key-row"><i class="k-host"></i>Host</span><span class="key-row"><i class="k-paper"></i>Evidence</span><span class="key-row"><i class="k-end"></i>Ending</span>'
   };
 
@@ -1780,16 +1851,24 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const docIds = Object.keys(DOCS).filter((id) => docVisible(id, byKey));
     docIds.forEach((id, index) => order.set(`ev:${id}`, infos.length + index));
     const fills = FILL.filter((item) => fillVisible(item, byKey));
-    bounds = boundsFor(infos.map((info) => info.def).concat(docIds.map((id) => DOCS[id])).concat(fills.filter((item) => !item.outside)));
 
     const anchorFor = (id) => (id.startsWith('ev:') ? centerOf(DOCS[id.slice(3)]) : centerOf(ENTITIES[id]));
+    const routePoints = [];
+    const threadPath = (a, b, from, to) => {
+      const forward = ROUTES[`${a}|${b}`];
+      const backward = ROUTES[`${b}|${a}`];
+      const points = forward || (backward ? backward.slice().reverse() : null);
+      if (!points) return straightThread(from, to);
+      routePoints.push(...points.map(([x, y]) => ({ x, y, w: 1, h: 1 })));
+      return `M${points.map(([x, y]) => point({ x, y })).join('L')}`;
+    };
     const freshAt = (id) => (id.startsWith('ev:') ? EVIDENCE[id.slice(3)].mission === latest : byKey.get(id).found === latest);
     const wire = (a, b, kind) => {
       const [first, second] = order.get(a) <= order.get(b) ? [a, b] : [b, a];
       const delay = Math.max(order.get(a), order.get(b)) * BOOT_STEP + WIRE_LAG;
       const fresh = Boolean(latest) && (freshAt(a) || freshAt(b));
       const drawn = kind === 'ending' ? '' : ' pathLength="1"';
-      return `<g class="wire" data-kind="${kind}" data-ends="${a} ${b}" style="--d:${delay}ms"><path class="thread${fresh ? ' is-new' : ''}"${drawn} d="${straightThread(anchorFor(first), anchorFor(second))}"/></g>`;
+      return `<g class="wire" data-kind="${kind}" data-ends="${a} ${b}" style="--d:${delay}ms"><path class="thread${fresh ? ' is-new' : ''}"${drawn} d="${threadPath(first, second, anchorFor(first), anchorFor(second))}"/></g>`;
     };
     const carriedBy = (a, b) => docIds.find((id) => DOCS[id].links && DOCS[id].links.includes(a) && DOCS[id].links.includes(b));
     const direct = links.filter(([a, b]) => !carriedBy(a, b)).map(([a, b, , , kind]) => wire(a, b, kind));
@@ -1797,6 +1876,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       .filter((id) => DOCS[id].links)
       .flatMap((id) => DOCS[id].links.filter((key) => byKey.has(key)).map((key) => wire(key, `ev:${id}`, 'evidence')));
     boardSvg.innerHTML = direct.concat(viaDocs).join('');
+    bounds = boundsFor(infos.map((info) => info.def).concat(docIds.map((id) => DOCS[id])).concat(fills, routePoints));
 
     const nodes = infos.map((info, index) => {
       const fresh = info.found === latest;
@@ -1881,7 +1961,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     navItems.forEach((item) => item.classList.toggle('active', item.dataset.view === id));
     closeDrawer();
     if (id === 'board') {
-      if (!userMoved) fitBoard();
+      if (!userMoved) resetBoardView();
       bootBoard();
     }
     updateFades();
@@ -1989,13 +2069,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
   }
 
-  function fitBoard() {
+  function resetBoardView() {
     const vw = viewport.clientWidth;
     const vh = viewport.clientHeight;
     if (vw === 0 || vh === 0) return;
     const width = bounds.maxX - bounds.minX;
     const height = bounds.maxY - bounds.minY;
-    zoom = Math.max(ZOOM_MIN, Math.min(1, (vw - FIT_PADDING * 2) / width, (vh - FIT_PADDING * 2) / height));
+    zoom = OPEN_ZOOM;
     panX = (vw - width * zoom) / 2 - bounds.minX * zoom;
     panY = (vh - height * zoom) / 2 - bounds.minY * zoom;
     userMoved = false;
@@ -2040,7 +2120,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     renderPersonalLogs();
     renderSkipped();
     renderCaseboard();
-    if (!userMoved) fitBoard();
+    if (!userMoved) resetBoardView();
     updateFades();
   }
 
@@ -2121,8 +2201,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   $('zoomIn').addEventListener('click', () => setZoom(zoom + 0.1));
   $('zoomOut').addEventListener('click', () => setZoom(zoom - 0.1));
-  $('zoomReset').addEventListener('click', fitBoard);
-  window.addEventListener('resize', () => { if (userMoved) renderBoardTransform(); else fitBoard(); updateFades(); });
+  $('zoomReset').addEventListener('click', resetBoardView);
+  window.addEventListener('resize', () => { if (userMoved) renderBoardTransform(); else resetBoardView(); updateFades(); });
   document.addEventListener('scroll', (event) => {
     if (event.target instanceof Element && event.target.matches('.report-main, .report-side')) updateFades();
   }, true);
@@ -2135,7 +2215,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   });
 
   refresh();
-  fitBoard();
+  resetBoardView();
   bootBoard();
   setInterval(refresh, REFRESH_MS);
   watchLanguage();

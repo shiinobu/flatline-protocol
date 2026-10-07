@@ -5,6 +5,13 @@ import { M06_SKN_FULL_NAME, M06_SKN_NUMBER } from "../m06/records.js";
 
 export type M07ClaimKind = "paid" | "reserve";
 
+export const M07_CLAIM_LOOKUP_EVENT = "flatline.m07.claimLookup";
+
+export interface M07ClaimLookupPayload {
+    readonly ref: string;
+    readonly kind: M07ClaimKind;
+}
+
 export interface M07Claim {
     readonly ref: string;
     readonly kind: M07ClaimKind;
@@ -14,6 +21,7 @@ export interface M07Claim {
 }
 
 export const M07_CLAIM_WITHHELD = "withheld";
+export const M07_PORTAL_LEDGER_UPDATED = "2026-10-03";
 export const M07_HOSPITAL_APPROVED_AT = "2026-08-17";
 export const M07_SETTLEMENT_ACCOUNT_NUMBER = M06_SKN_NUMBER;
 export const M07_SETTLEMENT_ACCOUNT_HOLDER = M06_SKN_FULL_NAME;
@@ -46,6 +54,13 @@ export const M07_CLAIMS: readonly M07Claim[] = [
 ];
 
 export const normalizeClaimRef = (raw: string): string => raw.trim().toUpperCase();
+
+export const isHeldM07Reserve = (raw: string, reservesOpen: boolean): boolean => {
+    if (reservesOpen) return false;
+
+    const ref = normalizeClaimRef(raw);
+    return M07_CLAIMS.some((entry) => entry.kind === "reserve" && entry.ref === ref);
+};
 
 export const findM07Claim = (raw: string, reservesOpen: boolean): M07Claim | null => {
     const ref = normalizeClaimRef(raw);

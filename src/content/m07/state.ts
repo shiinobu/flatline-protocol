@@ -20,17 +20,18 @@ export interface M07QuestData {
     readonly ledgerTaken: boolean;
     readonly reservesChecked: boolean;
     readonly sealRead: boolean;
-    readonly sealOneOpened: boolean;
-    readonly sealTwoOpened: boolean;
+    readonly sealOpened: boolean;
     readonly workstationLoggedIn: boolean;
     readonly displayAttached: boolean;
     readonly instructionRead: boolean;
+    readonly blackledgerSeen: boolean;
     readonly reportSent: boolean;
     readonly modelRead: boolean;
     readonly dossierRead: boolean;
     readonly honeypotAlertSent: boolean;
     readonly traceHalved: boolean;
     readonly ledgerWiped: boolean;
+    readonly ledgerCopyRead: boolean;
     readonly whatNowSent: boolean;
     readonly endingApplied: boolean;
     readonly networkBuilt: boolean;
@@ -60,17 +61,18 @@ export const createM07Data = (): M07QuestData => ({
     ledgerTaken: false,
     reservesChecked: false,
     sealRead: false,
-    sealOneOpened: false,
-    sealTwoOpened: false,
+    sealOpened: false,
     workstationLoggedIn: false,
     displayAttached: false,
     instructionRead: false,
+    blackledgerSeen: false,
     reportSent: false,
     modelRead: false,
     dossierRead: false,
     honeypotAlertSent: false,
     traceHalved: false,
     ledgerWiped: false,
+    ledgerCopyRead: false,
     whatNowSent: false,
     endingApplied: false,
     networkBuilt: false,

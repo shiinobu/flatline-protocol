@@ -61,6 +61,12 @@ export const BACKTRACE_I18N_KEY = {
     M7_FINDING_6: "BACKTRACE.M7.FINDING.6",
     M7_FINDING_7: "BACKTRACE.M7.FINDING.7",
     M7_FINDING_8: "BACKTRACE.M7.FINDING.8",
+    M7_FINDING_9: "BACKTRACE.M7.FINDING.9",
+    M7_FINDING_10: "BACKTRACE.M7.FINDING.10",
+    M7_FINDING_11: "BACKTRACE.M7.FINDING.11",
+    M7_FINDING_12: "BACKTRACE.M7.FINDING.12",
+    M7_FINDING_13: "BACKTRACE.M7.FINDING.13",
+    M7_FINDING_14: "BACKTRACE.M7.FINDING.14",
     STORY: "BACKTRACE.STORY",
 } as const;
 
@@ -156,22 +162,35 @@ Localization.registerAll({
         [BACKTRACE_I18N_KEY.M6_FINDING_8]:
             "门后委员会自己的会议纪要显示了谁坐在主席位上：<span data-fact=\"m6.architect\">—</span>。他申报了自己在持有该账户的公司担任董事，仍然继续主持会议，并确认两笔赔付今后不再列入纪要。",
         [BACKTRACE_I18N_KEY.M7_SUMMARY]:
-            "付款最终都指向钱早已流向的那个端点背后的一台机器。它自己的节点表里，仍然列着那两台多年前就被注销的机器，而其中真正被遗忘的那一台，仍保存着索引主机前面那个过滤器的凭据。过滤器后面，<span class=\"code\" data-fact=\"m7.c2\">—</span> 只存着一个文件：辛迪加结清过的每一笔账，以及那一行——医院自己的损失原因，被安排到了一名与此毫无关系的系统管理员头上。",
+            "保险人支付了赎金。这些钱落进了一个通过同一家名义公司持有的账户，也就是委员会在 2023 年记入账簿的那一家；而损失线之所以始终是平的，是因为每一起事件之前都已先设好准备金。证据就放在付款早已走到的那个端点后面的一台机器里：<span class=\"code\" data-fact=\"m7.c2\">—</span>。一台被遗忘的中继握着它前面那个过滤器的钥匙；它保存的账本用存放准备金的账户封存，打开后通向主席自己的控制台，而那道指令，就是他亲笔写下的。",
         [BACKTRACE_I18N_KEY.M7_FINDING_1]:
-            "索引主机自己的控制台公布了它的资产清单：<span data-fact=\"m7.nodes\">—</span>。其中一台仍在用当前的服务横幅应答，而一台多年前就被注销的机器不会这样。",
+            "保险人自己的理赔台，对我们手里的三个编号都有回应：<span data-fact=\"m7.claims\">—</span>。每一条都标着“已赔付”，日期正是辛迪加的账簿将它结清的那一天。",
         [BACKTRACE_I18N_KEY.M7_FINDING_2]:
-            "那台被遗忘的中继仍保存着一份明文配置备份，里面有边缘过滤器唯一有效的账户 <span class=\"code\" data-fact=\"m7.credential\">—</span>。",
+            "索引主机自己的控制台公布了它的资产清单：<span data-fact=\"m7.nodes\">—</span>。其中一台仍在用当前的服务横幅应答，而一台多年前就被注销的机器不会这样。",
         [BACKTRACE_I18N_KEY.M7_FINDING_3]:
+            "那台被遗忘的中继仍保存着一份明文配置备份，里面有边缘过滤器唯一有效的账户 <span class=\"code\" data-fact=\"m7.credential\">—</span>。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_4]:
             "那个账户打开了边缘过滤器，也打开了索引主机的远程端口：<span class=\"code\" data-fact=\"m7.firewall\">—</span>。",
-        [BACKTRACE_I18N_KEY.M7_FINDING_4]: "在 <span class=\"code\" data-fact=\"m7.c2\">—</span> 上的一个会话，触及了整条链所指向的那个文件。",
         [BACKTRACE_I18N_KEY.M7_FINDING_5]:
-            "总账本索引记录着 <span class=\"code\" data-fact=\"m7.manifest\">—</span>，合计 <span class=\"code\" data-fact=\"m7.allBatches\">—</span>，其中 <span class=\"code\" data-fact=\"m7.allToParent\">—</span> 流向了 <span data-fact=\"m7.parentEntity\">—</span>。",
+            "在 <span class=\"code\" data-fact=\"m7.c2\">—</span> 上的一个会话，触及了整条链所指向的那些文件，而主机的追踪一直在计时。",
         [BACKTRACE_I18N_KEY.M7_FINDING_6]:
+            "总账本索引记录着 <span class=\"code\" data-fact=\"m7.manifest\">—</span>，合计 <span class=\"code\" data-fact=\"m7.allBatches\">—</span>，其中 <span class=\"code\" data-fact=\"m7.allToParent\">—</span> 流向了 <span data-fact=\"m7.parentEntity\">—</span>。另外两行并不是结清的账，而是准备金：<span class=\"code\" data-fact=\"m7.reserves\">—</span>，在被保险人身上发生任何事情之前就已设下。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_7]:
             "医院的那一条记录（<span class=\"code\" data-fact=\"m7.caseId\">—</span>）被归类为 <span class=\"code\" data-fact=\"m7.evidence\">—</span>，由医院自己的风险官参与编制，并在付款三天后获保险人批准。",
-        [BACKTRACE_I18N_KEY.M7_FINDING_7]: "备份是整个带走的，而不是打开来看：<span class=\"code\" data-fact=\"m7.ledger\">—</span>。",
         [BACKTRACE_I18N_KEY.M7_FINDING_8]:
-            "设计师是 <span data-fact=\"m7.architect\">—</span>，他给自己安排好的那些损失定了价，并把它们记成了一条平线。",
+            "发布指令记录写明了是谁下的令：<span data-fact=\"m7.orders\">—</span>。在它之前的那些会话，全都是用那位被推出来背锅的管理员的凭据打开的。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_9]:
+            "保险人自己的登记册显示，入侵之前就有一名访客进了现场：<span data-fact=\"m7.survey\">—</span>。登记册里记着这次访问的编号，却没有记下访客的名字。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_10]: "备份是整个带走的，而不是在主机上打开来看：<span class=\"code\" data-fact=\"m7.ledger\">—</span>。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_11]:
+            "封条是用存放准备金的账户打开的：<span data-fact=\"m7.seal\">—</span>。那正是 2023 年委员会纪要里，两笔赔付被划入的同一个账户。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_12]:
+            "在主席自己的控制台上，指令就是他的亲笔：<span data-fact=\"m7.instruction\">—</span>。入侵之前那次暂停目录同步、放宽可移动介质管控，是一道指令，不是意外。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_13]:
+            "辛迪加把账记在一间专属的房间里：<span class=\"code\" data-fact=\"m7.ledgerRoom\">—</span>。<span data-fact=\"m7.accounts\">—</span>，分成写得明明白白（<span data-fact=\"m7.split\">—</span>），每一页都署名 BLACKLEDGER。最早那枚锁定器的订单也存放在里面：<span data-fact=\"m7.orderChat\">—</span>。",
+        [BACKTRACE_I18N_KEY.M7_FINDING_14]:
+            "设计师是 <span data-fact=\"m7.architect\">—</span>。放行是以账号 <span class=\"code\" data-fact=\"m7.sentry\">—</span> 的名义批准的，那正是追着这场调查的那个操作员标记。他给自己安排好的那些损失定了价，并把它们记成了一条平线。",
         [BACKTRACE_I18N_KEY.STORY]:
-            "八个月前，我的手足进了手术室。本该只是一台例行手术。手术进行到一半，医院的系统被锁定了——勒索软件，投放得又干净又迅速。不管是谁干的，他们都清楚自己在做什么。医院付了钱，才让系统重新上线。我的手足再也没能走出那间手术室。官方调查进行了三周，然后就这么停了。没有人解释为什么。我不再等一个解释，转而开始追踪那些钱。我不是警察。我不是记者。我没有委托人，没有警徽，也没有期限。我只有一个名字——BLACKLEDGER——在查出它背后的每一个名字之前，我不会停下。",
+            "五周前，我的手足进了手术室。本该只是一台例行手术。手术进行到一半，医院的系统被锁定了——勒索软件，投放得又干净又迅速。不管是谁干的，他们都清楚自己在做什么。医院付了钱，才让系统重新上线。我的手足再也没能走出那间手术室。官方调查进行了十天，然后就这么停了。没有人解释为什么。我不再等一个解释，转而开始追踪那些钱。我不是警察。我不是记者。我没有委托人，没有警徽，也没有期限。我只有一个名字——BLACKLEDGER——在查出它背后的每一个名字之前，我不会停下。",
     },
 });

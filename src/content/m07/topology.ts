@@ -1,4 +1,3 @@
-import type { LogDay } from "../../components/log-file.js";
 import type { DeviceSpec, RouterSpec } from "../../core/types.js";
 
 import {
@@ -23,6 +22,7 @@ import {
     M07_NULLCROWN_IP,
     M07_NULLCROWN_LAN_IP,
     M07_NULLCROWN_SSH_VERSION,
+    M07_RDP_INTERNAL_PORT,
     M07_RDP_PORT,
     M07_ROUTER_IP,
     M07_ROUTER_LAN_IP,
@@ -30,6 +30,7 @@ import {
     M07_SPLITTER_LAN_IP,
     M07_SSH_PORT,
 } from "./network.js";
+import { M07_STORY_DAY } from "./quest.js";
 import {
     M07_ASH_GATE_BACKUP_CONTENT,
     M07_ASH_GATE_BACKUP_FILE_EXTENSION,
@@ -37,23 +38,11 @@ import {
     M07_DECOY_CONTENT,
     M07_DECOY_FILE_EXTENSION,
     M07_DECOY_FILE_NAME,
-    M07_LEDGER_FILE_CONTENT,
-    M07_LEDGER_FILE_EXTENSION,
-    M07_LEDGER_FILE_NAME,
-    M07_MANIFEST_CONTENT,
-    M07_MANIFEST_FILE_EXTENSION,
-    M07_MANIFEST_FILE_NAME,
-    M07_ORDERS_CONTENT,
-    M07_ORDERS_FILE_EXTENSION,
     M07_ORDERS_FILE_NAME,
-    M07_SURVEY_CONTENT,
-    M07_SURVEY_FILE_EXTENSION,
-    M07_SURVEY_FILE_NAME,
 } from "./server-files.js";
+import { M07_AGENT_LOG_NAME, buildC2RootFiles } from "./server-tree.js";
 
 export const M07_RDP_OPEN_FROM_BUILD = false;
-
-const M07_ROOT_LOG_DAY: LogDay = { year: 2026, month: 10, day: 3 };
 
 const buildFirewall = (): DeviceSpec => ({
     kind: "firewall",
@@ -83,36 +72,15 @@ const buildCommandHost = (): DeviceSpec => ({
         },
         {
             external: M07_RDP_PORT,
-            internal: M07_RDP_PORT,
+            internal: M07_RDP_INTERNAL_PORT,
             active: M07_RDP_OPEN_FROM_BUILD,
             service: "rdp",
             version: M07_C2_RDP_VERSION,
         },
     ],
-    rootLogDay: M07_ROOT_LOG_DAY,
-    neutralLogs: [M07_ORDERS_FILE_NAME],
-    rootFiles: [
-        {
-            name: M07_MANIFEST_FILE_NAME,
-            extension: M07_MANIFEST_FILE_EXTENSION,
-            data: M07_MANIFEST_CONTENT(),
-        },
-        {
-            name: M07_ORDERS_FILE_NAME,
-            extension: M07_ORDERS_FILE_EXTENSION,
-            data: M07_ORDERS_CONTENT(),
-        },
-        {
-            name: M07_SURVEY_FILE_NAME,
-            extension: M07_SURVEY_FILE_EXTENSION,
-            data: M07_SURVEY_CONTENT(),
-        },
-        {
-            name: M07_LEDGER_FILE_NAME,
-            extension: M07_LEDGER_FILE_EXTENSION,
-            data: M07_LEDGER_FILE_CONTENT,
-        },
-    ],
+    rootLogDay: M07_STORY_DAY,
+    neutralLogs: [M07_ORDERS_FILE_NAME, M07_AGENT_LOG_NAME],
+    rootFiles: buildC2RootFiles(),
     vulnerabilities: [{ type: "RCE", version: M07_C2_RDP_VERSION }],
 });
 

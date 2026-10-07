@@ -1,7 +1,6 @@
 import { Quest, RegisterQuest } from "@hotbunny/hackhub-content-sdk";
 
 import "../websites/m02/tr4c3404/index.js";
-import "../websites/m02/blkledger/index.js";
 import type { M02QuestData } from "../content/m02/state.js";
 import {
     M02_QUEST,

@@ -42,9 +42,11 @@ export const M07_DEAD_BOX_PASSWORD = "admin";
 export const M07_SSH_PORT = 22;
 export const M07_HTTP_PORT = 80;
 export const M07_HTTPS_PORT = 443;
-export const M07_RDP_PORT = 3389;
+export const M07_RDP_INTERNAL_PORT = 3389;
+export const M07_RDP_PORT = 46721;
 
 export const M07_LEGACY_CMS_PATH = "/legacy-cms/";
+export const M07_NET_TREE_SCRIPT_NAME = "net_tree";
 
 export const M07_PORTAL_HOST = M06_INSURER_PORTAL_HOST;
 export const M07_PORTAL_IP = M06_INSURER_PORTAL_IP;

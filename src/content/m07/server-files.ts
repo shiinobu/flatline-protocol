@@ -34,14 +34,10 @@ import {
     M07_FIREWALL_LABEL,
     M07_FIREWALL_PASSWORD,
     M07_FIREWALL_USERNAME,
+    M07_RDP_PORT,
 } from "./network.js";
 import { M07_RELEASE_ORDER_EU, M07_RELEASE_ORDER_NA, M07_RELEASE_ORDER_RUN } from "./rdc.js";
-import {
-    M07_SEAL_ONE_KEY,
-    M07_SEAL_ONE_PLAINTEXT,
-    M07_SEAL_TWO_KEY,
-    M07_SEAL_TWO_PLAINTEXT,
-} from "./sealed.js";
+import { M07_SEAL_KEY, M07_SEAL_PLAINTEXT } from "./sealed.js";
 
 export const M07_MANIFEST_FILE_NAME = "manifest";
 export const M07_MANIFEST_FILE_EXTENSION = "txt";
@@ -55,6 +51,7 @@ export const M07_SURVEY_FILE_EXTENSION = "txt";
 export const M07_LEDGER_FILE_NAME = "master_ledger_backup";
 export const M07_LEDGER_FILE_EXTENSION = "enc";
 export const M07_LEDGER_WIPED_CONTENT = (): string => Localization.t(M07_FILES_KEY.LEDGER_WIPED);
+export const M07_LEDGER_FOLDER_PATH: readonly string[] = ["var", "ledger"];
 
 export const M07_ASH_GATE_BACKUP_FILE_NAME = "ash-gate_backup";
 export const M07_ASH_GATE_BACKUP_FILE_EXTENSION = "txt";
@@ -66,23 +63,17 @@ export const M07_NORDHAVEN_APPROVAL_DATE = M07_HOSPITAL_APPROVED_AT;
 export const M07_EVIDENCE_CLASSIFICATION = `employee negligence (${GRETA_SHORT_NAME})`;
 
 export const M07_SURVEY_CODE = "LC-07";
+export const M07_SURVEY_VISIT_DATE = "2026-08-03";
 export const M07_SENTRY_ACCOUNT = "sentry";
 export const M07_FOOTHOLD_ACCOUNT = "rnatnaree";
 export const M07_ORDER_GO_TIME = "02:11";
 
-const HEX_LINE_WIDTH = 64;
-const LEDGER_PART_ONE = "AES256-CBC [1 of 2]";
-const LEDGER_PART_TWO = "AES256-CBC [2 of 2]";
+const HEX_LINE_WIDTH = 48;
+const LEDGER_HEADER = "AES256-CBC";
 
 const hexLines = (hex: string): string => (hex.match(new RegExp(`.{1,${HEX_LINE_WIDTH}}`, "g")) ?? []).join("\n");
 
-export const M07_LEDGER_FILE_CONTENT = [
-    LEDGER_PART_ONE,
-    hexLines(sealText(M07_SEAL_ONE_PLAINTEXT, M07_SEAL_ONE_KEY)),
-    "",
-    LEDGER_PART_TWO,
-    hexLines(sealText(M07_SEAL_TWO_PLAINTEXT, M07_SEAL_TWO_KEY)),
-].join("\n");
+export const M07_LEDGER_FILE_CONTENT = [LEDGER_HEADER, hexLines(sealText(M07_SEAL_PLAINTEXT, M07_SEAL_KEY))].join("\n");
 
 const legacyAccountLine = (claim: { readonly name: string; readonly year: string; readonly region: string }): string =>
     Localization.t(M07_FILES_KEY.MANIFEST_LEGACY_ACCOUNT, {
@@ -205,6 +196,7 @@ export const M07_ASH_GATE_BACKUP_CONTENT = (): string =>
         username: M07_FIREWALL_USERNAME,
         password: M07_FIREWALL_PASSWORD,
         targetLanIp: M07_C2_LAN_IP,
+        rdpPort: M07_RDP_PORT,
     });
 
 export const M07_DECOY_CONTENT = (): string => Localization.t(M07_FILES_KEY.DECOY_README);

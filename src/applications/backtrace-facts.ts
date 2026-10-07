@@ -8,7 +8,12 @@ import {
     totalRansom,
 } from "../content/global/finance.js";
 import { M01_CASE_ID } from "../content/global/case.js";
-import { BLACKLEDGER_LEGACY_CLAIM_EU, BLACKLEDGER_LEGACY_CLAIM_NA } from "../content/global/blackledger.js";
+import {
+    BLACKLEDGER_DOMAIN,
+    BLACKLEDGER_LEGACY_CLAIM_EU,
+    BLACKLEDGER_LEGACY_CLAIM_NA,
+    BLACKLEDGER_NAME,
+} from "../content/global/blackledger.js";
 import { ensureM01ListingResolution } from "../context/m01/listing.js";
 import { M01_BROKER_ALIAS, M01_LEDGERVAULT_DOMAIN } from "../content/m01/network.js";
 import { M01_LEDGERVAULT_PROJECT } from "../content/m01/report.js";
@@ -32,8 +37,8 @@ import {
     M03_VPN_PEER_LABEL,
     M03_INTERNAL_NETWORK_FACT,
 } from "../content/m03/network.js";
-import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME } from "../content/global/characters.js";
-import { M07_INSURER_NAME } from "../content/global/entities.js";
+import { GRETA_FULL_NAME, VIVIEN_ORCHID_FULL_NAME, VIVIEN_ORCHID_SHORT_NAME } from "../content/global/characters.js";
+import { M01_HOSPITAL_NAME, M07_INSURER_NAME } from "../content/global/entities.js";
 import { M05_BEDSIDE_ASSET_TAG, M05_COLD_CHART_CODENAME } from "../content/m05/network.js";
 import { M05_ACK_DATE, M05_NEGOTIATOR, M05_USB_DATE } from "../content/m05/server-files.js";
 import { M05_GAP_TEXT, M05_PAID_AT } from "../content/m05/quest.js";
@@ -66,6 +71,8 @@ import {
 } from "../content/m04/network.js";
 import {
     M07_ASHVECTOR_CODENAME,
+    M07_BROKER_INFRA_DOMAIN,
+    M07_BROKER_INFRA_IP,
     M07_C2_IP,
     M07_FIREWALL_IP,
     M07_FIREWALL_LABEL,
@@ -74,8 +81,23 @@ import {
     M07_RDP_PORT,
     M07_C2_SERVICE_USERNAME,
 } from "../content/m07/network.js";
+import { M07_LEDGER_ACCOUNTS, M07_LEDGER_PROTOTYPE_CHAT, M07_PROTOTYPE_DATE } from "../content/m07/blackledger.js";
+import { M07_PAID_CLAIM_REFS, M07_RESERVE_REFS, M07_SETTLEMENT_ACCOUNT_HOLDER, M07_SETTLEMENT_ACCOUNT_NUMBER } from "../content/m07/claims.js";
+import {
+    M07_DOSSIER_SUMMARY,
+    M07_INSTRUCTION_DATE,
+    M07_MODEL_NOTE_QUOTE,
+    M07_RELEASE_ORDER_RUN,
+} from "../content/m07/rdc.js";
 import { M07_ARCHITECT_REAL_NAME } from "../content/m07/report.js";
-import { M07_EVIDENCE_CLASSIFICATION, M07_LEDGER_FILE_NAME } from "../content/m07/server-files.js";
+import {
+    M07_EVIDENCE_CLASSIFICATION,
+    M07_LEDGER_FILE_NAME,
+    M07_ORDER_GO_TIME,
+    M07_SENTRY_ACCOUNT,
+    M07_SURVEY_CODE,
+    M07_SURVEY_VISIT_DATE,
+} from "../content/m07/server-files.js";
 import { optionalBacktraceLogs } from "./backtrace-logs.js";
 import type { BacktraceFacts, BacktraceMissionId, BacktraceSkipped } from "./backtrace-state.js";
 
@@ -89,7 +111,23 @@ export const BACKTRACE_KEYS = {
     m4: ["probe", "breach", "relay1", "relay2", "control", "origin"],
     m5: ["dismissed", "greta", "archive", "statement", "decisionMemo", "usbTicket"],
     m6: ["nominees", "registeredAgent", "ownershipChange", "insurer", "infra", "architect"],
-    m7: ["nodes", "credential", "firewall", "c2", "manifest", "ledger"],
+    m7: [
+        "claims",
+        "nodes",
+        "credential",
+        "firewall",
+        "c2",
+        "manifest",
+        "orders",
+        "survey",
+        "ledger",
+        "seal",
+        "instruction",
+        "decoy",
+        "model",
+        "dossier",
+        "ledgerRoom",
+    ],
 } as const satisfies Readonly<Record<BacktraceMissionId, readonly string[]>>;
 
 export type BacktraceKey<M extends BacktraceMissionId> = (typeof BACKTRACE_KEYS)[M][number];
@@ -104,7 +142,7 @@ export const BACKTRACE_OPTIONAL_KEYS: Readonly<Record<BacktraceMissionId, readon
     m4: ["probe"],
     m5: [],
     m6: [],
-    m7: [],
+    m7: ["decoy", "model", "dossier"],
 };
 
 export const buildBacktraceSkipped = (
@@ -198,6 +236,7 @@ const buildM5Facts = (): BacktraceFacts => ({
     usbTicket: `${M05_BEDSIDE_ASSET_TAG}, media connected ${M05_USB_DATE}`,
     decider: VIVIEN_ORCHID_FULL_NAME,
     insurer: M07_INSURER_NAME,
+    hospital: M01_HOSPITAL_NAME,
     negotiator: M05_NEGOTIATOR,
     gap: M05_GAP_TEXT,
     caseId: M01_CASE_ID,
@@ -222,23 +261,51 @@ const buildM6Facts = (): BacktraceFacts => ({
     caseId: M01_CASE_ID,
 });
 
+const describeLedgerAccounts = (): string => {
+    const reserved = M07_LEDGER_ACCOUNTS.filter((entry) => entry.status === "RESERVED").length;
+    return `${M07_LEDGER_ACCOUNTS.length} accounts: ${M07_LEDGER_ACCOUNTS.length - reserved} settled, ${reserved} reserved`;
+};
+
 const buildM7Facts = (): BacktraceFacts => {
     const totals = totalRansom(RANSOM_BATCHES);
 
     return {
+        claims: `${M07_PAID_CLAIM_REFS.join(", ")}, paid through ${M07_SETTLEMENT_ACCOUNT_HOLDER}`,
         nodes: `${M07_NULLCROWN_CODENAME} + ${M07_ASHVECTOR_CODENAME} listed decommissioned`,
         credential: `${M07_FIREWALL_USERNAME} @ ${M07_FIREWALL_LABEL}`,
         firewall: `${M07_FIREWALL_IP} opened, ${M07_RDP_PORT} reachable`,
         c2: `${M07_C2_IP} (${M07_C2_SERVICE_USERNAME})`,
         manifest: `${RANSOM_BATCHES.length + 2} settled accounts`,
+        orders: `release ${M07_RELEASE_ORDER_RUN} authorised ${M07_ORDER_GO_TIME} UTC by ${M07_SENTRY_ACCOUNT}, session from ${M07_BROKER_INFRA_IP}`,
+        survey: `${M07_SURVEY_CODE}, visit ${M07_SURVEY_VISIT_DATE}`,
         ledger: `${M07_LEDGER_FILE_NAME} extracted intact`,
+        seal: `${M07_SETTLEMENT_ACCOUNT_NUMBER}, held through ${M07_SETTLEMENT_ACCOUNT_HOLDER}`,
+        instruction: `order to ${VIVIEN_ORCHID_SHORT_NAME}, dated ${M07_INSTRUCTION_DATE}`,
+        decoy: `${M07_NULLCROWN_CODENAME} touched`,
+        model: M07_MODEL_NOTE_QUOTE,
+        dossier: M07_DOSSIER_SUMMARY,
         architect: M07_ARCHITECT_REAL_NAME,
         parentEntity: M03_PARENT_ENTITY_NAME,
+        reserves: M07_RESERVE_REFS.join(", "),
+        releaseOrder: M07_RELEASE_ORDER_RUN,
+        sentry: M07_SENTRY_ACCOUNT,
+        brokerInfra: `${M07_BROKER_INFRA_DOMAIN} (${M07_BROKER_INFRA_IP})`,
+        hunter: M04_HUNTER_TAG,
         caseId: M01_CASE_ID,
         evidence: M07_EVIDENCE_CLASSIFICATION,
         allBatches: formatUsd(totals.gross),
         allToParent: formatUsd(totals.parent),
         architectVpn: M04_ARCHITECT_VPN_IP,
+        account: M07_SETTLEMENT_ACCOUNT_NUMBER,
+        indexHost: M07_C2_IP,
+        visitor: `Surveyor ${M07_SURVEY_CODE}`,
+        syndicate: BLACKLEDGER_NAME,
+        ledgerRoom: `${BLACKLEDGER_DOMAIN} opened, Chair session read only`,
+        prototype: `${M01_BUYER_ALIAS} desktop, ${M07_PROTOTYPE_DATE}`,
+        orderChat: `SENTRY to ${M01_BUYER_ALIAS}, ${M07_LEDGER_PROTOTYPE_CHAT[0]?.time.slice(0, 10) ?? MISSING_FACT}`,
+        split: `${RANSOM_SPLIT_PERCENT.panel}% consulting fees, ${RANSOM_SPLIT_PERCENT.broker}% brokerage`,
+        accounts: describeLedgerAccounts(),
+        affiliates: `${M01_BUYER_ALIAS} ${RANSOM_SPLIT_PERCENT.panel}%, ${M01_BROKER_ALIAS} ${RANSOM_SPLIT_PERCENT.broker}%`,
     };
 };
 

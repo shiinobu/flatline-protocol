@@ -96,11 +96,7 @@ var NARR_DEFAULT = {
   browserTitle: "Clinical Incident Archive",
   browserPill: "Legal hold L-2608-03, view only",
   browserUrl: "https://arc-ir-01.pacificcare-health.org/ir/archive",
-  archiveHeading: "Archive",
-  browserArchive: "on",
-  browserOffTitle: "Archive index offline",
-  browserOffText: "Records are stored on this computer only.",
-  fsTree: "off"
+  archiveHeading: "Archive"
 };
 var N = Object.assign({}, NARR_DEFAULT);
 var PROF_LOADED = false;
@@ -119,7 +115,7 @@ function fsVars(R) {
 function applyProfile(p) {
     if (!p || !p.targets) return;
     TARGETS = p.targets.map(function (t) { return { id: t.hasDisplay ? "cold" : "h" + t.code, code: t.code, name: t.name, tag: t.tag, lan: t.lanIp, os: t.os }; });
-    DOCS = (p.docs || []).map(function (d) { var o = { name: d.name, dir: d.dir, gate: d.gate, text: d.text }; if (d.label) o.key = d.label; if (d.sealed) o.sealed = true; if (d.trashed) o.trashed = true; return o; });
+    DOCS = (p.docs || []).map(function (d) { var o = { name: d.name, dir: d.dir, gate: d.gate, text: d.text }; if (d.label) o.key = d.label; return o; });
     N = Object.assign({}, NARR_DEFAULT, p.narrative || {});
     SEALED = N.sealed;
     PROF_LOADED = true;
@@ -801,36 +797,6 @@ var dskScale = 1;
 var dragSt = null;
 var hpos = -1;
 function docByName(n) { return DOCS.filter(function (d) { return d.name === n; })[0]; }
-var DEC = {};
-function fsTreeOn() { return N.fsTree === "on"; }
-function rdcDecrypt(name, key) { try { return typeof flatlineRdcDecrypt === "function" ? flatlineRdcDecrypt(name, key) : null; } catch (e) { return null; } }
-function docRestored(d) { var P = PZ(); return !!(P.rst && P.rst[d.name]) || !!P.docs[d.name]; }
-function docTrashed(d) { return !!d.trashed && !docRestored(d); }
-function docPlain(d) {
-    var P = PZ(), r;
-    if (!d.sealed) return d.text;
-    if (DEC[d.name]) return DEC[d.name];
-    if (P.dk && P.dk[d.name]) {
-      r = rdcDecrypt(d.name, P.dk[d.name]);
-      if (r && r.ok) { DEC[d.name] = r.text; return r.text; }
-    }
-    return null;
-  }
-function docBody(d) {
-    var plain = docPlain(d);
-    if (plain !== null) return esc(plain);
-    return '<div class="rk-dec"><b>Encrypted file</b><span>Enter the key to read it.</span><input id="rkkey" class="rk-key" type="text" autocomplete="off" spellcheck="false" maxlength="64" placeholder="Key" aria-label="Decryption key" data-cur="text"><button class="rk-btn pri" data-act="rkdec" data-v="' + esc(d.name) + '" data-cur="hand">Decrypt</button><em id="rkdecmsg" role="status"></em></div>' + esc((d.text.match(/.{1,32}/g) || []).join("\n"));
-  }
-function rkDecrypt(name) {
-    var d = docByName(name), inp = $("rkkey"), key = inp ? inp.value.trim() : "", msg = $("rkdecmsg"), r, P = PZ();
-    if (!d || !d.sealed) return;
-    r = key ? rdcDecrypt(name, key) : null;
-    if (!r || !r.ok) { if (msg) msg.textContent = key ? "Wrong key. The file stays encrypted." : "Enter a key first."; return; }
-    DEC[name] = r.text;
-    if (!P.dk) P.dk = {};
-    P.dk[name] = key;
-    openDoc(name);
-  }
 function scrH(w) { return Math.round(w * DESK_H / DESK_W) + 76; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 var ERR_RE = /^(bash: |usage: |Usage: |(ls|cat|cd|head|tail|grep|find|wc|sort|uniq|cut|stat|sudo|agent|signal): |[a-z]+: cannot read from a pipe|apply failed|calibrate failed|attach refused|refusing: |no lease held|No manual entry|What manual page)/;
@@ -991,7 +957,7 @@ function lampsHtml(id, random) {
     return '<span class="rd-lamps' + (random ? " rnd" : "") + '" id="' + id + '"' + (random ? ' aria-hidden="true"' : ' role="img" aria-label="Signal chain: 0 of 5 stages clear" title="Signal chain: 0 of 5 stages clear"') + "><i></i><i></i><i></i><i></i><i></i></span>";
   }
 function termWinHtml(t) {
-    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term"><span class="rd-tile">' + ic("term") + '</span><span class="rd-wt">Agent console</span><span class="rd-wh"><b>' + esc(t.tag) + "</b>" + esc(t.lan) + '</span><span class="sp"></span>' + lampsHtml("tlamps", false) + guideBtnHtml() + '</div><div class="rd-pipe on" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint" data-t="info"><span class="rd-hi"></span><span id="thtxt"></span></div><i class="rd-rz" data-rz="term"></i></section>';
+    return '<section class="win" id="w-term" data-id="term" aria-label="Agent console"><div class="rd-tb" data-win="term"><span class="rd-tile">' + ic("term") + '</span><span class="rd-wt">Agent console</span><span class="rd-wh"><b>' + esc(t.tag) + "</b>" + esc(t.lan) + '</span><span class="sp"></span>' + lampsHtml("tlamps", false) + '</div><div class="rd-pipe on" id="tstat"></div><div class="rd-tw"><div id="mscroll"></div><div class="rd-cand" id="tcand"></div></div><div class="rd-hint" id="thint" data-t="info"><span class="rd-hi"></span><span id="thtxt"></span></div><i class="rd-rz" data-rz="term"></i></section>';
   }
 function monWinHtml() {
     var s = rdStatus();
@@ -1023,7 +989,7 @@ function monExec(raw) {
       c = tk[0] || "";
       if (c === "exit" || c === "logout") { monOut(); return; }
       if (c === "clear") { Sx.scroll = []; renderScroll(); monFocus(); return; }
-      out = c === "help" && tk.length === 1 ? guideCmd() : execLine(line);
+      out = c === "help" && tk.length === 1 ? { box: "help" } : execLine(line);
     }
     if (out.box === "help") body = helpBox();
     else if (out.box === "diag") body = diagBox();
@@ -1060,7 +1026,7 @@ function monTab(inp) {
   }
 function monKey(e) {
     var inp = e.target, H = S().hist;
-    if (e.key === "Enter") clearCand();
+    if (e.key !== "Tab") clearCand();
     if (e.key === "Enter") { e.preventDefault(); var v = inp.value; inp.value = ""; hpos = -1; monExec(v); return; }
     if (e.key === "ArrowUp") { e.preventDefault(); if (!H.length) return; hpos = hpos < 0 ? H.length - 1 : Math.max(0, hpos - 1); inp.value = H[hpos]; return; }
     if (e.key === "ArrowDown") { e.preventDefault(); if (hpos < 0) return; hpos++; if (hpos >= H.length) { hpos = -1; inp.value = ""; } else inp.value = H[hpos]; return; }
@@ -1098,7 +1064,7 @@ function openDoc(name) {
     var P = PZ(), d = docByName(name);
     if (!d || !P.attached) return;
     P.doc = name;
-    if (d.gate && !P.docs[name] && docPlain(d) !== null) {
+    if (d.gate && !P.docs[name]) {
       P.docs[name] = true;
       reportRead(d.gate);
     }
@@ -1359,7 +1325,6 @@ function rdWords(s, w) {
     if ($("mws")) $("mws").setAttribute("data-s", s);
     if ($("mwh")) $("mwh").textContent = w;
     if ($("rdms")) $("rdms").textContent = w;
-    lampsSync();
   }
 function rdStallSync() { var sym = curSym(), P = st.mon.pz; if (P && P.shown && !P.attached && sym && sym.first === "frozen") rdWords("stall", "signal received"); }
 function rdLive() {
@@ -1414,9 +1379,8 @@ function rebuildDesk() {
     dirList().forEach(function (p) {
       if (p === home) return;
       RK_DIRS[p] = p;
-      if (!fsTreeOn()) places.push([p.slice(p.lastIndexOf("/") + 1), "loc:" + p, "folder"]);
+      places.push([p.slice(p.lastIndexOf("/") + 1), "loc:" + p, "folder"]);
     });
-    if (fsTreeOn()) fsAllDirs().forEach(function (p) { RK_DIRS[p] = p; });
     places.push(0, ["Trash", "loc:trash", "trash"]);
     RK_MENUS.places = ["Places", places];
     RK_URL = N.browserUrl;
@@ -1454,66 +1418,24 @@ function rkFileRows(dir) {
   }
 function rkBrowserHtml() {
     var P = PZ(), d = P.doc ? docByName(P.doc) : null, tool = '<div class="rk-tool"><button class="rk-wb" aria-label="Back" title="Back" disabled>' + ic("prev") + '</button><button class="rk-wb" aria-label="Forward" title="Forward" disabled>' + ic("next") + '</button><button class="rk-wb" data-act="rkreload" aria-label="Reload" title="Reload" data-cur="hand">' + ic("reload") + "</button>";
-    if (N.browserArchive === "off") return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>' + esc(N.browserTitle) + '</b><span class="rk-pill">' + esc(N.browserPill) + '</span></div><div class="rk-empty"><b>' + esc(N.browserOffTitle) + "</b>" + esc(N.browserOffText) + "</div></div>";
     return tool + '<span class="rk-addr">' + RK_URL + '</span></div><div class="rk-page"><div class="rk-ph"><b>' + esc(N.browserTitle) + '</b><span class="rk-pill">' + esc(N.browserPill) + '</span></div><div class="rk-arb"><nav class="rk-arl" aria-label="Archive files">' + dirList().map(function (p) { return "<h6>" + p + "</h6>" + rkFileRows(p); }).join("") +
-      '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? docBody(d) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
-  }
-function fsAllDirs() {
-    var seen = {};
-    dirList().forEach(function (p) { var cur = ""; p.split("/").slice(1).forEach(function (s) { cur += "/" + s; seen[cur] = true; }); });
-    return Object.keys(seen).sort();
-  }
-function fsParent(p) { var i = p.lastIndexOf("/"); return i > 0 ? p.slice(0, i) : "/"; }
-function fsRootDirs() { return fsAllDirs().filter(function (p) { return fsParent(p) === "/"; }); }
-function rkFolderRow(p, W) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p.slice(p.lastIndexOf("/") + 1) + "</span><small></small><small>Folder</small></button>"; }
-function rkDocRow(d, W, kind) { return '<button class="rk-row' + (W.sel === d.name ? " sel" : "") + '" data-act="rkfsel" data-v="' + d.name + '" data-dbl="1" data-cur="hand">' + ic("file") + "<span>" + d.name + "</span><small>" + rkSize(d.text.length) + "</small><small>" + kind + "</small></button>"; }
-function rkTreeRows(dir, W) {
-    var kids = fsAllDirs().filter(function (p) { return fsParent(p) === dir; }).map(function (p) { return rkFolderRow(p, W); }).join(""),
-      docs = DOCS.filter(function (d) { return d.dir === dir && !docTrashed(d); }).map(function (d) { return rkDocRow(d, W, d.sealed && docPlain(d) === null ? "Encrypted file" : "Text document"); }).join("");
-    return kids + docs || '<div class="rk-empty"><b>This folder is empty</b></div>';
-  }
-function rkTrashRows(W) {
-    var list = DOCS.filter(docTrashed);
-    if (!list.length) return '<div class="rk-empty"><b>Trash is empty</b></div>';
-    return list.map(function (d) { return rkDocRow(d, W, "Deleted file"); }).join("");
-  }
-function rkPathBtns(loc) {
-    var ro = '<button class="rk-btn" data-act="rkro" data-cur="hand">New folder</button><button class="rk-btn" data-act="rkro" data-cur="hand">Move to Trash</button>',
-      up = fsTreeOn() && loc !== "computer" && loc !== "trash" ? '<button class="rk-btn" data-act="rkup" data-cur="hand">Up</button>' : "";
-    if (loc === "trash" && DOCS.some(docTrashed)) return '<button class="rk-btn pri" data-act="rkrestore" data-cur="hand">Restore</button>';
-    return up + ro;
-  }
-function rkUp() {
-    var W = rkW("fl"), loc = W.loc || "home", up = fsParent(RK_DIRS[loc] || loc);
-    W.loc = up === "/" ? "computer" : up;
-    W.sel = "";
-    rkOpen("fl");
-  }
-function rkRestore() {
-    var W = rkW("fl"), d = W.sel ? docByName(W.sel) : null, P = PZ();
-    if (!d || !docTrashed(d)) { rkDlgOpen("Restore", "Select a file in the Trash first."); return; }
-    if (!P.rst) P.rst = {};
-    P.rst[d.name] = true;
-    W.sel = "";
-    drawDesk();
-    rkDlgOpen("Restored", d.name + " was returned to " + d.dir + ".");
+      '</nav><article class="rk-arv" id="arv" tabindex="0" data-cur="text" aria-label="Document">' + (d ? esc(d.text) : '<div class="rk-empty"><b>Select a file</b>Pick a file on the left to read it.</div>') + "</article></div></div>";
   }
 function rkRows(loc) {
     var W = rkW("fl"), dir = RK_DIRS[loc];
-    if (loc === "trash") return rkTrashRows(W);
+    if (loc === "trash") return '<div class="rk-empty"><b>Trash is empty</b></div>';
     if (loc === "computer") {
       var t = targetById("cold");
-      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + (fsTreeOn() ? fsRootDirs() : dirList()).map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
+      return '<dl class="rk-info"><dt>Host</dt><dd>' + t.name + "</dd><dt>Device</dt><dd>" + t.tag + "</dd><dt>System</dt><dd>" + t.os + "</dd><dt>Address</dt><dd>" + t.lan + "</dd></dl>" + dirList().map(function (p) { return '<button class="rk-row' + (W.sel === p ? " sel" : "") + '" data-act="rkfsel" data-v="' + p + '" data-dbl="1" data-cur="hand">' + ic("folder") + "<span>" + p + "</span><small></small><small>Folder</small></button>"; }).join("");
     }
-    if (fsTreeOn()) return rkTreeRows(dir, W);
     return DOCS.filter(function (d) { return d.dir === dir; }).map(function (d) { return '<button class="rk-row' + (W.sel === d.name ? " sel" : "") + '" data-act="rkfsel" data-v="' + d.name + '" data-dbl="1" data-cur="hand">' + ic("file") + "<span>" + d.name + "</span><small>" + rkSize(d.text.length) + "</small><small>Text document</small></button>"; }).join("");
   }
 function rkFilesHtml() {
     var W = rkW("fl"), loc = W.loc || "home", P2 = function (l, n, g) { return '<button class="rk-place' + (loc === l || RK_DIRS[loc] === l ? " on" : "") + '" data-act="rkloc" data-v="' + l + '" data-cur="hand">' + ic(g) + n + "</button>"; };
-    return '<div class="rk-fl"><nav class="rk-side" aria-label="Places"><h6>Places</h6>' + P2("home", "Home", "folder") + P2("computer", "Computer", "monitor") + P2("trash", "Trash", "trash") + (fsTreeOn() ? "" : "<h6>" + N.archiveHeading + "</h6>" + dirList().filter(function (p) { return p !== homeDir(); }).map(function (p) { return P2(p, p.slice(p.lastIndexOf("/") + 1), "folder"); }).join("")) + "</nav>" +
-      '<div class="rk-main"><div class="rk-path"><span>' + esc(RK_DIRS[loc] || rkLocName(loc)) + '</span>' + rkPathBtns(loc) + '</div><div class="rk-list" role="listbox" aria-label="Files">' + rkRows(loc) + "</div></div></div>";
+    return '<div class="rk-fl"><nav class="rk-side" aria-label="Places"><h6>Places</h6>' + P2("home", "Home", "folder") + P2("computer", "Computer", "monitor") + P2("trash", "Trash", "trash") + "<h6>" + N.archiveHeading + "</h6>" + dirList().filter(function (p) { return p !== homeDir(); }).map(function (p) { return P2(p, p.slice(p.lastIndexOf("/") + 1), "folder"); }).join("") + "</nav>" +
+      '<div class="rk-main"><div class="rk-path"><span>' + esc(RK_DIRS[loc] || rkLocName(loc)) + '</span><button class="rk-btn" data-act="rkro" data-cur="hand">New folder</button><button class="rk-btn" data-act="rkro" data-cur="hand">Move to Trash</button></div><div class="rk-list" role="listbox" aria-label="Files">' + rkRows(loc) + "</div></div></div>";
   }
-function rkViewerHtml() { var W = rkW("tv"), d = W.doc ? docByName(W.doc) : null; return '<div class="rk-arv" tabindex="0" data-cur="text">' + (d ? docBody(d) : '<div class="rk-empty"><b>No file open</b>Open a text file from Files.</div>') + "</div>"; }
+function rkViewerHtml() { var W = rkW("tv"), d = W.doc ? docByName(W.doc) : null; return '<div class="rk-arv" tabindex="0" data-cur="text">' + (d ? esc(d.text) : '<div class="rk-empty"><b>No file open</b>Open a text file from Files.</div>') + "</div>"; }
 function rkWinHtml(id) {
     var W = rkW(id), P = PZ(), z = P.rz.indexOf(id), r = W.max ? { x: 0, y: 34, w: FB_W, h: FB_H - 34 } : W, t = rkTitle(id);
     return '<section class="rk-win' + (P.rf === id ? " focus" : "") + (W.min ? " mini" : "") + '" id="' + (id === "mb" ? "mbw" : "rkw-" + id) + '" data-rw="' + id + '" style="left:' + r.x + "px;top:" + r.y + "px;width:" + r.w + "px;height:" + r.h + "px;z-index:" + (6 + Math.max(0, z)) + '" role="dialog" aria-label="' + esc(t) + '">' +
@@ -1629,7 +1551,6 @@ function rkFile(v, open) {
     W.sel = v;
     if (!open) { all("#rkw-fl .rk-row").forEach(function (r) { r.classList.toggle("sel", r.getAttribute("data-v") === v); }); return; }
     if (v.charAt(0) === "/") { W.loc = RK_DIRS[v] ? v : W.loc; W.sel = ""; rkOpen("fl"); return; }
-    if (docByName(v) && docTrashed(docByName(v))) { rkDlgOpen("Cannot open file", "Restore this file from the Trash before opening it."); return; }
     rkDocOpen(v);
   }
 function rkWinBtn(a, id) {
@@ -1662,7 +1583,6 @@ function rkKey(e) {
     if (t.classList && t.classList.contains("rk-ico") && e.key === "Enter") { e.preventDefault(); rkIcon(t.getAttribute("data-v"), true); return true; }
     W = t.closest && t.closest("[data-rw]");
     if (!W) return false;
-    if (t.id === "rkkey") { if (e.key === "Enter") { e.preventDefault(); rkDecrypt(t.parentNode.querySelector('[data-act="rkdec"]').getAttribute("data-v")); } return true; }
     if (W.getAttribute("data-rw") === "fl") {
       if (e.key === "Delete") { e.preventDefault(); rkRo(); return true; }
       if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); rows = all("#rkw-fl .rk-row"); i = rows.indexOf(t); if (i < 0) i = rows.map(function (r) { return r.classList.contains("sel"); }).indexOf(true); i = clamp(i + (e.key === "ArrowDown" ? 1 : -1), 0, rows.length - 1); if (rows[i]) { rows.forEach(function (r) { r.classList.toggle("sel", r === rows[i]); }); rkW("fl").sel = rows[i].getAttribute("data-v"); rows[i].focus(); } return true; }
@@ -1806,17 +1726,15 @@ function placeWin(id) {
     el.style.top = r.y + "px";
     el.style.width = r.w + "px";
     el.style.height = r.h + "px";
-    if (id === "term") guidePlace();
   }
 function front(id) {
     st.mon.top = id;
     ["term", "scr"].forEach(function (k) {
       var el = $("w-" + k);
       if (!el) return;
-      el.style.zIndex = k === id ? 30 : 20;
+      el.style.zIndex = k === id ? 3 : 2;
       el.classList.toggle("front", k === id);
     });
-    guideFront(id);
   }
 function narrow() { var w = $("wsp"); return !!w && w.clientWidth > 0 && w.clientWidth <= 900; }
 function ptOf(e) { var t = e.touches && e.touches[0]; return { x: t ? t.clientX : e.clientX, y: t ? t.clientY : e.clientY }; }
@@ -1893,7 +1811,6 @@ function drawWork() {
     var M = st.mon, t = targetById(M.host), P = M.host === "cold" ? PZ() : null;
     $("stage").innerHTML = '<div class="rdc rd-work">' + rdTop('<div class="rd-sess"><i class="rd-live"></i><b>' + esc(t.name) + '</b><span class="rd-chip">' + esc(t.tag) + " <i>" + esc(t.lan) + '</i></span></div><span class="rd-clk" id="mclk">00:00</span><button class="rd-ghost out" data-act="monout">' + ic("out") + "Disconnect</button>") + '<div class="rd-wsp" id="wsp">' + termWinHtml(t) + "</div></div>";
     ensureWin();
-    guideMount();
     placeWin("term");
     front(M.top || "term");
     renderScroll();
@@ -2089,9 +2006,6 @@ function tickClock() {
   }
 function bannerItems(h) { return [{ k: "b", h: h.tag, c: h.id === "cold" }]; }
 function act(a, d) {
-  if (a === "guide") { guideSet(!st.mon.guide); return; }
-  if (a === "guideclose") { guideSet(false); monFocus(); return; }
-  if (a === "gins") { guideInsert(d.v); return; }
   if (a === "monlogin") { monLogin(); return; }
   if (a === "rdmenu") { rdMenu(); return; }
   if (a === "rdscale") { rdScale(d.v); return; }
@@ -2106,9 +2020,6 @@ function act(a, d) {
   if (a === "rkloc") { rkLoc(d.v); return; }
   if (a === "rkfsel") { rkFile(d.v, false); return; }
   if (a === "rkro") { rkRo(); return; }
-  if (a === "rkup") { rkUp(); return; }
-  if (a === "rkrestore") { rkRestore(); return; }
-  if (a === "rkdec") { rkDecrypt(d.v); return; }
   if (a === "rkok") { rkDlgClose(); return; }
   if (a === "rkreload") { drawDesk(); return; }
   if (a === "adoc") { openDoc(d.v); return; }
@@ -2116,7 +2027,6 @@ function act(a, d) {
 function dragStart(e) {
     var w = e.target.closest ? e.target.closest(".win") : null, bar, rz, rw;
     if (w) front(w.getAttribute("data-id"));
-    else if (e.target.closest && e.target.closest(".rdg")) front("term");
     rw = e.target.closest ? e.target.closest("[data-rw]") : null;
     if (rw && st.mon.pz && st.mon.pz.attached) {
       bar = e.target.closest("[data-rwd],[data-rwr]");
@@ -2189,277 +2099,6 @@ function reportSignal() {
   P.signalSent = true;
   try { if (typeof flatlineRdcSignal === "function") flatlineRdcSignal(1); } catch (e) { return; }
 }
-Object.assign(P, {
-    help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7"/><path d="M12 17.2v.1"/>',
-    list: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>'
-  });
-var GD = { tb: null, ts: null, sb: null, ss: null };
-var GUIDE_ROWS = {
-    look: [
-      ["files", "92,184,255", [["ls"], ["cd"], ["pwd"], ["cat"], ["head"], ["tail"], ["stat"]]],
-      ["search", "171,140,255", [["grep"], ["find"], ["wc"], ["sort"], ["uniq"], ["cut"]]],
-      ["system", "79,216,208", [["ps"], ["date"], ["uptime"], ["hostname"], ["uname"], ["id"]]],
-      ["pipes", "166,173,185", [["| grep", " | grep "], ["| head", " | head "], ["| tail", " | tail "], ["| wc", " | wc "], ["| sort", " | sort "]]]
-    ],
-    change: [
-      ["agent", "255,191,90", [["agent diag"], ["agent lease list"], ["agent lease clear <pid>", "agent lease clear "], ["agent attach"]]],
-      ["signal", "240,138,156", [["signal show"], ["signal sources"], ["signal relays"], ["signal set <key> <value>", "signal set "], ["signal apply"], ["signal calibrate"], ["signal reset"]]]
-    ],
-    docs: [
-      ["manual", "143,168,255", [["man agent"], ["man signal"], ["man format"], ["man troubleshooting"]]]
-    ]
-  };
-function gChip(p) {
-    var label = p[0], ins = p.length > 1 ? p[1] : label + (/^(ls|cd|cat|head|tail|stat|grep|find|wc|sort|uniq|cut)$/.test(label) ? " " : ""), sp = label.indexOf(" ");
-    return '<button type="button" class="rdg-c" data-act="gins" data-v="' + esc(ins) + '">' + (sp < 0 ? "<b>" + esc(label) + "</b>" : "<b>" + esc(label.slice(0, sp)) + "</b>" + esc(label.slice(sp))) + "</button>";
-  }
-function gRows(rows) {
-    return rows.map(function (r) { return '<div class="tbx-r" style="--c:' + r[1] + '"><span class="tbx-k">' + r[0] + '</span><span class="tbx-v">' + r[2].map(gChip).join("") + "</span></div>"; }).join("");
-  }
-function guideHtml() {
-    var cold = st.mon.host === "cold", h;
-    h = '<p class="rdg-where">' + ic("info") + "<span>" + (cold ? "Type commands in the Agent console. The Remote Desktop Connection window only shows what they change." : "This host has no display module. The console only reads its files.") + "</span></p>";
-    h += '<h4 class="rdg-g first">Look around<span>Read only. Use these to find evidence.</span></h4>' + gRows(GUIDE_ROWS.look);
-    if (cold) h += '<h4 class="rdg-g">Change the display<span>The only way to alter the signal chain.</span></h4>' + gRows(GUIDE_ROWS.change);
-    h += '<h4 class="rdg-g">Read the manual<span>The stages and what each symptom means.</span></h4>' + gRows(GUIDE_ROWS.docs);
-    h += '<p class="rdg-tip"><b>Tab</b> completes. <b>↑</b> recalls the last command. Matches show as you type.</p>';
-    return h;
-  }
-function guideSync() {
-    var bd = $("rdgbd");
-    if (bd) bd.innerHTML = guideHtml();
-  }
-function guideBtnHtml() {
-    return '<button class="rd-ib" id="tguide" data-act="guide" aria-label="Help" aria-expanded="' + (st.mon.guide ? "true" : "false") + '" aria-controls="w-guide" title="Help (type help)">' + ic("help") + "</button>";
-  }
-function guideShell() {
-    return '<aside class="rdg shut" id="w-guide" aria-label="Help"><div class="rd-tb rdg-hd"><span class="rd-tile">' + ic("list") + '</span><span class="rd-wt">Help</span><span class="sp"></span><button class="rd-ib" data-act="guideclose" aria-label="Close help" title="Close">' + ic("x") + '</button></div><div class="rdg-bd" id="rdgbd"></div></aside>';
-  }
-function gw() { var w = $("wsp"), W = w ? w.clientWidth : 1200; return Math.max(256, Math.min(308, Math.round(W * 0.235))); }
-function guidePlace() {
-    var el = $("w-guide"), r = st.mon.win && st.mon.win.term;
-    if (!el || !r) return;
-    el.style.width = (gw() + 14) + "px";
-    el.style.left = (r.x + r.w - 14) + "px";
-    el.style.top = r.y + "px";
-    el.style.height = r.h + "px";
-  }
-function guideFront(id) {
-    var g = $("w-guide");
-    if (!g) return;
-    g.style.zIndex = id === "term" ? 29 : 19;
-    g.classList.toggle("front", id === "term");
-  }
-function guideJoin(on) {
-    var t = $("w-term");
-    if (t) t.classList.toggle("gjoin", on);
-  }
-function guideMount() {
-    var t = $("w-term");
-    if (!st.mon.guide || !t || $("w-guide")) return;
-    t.insertAdjacentHTML("afterend", guideShell());
-    $("w-guide").classList.remove("shut");
-    guideJoin(true);
-    guideSync();
-  }
-function guideLayout(open) {
-    var M = st.mon, wsp = $("wsp"), r, s, W, sx, sw, cut, G = gw();
-    if (!wsp || !M.win || narrow()) return;
-    r = M.win.term;
-    s = M.win.scr;
-    W = wsp.clientWidth || 1200;
-    [$("w-term"), $("w-scr"), $("w-guide")].forEach(function (e) {
-      if (!e) return;
-      e.classList.add("gmv");
-      SCH.wait(460, function () { e.classList.remove("gmv"); }, e);
-    });
-    if (open) {
-      GD.tb = { x: r.x, w: r.w };
-      r.x = Math.max(8, Math.min(r.x, W - G - 12 - r.w));
-      if (r.x + r.w + G + 12 > W) r.w = Math.max(WIN_MIN.term[0], W - G - 12 - r.x);
-      if (s) {
-        sw = Math.max(WIN_MIN.scr[0], W - (r.x + r.w + G + 14) - 12);
-        cut = Math.min(r.w - WIN_MIN.term[0], Math.max(0, r.x + r.w + G + 14 + sw - (W - 12)));
-        r.w -= cut;
-      }
-      GD.ts = { x: r.x, w: r.w };
-      if (s) {
-        GD.sb = { x: s.x, w: s.w, h: s.h };
-        sx = r.x + r.w + G + 14;
-        sw = Math.max(WIN_MIN.scr[0], W - sx - 12);
-        if (sx + sw > W - 12) sx = W - 12 - sw;
-        s.x = sx;
-        s.w = sw;
-        s.h = scrH(sw);
-        GD.ss = { x: s.x, w: s.w };
-      }
-    } else {
-      if (GD.tb && GD.ts && r.x === GD.ts.x && r.w === GD.ts.w) { r.x = GD.tb.x; r.w = GD.tb.w; }
-      if (s && GD.sb && GD.ss && s.x === GD.ss.x && s.w === GD.ss.w) { s.x = GD.sb.x; s.w = GD.sb.w; s.h = GD.sb.h; }
-      GD.tb = GD.ts = GD.sb = GD.ss = null;
-    }
-    placeWin("term");
-    if ($("w-scr")) placeWin("scr");
-    SCH.wait(480, fitDesk, wsp);
-  }
-function guideSet(open) {
-    var M = st.mon, t = $("w-term"), el = $("w-guide"), b = $("tguide");
-    if (!t) return;
-    M.guide = open;
-    if (b) b.setAttribute("aria-expanded", open ? "true" : "false");
-    guideJoin(open);
-    if (open) {
-      if (!el) {
-        t.insertAdjacentHTML("afterend", guideShell());
-        el = $("w-guide");
-        guideSync();
-        guidePlace();
-        guideFront(M.top || "term");
-        void el.offsetWidth;
-      }
-      guideLayout(true);
-      el.classList.remove("shut");
-      return;
-    }
-    if (!el) return;
-    el.classList.add("shut");
-    guideLayout(false);
-    SCH.wait(440, function () { if (!st.mon.guide && el.parentNode) el.parentNode.removeChild(el); }, el);
-  }
-function guideCmd() {
-    var el;
-    if (!st.mon.guide) { guideSet(true); return "Help is open beside the console. Close it with the x, or with the ? button in the title bar."; }
-    el = $("w-guide");
-    if (el) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
-    return "Help is already open.";
-  }
-function guideInsert(v) {
-    var i = $("mcmd");
-    if (!i) return;
-    i.value = v;
-    i.focus();
-    i.setSelectionRange(v.length, v.length);
-    i.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-document.addEventListener("input", function (e) {
-    var inp = e.target, v, sp, lead, tok, words, pool;
-    if (!inp || inp.id !== "mcmd") return;
-    v = inp.value;
-    if (!v.trim()) { clearCand(); return; }
-    sp = v.lastIndexOf(" ");
-    lead = v.slice(0, sp + 1);
-    tok = v.slice(sp + 1);
-    words = lead.trim() ? lead.trim().split(/\s+/) : [];
-    pool = tabPool(words, tok).pool;
-    if (!pool.length || (pool.length === 1 && pool[0] === tok)) { clearCand(); return; }
-    showCand(pool);
-  });
-var LAMP_GAP_MS = 260;
-var LAMP_PACE = 1.3;
-var LAMP_OPENER = "fill";
-var LAMP_PATTERNS = [
-  { name: "sweep", tone: "own", dt: 130, loops: [3, 5], frames: function () { return ["20000", "12000", "01200", "00120", "00012", "00001", "00000"]; } },
-  { name: "fill", tone: "own", dt: 170, loops: [2, 4], frames: function () { return ["20000", "22000", "22200", "22220", "22222", "22222", "00000"]; } },
-  { name: "bounce", tone: "mono", dt: 100, loops: [3, 5], frames: function () { return ["20000", "12000", "01200", "00120", "00012", "00021", "00210", "02100", "21000"]; } },
-  { name: "chase", tone: "own", dt: 150, loops: [3, 5], frames: function () { return ["22000", "02200", "00220", "00022", "20002"]; } },
-  { name: "three-two", tone: "own", dt: 320, loops: [5, 8], frames: function () { return ["22200", "00022"]; } },
-  { name: "alternate", tone: "mono", dt: 260, loops: [3, 4], frames: function () { return ["20202", "02020", "20202", "02020"]; } },
-  { name: "converge", tone: "own", dt: 190, loops: [3, 5], frames: function () { return ["20002", "02020", "00200", "02020"]; } },
-  { name: "bloom", tone: "own", dt: 170, loops: [3, 4], frames: function () { return ["00200", "02220", "22222", "02220", "00200", "00000"]; } },
-  { name: "pulse", tone: "mono", dt: 420, loops: [4, 6], frames: function () { return ["22222", "00000"]; } },
-  { name: "shuffle", tone: "own", dt: 190, loops: [2, 3], frames: lampShuffleFrames },
-  { name: "spectrum", tone: "spin", dt: 200, loops: [2, 3], frames: function () { return ["22222", "22222", "22222", "22222", "22222", "22222", "22222", "22222", "22222", "22222"]; } }
-];
-var LAMPS = { el: null, timer: 0, last: "", rgb: [], hue: 0 };
-function lampShuffleFrames() {
-  var order = [0, 1, 2, 3, 4], mask = [0, 0, 0, 0, 0], out = [], i, j, t;
-  for (i = order.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); t = order[i]; order[i] = order[j]; order[j] = t; }
-  for (i = 0; i < order.length; i++) { mask[order[i]] = 2; out.push(mask.join("")); }
-  out.push("22222", "00000");
-  return out;
-}
-function lampsPaint(el, mask) {
-  var i, lamp, level;
-  for (i = 0; i < el.children.length; i++) {
-    lamp = el.children[i];
-    level = mask.charAt(i);
-    lamp.classList.toggle("on", level === "2");
-    lamp.classList.toggle("mid", level === "1");
-  }
-}
-function lampsTint(el, colors) {
-  var i;
-  for (i = 0; i < el.children.length; i++) {
-    if (colors) el.children[i].style.setProperty("--l", colors[i]);
-    else el.children[i].style.removeProperty("--l");
-  }
-}
-function lampsColors(def, cycle, step) {
-  var rgb = LAMPS.rgb, n = rgb.length, out = [], i;
-  if (def.tone === "mono") { for (i = 0; i < n; i++) out.push(rgb[(LAMPS.hue + cycle) % n]); return out; }
-  if (def.tone === "spin") { for (i = 0; i < n; i++) out.push(rgb[(((i - step) % n) + n) % n]); return out; }
-  return null;
-}
-function lampsStop() {
-  if (LAMPS.timer) { clearTimeout(LAMPS.timer); LAMPS.timer = 0; }
-}
-function lampsRelease(el) {
-  lampsStop();
-  LAMPS.el = null;
-  if (!el || !el.isConnected) return;
-  lampsPaint(el, "00000");
-  lampsTint(el, null);
-  el.classList.remove("pat");
-  el.classList.add("rnd");
-  el.removeAttribute("data-pat");
-}
-function lampsDelay(ms) {
-  return Math.round(ms * LAMP_PACE);
-}
-function lampsPick(opener) {
-  var pool = LAMP_PATTERNS.filter(function (p) { return opener ? p.name === LAMP_OPENER : p.name !== LAMPS.last; });
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-function lampsPlay(el, opener) {
-  var def = lampsPick(opener), loops = opener ? 1 : def.loops[0] + Math.floor(Math.random() * (def.loops[1] - def.loops[0] + 1)), frames = def.frames(), step = 0, cycle = 0;
-  LAMPS.last = def.name;
-  LAMPS.hue = Math.floor(Math.random() * LAMPS.rgb.length);
-  el.setAttribute("data-pat", def.name);
-  function tick() {
-    if (LAMPS.el !== el || !el.isConnected) return;
-    if (step >= frames.length) {
-      loops--;
-      if (loops <= 0) {
-        lampsPaint(el, "00000");
-        LAMPS.timer = setTimeout(function () { if (LAMPS.el === el) lampsPlay(el, false); }, lampsDelay(LAMP_GAP_MS));
-        return;
-      }
-      frames = def.frames();
-      step = 0;
-      cycle++;
-    }
-    lampsTint(el, lampsColors(def, cycle, step));
-    lampsPaint(el, frames[step++]);
-    LAMPS.timer = setTimeout(tick, lampsDelay(def.dt));
-  }
-  tick();
-}
-function lampsSync() {
-  var w = $("w-scr"), el = $("mlamps"), clear, i;
-  if (!LAMPS) return;
-  clear = !!(w && el && w.getAttribute("data-s") === "on");
-  if (!clear) { if (LAMPS.el) lampsRelease(LAMPS.el); return; }
-  if (LAMPS.el === el) return;
-  lampsStop();
-  LAMPS.el = el;
-  LAMPS.rgb = [];
-  for (i = 0; i < el.children.length; i++) LAMPS.rgb.push(getComputedStyle(el.children[i]).getPropertyValue("--l").trim());
-  el.classList.remove("rnd");
-  el.classList.add("pat");
-  if (calm()) { lampsPaint(el, "22222"); return; }
-  lampsPlay(el, true);
-}
-lampsSync();
 document.addEventListener("click", function (e) {
   var b = e.target.closest("[data-act]");
   if (rdMenuOpen() && !e.target.closest('#rdmenu,[data-act="rdmenu"]')) rdMenu(false);

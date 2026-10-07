@@ -1,9 +1,9 @@
 import { RegisterWebsite, Website, type WebsitePageDefinition } from "@hotbunny/hackhub-content-sdk";
 
-import type { RdcLoginResult, RdcMirror, RdcPageProfile } from "../../../content/global/rdc.js";
+import type { RdcDecryptResult, RdcLoginResult, RdcMirror, RdcPageProfile } from "../../../content/global/rdc.js";
 import { M05_RDC_DOMAIN } from "../../../content/m05/network.js";
 import { renderToolPage, toolIcon } from "../tool-page.js";
-import { rdcAttach, rdcLogin, rdcProfile, rdcRead, rdcSeed, rdcSignal, rdcState } from "./exports.js";
+import { rdcAttach, rdcDecrypt, rdcLogin, rdcProfile, rdcRead, rdcSeed, rdcSignal, rdcState } from "./exports.js";
 
 import script from "./script.html";
 import shell from "./shell.html";
@@ -44,6 +44,7 @@ export class RemoteDesktopConnectionWebsite extends Website {
         },
         flatlineRdcState: (): RdcMirror => rdcState(),
         flatlineRdcProfile: (): RdcPageProfile | null => rdcProfile(),
+        flatlineRdcDecrypt: (name: string, key: string): RdcDecryptResult => rdcDecrypt(String(name), String(key)),
     };
 
     Pages: WebsitePageDefinition[] = [
