@@ -50,7 +50,7 @@ focus:
    where the 2026-10-06 run printed `true`).
 
 **Put the flag back to `false` before committing.** The reward is skipped under
-focus: expect `reward skipped under focus: 4000`.
+focus: expect `reward skipped under focus: 3500`.
 
 ---
 
@@ -287,7 +287,7 @@ Case, punctuation and spacing are ignored. A rejected report gets no reply.
 1. Send it early: one reply, subject **"not yet"**, naming the first unmet step.
    Sending again replaces that reply rather than stacking a second.
 2. Send it complete: the objective completes, M6 is listed as complete in the
-   BACKTRACE app with its facts, and (outside focus) `[FP][M06] reward paid: 4000`.
+   BACKTRACE app with its facts, and (outside focus) `[FP][M06] reward paid: 3500`.
 3. `Alexander Voss` as `architect` is rejected. `the registered agent filed it`
    as `proof` is rejected.
 

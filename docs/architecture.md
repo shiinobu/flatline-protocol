@@ -211,9 +211,8 @@ src/
   controller/ core/ components/ middleware/ i18n/ context/
                — the mission pipeline layers, described above.
   commands/    — custom @RegisterCommand terminal commands with no native
-                 SDK equivalent (`attrcheck` for the M7 booby-trapped
-                 file, `open`, `flatline` (was `repel`), `sysdiag`,
-                 `sysrepair`).
+                 SDK equivalent (`open`, `flatline` (was `repel`),
+                 `sysdiag`, `sysrepair`).
   applications/ — custom desktop Apps: currently BACKTRACE, GHOSTWIRE's
                   case file (the @RegisterApp class, its HTML, and the
                   SaveStorage state + facts helpers the quests use). Flat,
@@ -494,7 +493,7 @@ guessed.
 | M4 | `control` | `cat watchdog.conf` on relay 2 (`Terminal.Cat`, the `controlFound` flag) |
 | M4 | `origin` | `whois` or `geoip` on the control host's address (`Terminal.Whois` / `Terminal.Geoip`, the `originLinked` flag) |
 | M5 | `dismissed` | both dated Echoline captures of the hospital IT page visited (`Browser.Meta` x2 joining at `staffArchiveCompared`) |
-| M5 | `greta` | `lynx` on the administrator's handle (`Terminal.Lynx.Lookup` or `.Search`, the `gretaProfiled` flag) |
+| M5 | `roxanne` | `lynx` on the administrator's handle (`Terminal.Lynx.Lookup` or `.Search`, the `roxanneProfiled` flag) |
 | M5 | `archive` | `RemoteConnection.Established` with `t === "SSH"` on Cold-Chart, the clinical archive |
 | M5 | `statement` | `acknowledgement_rnatnaree.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
 | M5 | `decisionMemo` | `decision_memo.txt` read by `cat`, `open` or the Files app (`onFileRead`) |
@@ -648,14 +647,14 @@ src/index.ts
     debug/index.js    (-> msf-lab, portal-lab, seo-lab, exports-lab)
   ↓
   @RegisterModPackage class extends Bootstrap
-    OnModPackageLoaded()   -> logs that the package loaded
+    OnModPackageLoaded()   -> binds the Handbook entries
 ```
 
-`index.ts` imports only `main/` and `debug/` (plus the SDK and the `trace`
-helper for its load log). `main/global.ts` pulls in the shared features
-(BACKTRACE, `attrcheck`, `open`), and each `main/mNN.ts` imports its own
+`index.ts` imports only `main/` and `debug/` (plus the SDK and the Handbook
+binding). `main/global.ts` pulls in the shared features
+(BACKTRACE, `open`, `flatline`, `sysdiag`, `sysrepair`), and each `main/mNN.ts` imports its own
 mission's websites before the quest class, so a mission's registrations travel
-with it. `debug/index.ts` is inert unless `isDebug`. A static check confirmed
+with it. `debug/` keeps only `index.ts` and `debug-gate.ts` (the `isDebug` gates for a future lab). A static check confirmed
 that the 22 files that register something are all still reachable from
 `index.ts` (91 reachable files before, the same 91 plus the three new barrels
 after).

@@ -381,7 +381,7 @@ Paper-Moth's address is rejected; `origin` needs "Bulletproof" (or 防弹);
 `contained` takes `yes`, `true` or `contained`. A rejected report gets no reply.
 
 Expect the objective to complete, M4 listed as complete in the BACKTRACE app, and
-`[FP][M04] reward skipped under focus: 2400`. Sending early gets one *"not yet"*
+`[FP][M04] reward skipped under focus: 1500`. Sending early gets one *"not yet"*
 reply naming the step you are actually missing (during the countdown that is *"They
 are already inside. You cannot stop this one; wait it out."*).
 

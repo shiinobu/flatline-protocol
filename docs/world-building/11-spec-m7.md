@@ -28,7 +28,7 @@ Label: **CANON** terverifikasi di kode atau dokumen; **INFERENSI** kesimpulan da
 | D8 | 12 kunci BACKTRACE wajib + 3 opsional (kunci `ledgerRoom` ditambah 2026-10-07, README #84) | DECIDED 2026-10-06, diubah 2026-10-07 |
 | D9 | Apakah Duel 2 boleh diputus lebih awal dengan `flatline` | TIDAK, dan tidak ada jalan keluar lain (2026-10-07): tidak ada repel di duel dan perintah `flatline` akan dihapus pemilik sebelum produksi. Sempat CLOSED dengan "laporan adalah jalan keluar aman", lalu dibuka lagi oleh D16: laporan butuh kunjungan ke ruang buku BLACKLEDGER, yang baru terbuka setelah Duel 2 menang. Kalah = ulang, tanpa jalan buntu (bagian K) |
 | D10 | Penutup lengkap per ending (log pribadi untuk Reyes, TR4C3404, Orchid, korban) | DECIDED 2026-10-06 |
-| D11 | Hadiah | OPEN: disesuaikan di akhir; sementara 5000 (README #30, #40) |
+| D11 | Hadiah | DECIDED 2026-10-07: 4500; total M1-M7 15.000 (M1-M3 1000, M4 1500, M5 2500, M6 3500) |
 | D12 | Urutan membangun: lapis demi lapis (Inti, lalu Tambahan, lalu Opsional) dengan titik uji live setelah Inti | DECIDED A 2026-10-06 |
 | D13 | Judul tetap "The Architect" | DECIDED 2026-10-06 |
 | D14 | Berkas tentang pemain (kerabat pasien OT3, alias GHOSTWIRE) disertakan | DECIDED 2026-10-06 |
@@ -39,7 +39,7 @@ Label: **CANON** terverifikasi di kode atau dokumen; **INFERENSI** kesimpulan da
 
 `name: "flatline.m07"`, grup `storyline`, `autoStart: true`, `questGate("m07", ["flatline.m06"])`, bukan `Abandonable`, satu objective `m07.objective.00`. Hari-cerita 2026-10-03 (Sabtu).
 Objective (en, draf): "You have the name. Take the proof from the Architect's own books, reach the machine he keeps closest, and report what it proves and what you will do with it to the dead drop."
-Hadiah: `Bank.transaction` di `OnComplete`, `Rewards` quest tidak diisi, dilewati saat dev/tester focus (README #34). Nilai sementara 5000, final di akhir (D11).
+Hadiah: `Bank.transaction` di `OnComplete`, `Rewards` quest tidak diisi, dilewati saat dev/tester focus (README #34). Nilai final 4500 (D11, diputuskan 2026-10-07).
 
 ## B. Dari draf M7 lama ke v2 (cacat v1 dan nasibnya)
 

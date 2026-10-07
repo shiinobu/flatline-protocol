@@ -106,7 +106,7 @@ Status: diperbarui 2026-10-02. Tandai `[x]` dan pindahkan ke log keputusan di
 
 - [x] **M7-a.** Keputusan D1-D5, D7, D8, D10, D13, D14 dan RDC tahap 2 (D6): README #73-#75.
 - [ ] **M7-b (D9).** Apakah Duel 2 boleh diputus lebih awal dengan `flatline`. Diputuskan setelah Duel 2 diimplementasikan dan dilihat pemilik.
-- [ ] **M7-c (D11).** Hadiah M7: sementara 5000 (README #30, #40); disesuaikan di akhir.
+- [x] **M7-c (D11).** Hadiah M7: diputuskan 2026-10-07, 4500. Total semua misi 15.000 (M1-M3 1000, M4 1500, M5 2500, M6 3500, M7 4500).
 - [ ] **M7-d (D12).** Membangun lapis demi lapis (Inti, Tambahan, Opsional) dengan titik uji live setelah Inti.
 - [ ] **M7-e.** Nilai konkret berstatus PROPOSAL di `11-spec-m7.md` (alamat LAN komputer pribadi, kata sandi, id rilis, kunci segel, jendela duel 240 dan 180 detik, tingkat puzzle RDC): tinjauan pemilik sebelum kode.
 - [ ] **M7-f.** Hasil probe lab WP1 (job `{ realMs }` di sesi, `Files.Transfer` di sesi RDP, `open` remote di Meterpreter, menyalin heks dari terminal, objek profil RDC besar, heks 380 digit).

@@ -12,7 +12,7 @@ permanent design doc (that is `docs/world-building/11-spec-m7.md`).
 closed until the firewall step opens it), the five bare probes are gone, and the
 mission now ships the real 240-second tracking, HoneyCheck, the designed
 `/legacy-cms/` node table, the `choice` field with its three ending effects,
-Roxanne's epilogue letters, the 5000 payout, the six BACKTRACE keys with a report
+Roxanne's epilogue letters, the 4500 payout, the six BACKTRACE keys with a report
 card, and the full Chinese text.
 
 **What phase 1 was for.** M07 is the old M4 migrated to mission id `m07`
@@ -305,7 +305,7 @@ the mission completes, so the finished BACKTRACE report already shows them. Only
 `destroy` unregisters the C2 network; `expose` and `handoff` leave it standing.
 
 Then: M7 listed as complete in the BACKTRACE app and `[FP][M07] reward skipped under
-focus: 5000`. The 5000 only pays in a **production** run (D1), which needs
+focus: 4500`. The 4500 only pays in a **production** run (D1), which needs
 `flatline.m06` first.
 
 Sending the report before the extraction gets one *"not yet"* reply.

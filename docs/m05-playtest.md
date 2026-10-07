@@ -27,7 +27,7 @@ M05's production prerequisite is `flatline.m04`. Test it alone with dev focus:
 1. In `src/guard/flags.ts` set `DEV_FOCUS_QUEST.m05 = true` and every other entry `false` (`isDev = true`, `isDebug = false`,
    `isTester = false`). Build and install as usual, restart HackHub. **Put the flag back to `false` before committing.**
 2. Expect `[FP][Flatline Protocol] FLATLINE PROTOCOL COMPLETELY LOADED!` and M5 listed as in progress in BACKTRACE.
-3. The reward is skipped under focus: expect `[FP][M05] reward skipped under focus: 3200`, not `reward paid`.
+3. The reward is skipped under focus: expect `[FP][M05] reward skipped under focus: 2500`, not `reward paid`.
 
 Every probe line below is a temporary `trace()` (removed at FINAL LOCK); `docs/scratch.md` lists them.
 
@@ -261,7 +261,7 @@ Reply to `drop@drop.null` with the **Mission 5 Findings** template (six empty to
 | `archive` | `Cold-Chart` | "cold chart" |
 
 Sent before steps 19 to 21 and the `greta` trace: one reply "not yet" naming the first unmet step, replaced (not stacked) on the next
-send. Complete: the objective and the mission complete; outside focus `[FP][M05] reward paid: 3200`.
+send. Complete: the objective and the mission complete; outside focus `[FP][M05] reward paid: 2500`.
 
 ## 19. BACKTRACE
 

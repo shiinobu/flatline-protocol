@@ -180,7 +180,7 @@ Compose a mail to `drop@drop.null` (the Custodian), either:
 hasn't been visited yet, regardless of report content correctness.
 
 Once accepted: objective "Track down the broker..." completes,
-`AutoComplete` finishes the mission, reward 250 money / 60 xp (0/0 while
+`AutoComplete` finishes the mission, reward 1000 money, no xp (0 while
 still in dev-focus or tester-focus mode).
 
 ---

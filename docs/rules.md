@@ -92,7 +92,7 @@ their `src/main/mNN.ts` until migrated). The generic layers (`core/`,
 ```ts
 override QuestsToComplete = questGate("m0N", [ /* real prerequisite mission ids */ ]);
 override Objectives = applyDevGating(M0N_OBJECTIVES, isQuestDevFocus("m0N"));
-override Rewards = isQuestDevFocus("m0N") ? { money: 0, xp: 0 } : M0N_REWARDS;
+override Rewards = isQuestDevFocus("m0N") ? { money: 0 } : M0N_REWARDS;
 ```
 
 The `Rewards` gate is this project's own adaptation of entity-resolution-mods'
@@ -100,7 +100,7 @@ The `Rewards` gate is this project's own adaptation of entity-resolution-mods'
 project has no manual reward-granting code (the SDK pays `Rewards`
 automatically on `AutoComplete`, see `docs/architecture.md`), zeroing the
 `Rewards` field itself is the equivalent: it stops the player's
-money/xp from inflating across repeated test resets of the focused
+money from inflating across repeated test resets of the focused
 mission, without touching any SDK-internal reward logic.
 
 ## 3. GoMail report-submission template

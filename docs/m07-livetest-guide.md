@@ -80,7 +80,7 @@ Laporan sebelum waktunya: setiap laporan templat ke `drop@drop.null` selama rant
 | `handoff` | surel Roxanne versi pengacara, surel "done" ("It is filed…"), 6 baris log Moment |
 | `destroy` | **tanpa** surel Roxanne, surel "done" = "Someone closed it.", `.enc` dihapus dari host, `C2 network torn down` di log, `nmap 203.0.113.161` tidak menjawab |
 
-Reward: di mode fokus `reward skipped under focus: 5000` (normal).
+Reward: di mode fokus `reward skipped under focus: 4500` (normal).
 
 ## 4. BACKTRACE
 
