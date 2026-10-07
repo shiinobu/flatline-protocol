@@ -12,6 +12,7 @@ interface HandbookPage {
 
 const HANDBOOK_PAGES: readonly HandbookPage[] = [
     { id: "flatline-briefing", titleKey: HANDBOOK_I18N_KEY.BRIEFING_TITLE, bodyKey: HANDBOOK_I18N_KEY.BRIEFING_BODY },
+    { id: "flatline-cases", titleKey: HANDBOOK_I18N_KEY.CASES_TITLE, bodyKey: HANDBOOK_I18N_KEY.CASES_BODY },
     { id: "flatline-terminal", titleKey: HANDBOOK_I18N_KEY.TERMINAL_TITLE, bodyKey: HANDBOOK_I18N_KEY.TERMINAL_BODY },
     { id: "flatline-metasploit", titleKey: HANDBOOK_I18N_KEY.METASPLOIT_TITLE, bodyKey: HANDBOOK_I18N_KEY.METASPLOIT_BODY },
     { id: "flatline-commands", titleKey: HANDBOOK_I18N_KEY.COMMANDS_TITLE, bodyKey: HANDBOOK_I18N_KEY.COMMANDS_BODY },

@@ -27,6 +27,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-07
 
+- **[docs] Handbook gained a "Cases" page** (second in the category, `src/i18n/global/handbook.ts`, en and zh). It lists the seven cases with the briefing the game shows and four tool labels: BASIC, Metasploit, SSH (RDC for M5 and M7) and the custom commands `open`, `flatline`, `sysdiag`, `sysrepair`. `open` is listed for every case except M6 (the owner's call, as a precaution); `flatline` appears only on M4 and is never named in the M7 text. Metasploit on M2 and the optional one on M5 come from the playtests and the mission map, not from a proven event. `tsc` clean, not seen in game.
+
 - **[mechanic] Rewards set to 1000 / 1000 / 1000 / 1500 / 2500 / 3500 / 4500 (total 15,000) and EXP removed** (D11 decided, `docs/world-building/11-spec-m7.md`).
   M1-M3 paid 250 / 400 / 600 money plus 60 / 90 / 140 xp through `Quest.Rewards`; each is now `{ money: 1000 }` and the dev-focus fallback is `{ money: 0 }`. M4 2400 -> 1500, M5 3200 -> 2500, M6 4000 -> 3500, M7 5000 -> 4500 (the owner first wrote 5500, which adds up to 16,000; 4500 gives the 15,000 he asked for). M4 to M7 never granted xp. The 500 penalties (M4 honeypot, M7 duel and honeypot) did not change, so they weigh more against the smaller M4 reward. No player text names an amount. The playtest guides carry the new numbers; the 4000 in the §11 table of `m06-playtest.md` stays as the record of an old run. `tsc` clean, nothing built or run.
 
