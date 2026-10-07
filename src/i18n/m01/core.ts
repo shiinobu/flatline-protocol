@@ -164,7 +164,7 @@ Localization.registerAll({
         ].join("\n"),
 
         [M01_I18N_KEY.HACKHUB_POST_CONTENT]:
-            "Found a broker running access sales into places that should be off-limits. Hospitals. Healthcare. Somebody's paying good money to make sure the wrong people can walk right in. I've had enough of watching this happen and nothing changing. Time to trace it back to whoever's really running this.",
+            "A hospital's systems locked up in the middle of an operation. Ransomware, a payout, and an official investigation that stopped short. Somebody sold the attackers their way in, and that somebody sells access to networks like it on the usual marketplaces.\n\nThe job: find the broker, get inside their operation and follow it back to the archive they keep out of sight. What you find goes to the dead drop.\n\nNeeds someone who can trace. Claim this one.",
 
         [M01_I18N_KEY.IRC_L01]: "you're the SEA buyer, right? confirming the alias before we go further",
         [M01_I18N_KEY.IRC_L02]: "yeah. t404. same as on the last two jobs",
@@ -304,7 +304,7 @@ Localization.registerAll({
         ].join("\n"),
 
         [M01_I18N_KEY.HACKHUB_POST_CONTENT]:
-            "发现一个中间人在贩卖本该严禁进入的地方的访问权限。医院。医疗系统。有人正花大价钱确保不该进去的人能大摇大摆地闯进去。我受够了眼睁睁看着这种事发生却什么都没改变。是时候把它一路追查到幕后真正的操盘者了。",
+            "一家医院的系统在手术进行到一半时被锁死。勒索软件，赎金已付，官方调查也半途而止。是有人把入口卖给了攻击者，而这个人在常见的几个市场上兜售这类网络的访问权限。\n\n任务：找到这个中间人，渗透进他的行动，一路追查到他藏起来的档案库。查到的东西交给死信箱。\n\n需要一个会追踪的人。接下这个案子吧。",
 
         [M01_I18N_KEY.IRC_L01]: "你是东南亚那边的买家吧？先确认一下别名再继续。",
         [M01_I18N_KEY.IRC_L02]: "对，t404。跟前两单一样。",
