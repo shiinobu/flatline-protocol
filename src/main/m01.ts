@@ -9,7 +9,6 @@ import type { M01QuestData } from "../content/m01/state.js";
 import {
     M01_QUEST,
     createM01Data,
-    onAbandonM01,
     onCompleteM01,
     onObjectivesStartM01,
     onStartM01,
@@ -21,7 +20,6 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
     override Title = M01_QUEST.title();
     override Description = M01_QUEST.description();
     override Group = M01_QUEST.group;
-    override Abandonable = true;
     override AutoStart = M01_QUEST.autoStart();
     override AutoComplete = true;
     override QuestsToComplete = M01_QUEST.questsToComplete();
@@ -43,9 +41,5 @@ export class FlatlineM01Quest extends Quest<M01QuestData> {
 
     override OnComplete() {
         onCompleteM01();
-    }
-
-    override OnAbandon() {
-        onAbandonM01();
     }
 }

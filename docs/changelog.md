@@ -25,6 +25,10 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ---
 
+## 2026-10-08
+
+- **[bug] M1 Abandon started M2, BACKTRACE showed M1 locked after the claim, and a leftover M2 survived `mods.reset`** (player report on the live release). `beginBacktraceStory()` replaces `setBacktraceApplied` (M1 start rewrites the BACKTRACE key, M1 `progress`), and M1 is no longer `Abandonable` (`OnAbandon` and `onAbandonM01` removed; no mission has an Abandon button now). See `docs/bugs.md` #73. `tsc` clean, not seen in game; needs a Workshop update.
+
 ## 2026-10-07
 
 - **[docs] Workshop tags added to the manifest** (`manifest.json`, `tags`: quest, story, network, website). The SDK README documents `tags` in the manifest and two other Workshop mods installed beside this one use it (`love_exploit`: quest, story, network; `soundwave-music`: website, music, audio), so only values seen in the wild are used; HackHub's official list is not in the repo. The version stays 2.0.0. Whether the in-game uploader copies `tags` to the Steam item is not yet confirmed. Item 3815288996 is recorded as 2.0.0 in the game's `workshop-registry.json`.

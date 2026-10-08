@@ -31,7 +31,7 @@ implementasi.
    tersambung ke M7. Petunjuk identitas minimum ada di M4. M5 dan M6 memperdalam.
 2. Satu objective per misi. Gerbang berurutan lewat `content/<misi>/gates.ts` dan
    `middleware/gate.ts`. Dunia terbuka per langkah (`docs/bugs.md` #38).
-3. Bukan `Abandonable` (hanya M1). Mulai ulang lewat `mods.reset`.
+3. Bukan `Abandonable` (tidak ada misi yang boleh, `docs/bugs.md` #73). Mulai ulang lewat `mods.reset`.
 4. Mekanik tidak boleh hanya lewat terminal: pasangkan dengan lapisan visual
    (widget, app, tema, situs). Preferensi pemilik proyek, 2026-10-01.
 5. Laporan ke Custodian per misi, dengan balasan "belum waktunya" bila terlalu awal

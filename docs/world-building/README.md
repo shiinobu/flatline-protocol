@@ -138,7 +138,7 @@ tidak ikut repo).
 - Semua mod singleplayer. Fitur yang hanya terpancar di multiplayer tidak dipakai.
 - "Full mechanic, not full objective": satu objective per misi, rantai mekanik
   berurutan lewat `middleware/` (satu gerbang per langkah, dunia terbuka per langkah).
-- Hanya M1 yang `Abandonable`. M2 dan seterusnya tidak.
+- Tidak ada misi yang `Abandonable`. Abandon dihitung engine sebagai selesai dan memulai misi berikutnya (`docs/bugs.md` #73). Mulai ulang lewat `mods.reset`.
 - LedgerVault (`x7k2m9vdlq4wnyt3.dark`) adalah domain permanen. Tidak ada jalur
   teardown atau alur cerita yang menghapusnya.
 - M1-M3 tidak disentuh: anggaran hook nol edit (DECIDED, `01-canon-dan-hook.md` bagian E).

@@ -59,7 +59,7 @@ git ls-files -co --exclude-standard 'src/**/*.ts' | xargs wc -l | awk '$1>800 &&
 Details and rationale are in `docs/rules.md`, `docs/architecture.md`, and `07`. In short:
 
 **Structure and gates**
-- One objective per mission; mechanics stay ordered through `advanceStep` (`middleware/gate.ts`) with a transitive gate table in `content/mNN/gates.ts`. Optional steps never enter the chain. World information unlocks per step through `UnlockSpec` (domains, fixtures, firewall rules, ports), not when the world is built. Not `Abandonable`, no `OnAbandon` (only M1 has one).
+- One objective per mission; mechanics stay ordered through `advanceStep` (`middleware/gate.ts`) with a transitive gate table in `content/mNN/gates.ts`. Optional steps never enter the chain. World information unlocks per step through `UnlockSpec` (domains, fixtures, firewall rules, ports), not when the world is built. Not `Abandonable`, no `OnAbandon` (no mission has one; `docs/bugs.md` #73).
 - No `hint` or `terminalCommand` on objectives; descriptions never name the tool or command that solves them (`docs/network.md`, Conventions).
 - "Not yet" replies: one per step (`firstUnmetStep`). Every in-world hint must be reachable BEFORE the mechanic it helps with; trace the gate chain to prove it.
 - Tier 1 mechanics only (`04-web-layer.md` §D). Singleplayer mod.

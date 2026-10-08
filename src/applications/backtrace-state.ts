@@ -52,9 +52,6 @@ const readBacktraceState = (): BacktraceState => ({
 const writeBacktraceMission = (mission: BacktraceMissionId, missionState: BacktraceMissionState): void =>
     SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), [mission]: missionState });
 
-const writeBacktraceStory = (story: BacktraceStoryState): void =>
-    SaveStorage.set(BACKTRACE_STORAGE_KEY, { ...readBacktraceState(), story });
-
 const collectFacts = (mission: BacktraceMissionId): BacktraceFacts | undefined => {
     try {
         return buildBacktraceFacts(mission);
@@ -123,9 +120,13 @@ export const setBacktraceMission = (mission: BacktraceMissionId, status: Backtra
     }
 };
 
-export const setBacktraceApplied = (applied: boolean): void => {
+export const beginBacktraceStory = (): void => {
     try {
-        writeBacktraceStory({ applied });
+        SaveStorage.set(BACKTRACE_STORAGE_KEY, {
+            ...INITIAL_STATE,
+            m1: { status: "progress" },
+            story: { applied: true },
+        });
     } catch {
         return;
     }

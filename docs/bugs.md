@@ -2643,3 +2643,24 @@ Raised: M6 door live tests, 2026-10-06.
 **Changes already in (not confirmed to address the report).** The wait text is `Too many attempts.`; the failure count restarts after each 10 s wait; a page loaded under a wait settles the square at once and plays the boot scramble when the wait ends; `boot()` has a 1.8 s guard.
 
 **If it returns.** Add a temporary Export that calls `trace()` and have the page report `MOTION`, `DATA.wait`, the boot start and end and `window.onerror` through it, because the game log shows nothing from inside the iframe. A lasting random change of the letters is not built: the square has to match the typed key, and the letters are clicked into the answer.
+
+## 73. Abandoning M1 started M2, BACKTRACE showed M1 locked after the claim, and a leftover M2 survived `mods.reset`
+
+**Status: FIXED 2026-10-08 (owner's EKSEKUSI, after a player report on the live Workshop release). `tsc` clean; the Abandon chain and the stale state are read from the client and the code, not reproduced in the game.**
+Raised: two Discord screenshots from a player (game clock 19:04 and 19:11, 2026-10-08).
+
+**Report.** (1) After applying to the M1 HackHub post, BACKTRACE showed The Story page with M1 `[ LOCKED ]` and 0/7. (2) After `mods.reset` and a reload, applying again showed M2 `[ IN PROGRESS ]` with M1 still locked.
+
+**Cause.**
+- (1) `onStartM01` wrote only `story.applied`; M1 turned `progress` at its first traced finding or log (a choice recorded in `architecture.md`). A claim therefore looked as if nothing had started.
+- (2a) The client's `Manager.Abandon` and `Manager.Fail` dispatch the same `completeQuestAction` as `Complete`, then run `HandleAutoClaims`, which claims every `AutoStart` quest whose `QuestsToComplete` are all completed in state. M1 was `Abandonable`, and the Quests panel shows "Abandon Quest" for it as a header icon whose `onClick` is `e.Abandon()`: one click, no confirmation (`sharedbundle19.js`). Abandoning M1 marked it completed and started M2 at once with M1 never played. `Claim` refuses a quest already in state and `HandleQuestHackhubPosts` skips a completed one, so M1 could not be applied for again. `onAbandonM01` was the only writer of M1 `locked`, so M1 locked beside M2 `progress` is the signature of this path.
+- (2b) `mods.reset` never clears `SaveStorage` (#44, E-4) and nothing in M1's start cleared the `backtrace` key, so the M2 `progress` written by the chain survived the reset and showed after the next apply.
+- Checked against the installed 1.3.13 bundle (`dist/assets/index.js` in `app.asar`, same sha256 as `.reverse/extracted-1.3.13/index.js`; `.reverse/extracted/index.js` is an older build): `HandleAutoClaims` is called only from `Complete`, `Fail`, `Abandon` and `mods.reset`, never at load. M1 cannot complete by itself after a claim (it needs the accepted report), so M2 cannot start after an apply without an Abandon, Fail or Complete.
+
+**Fix.**
+(1) `beginBacktraceStory()` in `applications/backtrace-state.ts` replaces `setBacktraceApplied`. It rewrites the `backtrace` key (M1 to M7 clean, M1 `progress`, `story.applied = true`) and is called from `onStartM01`, which runs only on a new claim. That closes (1) and (2b).
+(2) M1 is no longer `Abandonable`: `Abandonable`, `OnAbandon` and `onAbandonM01` are removed from `main/m01.ts` and `controller/m01/index.ts`. No mission has an Abandon button now; restarting is `mods.reset`. This reverses the 2026-10-01 decision "Abandonable only on M1" (D4 in `scratch.md`), because Abandon skips a mission instead of cancelling it.
+
+**Not changed.** The BACKTRACE app (FINAL LOCK) still opens on The Story page. A save already running M1 from the old build keeps M1 `locked` in BACKTRACE until its next traced finding (a safe heal would have to keep the facts and logs). A save where M1 was already abandoned and M2 started needs `mods.reset flatline-protocol` once; the M1 start then wipes the BACKTRACE state.
+
+**Live test.** Apply to the M1 post: BACKTRACE lists M1 `IN PROGRESS` and the Quests panel shows no Abandon icon on M1. Then `mods.reset flatline-protocol`, reload and apply again: M1 `IN PROGRESS`, M2 to M7 locked, no leftover findings. Needs a Workshop update.

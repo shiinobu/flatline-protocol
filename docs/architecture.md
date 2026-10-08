@@ -42,7 +42,7 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
 
 - **`main/mNN.ts`** — one thin `@RegisterQuest` class: class fields come from
   the controller's spec and each hook (`OnStart`, `OnObjectivesStart`,
-  `OnComplete`, `OnAbandon`, `CreateData`) is one line that calls the
+  `OnComplete`, `CreateData`) is one line that calls the
   controller. No data, no helpers.
 - **`controller/mNN/`** — the only place that assembles a mission: `index.ts`
   (the four hooks), `spec.ts` (quest fields), `report.ts` (the mission's
@@ -147,8 +147,8 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   from all keys, because a persistent domain such as LedgerVault outlives its
   mission and the cache is session-only; `site-access`, the mirror of which
   mission is running: one `SharedVariables` value (`flatline.activeMission`)
-  that a controller sets in `OnObjectivesStart` and clears in `OnComplete` /
-  `OnAbandon` only if it is still its own, so a late close never shuts the next
+  that a controller sets in `OnObjectivesStart` and clears in `OnComplete`
+  only if it is still its own, so a late close never shuts the next
   mission's sites). A layer that is mission-blind by
   definition (`core`, `components`, `middleware`) has neither `mNN/` nor
   `global/` folders.
@@ -170,7 +170,7 @@ take a site offline (engine 1.3.13: `o7e()` / `_Qn(host)`). A mission's sites
 are therefore gated in the page layer: `gateMissionPages(mission, pages)` in
 `websites/global/page-guards.ts` wraps every page so it answers the 404 page
 unless `areMissionSitesOpen(mission)`, which is true only between that mission's
-`OnObjectivesStart` and its `OnComplete` / `OnAbandon`. Gated: every M1 site
+`OnObjectivesStart` and its `OnComplete`. Gated: every M1 site
 except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow),
 TR4C3404 (M2), Skynet Import-Export (M3), the eight PacificCare hospital hosts and the
 portal (M5, since 2026-10-05; the M1 hospital site moved there), the Registry and
@@ -201,9 +201,9 @@ src/
                  shell company M2 finds and M3 builds on, the parent entity
                  M3 names and M4 reuses).
   main/        — mNN.ts per mission. M01-M03: a thin class that delegates to
-                 `controller/m01/`, `controller/m02/`, `controller/m03/` (M02
-                 and M03 are not `Abandonable`, so they have no `OnAbandon`;
-                 only M01 can be abandoned). M04 (older shape): the only file
+                 `controller/m01/`, `controller/m02/`, `controller/m03/` (none
+                 is `Abandonable`, so none has an `OnAbandon`: an abandoned quest
+                 counts as completed and starts the next one, bugs #73). M04 (older shape): the only file
                  that imports its matching content/mNN.ts, registers the
                  quest, wires SDK event listeners to objective completion
                  and owns small behavior-only helpers (fixture registration,
@@ -378,7 +378,7 @@ case file), as six flat files:
   story moment: no toast, flagged in the card) and its untyped sibling
   `traceBacktraceKeyById` (dev command only),
   `appendBacktraceLogs(mission, texts, options?)` for a log that belongs to no trace and
-  `setBacktraceApplied(applied)`, the only writers of the state, plus its types.
+  `beginBacktraceStory()` (M1's start: rewrites the whole key), the only writers of the state, plus its types.
   `setBacktraceMission(mission, "complete")` stores `skipped` before the snapshot replaces `facts`. All are fail-safe: an
   error is swallowed and never reaches the quest that called them. They carry
   no `trace()`: the BACKTRACE files were stripped of every one at the lock of
@@ -421,12 +421,13 @@ State is one `SaveStorage` key, `backtrace`:
   story?: { applied: boolean } }
 ```
 
-Each mission's controller writes the status from `OnStart` (`progress`),
-`OnComplete` (`complete`) and `OnAbandon` (`locked`). M1 is the exception at
-the start: its `OnStart` is the HackHub Post claim, which is the start of the
-story and not yet M1, so it writes `story.applied = true` through
-`setBacktraceApplied(true)` and leaves M1 `locked`. M1 turns `progress` on
-its first traced finding or log, and its `OnAbandon` clears the flag again.
+Each mission's controller writes the status from `OnStart` (`progress`) and
+`OnComplete` (`complete`); no mission has an `OnAbandon`. M1's `OnStart` is the
+HackHub Post claim, the start of the whole story, so it calls
+`beginBacktraceStory()` instead: that rewrites the whole key (M1 to M7 clean,
+M1 `progress`, `story.applied = true`), because `mods.reset` never clears
+`SaveStorage` and a leftover M2 `progress` would otherwise show after a reset
+(`docs/bugs.md` #73).
 The app treats the story as applied when `story.applied` is true or any
 mission is not `locked`, so saves written before the flag existed still
 read correctly. `facts` grow in two ways, and only one of them is per action. A

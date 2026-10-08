@@ -1,4 +1,4 @@
-import { setBacktraceApplied, setBacktraceMission, traceBacktraceFinding } from "../../applications/backtrace-state.js";
+import { beginBacktraceStory, setBacktraceMission, traceBacktraceFinding } from "../../applications/backtrace-state.js";
 import { withdrawMailFrom, withdrawSlotMail } from "../../components/mail.js";
 import { registerReportTemplate } from "../../components/report.js";
 import { FLATLINE_MAIL_SENDERS } from "../../content/global/mail-senders.js";
@@ -47,7 +47,7 @@ export const onStartM01 = (): void => {
     rollM01ListingResolution();
     setM01VaultSealed(true);
     withdrawMailFrom(FLATLINE_MAIL_SENDERS);
-    setBacktraceApplied(true);
+    beginBacktraceStory();
     seedM01Irc();
     seed(M01_INTRO);
 };
@@ -77,11 +77,5 @@ export const onObjectivesStartM01 = (quest: M01Quest): void => {
 
 export const onCompleteM01 = (): void => {
     setBacktraceMission("m1", "complete");
-    teardown();
-};
-
-export const onAbandonM01 = (): void => {
-    setBacktraceMission("m1", "locked");
-    setBacktraceApplied(false);
     teardown();
 };

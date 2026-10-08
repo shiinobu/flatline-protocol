@@ -65,7 +65,7 @@ supaya id M4 kosong sebelum misi baru dibuat.
 
 ## D. Lembar spesifikasi (templat; satu per misi, sebelum kode)
 
-1. **Identitas.** Id, judul, urutan, prasyarat `questGate`, `Abandonable` (tidak, kecuali M1).
+1. **Identitas.** Id, judul, urutan, prasyarat `questGate`, `Abandonable` (tidak, tidak ada misi yang boleh).
 2. **Rantai gerbang.** Tabel `langkah | requires | pemicu (event dan filter) | tier dan butir bug | efek` (unlock, kunci BACKTRACE, log, `completeObjective`). Transitif, boolean saja, setiap listener lewat `advanceStep`.
 3. **Dunia per langkah (`UnlockSpec`).** Fixture, domain, aturan firewall, port yang terbuka tepat pada langkahnya.
 4. **Topologi (`RouterSpec`).** Tipe node (Router, Firewall, Splitter, Device), bentuk Router yang membungkus Device anak, alamat baru (publik dan LAN), port dan versi, pengguna dan kata sandi. `ssh` hanya ke `Device` (#17). Panel `Firewall` memberi `PFSense.*`, panel `Router` memberi `Network.PortChanges` (#31).

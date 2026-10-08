@@ -419,7 +419,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    destroyed network never close a site. Wrap the `Pages` of every mission
    site in `gateMissionPages(mission, pages)` (`websites/global/page-guards.ts`);
    the controller calls `openMissionSites` in `OnObjectivesStart` and
-   `closeMissionSites` in `OnComplete` / `OnAbandon`
+   `closeMissionSites` in `OnComplete`
    (`context/global/site-access.ts`). A site that must outlive its mission
    (LedgerVault) is the explicit exception. The BLACKLEDGER site is no longer one: since 2026-10-07 it is an M7 mission site (README #83).
 4. **Early completion gets a reply, not silence**: a submission that is
@@ -435,5 +435,5 @@ Every mission from M2 on follows what M1 proved in the live test:
    this pipeline the same day and both passed their live test; M4 reached it on
    2026-10-03 after a live run of the whole hunt; the owner declared M5 and M6 locked on
    2026-10-06 (M5's `trace()` calls are still in `controller/m05`); M7 is next, one
-   mission at a time, each with a live test before the next. Only M1 is `Abandonable`, so
-   M2-M4 have no `OnAbandon`; restarting them is `mods.reset`.
+   mission at a time, each with a live test before the next. No mission is `Abandonable` (an
+   abandoned quest counts as completed and starts the next one, bugs #73); restarting is `mods.reset`.
