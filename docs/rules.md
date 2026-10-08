@@ -273,6 +273,16 @@ pointer from the nmap fixture, instead of a non-default port on a hostname.
   HackHub's mods folder and restarts → report back and wait for live-test
   feedback → iterate. Claude edits source and runs typecheck/build as
   verification only — never touches the mods folder or restarts the game.
+- **Workshop release.** Bump `version` in `manifest.json` only: the SDK build
+  copies that file and never reads `package.json`, and the game compares only
+  the manifest version with `uploadedVersion` in `mods/workshop-registry.json`.
+  The in-game uploader rebuilds the Steam item from the manifest on every
+  upload (title, description, tags, cover; the description has no field in the
+  dialog), so the Steam description lives in `workshop-description.txt` at the
+  repo root (BBCode; `{{version}}` is replaced by the manifest version). The
+  local `build-install.ps1` writes it into the installed `manifest.json`; the
+  repo manifest keeps its short description. The first 160 characters are also
+  the Mods menu card text, so they must be plain text.
 
 ## 9. Source comment policy — MANDATORY RULE: zero comments in `src/`
 

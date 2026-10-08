@@ -1,0 +1,65 @@
+Trace a hospital ransomware attack across seven cases, back to the name behind it. You are GHOSTWIRE: a terminal, a handful of tools and one thread to pull. Everything in this mod is fiction.
+
+[h1]YOU NEED TO BE THOROUGH WHEN INVESTIGATING. LOOK FOR CLUES. READ EVERY WEBSITE CAREFULLY.[/h1]
+
+[b]How to investigate:[/b]
+[list]
+[*][b]Read everything to the end.[/b] Every mail, file and page. Names, dates, account numbers and addresses come back later.
+[*][b]Follow every link.[/b] The page that matters is often not the home page. Check footers, notices and small print too.
+[*][b]Test every lead.[/b] A tip is a lead, not proof. Run your tools on each domain, address and name before you trust it. Some leads are decoys.
+[*][b]Try every form of a name.[/b] A full name, a handle, a username and an e-mail address can each give a different result.
+[*][b]Compare dates.[/b] When two records disagree, the date they were written is often what tells them apart.
+[*][b]Look before you touch.[/b] Some files and hosts are traps, and a few mistakes cost money. Find out what something is before you open it or break into it.
+[*][b]Keep notes.[/b] BACKTRACE records what you have proven. Use it, and your own notes, to see what is still missing.
+[*][b]Stuck? Go back.[/b] The next step is usually in something you already hold. If a report is turned away as "not yet", you are still missing a piece.
+[*][b]Lost the syntax?[/b] The Handbook lists every tool and command.
+[/list]
+
+[hr][/hr]
+
+[h1]Flatline Protocol[/h1]
+
+[quote]
+The hospital's systems locked in the middle of an operation. Someone dropped the ransomware clean and fast, and they knew exactly what they were doing. The hospital paid, the screens came back, and the official investigation closed itself before it explained anything. Most people accepted that.
+
+GHOSTWIRE did not.
+[/quote]
+
+You are GHOSTWIRE. No client, no badge, no deadline. A terminal, a handful of tools and one thread to pull. It starts with the broker who sold the attackers their way in. It does not end with him.
+
+[h2]The trail[/h2]
+Seven cases, each one a step further up the chain. You will read other people's mail and walk through marketplaces that were never meant to be found. You will follow payments through shell companies and public registers, and learn how little a closed file proves. Somewhere along the way, the people you are chasing start to notice you.
+
+[h2]How it plays[/h2]
+Every case hands you one objective and no map. The work is the work: scans and lookups, logins, files that matter and files that are traps, and a report you send once you think you know.
+
+[list]
+[*][b]BACKTRACE[/b] keeps what you have proven: a report per case, recovered evidence and a caseboard that ties people, companies and documents together as the picture fills in.
+[*][b]The Handbook[/b] has a Flatline Protocol category with the syntax of the tools you will use, a list of the cases and the four commands this mod adds: [b]open[/b], [b]flatline[/b], [b]sysdiag[/b] and [b]sysrepair[/b].
+[*]The tools are the game's own: nmap, whois, ssh, hydra, sqlmap, Metasploit and Meterpreter, Python scripts, firewall panels and IRC chat.
+[/list]
+
+[h2]Where it begins[/h2]
+[b]First, read the Handbook. The story may not be as good as you think.[/b]
+
+Then open the HackHub homepage feed. GHOSTWIRE has posted a job. Claim it, check your inbox, and start tracing.
+
+[h2]Before you start[/h2]
+[list]
+[*]The early cases teach you the tools. The later ones expect you to use them.
+[*]A few mistakes cost money. Rewards are money only: 15,000 across all seven cases, no XP.
+[*]English and Simplified Chinese.
+[*][b]Comfort:[/b] some scenes use screen glitches and flashing. Turn on [b]Reduce motion and flashing[/b] in the mod's settings (Mods menu) to tone down the mod's own effects. Websites and BACKTRACE follow your system's reduce-motion setting.
+[*][b]Content notes:[/b] a hospital attack, a death in the backstory, crime and a cover-up.
+[/list]
+
+[h2]Fiction[/h2]
+Every company, person, host, IP address, domain and password in this mod is invented. The tools are simulated and do nothing outside the game.
+
+[h2]Credits[/h2]
+Some images were made with AI tools.
+
+[h2]Feedback[/h2]
+Suggestions, feedback and criticism are welcome.
+
+[b]Version {{version}}[/b]

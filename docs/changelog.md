@@ -27,6 +27,8 @@ removed from the playtests on 2026-10-01; those pointers are historical.
 
 ## 2026-10-08
 
+- **[docs] Workshop description now has one source and the version one place** (`workshop-description.txt`, `build-install.ps1`, `docs/rules.md` §8). The in-game uploader (`sharedbundle17.js`, 1.3.13) sends title, `manifest.description`, tags and cover on every upload, so a description edited on the Steam page was overwritten each time. `build-install.ps1` step 4 now writes the BBCode text into the installed `manifest.json` (`{{version}}` filled from the manifest); the repo manifest keeps its short sentence. Only `manifest.json` carries the version (the SDK build never reads `package.json`). Tested on temp copies in Windows PowerShell 5.1 (24 checks: CRLF and LF manifests, quotes, backslashes, `$`, Chinese text, missing or empty file, second run); the script itself was not run. The text is last night's draft with a plain lead (the Mods card shows the first 160 characters) and the duplicate tagline removed.
+
 - **[bug] M1 Abandon started M2, BACKTRACE showed M1 locked after the claim, and a leftover M2 survived `mods.reset`** (player report on the live release). `beginBacktraceStory()` replaces `setBacktraceApplied` (M1 start rewrites the BACKTRACE key, M1 `progress`), and M1 is no longer `Abandonable` (`OnAbandon` and `onAbandonM01` removed; no mission has an Abandon button now). See `docs/bugs.md` #73. `tsc` clean, not seen in game; needs a Workshop update.
 
 ## 2026-10-07
