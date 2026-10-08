@@ -1,12 +1,12 @@
 {
     "id": "flatline-protocol",
     "name": "Flatline Protocol",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "apiVersion": 2,
     "author": "shiinobu",
     "description": "Trace a hospital ransomware attack across seven cases, back to the name behind it. All fiction.",
     "cover": "assets/global/cover.jpg",
-    "tags": ["quest", "story", "network", "website"],
+    "tags": ["quests", "story", "network", "website"],
     "permissions": ["filesystem", "network", "events", "mail", "bank", "shell", "ui"],
     "dependencies": []
 }
