@@ -1,7 +1,7 @@
 # FLATLINE PROTOCOL — Font licenses
 
-The mod bundles four third-party typefaces: Big Shoulders Display in BACKTRACE, and Cantarell, Martian Mono
-and Schibsted Grotesk in the M5 debug lab (`src/debug/dashboard-preview.html`). This file records where each one
+The mod bundles four third-party typefaces: Big Shoulders Display in BACKTRACE, Cantarell in Remote Desktop Connection, and Martian
+Mono and Schibsted Grotesk in Cipher Desk. This file records where each one
 comes from and carries the license text that has to travel with every copy of each font.
 
 ## Big Shoulders Display
@@ -127,10 +127,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 - **Source.** `@fontsource/cantarell` 5.3.0 (fetched with `npm pack` from the npm registry; the
   `files/<family>-latin-<weight>-normal.woff2` files and the package `LICENSE`). The font files are not modified:
   `cantarell-latin-400-normal.woff2` sha256 `b2a3c29f26a1966c…`, `cantarell-latin-700-normal.woff2` sha256 `298f6ec1b9034dde…`.
-- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of the `<style data-slot="rdc-fonts">`
-  block of `src/debug/dashboard-preview.html`. `src/debug/portal-lab.ts` strips that block from the lab pages of
-  the other two sites when it renders them, so only the Remote Desktop Connection lab page carries it. No font file in `public/`.
-  The debug lab is a developer tool behind the debug gate; it has no credits page, so this file is the notice.
+- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of `src/websites/global/rdcdesk/style.html` (family
+  `RdCantarell`, weights 400 and 700). No font file in `public/`. The site has no credits page, so this file is the notice.
 - **License.** SIL Open Font License, Version 1.1. The copyright line in the package `LICENSE` reads
   "Copyright 2009 The Cantarell Project Authors".
 
@@ -239,10 +237,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 - **Source.** `@fontsource/martian-mono` 5.3.0 (fetched with `npm pack` from the npm registry; the
   `files/<family>-latin-<weight>-normal.woff2` files and the package `LICENSE`). The font files are not modified:
   `martian-mono-latin-400-normal.woff2` sha256 `bb677c9c5cf5b384…`, `martian-mono-latin-600-normal.woff2` sha256 `e6d4bb7a1594d254…`.
-- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of the `<style data-slot="cipher-fonts">`
-  block of `src/debug/dashboard-preview.html`. `src/debug/portal-lab.ts` strips that block from the lab pages of
-  the other two sites when it renders them, so only the Cipher Desk lab page carries it. No font file in `public/`.
-  The debug lab is a developer tool behind the debug gate; it has no credits page, so this file is the notice.
+- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of `src/websites/global/cipherdesk/style.html` (family
+  `CdMartian`, weights 400 and 600). No font file in `public/`. The site has no credits page, so this file is the notice.
 - **License.** SIL Open Font License, Version 1.1. The copyright line in the package `LICENSE` reads
   "Copyright 2020 The Martian Mono Project Authors".
 
@@ -351,10 +347,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 - **Source.** `@fontsource/schibsted-grotesk` 5.3.0 (fetched with `npm pack` from the npm registry; the
   `files/<family>-latin-<weight>-normal.woff2` files and the package `LICENSE`). The font files are not modified:
   `schibsted-grotesk-latin-400-normal.woff2` sha256 `437cd97c802be9f1…`.
-- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of the `<style data-slot="cipher-fonts">`
-  block of `src/debug/dashboard-preview.html`. `src/debug/portal-lab.ts` strips that block from the lab pages of
-  the other two sites when it renders them, so only the Cipher Desk lab page carries it. No font file in `public/`.
-  The debug lab is a developer tool behind the debug gate; it has no credits page, so this file is the notice.
+- **How it ships.** Base64 `data:font/woff2` URIs inside the `@font-face` rules of `src/websites/global/cipherdesk/style.html` (family
+  `CdSchibsted`, weight 400). No font file in `public/`. The site has no credits page, so this file is the notice.
 - **License.** SIL Open Font License, Version 1.1. The copyright line in the package `LICENSE` reads
   "Copyright 2023 The Schibsted-Grotesk Project Authors".
 

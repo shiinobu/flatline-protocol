@@ -11,6 +11,128 @@ why, and the fix or workaround actually shipped.
 
 ---
 
+## Engine facts (HackHub 1.3.13 client)
+
+What the game's own code does, read in the client and, where marked, confirmed in the running game. Each fact says what it means for
+the mod. The decompiled client is not in the repo (`.reverse/` is gitignored and lives on the owner's machine): the bundle read here is
+`dist/assets/index.js` of `app.asar`, 22,048,466 bytes, SHA-256 `5fc130d9f0d9049c01169ca8a456afbe453dd95662a3794b91ec0eedf5193045`
+(package version 1.3.13). Search for string literals, never for the minified identifiers. After a game update, re-extract, compare the
+hash and re-check each claim; `.reverse/extracted/` (21,795,069 bytes) is an older build and must not be used.
+
+**E-1 `Network.registerDomain` and `Network.setVulnerabilities` do nothing without a subnet.** With no subnet at the IP they return
+silently; with one, `registerDomain` replaces the subnet's whole `domain` field, so one IP carries one domain name. `DomainSpec.needsSubnet`
+(`src/components/domains.ts`) creates a bare `Device` subnet first. The shell fixtures (`whois`, `nslookup`, `geoip`, `nmap`) do not read
+the subnet, which hides the gap until `subfinder` or `python3 net_tree.py` is used (#39).
+
+**E-2 `subfinder` reads subnets that carry a `domain`.** It needs a subnet whose `domain.name` equals the query (otherwise it waits 3 to 6
+seconds and finds nothing) and lists the domain of every subnet whose name ends with the query. A domain meant to be discoverable needs a
+real subnet and must be registered when the step that reveals it is reached (#38).
+
+**E-3 `dirhunter` lists every registered path of a website and finds the site by host.** It looks the site up in the website registry
+(`Url === hostname`), not by subnet, prints every page whose `isHidden` is falsy and raises `Terminal.Dirhunter` with every path. SDK
+0.25.0 pages have no `isHidden`, so a mod cannot hide a page: "hidden" means registered but not linked, and path names must never leak
+the next step (use opaque tokens or one dynamic pattern such as `/entity/:id`). No subnet is needed, which M6 (no network) relies on (#40).
+
+**E-4 `mods.reset` clears quests, quest mail and posts, `Storage`, `Variables` and the mod's apps, and nothing else.** It unclaims every
+quest of the mod (listeners released, the quest's tweets and messages removed; `OnComplete` and `OnAbandon` do not run), then runs the
+auto-claim pass and re-queues the HackHub posts. It never touches `SaveStorage`, persisted `Scheduler` jobs, `Desktop` widgets,
+networks, `SharedVariables`, mail created with `Mail.send` or the player's own files (#44). Consequences: gate a file checkpoint on a
+quest-data flag set in the current playthrough; cleanup written in `OnAbandon` never runs on a reset (the rebuild path of `core/register`
+does it, #35); a mission's start must cancel its own jobs and clear its own `SaveStorage` state, BACKTRACE included (#73); `Mail.send`
+mail survives (#37); the world is rebuilt by a 250 ms `Scheduler` job, so a tool used in that window can miss its target: retry first.
+
+**E-5 Quest `Rewards` are optional and guarded where they are paid.** The store's `Complete` pays `Rewards.Money` through
+`Bank.Transaction` when `Rewards` and `Money` are set; `xp` defaults to 0 and where it is granted was not traced. A rival-hacker lab quest
+with `Rewards` and `AutoComplete` ran `OnComplete` but did not pay (#42). M1 to M3 declare `Rewards`; M4 to M7 pay with
+`Bank.transaction` in `OnComplete` and leave `Rewards` unset, and pay nothing under dev or tester focus.
+
+**E-6 Files carry no timestamps and `ls` prints names only.** The SDK file types have no date or size, and the bridge passes only
+`{ id, name, extension, data, isFolder, parent }`. A date can only live in a file name or in its contents, and must come from the story
+timeline in `docs/story.md`, never from `Time.now()` (#43).
+
+**E-7 `IsLocalIp` accepts only `192.168.1.x`.** Every `lanIp` behind a Firewall or a Router panel the player edits must be
+`192.168.1.x`, sequential inside one router tree (router `.1`) and never repeated in it. `geoip` refuses LAN addresses and `nmap`
+resolves a LAN address only inside an SSH session (E-12, #41).
+
+**E-8 Firewall rules compare `destination` with the target's `lanIp`, and the panel validates it on Save.** A request to `ip:port` is
+blocked when the firewall protecting `ip` has a rule that denies that port, whose `source` is empty or the requester and whose
+`destination` is empty or the target's `lanIp`; a public IP as destination never matches. The firewall protecting `ip` is `ip` itself
+when it is a Firewall node, otherwise the Firewall whose `parent` is the router of `ip`'s tree. Save checks the port, `source` (valid IP)
+and `destination` (valid IP and `IsLocalIp`), rejects a Deny rule on port 80 with an empty or own-`lanIp` destination, and only then
+raises `PFSense.Changes` with `{ old, new }`. `Network.removeFirewallRule(ip, port)` removes every rule with that port. Rules without a
+`destination` block the port for the whole network, so use them only when the port belongs to one device (#41).
+
+**E-9 `PFSense.Login` fires only after a credential match.** The failure branch returns before the event, and the page also raises
+`Browser.Meta` with `{ hostname: ip }` on every mount. The event carries only the IP, so a Firewall must have **exactly one** valid
+user: any extra valid decoy would open the gate too.
+
+**E-10 Sandboxing.** Mod website pages and mod apps run in an iframe with `allow-scripts allow-same-origin` and no `allow-forms`, so a
+`<form>` submit does nothing: use `<input>` and JavaScript events.
+
+**E-11 The Metasploit RDP module (`exploit/rdp/cve_2019_0708_bluekeep`).** It accepts a host whose router port list has a port that is
+`active`, has a `version`, has `external` equal to `RPORT` and `internal === 3389`, applies to the host's `lanIp`, whose service is
+`FreeRDP` or `ms-wbt-server` and whose version equals the module's `Version` option; the request must not be blocked (E-8) and the host
+needs a user that is `online` or named `guest`. Success raises `RemoteConnection.Established` with `t: "METASPLOIT"`; a plain `exploit`
+never raises `Metasploit.Meterpreter.Connected` (#29), so gates listen to the former.
+
+**E-12 `geoip`, `nmap` and LAN addresses.** `geoip` refuses a LAN address. `nmap` answers from a registered shell fixture first and
+otherwise computes the table from the subnet: inactive is CLOSE, active with `external === internal` is OPEN, active with different
+ports is FORWARDED. Nodes behind a Splitter are reached by their public IPs (`python3 net_tree.py <router ip>` lists them, #27).
+
+**E-13 Goagle matches `search` keywords only on static pages (confirmed live, #62).** A site is listed when a page has `seo` not
+`false` and its `metadata()` does not return `null`; a query matches by an exact or contained keyword, or as a substring of the title or
+the `SiteName`. The page object carries `search` only for a static page, and a static page cannot be gated, so each site chooses
+between keywords and gating. A dynamic or gated site is found through its title or `SiteName`, or through `Popular`.
+
+**E-14 A closed `seo` page is skipped only when `metadata()` returns `null` (confirmed live, #63).** `notFoundMetadata()` returns an
+object, so such a page still lists when the query is part of the `SiteName` or of "404 Not Found". Closed rule for a `seo` page:
+`context.searchStr === undefined ? notFoundMetadata() : null`. `metadata()` runs for every Goagle query and twice per navigation, so a
+render must not write (#36).
+
+**E-15 An empty `Icon` shows a pale default globe, and `Popular` is read once (confirmed live, #64).** `Popular` is fixed when the site
+class is built, so a site cannot become popular at a step. `Icon` accepts `http(s)://`, `data:` and `mod-asset://` URLs and turns
+`./assets/x.png` into `mod-asset://<mod>/assets/x.png`.
+
+**E-16 Website `Exports` pass arguments and return values unchanged (confirmed live, #65).** Strings, numbers, booleans and plain
+objects arrive as they are; `SharedVariables.set` works inside an `Exports` function and inside an `Events.on` listener. The mod
+context is pushed before the call and popped when the synchronous call returns, so code after an `await` runs outside it (not tried;
+compare #6 and #19): do the work that needs the mod before the first `await`, or hand it to a listener with `Events.emit`.
+
+**E-17 Quest lifecycle: Abandon and Fail complete the quest and run the auto-start chain.** `Manager.Abandon` and `Manager.Fail`
+dispatch the same completion as `Complete`, then `HandleAutoClaims`, which claims every `AutoStart` quest whose `QuestsToComplete` are all
+completed in state. So an abandoned M1 starts M2, and `Claim` refuses a quest already in state, so it cannot be applied for again
+(#73). `HandleAutoClaims` runs only from `Complete`, `Fail`, `Abandon` and `mods.reset`, never at load. A mod quest's `Abandon()` runs
+the mod's `OnAbandon` first. The Quests panel shows an "Abandon Quest" header icon whenever `Abandonable` is truthy, and one click calls
+`Abandon()` with no confirmation. The HackHub post's **Apply** schedules a job that marks the post applied, waits 4 to 10 seconds, then
+claims the quest; the post is created only while the quest is not in state and its `QuestsToComplete` are met, and is rebuilt after a
+`mods.reset`.
+
+**E-18 The Workshop upload dialog rebuilds the Steam item from `manifest.json` on every upload.** It sends `title` (the name),
+`description` (`manifest.description`, empty string if none), `tags`, the cover as preview, a visibility chosen in the dialog and the
+change note typed there (default "Update"); the description has no field in the dialog, so text edited on the Steam page is replaced on
+the next upload. It then stores `uploadedVersion` from `manifest.version` in `mods/workshop-registry.json`; the version is never
+compared when uploading. The SDK build copies `manifest.json` and never reads `package.json`. The Mods menu card shows only the first
+160 characters of the description. See `docs/rules.md` §8 for the release routine (`workshop-description.txt`).
+
+**Other engine facts, documented in the entries below:** a website render has no mod context and `Localization.t()` returns the raw key
+there (#20, #22, #36); mod context is lost in detached async chains and after an `await` before `createSubnetNetwork` (#6, #19);
+`Files.getByPath` sees a remote filesystem only over SSH, so Meterpreter targets need the ID-based walk (#30); a Router node shows the
+TP-Link panel (`Network.PortChanges`) and `PFSense.*` events come only from a Firewall node (#31); `destroyNetwork` replies overwrite the
+whole store, so destroy sequentially (#32, #35); `john` cracks only hashes the engine generated itself (#13).
+
+**Not verified:** where XP from `Rewards` is granted (E-5); whether any surface other than `ls` shows file dates (E-6); the relation
+between the in-game clock and the 2026 story dates; whether code after an `await` in an `Exports` function has lost the mod context
+(E-16); why `metadata()` runs twice per navigation (E-14).
+
+## Retired names
+
+Entries below keep the names the code had when they were written. Current equivalents: `attrcheck`, `rootgrab` and the `repel` command
+(now `flatline`) are gone or renamed; the debug labs (`src/debug/*-lab.ts`) were deleted on 2026-10-07; `GRETA` is now Roxanne
+Natnaree (internal ids keep the `GRETA_*` names, see `docs/story.md`); old file names `main/m0N-quest.ts` and `content/m0N.ts` are now
+`main/m0N.ts` and `content/m0N/`; the BLACKLEDGER site `blkledger.dark` moved from M2 to the M7 ledger room.
+
+---
+
 ## 1. Native `ftp` requires explicit `-h`/`-u`/`-p` flags — a bare `ftp <ip>` prints usage only
 
 **Status: RESOLVED (was a missing fixture, not an engine bug)**
@@ -1205,7 +1327,7 @@ The client gained an opt-in dev-mode file watcher:
   renderer (`window.location.reload()`) **into the current save** —
   blocked with a warning if in multiplayer.
 
-**Relevance:** targets the manual step in `docs/implementation-rules.md`
+**Relevance:** targets the manual step in `docs/rules.md`
 §8 ("the user manually copies `dist/` into HackHub's mods folder and
 restarts"). If confirmed working live, the build→copy→restart loop used
 for every mission's live-test could drop the restart in favor of an
@@ -1214,7 +1336,7 @@ automatic reload on the current save.
 **Not yet done:** actually launching HackHub with `--mod-dev` (or
 `HACKHUB_MOD_DEV=1`) and confirming a real rebuild reloads correctly —
 this entry is read directly from shipped client code, not yet observed
-live. Do not update `implementation-rules.md` §8's mandatory workflow
+live. Do not update `rules.md` §8's mandatory workflow
 until that live confirmation happens.
 
 ---
@@ -1246,7 +1368,7 @@ What M3 did wrong: it registered only `{ user: "admin", target:
 always contains a port), and `admin` never appeared anywhere a player could
 see it (no mail, `lynx` result, Twotter post, page or `nmap` line). A player
 who ran `hydra -T 77.83.142.6:80 -P wordlist.lst` got the generic error and had
-nowhere to go; `m03-playtest.md` also wrongly claimed the default user is
+nowhere to go; the M3 playtest script also wrongly claimed the default user is
 `root`.
 
 **Fix:** the fixture is now registered under both `guest` (the engine
@@ -1330,7 +1452,7 @@ output); a LAN IP alone is a dead end.
 Found: M3 playtest review, 2026-09-29.
 
 The client's Wireshark is a desktop App installed from the App Store
-(`docs/basegame-reference/hacktool-catalog.md`: "App only, no dedicated
+(the base game's tool catalog: "App only, no dedicated
 `TERMINAL.*` command key"). Its toolbar has Start / Stop / Clear plus
 optional Source and Destination capture filters, and it triggers
 `Wireshark.Started { source, destination }` when capture switches on. The
@@ -1415,8 +1537,8 @@ capture is created in the home folder itself, so `open finance_vlan_capture.pcap
 works. Both quests match the event on `{ name, extension }` only, so they
 accept the local copy.
 
-**What was fixed:** the M2/M3 playtests, `mechanics-reference.md` and
-`scratch.md` no longer claim `open` works on a remote Meterpreter file, and
+**What was fixed:** the M2/M3 playtest scripts and `mechanics.md`
+no longer claim `open` works on a remote Meterpreter file, and
 they give the `~/downloads/` path. No code changed.
 
 **Follow-up 2026-10-01 (owner: `open` should work at `meterpreter >`) — NOT yet
@@ -1459,7 +1581,7 @@ command with the ID-based calls, starting at `Files.getById(<target ip>)` (what
 
 ## 31. A `Router`-type node renders the TP-Link panel, which raises `Network.PortChanges` on Save and nothing on login — `PFSense.Login`/`PFSense.Changes` come only from the pfSense panel of a `Firewall` node, so M3's NAT pivot could never fire
 
-**Status: FIXED IN SOURCE (Option B, 2026-09-29) — LIVE-TESTED 2026-09-29: a Save in the TP-Link panel reaches the quest and traces `portal` (`m3 traced portal`, round 3 at 22:24:27; the round-1 results are in `docs/m03-livetest-guide.md` §7)**
+**Status: FIXED IN SOURCE (Option B, 2026-09-29) — LIVE-TESTED 2026-09-29: a Save in the TP-Link panel reaches the quest and traces `portal` (`m3 traced portal`, round 3 at 22:24:27; the round-1 results were recorded in the M3 live-test notes)**
 Found: a live-test screenshot of M3's admin panel (a **TP-Link** "Router
 Administration" page at `77.83.142.6`, Port Forwarding tab, five pre-filled
 rules), then verified against the client (v1.3.13), 2026-09-29.
@@ -1523,7 +1645,7 @@ a typed rule is inert until the mission completes it.
   its service and port, and `python3 net_tree.py` gives each host's name,
   public IP and LAN IP.
 
-**Not verified in game (live-test list, `docs/m03-playtest.md`):** that
+**Not verified in game (M3 live-test list):** that
 `Network.PortChanges` reaches a quest-scoped listener; that the panel's stale
 form state does not undo the rewrite (the client copies `service`/`version`
 back from the rewritten versioned rows on the next Save, but a `445` row has
@@ -1750,7 +1872,7 @@ Found: M1 recon layer live test, 2026-09-20 — `subfinder` reported "No subdoma
 `python3 net_tree.py` reported "Subnet not found" for every domain that had only ever received a bare
 `Network.registerDomain`, while `nslookup`, `whois`, `geoip` and `nmap` kept answering, because those are
 shell fixtures that never read the subnet.
-Root cause (engine 1.3.13, `docs/app-asar-reference.md` E-1 and E-2): `registerDomain` looks up the subnet
+Root cause (engine 1.3.13, Engine facts E-1 and E-2): `registerDomain` looks up the subnet
 at the IP and only then calls `UpdateSubnet({ ...subnet, domain: { name, vulnerabilities } })`; with no
 subnet it returns without a word. `setVulnerabilities` behaves the same. `subfinder` needs a subnet whose
 `domain.name` equals the query and lists the subnets whose `domain.name` ends with it. A second
@@ -1768,9 +1890,9 @@ answer `whois` and `nslookup` from fixtures, but `subfinder` and `net_tree.py` w
 `dirhunter <host>` finds the `Website` by host name, prints every page whose `isHidden` is falsy, and
 raises `Terminal.Dirhunter` with `{ host, results }`, where `results` lists the path of every page. SDK
 page definitions (0.25.0 included) have no `isHidden`, so every page a mod registers is printed.
-`docs/m01-playtest.md` already records this ("no engine-level way to hide a mod-registered page"), and
-M1's listing paths are opaque tokens for that reason (`docs/changelog.md`, 2026-09-22). The lookup is by
-host in the website registry, not by subnet (`docs/app-asar-reference.md` E-3).
+This was already known ("no engine-level way to hide a mod-registered page"), and
+M1's listing paths are opaque tokens for that reason (2026-09-22). The lookup is by
+host in the website registry, not by subnet (Engine facts E-3).
 **Rule:** "hidden" means registered but not linked. Path names never leak an answer or the next step:
 opaque tokens, or one dynamic pattern such as `/entity/:id`. Do not design a step around `dirhunter`
 finding nothing. Open (static reading only): whether a host with no subnet and no registered domain can
@@ -1782,7 +1904,7 @@ be scanned in the running game; the M6 walking skeleton confirms it live.
 
 **Status: RESOLVED for the design (rule; engine read 2026-10-02). The old M4 code (`content/m04.ts`,
 `main/m04.ts`, never played) still has the defect until its migration to M7.**
-Found: static reading of the engine while specifying M4-M7, 2026-10-02 (`docs/app-asar-reference.md` E-7
+Found: static reading of the engine while specifying M4-M7, 2026-10-02 (Engine facts E-7
 and E-8).
 The engine blocks a request to `ip:port` when the firewall protecting `ip` has a deny rule for that port
 whose `source` is empty or the requester and whose `destination` is empty or **equals the target subnet's
@@ -1797,7 +1919,7 @@ are; M1's routers use `192.168.1.x` to `192.168.5.x`); a rule's `destination` is
 empty; never a port-22 rule without a `destination` where other devices need SSH (M7's Null-Crown and
 Ash-Vector); never a Deny rule on port 80 with an empty destination (the panel rejects it as a lockout);
 `Network.removeFirewallRule(ip, port)` removes every rule with that port. M7's LAN side moves from
-`172.16.0.x` to `192.168.1.x` (`docs/world-building/11-spec-m7.md` §B #11).
+`172.16.0.x` to `192.168.1.x`.
 
 ---
 
@@ -1807,10 +1929,10 @@ Ash-Vector); never a Deny rule on port 80 with an empty destination (the panel r
 Found: rival-hacker lab live test, 2026-10-01 (`src/debug/rival-hacker-lab.ts`) — `OnComplete` ran but the
 declared reward never reached the bank. The engine's own payout (the quest store's `Complete`) is guarded
 by `Rewards != null && Rewards.Money`, and a quest without `Rewards` never builds one
-(`docs/app-asar-reference.md` E-5), so the cause was not found. Money in M4-M7 is paid with
+(Engine facts E-5), so the cause was not found. Money in M4-M7 is paid with
 `Bank.transaction` inside `OnComplete`, the quest's `Rewards` stays unset, and the payout is skipped under
-dev or tester focus (README decisions #30 and #34 in `docs/world-building/`). The SDK `Bank` pays money
-only. Open: whether M1-M3's `Rewards` pay in a production-mode run (their playtests record rewards forced
+dev or tester focus (the owner's rule: money only). The SDK `Bank` pays money
+only. Open: whether M1-M3's `Rewards` pay in a production-mode run (their playtest scripts recorded rewards forced
 to 0/0 while focused), and where XP from `Rewards` would be granted (not traced).
 
 ---
@@ -1820,8 +1942,8 @@ to 0/0 while focused), and where XP from `Rewards` would be granted (not traced)
 **Status: RESOLVED (rule; engine read 2026-10-02).**
 The SDK file types (`FileDefinition`, `FileInfo`, `FileCreateOptions`, `NetworkFileMap`) have no date
 field, the `Files.create` bridge hands the engine only `{ id, name, extension, data, isFolder, parent }`,
-and `ls` prints names only (`docs/app-asar-reference.md` E-6). Story dates therefore live in file names
-and contents and come from `docs/world-building/13-story-timeline.md`, never from `Time.now()`,
+and `ls` prints names only (Engine facts E-6). Story dates therefore live in file names
+and contents and come from the story timeline in `docs/story.md`, never from `Time.now()`,
 `Date.now()` or `new Date()`: the in-game clock runs on its own calendar and is unrelated to story time.
 
 ---
@@ -1835,7 +1957,7 @@ clears the mod's `Storage` (the global one) and `Variables`, and resets and clos
 **not** clear `SaveStorage` (the first version of this entry said it did, a wrong reading of the minified
 names), persisted `Scheduler` jobs or `Desktop` widgets, and it does not touch networks (#35),
 `SharedVariables`, mail created with `Mail.send` (#37) or the player's own filesystem
-(`docs/app-asar-reference.md` E-4).
+(Engine facts E-4).
 **Rules:** (1) a checkpoint on a file that can linger on the player's PC also requires a quest-data flag
 set in this playthrough; (2) cleanup written in `OnAbandon` never runs on a reset, so the rebuild path of
 `core/register` does the cleaning; (3) `SharedVariables` mirrors can be stale until `OnStart` or
@@ -1861,7 +1983,7 @@ and otherwise looks for a subnet whose `type` is `FIREWALL` **and whose
 function se(en){const Zn=J(en);if((Zn==null?void 0:Zn.type)==="FIREWALL")return Zn;const jn=ee(en);if(jn)return Ji().Network.find(xt=>xt.type==="FIREWALL"&&xt.parent===jn.ip)}
 ```
 
-(`docs/app-asar-reference.md` E-8, offset 20403821.)
+(Engine facts E-8.)
 
 In the shape M2 ships live, and now M07 too, the Firewall is **not** a direct
 child of the router: router → Splitter → [Firewall, devices...]. If
@@ -1883,15 +2005,15 @@ on exactly this arrangement.
 **How to settle it:** M07's skeleton ships 3389 `active` from the build
 (`M07_RDP_OPEN_FROM_BUILD` in `content/m07/topology.ts`). Run the bluekeep
 exploit **before** saving anything in the ash-gate panel
-(`docs/m07-playtest.md` §5-6). Refused → the rule reaches a device two levels
+(M7 live test). Refused → the rule reaches a device two levels
 down, and this entry becomes RESOLVED. Succeeds → the rule is inert and the
 `active` flag is the only gate, which is worth writing down before M5 designs
 its own hidden Firewall.
 
 **Update 2026-10-02 (audit fix pass).** The skeleton shortcut is gone:
 `M07_RDP_OPEN_FROM_BUILD` is `false`, so 3389 is `active: false` from the build
-and the firewall step opens it. The test above is unchanged and now lives at
-`docs/m07-playtest.md` §5 ("Before the Save, the RDP exploit must fail").
+and the firewall step opens it. The test above is unchanged:
+before the Save, the RDP exploit must fail.
 
 ---
 
@@ -1907,7 +2029,7 @@ for the rebuild job, but nothing has yet confirmed that a job measured in
 **tens of seconds** of real time still fires while the player sits inside a
 Meterpreter session, that `cancelKind` reliably stops it, or that it survives
 (or is cleared by) `mods.reset` — which clears `Storage` and `Variables` but,
-per the corrected E-4 (`docs/app-asar-reference.md`, 2026-10-03), leaves
+per the corrected Engine facts E-4 (2026-10-03), leaves
 `SaveStorage` and persisted `Scheduler` jobs alone, so a reset does not cancel
 the job.
 
@@ -1926,7 +2048,7 @@ removed `controller/m07/probes.ts` with its three probe lines, so
 no longer exist. The same question is answered now by `[FP][M07] banner shown
 ip=203.0.113.161 totalMs=240000` (armed), the banner flipping to EXTRACTION
 COMPLETE (disarmed) and `[FP][M07] trace expired penalty=<n>` (expired);
-`docs/m07-playtest.md` §7-8. The entry stays OPEN: it is still unverified live.
+that is the M7 live test. The entry stays OPEN: it is still unverified live.
 
 `Scheduler.remaining(id)` returns **in-game** milliseconds (SDK `index.d.ts`:
 "In-game ms until `id` fires"), so a real-time comparison has to go through
@@ -1941,7 +2063,7 @@ pass; M07's trace halving now converts it.
 Raised: M06 skeleton, 2026-10-02.
 
 M06 is designed with `networkIps: []` and `networks: () => []`
-(`docs/world-building/08-spec-m5-m6.md` §C1). Read against the code that path is
+(the zero-network design). Read against the code that path is
 sound, and a mocked-SDK harness (52 checks) confirms the following, but **none
 of it has run in the game**:
 
@@ -1957,7 +2079,7 @@ of it has run in the game**:
 - No `createSubnetNetwork`, no `registerDomain`, no `destroyNetwork` is ever
   called, so there is nothing to scan behind any M06 domain for the whole mission.
 
-**What the live test has to confirm** (`docs/m06-playtest.md`): that such a
+**What the live test has to confirm**: that such a
 mission starts, runs its gates and completes; that no network is built (no
 `Network.createSubnetNetwork` in the log); and above all that `dirhunter <host>` lists a mod site's registered
 paths with **no subnet anywhere in the mission** (E-3 says the lookup is by host
@@ -1995,7 +2117,7 @@ Raised: M04 skeleton, 2026-10-02.
 
 The countdown banner, the desktop lock, the `~/compositor` recovery folder and
 `repel` / `sysdiag` / `sysrepair` were live-tested on 2026-10-01 **inside
-`src/debug/`'s lab** (`docs/world-building/10-spec-m4.md` §I). Phase 3 adapts the
+`src/debug/`'s lab** (since deleted). Phase 3 adapts the
 generic parts into `components/intrusion.ts`,
 `components/desktop-breach.ts`, `components/desktop-lock.ts`,
 `components/incident-banner.ts` and three global commands, and drives them from a
@@ -2034,7 +2156,7 @@ in the game:
 **Also still open from the lab:** the terminal watcher keeps the lab's DOM
 queries and synthetic double-click, with its release failsafe (three attempts,
 then unlock) unchanged, and `mods.reset` during an active strike is handled only
-through `Game.SessionStarted`. `docs/m04-playtest.md` §5 is the test the owner
+through `Game.SessionStarted`. M4's reset test is the test the owner
 asked for.
 
 ---
@@ -2101,7 +2223,7 @@ the mod is not ours, and nothing says it preserves types.
 **Fallback if the live test shows the step never fires:** send
 `String(record.id)` from the page and parse it in the listener
 (`Number.parseInt(String(data.id), 10)`). Both ends are one line.
-`docs/m05-playtest.md` §6 is the step to watch; the probe line is
+Step 6 of M5 (profiling the administrator) is the one to watch; the probe line is
 `[FP][M05] probe:leak-record-opened id=1 (match)`.
 
 The same mission also relies on `Terminal.Lynx.Search` carrying a **bare string**
@@ -2148,7 +2270,7 @@ Two things could go wrong and neither shows up in a harness that stubs the SDK:
    opaque codes for the same reason, so a truncated list is the only failure mode
    here, not a spoiler.
 
-`docs/m06-playtest.md` §1 and §6 are the steps to watch. The probe lines are
+The first and sixth steps of M6 are the ones to watch. The probe lines are
 `[FP][M06] probe:stage=<n>` and
 `[FP][M06] probe:dirhunter-no-subnet host=pcr-registry.org`.
 
@@ -2158,7 +2280,7 @@ the tip read (1), `whois marlowepryce.biz` (2), the visit to `/filings/archive/`
 reported. What this does not isolate: `probe:stage` prints the value `stageForM06` computes, not what `readM06Stage()` returned, and
 the `>=` comparison would also accept a string, so the number-versus-string question is answered only by behaviour, not
 directly. Still open: whether `dirhunter` printed all 13 paths (only the archive was confirmed) and the page-render checks listed in
-`docs/m06-playtest.md` §15.
+the M6 live-test notes.
 
 ---
 
@@ -2184,8 +2306,8 @@ y=o7e().filter(se=>se.Pages.find(he=>he.seo!==!1))
 
 No page in `src/` sets `seo` or `search`, and no site sets `Popular`, so **none
 of the mod's sites can be returned by a Goagle search**, whatever the player
-types. The world-building plan never asked for that (`04-web-layer.md` §C rows 5
-and 6 and §D keep `Popular` and `search` in Tier 2, unproven), but the cloud
+types. The design plan never asked for that (the web-layer notes
+keep `Popular` and `search` in Tier 2, unproven), but the cloud
 build of M05 and M06 relied on the player finding `echoline.net`,
 `leakindex.net` and `hosttrail.net` by name, and nothing named them.
 
@@ -2193,9 +2315,9 @@ build of M05 and M06 relied on the player finding `echoline.net`,
 in-world, as text, **before** the step that needs it: a mail, a page, a file. The
 player types the host into the browser or the terminal. Do not count on search.
 Setting `seo`, `search` or `Popular` stays Tier 2 until `weblab` proves it
-(world-building README #9 and #16).
+(it did: #62 to #64).
 
-**What was done.** World-building README #38. M05: two Custodian follow-up mails
+**What was done.**  M05: two Custodian follow-up mails
 (`drop@drop.null`), the archive lead when `vaultRevisited` unlocks
 `echoline.net` and the lookup lead when `edgeMapped` unlocks `leakindex.net`,
 and a remote-access line on the two Echoline staff captures that names the
@@ -2338,8 +2460,8 @@ save).
 **Fix shipped.** `components/log-file.ts` (`parseLog` turns syslog-style text into entries, types from keywords,
 dates from the story day; `asLogData` is the one cast) and `components/file-reads.ts` (`onFileRead` listens to
 `Terminal.Cat`, the `open` command's event and `Files.Open`, and matches names ignoring a ` (n)` copy suffix). M4's
-three clue logs use them, so reading a clue by `cat`, `open` or the Log Viewer advances the same step
-(`docs/world-building/README.md` #45). Since 2026-10-04 every file checkpoint reads through `onFileRead`: M1 (`sales_ledger`, `ops-relay`), M2 (`deploy.log`, `sync-home.txt`, the workstation files), M3 (`site_to_site_backup`, the Reyes note), M5 (statement, memo, ticket, Greta notes, found note) and M7 (`manifest.txt`, `ash-gate_backup.txt`), so a double-click in the Files app on a transferred copy advances the same step as `cat` or `open`. That also widened two paths that counted only one way: M2 `sync-home.txt` counted only `cat` (with an exact content match), and the M2 workstation files only `open`. The M7 ledger trap alone still listens to `open`. The `.log` files of M1, M2 and M5 (`sales_ledger`, `ops-relay`, `auth`, `cron`, `system`, `deploy`, `usb_history`) are Log Viewer entries.
+three clue logs use them, so reading a clue by `cat`, `open` or the Log Viewer advances the same step.
+Since 2026-10-04 every file checkpoint reads through `onFileRead`: M1 (`sales_ledger`, `ops-relay`), M2 (`deploy.log`, `sync-home.txt`, the workstation files), M3 (`site_to_site_backup`, the Reyes note), M5 (statement, memo, ticket, the administrator's notes, found note) and M7 (`manifest.txt`, `ash-gate_backup.txt`), so a double-click in the Files app on a transferred copy advances the same step as `cat` or `open`. That also widened two paths that counted only one way: M2 `sync-home.txt` counted only `cat` (with an exact content match), and the M2 workstation files only `open`. The M7 ledger trap alone still listens to `open`. The `.log` files of M1, M2 and M5 (`sales_ledger`, `ops-relay`, `auth`, `cron`, `system`, `deploy`, `usb_history`) are Log Viewer entries.
 
 **`ops-relay.log` shows only `[ENCRYPTED]` in the Log Viewer.** Its single entry keeps `[ENCRYPTED]` as the description and carries the base64 blob in the `type` field: the viewer maps an unknown type to a grey "Event" badge and never prints it, while `cat` prints `[date] TYPE description`, so the terminal shows `[2026-09-16 15:01:00] <blob> [ENCRYPTED]` and the blob is read and copied there. `DeviceSpec.typedLogs` fixes the type per file name. Read in the engine source (`cat` ~10640800, Log Viewer ~14825224), not yet seen in the game.
 
@@ -2455,7 +2577,7 @@ how mod context is lost (#19). It is a static import now and `grep -rn "await im
 
 ## 62. Goagle `search` keywords work only on static pages; a dynamic or gated page is found through its title or site name
 
-**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; `docs/app-asar-reference.md` E-13).**
+**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; Engine facts E-13).**
 Found: weblab (`src/debug/portal-lab.ts`), 2026-10-04. The two Popular lab sites carried `search` keywords inside
 `metadata()`. On Goagle only "endpoint monitor" found a site (the query is part of its title); "encrypt" and
 "workstation console" found nothing.
@@ -2467,13 +2589,13 @@ partial query ("seoprob") still found a site through its `SiteName`.
 
 **Consequences.** Every mission site goes through `gateMissionPages` and is therefore dynamic, so a `search` list on it
 does nothing. A site that must be found by a phrase needs the phrase in its title or `SiteName`, or must be `Popular`
-(#64). A static page cannot be gated (`docs/rules.md` §6), so the choice is per site. `docs/draft.md` §6.6 (the
-Echoline keywords) is corrected accordingly.
+(#64). A static page cannot be gated (`docs/rules.md` §6), so the choice is per site. The Echoline keywords
+were corrected accordingly.
 
 ## 63. A closed `seo` page still shows in Goagle when its closed branch returns `notFoundMetadata()`; return `null` for Goagle and the 404 object for a visit by address
 
 **Status: WORKAROUND (the pattern passed a live test in `src/debug/seo-lab.ts`; not yet applied to `gateMissionPages`).**
-Found: weblab, 2026-10-04 (`docs/app-asar-reference.md` E-14).
+Found: weblab, 2026-10-04 (Engine facts E-14).
 
 Goagle calls `metadata()` of every `seo` page for every query and drops a page only when the result is falsy.
 `notFoundMetadata()` is an object, so a page that is closed that way is still listed, through its `SiteName` or the title
@@ -2489,14 +2611,14 @@ Live results (site "Seoprobe Lab", page title "Seo Probe"): open, `seoprob` and 
 it on Goagle and the address showed the 404 page.
 
 **Consequences.** `gateMissionPages` (`src/websites/global/page-guards.ts`) still returns `notFoundMetadata()` when a mission
-is closed. No mission page sets `seo` today, so nothing leaks yet. The M5 foundation (`docs/draft.md` §3 and §6.6: the
+is closed. No mission page sets `seo` today, so nothing leaks yet. The M5 foundation (the
 hospital home page, Echoline) will, and then the closed branch must follow the rule above. `metadata()` also runs for every
 Goagle query and twice per navigation (the cause was not read), so the closed check must be a pure read (#36).
 
 ## 64. An empty `Icon` shows a pale default globe that is almost invisible in the "Goagle apps" grid
 
 **Status: RESOLVED for the lab sites; OPEN for the mission sites (every one sets `Icon = ""`).**
-Found: weblab, 2026-10-04 (the owner: the Popular lab sites had no icon). `docs/app-asar-reference.md` E-15.
+Found: weblab, 2026-10-04 (the owner: the Popular lab sites had no icon). Engine facts E-15.
 
 The grid lists every `Popular` site as a 32 px `<img src={Icon}>`. A falsy `Icon` is replaced by the engine's default, a
 32 x 32 gray globe. The resolver accepts `http(s)://`, `data:` and `mod-asset://` URLs, and turns `./assets/x.png` into
@@ -2504,14 +2626,14 @@ The grid lists every `Popular` site as a 32 px `<img src={Icon}>`. A falsy `Icon
 browser's bookmark list draws the same field (read in the engine, not seen live).
 
 **Consequences.** A site that becomes `Popular` needs a real icon, a `data:` URI or a file under `public/assets/` (BACKTRACE
-does the second for its app). LeakIndex (planned as a global Popular site, `docs/draft.md` §3.5) is the first mission case.
+does the second for its app). LeakIndex (planned as a global Popular site) is the first mission case.
 `Popular` is read once when the site class is built, so a site cannot become Popular at a step.
 
 ## 65. Website `Exports` carry numbers and return values, and a `SharedVariables` write inside one works, so a login needs no fallback
 
-**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; `docs/app-asar-reference.md` E-16).**
-Found: weblab (`src/debug/exports-lab.ts`), 2026-10-04. It closes the doubts recorded in `docs/m05-playtest.md` §15
-(a numeric argument) and `docs/draft.md` R3 (a return value to the page).
+**Status: DOCUMENTED (engine read and confirmed live, 2026-10-04; Engine facts E-16).**
+Found: weblab (`src/debug/exports-lab.ts`), 2026-10-04. It closes the doubts recorded earlier
+(a numeric argument, a return value to the page).
 
 Seen live: a string argument, a number argument (it arrives as a number) and a number inside an `Events.emit` payload (still a
 number) reach the mod; the page receives the return value unchanged (string, number `43`, boolean, a plain object, and
@@ -2520,7 +2642,7 @@ number) reach the mod; the page receives the return value unchanged (string, num
 shows it.
 
 **Consequences.** A portal login can pass two strings, get a boolean back, write the mirror in the same call, and switch
-view from the result or on reload. The "Continue" fallback of `docs/draft.md` §6.2 is not needed, and numeric ids
+view from the result or on reload. The "Continue" fallback is not needed, and numeric ids
 (`flatlineOpenLeakRecord(1)`, `flatlineMonitorLogin(1)`) can stay numbers. Not shown: whether code after an `await` inside an
 `Exports` function still has the mod context (the engine pops it when the synchronous call returns, so assume not, #6 and
 #19), and why a page's `metadata()` runs twice per navigation; a render must stay free of writes.
@@ -2530,7 +2652,7 @@ view from the result or on reload. The "Continue" fallback of `docs/draft.md` §
 **Status: UNVERIFIED (implementation 2026-10-05; none of this has run in the game).**
 Found: while building the hospital web, the portal, Cipher Desk and Remote Desktop Connection from the lab. The mocked-SDK harness
 (outside the repo) drives the real controllers and site `Exports` through the whole 20-step chain, so what is listed here is only
-what the stub cannot reproduce. The live tests are in `docs/m05-playtest.md` §21.
+what the stub cannot reproduce. The live tests are the M5 live-test list.
 
 | Item | What the code assumes | What would show it wrong |
 |---|---|---|
@@ -2577,7 +2699,7 @@ terminal prints what the gate counts. The hospital site search follows #62: a re
 ## 69. The M5 `door` and M7 `evidence` report fields still look for the old surname
 
 **Status: FIXED 2026-10-06 (found in the docs sweep, fixed on the owner's EKSEKUSI). Typecheck and a check of the matcher only; the reports were not re-tested in the game.**
-The rename of 2026-10-05 (README #66) changed `GRETA_FULL_NAME` to "Roxanne Anindita Natnaree" and `GRETA_SHORT_NAME` to "R. Natnaree",
+The rename of 2026-10-05 changed `GRETA_FULL_NAME` to "Roxanne Anindita Natnaree" and `GRETA_SHORT_NAME` to "R. Natnaree",
 but two lowercase term lists were not touched:
 
 - `content/m05/report.ts:19-20`: `M05_REPORT_DOOR_TERMS = ["greta", "souza"]`, `M05_REPORT_DOOR_REJECTED_TERMS = ["gareth"]`, used by
@@ -2591,7 +2713,7 @@ but two lowercase term lists were not touched:
 `report-match` normalisation: "Roxanne Anindita Natnaree", "R. Natnaree" and "natnaree" match `door`, "Gideon Bayu Teoh" and the old
 "Greta de Souza" do not; `employee negligence (R. Natnaree)` matches `evidence`, `employee negligence` alone does not. Checked while
 looking: every other lowercase old-name string left in `src` is an internal id (the BACKTRACE key `greta`, `M05_LOG_GRETA`).
-`docs/m05-playtest.md` section 18 and `docs/m07-playtest.md` state the accepted terms.
+The accepted terms are in the report matchers (`M05_REPORT_DOOR_TERMS`, `M07_REPORT_EVIDENCE_PERSON_TERMS`).
 
 ## 70. The RDC puzzle seed lived only in the page's `localStorage`, and `help` did not list `man troubleshooting`
 
@@ -2609,7 +2731,7 @@ holds the first seed reported; `M05RdcMirror.seed` carries it to the page. The p
 local puzzle progress when it differs, and a local seed the mod does not know yet is reported. `help` now reads
 `man agent | signal | format | troubleshooting`. The agent README (`man agent`) gained one line: heads under `/sys/class/graphics`,
 relays under `/etc/agent/relays.d`, the display's history in `/var/log`. `ReadStep.step` in `controller/m05/rdc.ts` became `M05Step` because a number field
-no longer fits `keyof M05QuestData` as a gate step. `docs/m05-playtest.md` sections 16 and 21 describe the restart check.
+no longer fits `keyof M05QuestData` as a gate step. The restart check is in the M5 live-test list.
 
 ## 71. The portal's first puzzle step had no instruction and nothing downstream used it
 
@@ -2659,7 +2781,7 @@ Raised: two Discord screenshots from a player (game clock 19:04 and 19:11, 2026-
 
 **Fix.**
 (1) `beginBacktraceStory()` in `applications/backtrace-state.ts` replaces `setBacktraceApplied`. It rewrites the `backtrace` key (M1 to M7 clean, M1 `progress`, `story.applied = true`) and is called from `onStartM01`, which runs only on a new claim. That closes (1) and (2b).
-(2) M1 is no longer `Abandonable`: `Abandonable`, `OnAbandon` and `onAbandonM01` are removed from `main/m01.ts` and `controller/m01/index.ts`. No mission has an Abandon button now; restarting is `mods.reset`. This reverses the 2026-10-01 decision "Abandonable only on M1" (D4 in `scratch.md`), because Abandon skips a mission instead of cancelling it.
+(2) M1 is no longer `Abandonable`: `Abandonable`, `OnAbandon` and `onAbandonM01` are removed from `main/m01.ts` and `controller/m01/index.ts`. No mission has an Abandon button now; restarting is `mods.reset`. This reverses the 2026-10-01 decision "Abandonable only on M1" (decision D4 of the M2/M3 migration), because Abandon skips a mission instead of cancelling it.
 
 **Not changed.** The BACKTRACE app (FINAL LOCK) still opens on The Story page. A save already running M1 from the old build keeps M1 `locked` in BACKTRACE until its next traced finding (a safe heal would have to keep the facts and logs). A save where M1 was already abandoned and M2 started needs `mods.reset flatline-protocol` once; the M1 start then wipes the BACKTRACE state.
 

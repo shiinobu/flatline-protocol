@@ -1,37 +1,19 @@
 # FLATLINE PROTOCOL — `src/` Architecture
 
-**Status: LOCKED 2026-09-18** — this is the mandatory structural pattern for
-Missions 1-4. Chosen over entity-resolution-mods' full layered
-(`core/domain/state/application/infrastructure/content`) pattern: that
-depth exists in entity-resolution-mods to support a 16-quest campaign with
-its own persistent cross-quest domain models (evidence graphs, relationship
-tracking, etc.) — FLATLINE PROTOCOL is 4 missions with no equivalent shared
-domain model, so the full layering would be pure ceremony here.
+**Status: LOCKED** (2026-09-18, revised 2026-10-08) — the mandatory structure for all seven missions (`m01` to `m07`: First Trace,
+The Maker, Money Trail, Burn Notice, The Door, Open Register, The Architect): a thin quest class per mission, a controller that
+assembles it, mission-blind generic layers, and the mission's data in its own folders. Content and logic never mix (see "Content and
+logic never mix" below).
 
-This is the **Hybrid** pattern: the official `create-hackhub-mod` scaffold's
-flat top-level folders, plus entity-resolution-mods' single most
-load-bearing rule (content/logic split) applied inside `main/` instead of
-its own dedicated `content/` root — see below.
+## Restructure history
 
-## Restructure status (2026-10-02)
-
-The `src/` restructure is **finished: all seven missions follow the mission
-pipeline below.** M01 landed on 2026-09-20, M02 and M03 on 2026-10-01 (both
-passed their live test the same day), and M04-M07 on 2026-10-02 in one run:
-the old M4 was migrated to mission id `m07` and rewritten as "The Architect",
-and `m04` was rebuilt as "Burn Notice", with `m05` ("The Door") and `m06`
-("Open Register") written from their specs. The older shape (one
-`main/mNN.ts` holding the quest class plus all of its helpers, fed by a flat
-`content/mNN.ts`) survives only in the `*.original.*` reference copies under
-`src/archive/`, which are imported by nothing. **None of M04-M07 has been live-tested yet** — `tsc --noEmit` is
-clean and every mission has a mocked-SDK harness, but nothing beyond that; the
-per-mission scripts are `docs/m04-playtest.md` through `docs/m07-playtest.md`.
-The generic additions M2 and M3 needed (splitter and printer nodes, device and
-domain vulnerabilities, databases, restore data, boolean-only gates, the global
-site-string cache) landed on 2026-10-01 as "Phase 0"; the ones M4-M7 needed
-(`components/reward.ts`, `components/intrusion.ts`, the desktop-breach and
-incident-banner kit, `commands/flatline.ts` (named `repel.ts` until 2026-10-03), `sysdiag`, `sysrepair`) landed with
-their own phases, and the plans are in `docs/scratch.md`.
+All seven missions follow the pipeline below. M01 landed on it on 2026-09-20, M02 and M03 on 2026-10-01, and M04 to M07 on 2026-10-02
+(the old M4 became `m07` and was rewritten as "The Architect", `m04` was rebuilt as "Burn Notice", `m05` and `m06` were written new).
+The older shape (one `main/mNN.ts` holding the quest class and all its helpers, fed by a flat `content/mNN.ts`) survives only in the
+frozen reference copies under `src/archive/`, which nothing imports. The generic parts the later missions needed live in
+`components/`: splitter and printer nodes, databases, restore data, boolean-only gates and the global site-string cache, then the
+incident banner, desktop breach and recovery console kit used by M4 and M7, `commands/flatline.ts` (named `repel.ts` until
+2026-10-03), `sysdiag` and `sysrepair`.
 
 ## Mission pipeline (all seven missions)
 
@@ -69,8 +51,6 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   build). Databases are applied after a build and removed after the awaited
   teardown, never beside a `destroyNetwork`: its reply puts the whole store
   back (bugs #35).
-  Not to be confused with entity-resolution-mods' `core/`, which is a
-  different thing (see below).
 - **`components/`** — flat building blocks used by two or more missions:
   `topology` (networks of router, splitter, firewall, printer and device
   nodes, port/firewall changes, per-device vulnerabilities set after the
@@ -78,7 +58,7 @@ main/mNN.ts  ->  controller/mNN/  ->  core/ . components/ . middleware/   (gener
   data), `database`, `persona` (Twotter), `report` (GoMail template and
   dual-path validation). The M4/M7 kit lives here too (all mission-blind, state
   under a `SaveStorage` prefix the mission passes in): `intrusion` (strike
-  state, deadline job, repel targets), `incident-banner` (+ `.html` widget, a
+  state, deadline job, flatline targets), `incident-banner` (+ `.html` widget, a
   `broadcast` variant for M4), `desktop-breach` (breach state, kernel files,
   restore), `kernel-files` / `kernel-layout` (real files under `/lib/modules`,
   `/etc`, `/boot`, `/var/log`, written by sweeping `name (n)` copies, bugs #57),
@@ -174,12 +154,12 @@ unless `areMissionSitesOpen(mission)`, which is true only between that mission's
 except LedgerVault (Blackwire, Frostgate, Obsidian, ClearEscrow),
 TR4C3404 (M2), Skynet Import-Export (M3), the eight PacificCare hospital hosts and the
 portal (M5, since 2026-10-05; the M1 hospital site moved there), the Registry and
-HostTrail (M6), HoneyCheck and the C2 dashboard (M7), and the Echoline captures
+HostTrail (M6), the claims portal, the legacy CMS and the ledger room (M7), and the Echoline captures
 (each one by the mission it belongs to; the Echoline index lists only the
 groups that are open). A closed page with `seo: true`
 answers a Goagle search with `null` and a visit by address with the 404 page (`bugs.md` #63). Not gated,
 on purpose: Cipher Desk and Remote Desktop Connection (permanent `Popular` tool sites), LedgerVault (its domain is permanent and it has its own seal,
-`isM01VaultSealed`) (BLACKLEDGER used to be a second exception; since 2026-10-07 its site is an M7 mission site gated by `gateMissionPages("m07")` plus the `ledgerRoomOpen` mirror, README #83). The
+`isM01VaultSealed`) (BLACKLEDGER used to be a second exception; since 2026-10-07 its site is an M7 mission site gated by `gateMissionPages("m07")` plus the `ledgerRoomOpen` mirror). The
 mirror is session-only and only written by controllers, so a game that starts
 with a finished mission has every gated site closed.
 
@@ -187,72 +167,59 @@ with a finished mission has every gated site closed.
 
 ```text
 src/
-  content/     — data per mission in `content/mNN/` (see the pipeline above;
-                 M04 is still a flat `mNN.ts` with objective IDs, the
-                 Objectives array, target IPs/hosts, nmap/lynx/dirhunter
-                 fixture results, dialog trees, mail bodies, reward numbers,
-                 delay constants). Shared modules sit in `content/global/`:
-                 `characters.ts`, `blackledger.ts`, `case.ts` and
-                 `finance.ts` — the ransom money model (three batches, one
-                 60/25/5/10 waterfall, USD formatting), the single source
-                 of every amount in M2, M3 and BACKTRACE; it imports only
-                 `M01_CASE_ID` (from `case.ts`) — and `entities.ts`, the
-                 canon names more than one mission or BACKTRACE needs (the
-                 shell company M2 finds and M3 builds on, the parent entity
-                 M3 names and M4 reuses).
-  main/        — mNN.ts per mission. M01-M03: a thin class that delegates to
-                 `controller/m01/`, `controller/m02/`, `controller/m03/` (none
-                 is `Abandonable`, so none has an `OnAbandon`: an abandoned quest
-                 counts as completed and starts the next one, bugs #73). M04 (older shape): the only file
-                 that imports its matching content/mNN.ts, registers the
-                 quest, wires SDK event listeners to objective completion
-                 and owns small behavior-only helpers (fixture registration,
-                 mail-send wrappers, event handlers).
+  content/     — data per mission in `content/mNN/` (see the pipeline above):
+                 objective IDs, the Objectives array, target IPs and hosts,
+                 nmap/lynx/dirhunter fixture results, mail bodies, reward
+                 numbers, delay constants. Shared modules sit in
+                 `content/global/`: `characters.ts`, `blackledger.ts`,
+                 `case.ts`, `handbook.ts` (the Handbook binding), `finance.ts`
+                 (the ransom money model: three batches, one 60/25/5/10
+                 waterfall, USD formatting; the single source of every amount
+                 in M2, M3, M7 and BACKTRACE) and `entities.ts` (canon names
+                 more than one mission or BACKTRACE needs).
+  main/        — mNN.ts per mission: a thin class that delegates to
+                 `controller/mNN/`. No mission is `Abandonable`, so none has
+                 an `OnAbandon`: an abandoned quest counts as completed and
+                 starts the next one (bugs #73). `global.ts` registers the
+                 shared features (Cipher Desk, Remote Desktop Connection,
+                 BACKTRACE, `open`, `flatline`, `sysdiag`, `sysrepair`).
   controller/ core/ components/ middleware/ i18n/ context/
                — the mission pipeline layers, described above.
   commands/    — custom @RegisterCommand terminal commands with no native
-                 SDK equivalent (`open`, `flatline` (was `repel`),
-                 `sysdiag`, `sysrepair`).
-  applications/ — custom desktop Apps: currently BACKTRACE, GHOSTWIRE's
-                  case file (the @RegisterApp class, its HTML, and the
-                  SaveStorage state + facts helpers the quests use). Flat,
-                  no per-app subfolders — see "Applications: BACKTRACE"
-                  below.
+                 SDK equivalent: `open` (with `meterpreter-files.ts` for
+                 Meterpreter targets), `flatline`, `sysdiag`, `sysrepair`.
+  applications/ — the custom desktop App BACKTRACE, GHOSTWIRE's case file
+                  (the @RegisterApp class, its HTML, and the SaveStorage
+                  state, facts and log helpers the quests use). Flat, no
+                  per-app subfolders; see "Applications: BACKTRACE" below.
   websites/    — Website page registrations (@RegisterWebsite/Host/Pages)
-                 + their HTML, one subfolder per site under the mission
-                 (`m01/` marketplaces and LedgerVault, `m02/` TR4C3#404's
-                 panel, `m03/` Skynet Import-Export's public site, ...).
-                 `global/` holds the page guards (`requireHttps`,
-                 `securePage`, `notFoundPage`), `localize.ts` and the two
-                 shared error templates.
-  guard/       — dev/prod gating helpers with no story content of their
-                 own (`flags.ts` — isDev/isDebug/isTester, questGate/
-                 isQuestDevFocus/applyDevGating, see
-                 docs/rules.md §2a). Kept separate from
-                 content/ since it's not mission data, and separate from
-                 the quest files since every mission imports it.
-  helpers/     — `logger.ts` (`trace`) and `network.ts` (mission network
-                 reset/exist checks, used by `components/topology.ts` and
-                 the not-yet-migrated missions).
-  debug/       — live-test tooling (`msf-lab`, the `msflab` sandbox
-                 command; the weblab of 2026-10-04: `portal-lab` with the
-                 `portallab` command and the mock `dashboard-preview.html`,
-                 `seo-lab` with `seolab`, `exports-lab` with `exportslab`);
-                 every registration and trace is gated on
-                 `isDebug` through `debug/debug-gate.ts`. The M4 lab
-                 prototypes (rival-hacker lab, quiet-start) were removed on
-                 2026-10-03 and live on in git history.
+                 and their HTML, one subfolder per site under the mission
+                 (`m01/` marketplaces and LedgerVault, `m02/` TR4C3404,
+                 `m03/` Skynet Import-Export, `m05/` the hospital and portal,
+                 `m06/` the Registry, HostTrail and the door, `m07/` the
+                 claims portal, the legacy CMS and the ledger room). `global/`
+                 holds the page guards (`requireHttps`, `securePage`,
+                 `notFoundPage`), `localize.ts`, the two shared error
+                 templates, and the tool sites `cipherdesk/`, `rdcdesk/` and
+                 `echoline/`.
+  guard/       — dev/prod gating helpers with no story content of their own
+                 (`flags.ts`: isDev, isDebug, isTester, questGate,
+                 isQuestDevFocus, applyDevGating, see docs/rules.md §2a).
+                 Kept apart from content/ because it is not mission data and
+                 from the quest files because every mission imports it.
+  helpers/     — `logger.ts` (`trace`, the only place that prints).
+  debug/       — `index.ts` and `debug-gate.ts` only: the `isDebug` gate a
+                 future lab would use. The 2026-10 labs (`msf-lab`,
+                 `portal-lab`, `seo-lab`, `exports-lab`, the rival-hacker lab)
+                 were deleted on 2026-10-07 and live in git history.
   archive/     — frozen pre-redesign reference copies, imported by nothing:
                  `archive/content/` and `archive/main/` hold the
                  `mNN.original.ts` pairs of M01-M04, `archive/applications/`
                  holds `backtrace.original.html` (the BACKTRACE UI from before
-                 the v3 redesign). Each `.original.ts` quest file imports its
-                 sibling `archive/content/mNN.original.js`, never the live
-                 content file. `tsc` still typechecks them because
-                 `tsconfig.json` includes `src`.
-  index.ts     — production bootstrap: which missions are actually active
-                 (import list is the single source of truth, same
-                 convention as entity-resolution-mods).
+                 the v3 redesign). `tsc` still typechecks them because
+                 `tsconfig.json` includes `src`; the build does not ship them.
+  index.ts     — production bootstrap: which missions are active (the import
+                 list is the single source of truth) and the Handbook binding.
   types.d.ts   — ambient module declarations (currently *.html strings).
 ```
 
@@ -262,35 +229,22 @@ scaffold ahead of need. `applications/` exists because BACKTRACE is a
 cross-mission feature that belongs to no single mission's `content/` or
 `main/` file.
 
-## The one rule carried over from entity-resolution-mods
+## The Handbook
 
-**Content and logic never mix, in either direction.** A mission's content is
-a single, ungated value — never forked by a dev flag, never containing
-`this` or quest behavior (it may hold pure builders that call
-`Localization.t` or the SDK's data factories such as `Network.createUser`).
-The controller (older shape: `main/mNN.ts`) imports the content and adds
-behavior only. This is the rule entity-resolution-mods learned the hard way
-(`HackhubPost` and the phone-call `Dialog` tree were both missed on a first
-pass and left inline in a quest file — see that project's
-`docs/implementation-rules.md` §1) — worth keeping even without the rest of
-its layering.
+`content/global/handbook.ts` registers one category, "Flatline Protocol", with seven pages (Briefing, Cases, Terminal, Metasploit,
+Commands, BACKTRACE, Comfort) through `Handbook.registerEntry`. Titles and bodies are read with `Localization.t` from
+`i18n/global/handbook.ts` (en and zh). `src/index.ts` calls `bindHandbook()` in `OnModPackageLoaded`, and the pages are registered
+again when the language changes.
 
-## What was deliberately NOT carried over
+## Content and logic never mix
 
-entity-resolution-mods' `core/`, `domain/`, `state/`, `application/`
-layers (branded IDs, `Result<T,E>`, `StateStore`/`FlagStore`,
-`QuestService`/`RewardService`/`EconomyService`/etc.) exist to give that
-project's 16-quest campaign a single canonical, testable state model
-independent of the HackHub SDK. FLATLINE PROTOCOL's SaveStorage/state needs
-are expected to be small enough (4 missions, a handful of flags/evidence
-items) that `Shell`/`Files`/`SaveStorage` calls living directly in
-`main/mNN.ts` should be sufficient. **Revisit this if that stops
-being true** (e.g. if cross-mission state tracking — the recurring
-dead-drop contact, the VPN-IP thread from M3→M4 — turns out to need more
-than a couple of shared flags) rather than assuming the flat structure is
-permanent no matter what. The first cross-mission state now exists —
-BACKTRACE's `backtrace` key, below — and it is still one helper and one
-key, so the flat structure holds.
+A mission's content is a single, ungated value, never forked by a dev flag and never containing `this` or quest behavior (it may hold
+pure builders that call `Localization.t` or the SDK's data factories such as `Network.createUser`). The controller imports the content
+and adds behavior only. A feed post (`HackhubPost`) or a dialog tree left inline in a quest file is the usual slip.
+
+There are no separate domain, state or application layers: the SaveStorage and state needs are small enough that `Shell`, `Files` and
+`SaveStorage` calls live in the controllers and components. The first cross-mission state, BACKTRACE's `backtrace` key (below), is one
+helper and one key, so the flat structure holds. Revisit it if cross-mission state grows beyond a few shared flags.
 
 ## Applications: BACKTRACE
 
@@ -354,7 +308,7 @@ case file), as six flat files:
     (UNDER REVIEW, PAID, CLOSED) and a masking-tape date label per mission
     (`tape`, the date comes from `STORY_DATES`). The two photographs that
     used to hang there, `backtrace-receipt.jpg` and `backtrace-corridor.jpg`,
-    were removed from the board on 2026-10-07 (README #84); the files stay
+    were removed from the board on 2026-10-07; the files stay
     in `public/assets/global/` unused. A fill item
     appears once its mission is complete and the objects it `needs` are on
     the board. A name inside a note is a `{key}` token resolved to the name on
@@ -376,7 +330,7 @@ case file), as six flat files:
   `BACKTRACE_KEYS[mission]` does not compile; with `logs` it writes the trace and its
   personal log in one call and raises one combined toast, and `options.moment` marks a
   story moment: no toast, flagged in the card) and its untyped sibling
-  `traceBacktraceKeyById` (dev command only),
+  `traceBacktraceKeyById` (called by `traceBacktraceFinding`),
   `appendBacktraceLogs(mission, texts, options?)` for a log that belongs to no trace and
   `beginBacktraceStory()` (M1's start: rewrites the whole key), the only writers of the state, plus its types.
   `setBacktraceMission(mission, "complete")` stores `skipped` before the snapshot replaces `facts`. All are fail-safe: an
@@ -401,17 +355,6 @@ case file), as six flat files:
   log with no trace of its own (M3 aftermath, the M7 ending) is captioned `MOMENT` and drops its inline flag; any other
   line that is not in the table (an older build's text) is captioned `OTHER`. A mission whose `sources` is empty (a save
   not completed again yet) shows no captions at all.
-- `backtrace-command.ts` — the `backtrace` dev command, a temporary helper
-  for the owner who deletes it after production (the file and its one import in
-  `main/global.ts`). It started in `src/debug/scratch.ts`, moved here on
-  2026-09-29 as `backtrace-debug.ts` (command `scratchbt`) and was renamed on
-  2026-10-04: inspects/sets a mission's status and
-  traces one key at a time against the same `backtrace-state.ts` writers a
-  quest uses, so a save's BACKTRACE state can be driven by hand without
-  replaying a mission. `backtrace applied [on|off]` sets the HackHub Post
-  claim flag. It covers m1-m7 and registers only while `isDev`,
-  through its own private `registerDevCommand`: `applications/` never imports
-  from `debug/`.
 
 State is one `SaveStorage` key, `backtrace`:
 
@@ -439,11 +382,7 @@ plus every extra), taken before the quest's teardown wipes per-save data such
 as the M1 listing resolution, so a finished report always has every value.
 Every mission carries keys and a report card as of 2026-10-02; nothing shows
 "REPORT PENDING" any more. An App iframe can read
-`SaveStorage` — unlike a `Website`'s `metadata()` (`docs/bugs.md` #20) —
-confirmed in-game with the `backtrace` dev command (`src/applications/backtrace-command.ts`):
-`backtrace <mission> <status>` sets the state (facts included on `complete`)
-and cascades the next mission like the real `AutoStart` chain, `backtrace
-<mission> keys` lists the keys and `backtrace <mission> <key>` traces one.
+`SaveStorage` — unlike a `Website`'s `metadata()` (`docs/bugs.md` #20) — which is how the app reads the mission state.
 
 ### Keys, extras and Key Findings
 
@@ -487,7 +426,7 @@ guessed.
 | M3 | `vpnPeer` | `site_to_site_backup.txt` at the gateway session read by `cat` or `open` there, or in the Files app on a downloaded local copy (`onFileRead`). The Tunnel endpoint (`architectVpn`) stopped being a key on 2026-09-29: it is an extra in the COMPLETE snapshot, because the Wireshark capture that used to carry it was removed (`bugs.md` #34). |
 | M3 | `accomplice` | `RemoteConnection.Established` with `t === "SSH"` to Faded-Ledger (optional bonus thread; `Terminal.Explorer` there also counts but only Meterpreter/`evil-rm` raise it, `bugs.md` #33) |
 
-| M4 | `probe` | reading `~/logs/firewall.log` after the rebuild (a BACKTRACE key, not a gate; README #44, #45) |
+| M4 | `probe` | reading `~/logs/firewall.log` after the rebuild (a BACKTRACE key, not a gate) |
 | M4 | `breach` | the scripted second strike reaching the desktop (`breachBegan`, raised by the mission's own Scheduler job, not a player action); its log is a story moment: no toast, flagged "Moment" |
 | M4 | `relay1` | `RemoteConnection.Established` with `t === "SSH"` on Static-Hop, after its router panel is cracked with `hydra` |
 | M4 | `relay2` | `RemoteConnection.Established` with `t === "SSH"` on Quiet-Mirror — reachable only once `auth.log` on relay 1 is read |
@@ -505,12 +444,21 @@ guessed.
 | M6 | `insurer` | the insurer's register record opened (after the Holdings record), which is where the officer's position is published |
 | M6 | `infra` | `whois` on the insurer's domain, which answers with M3's own registrant (`Terminal.Whois`, after `insurerLinked`) |
 | M6 | `architect` | the Risk Committee minutes behind the Playfair door (`Browser.Meta` on `/minutes/` of the door host `x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion`, after `doorOpened`) |
+| M7 | `claims` | the three paid claims found on the insurer's portal (`paidClaimsMatched`) |
 | M7 | `nodes` | the hidden dashboard on the index host visited over https (`Browser.Meta`, the `dashboardFound` flag) |
+| M7 | `decoy` | optional: the decommissioned host probed; a honeypot alert and a loss follow |
 | M7 | `credential` | `ash-gate_backup.txt` on the forgotten relay read by `cat`, `open` or the Files app (`onFileRead`, the `credentialRead` flag) |
 | M7 | `firewall` | first Save in the edge filter's pfSense panel (`PFSense.Changes`, the `firewallBreached` flag) |
-| M7 | `c2` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the index host (`shellObtained`) |
+| M7 | `c2` | `RemoteConnection.Established` with `t === "METASPLOIT"` on the index host (`shellObtained`); it starts Duel 1 |
 | M7 | `manifest` | `manifest.txt` at that session read by `cat`, `open` or the Files app (`onFileRead`) |
-| M7 | `ledger` | `Files.Transfer` `DOWNLOAD` of the ledger backup, refused while the payload is wiped (`fileExtracted`) |
+| M7 | `orders` | `release_orders.log` read (`ordersRead`, after the manifest) |
+| M7 | `survey` | `survey_visits.txt` read (`surveyRead`, after the orders) |
+| M7 | `ledger` | `Files.Transfer` `DOWNLOAD` of the ledger backup, refused while the payload is wiped (`ledgerTaken`) |
+| M7 | `seal` | the sealed ledger file opened in Cipher Desk (`sealOpened`) |
+| M7 | `instruction` | the instruction document on the architect's workstation read in the RDC archive window (`instructionRead`, after `displayAttached`) |
+| M7 | `model` | optional: the model note on the workstation (`modelRead`) |
+| M7 | `dossier` | optional: the file about the player on the workstation (`dossierRead`) |
+| M7 | `ledgerRoom` | the BLACKLEDGER ledger room visited while it is open (`Browser.Meta`, `blackledgerSeen`) |
 
 `open` is the project's own terminal command (`src/commands/open.ts`): it
 prints a file of any extension and emits `flatline.open.fileRead`, which is
@@ -535,7 +483,7 @@ than regenerating it. Duplicate text for the same mission is a no-op. M2 logs
 two groups this way: `deployLogFound` (the deploy log's `cat`) and
 `aftermathShown` (the first `open` of a workstation file) — the same
 triggers that previously called `this.createDialog()`, before that mechanic
-was dropped for M2 (see `docs/changelog.md` 2026-09-27: it always presents as
+was dropped for M2 (2026-09-27: it always presents as
 an incoming phone call, but every line was `speaker: "GHOSTWIRE"`). M3 logs
 four groups (`ledger`, `tunnel`, `reyes`, `aftermath`; the `root` group went with
 `rootgrab` on 2026-10-01 and the `tunnel` group has three lines). BACKTRACE
@@ -561,7 +509,7 @@ fact renders as "—".
 
 ### Required traces, personal logs and the report
 
-Rule of 2026-10-04 (`docs/world-building/README.md` #52 and #53, `docs/rules.md` §13):
+Rule of 2026-10-04 (`docs/rules.md` §13):
 
 - A mission has at least 5 **required** traces (M1 stays at 4, owner-approved). A trace is required when its
   value is a field of the mission's report, optional otherwise (`BACKTRACE_OPTIONAL_KEYS`: M3 `accomplice`,
@@ -587,7 +535,7 @@ Rule of 2026-10-04 (`docs/world-building/README.md` #52 and #53, `docs/rules.md`
 | M4 | `hunter`, `relays`, `control`, `origin`, `contained` |
 | M5 | `door`, `cause`, `decider`, `gap`, `motive`, **`archive`** |
 | M6 | `architect`, `role`, **`agent`**, `chain`, `proof`, `front` |
-| M7 | `architect`, **`path`**, `evidence`, `choice` |
+| M7 | `architect`, `path`, `claims`, `reserves`, `orders`, `survey`, `account`, `instruction`, `choice` |
 
 A template field stays an unreplaced `{{field}}` token (`docs/rules.md` §3), so facts that used to be
 pre-filled (M2's ransom amount, M3's gateway name) are no longer interpolated into the template; they
@@ -595,7 +543,7 @@ appear only in the freehand body.
 
 ### Localization of the app
 
-Decision of 2026-10-04 (`docs/world-building/README.md` #54, `docs/rules.md` §13). The BACKTRACE interface
+Decision of 2026-10-04 (`docs/rules.md` §13). The BACKTRACE interface
 (titles, labels, buttons, toasts, trace values) is English only. Only prose that is read is localized:
 the personal logs (written by the controllers through `Localization.t`, so each one keeps the language that
 was active when it was written) and, inside `backtrace.html`, the 7 mission summaries, the 53 Key findings,
@@ -623,39 +571,29 @@ The story, and the closing letter (four paragraphs, the thanks line and the "War
 
 ## Naming convention
 
-Missions are `m01`-`m04` (not `q01`-`q16` — this project has no "quest"
-numbering precedent of its own, and "mission" matches the story's own
-framing): `content/m01/`, `main/m01.ts`. Mission titles for
-reference: m01 "Jejak Pertama", m02 "Sang Pembuat", m03 "Jalur Uang", m04
-"Sang Dalang".
+Missions are `m01` to `m07` (not `q01`-`q16`: the project has no quest numbering of its own, and "mission" matches the story's
+framing): `content/m01/`, `main/m01.ts`. Titles: m01 "First Trace", m02 "The Maker", m03 "Money Trail", m04 "Burn Notice", m05 "The
+Door", m06 "Open Register", m07 "The Architect".
 
-Inside a per-mission subfolder (`<layer>/m01/`) a file name does not repeat
-the mission prefix, because the folder already names the mission:
-`content/m01/listing-pool.ts`, not `content/m01/m01-listing-pool.ts`. A
-module used by two or more missions goes in a `global/` subfolder of the same
-layer (`content/global/finance.ts`, `websites/global/page-guards.ts`). A layer
-that only holds mission-independent code (`core/`, `components/`,
-`middleware/`) has neither `mNN/` nor `global/` folders. This applies as files
-move into per-mission subfolders; the `src/` restructure is in progress
-(`docs/changelog.md`, 2026-10-01).
+Inside a per-mission subfolder (`<layer>/m01/`) a file name does not repeat the mission prefix, because the folder already names the
+mission: `content/m01/listing-pool.ts`, not `content/m01/m01-listing-pool.ts`. A module used by two or more missions goes in a
+`global/` subfolder of the same layer (`content/global/finance.ts`, `websites/global/page-guards.ts`). A layer that only holds
+mission-independent code (`core/`, `components/`, `middleware/`) has neither `mNN/` nor `global/` folders.
 
 ## Bootstrap flow
 
 ```text
 src/index.ts
   imports (side-effect registration, decorator-driven):
-    main/index.js     (-> global.js, m01.js .. m04.js)
-    debug/index.js    (-> msf-lab, portal-lab, seo-lab, exports-lab)
+    main/index.js     (-> global.js, m01.js .. m07.js)
+    debug/index.js    (-> debug-gate only)
   ↓
   @RegisterModPackage class extends Bootstrap
+    Settings               -> the "Reduce motion and flashing" toggle
     OnModPackageLoaded()   -> binds the Handbook entries
 ```
 
-`index.ts` imports only `main/` and `debug/` (plus the SDK and the Handbook
-binding). `main/global.ts` pulls in the shared features
-(BACKTRACE, `open`, `flatline`, `sysdiag`, `sysrepair`), and each `main/mNN.ts` imports its own
-mission's websites before the quest class, so a mission's registrations travel
-with it. `debug/` keeps only `index.ts` and `debug-gate.ts` (the `isDebug` gates for a future lab). A static check confirmed
-that the 22 files that register something are all still reachable from
-`index.ts` (91 reachable files before, the same 91 plus the three new barrels
-after).
+`index.ts` imports only `main/` and `debug/` (plus the SDK, the setting and the Handbook binding). `main/global.ts` pulls in the shared
+features (Cipher Desk, Remote Desktop Connection, BACKTRACE, `open`, `flatline`, `sysdiag`, `sysrepair`), and each `main/mNN.ts`
+imports its own mission's websites before the quest class, so a mission's registrations travel with it. `debug/` keeps only
+`index.ts` and `debug-gate.ts` (the `isDebug` gate for a future lab).

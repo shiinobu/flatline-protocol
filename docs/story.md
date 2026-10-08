@@ -1,569 +1,242 @@
-# FLATLINE PROTOCOL — Story & Mission Design
+# FLATLINE PROTOCOL — Story and case guide
 
-Status: **LOCKED "temporer"** — stable working design, agreed with the user
-across the project's design session (2026-09-18). Not literally
-untouchable, but treat every name/beat below as settled; don't re-litigate
-something already decided here without the user raising it first. This
-document is the design/story source of truth for the project (this
-project's story is original — not adapted from an external source, so
-there is no separate "recovered original vs current" doc to reconcile
-against).
+Status: current as of 2026-10-08 (release 2.1.0). This is the story canon and a short solution guide for each case. **It spoils the
+whole plot and every solution.** Everything in it is fiction: every company, person, host, address, domain and password is invented,
+and the tools are simulated by the game.
+
+How the other documents fit: `docs/network.md` lists the hosts and addresses of each case, `docs/mechanics.md` the game tools and the
+custom commands, `docs/rules.md` the process and structure rules, `docs/architecture.md` how `src/` fits together, `docs/bugs.md` the
+engine facts and the mod's own findings.
 
 ---
 
 ## 1. Premise
 
-**FLATLINE PROTOCOL** is a standalone HackHub ("Ultimate Hacker Simulator")
-story mod, built on the same `@hotbunny/hackhub-content-sdk` engine as
-entity-resolution-mods but otherwise fully separate — a from-scratch redo,
-not a sequel or shared universe.
+- **Genre:** cybercrime syndicate, a ransomware-as-a-service chain. **POV:** GHOSTWIRE, an independent hacktivist with no employer and no
+  client. **Plot:** one conspiracy that unravels over seven cases, each a step up the chain, not seven separate jobs.
+- **Difficulty:** "Very Hard", built from easy tools used as real chain dependencies (nmap, lynx, nslookup, whois, geoip) plus the harder
+  ones. Every case has at least one decoy or a "look before you touch" trap.
+- **Ending:** an open player choice (publish, hand over, destroy), never a "correct" one (section 5).
+- **Tools:** everything that gates a step comes from the SDK's native surface (`docs/mechanics.md`) or from a custom command built on its
+  primitives. Anything outside that is discussed with the owner first.
 
-- **Genre:** cybercrime syndicate (ransomware-as-a-service chain).
-- **POV:** independent vigilante/hacktivist — no employer, no client,
-  acting alone.
-- **Plot structure:** one big conspiracy unraveling gradually across 4
-  different targets (not 4 disconnected jobs).
-- **Difficulty:** "Very Hard" overall, but built from easy tools used as
-  real chain-dependencies (nmap/lynx/nslookup/whois/geoip), not just hard
-  tools. Every mission includes at least one red-herring/decoy or a "you
-  must undo your own action" beat to earn the Very Hard label fairly.
-- **Ending:** an open player choice (A/B/C), not a fixed "correct" outcome.
+## 2. Timeline
 
-## 2. Hard constraint on tools
+The attack on PacificCare Health hit on **2026-08-14**, the investigation closed on 2026-08-24, and the story opens on **2026-09-18**:
+five weeks after the attack, ten days after the case was closed. Dates in files, logs and pages come from this table, never from the
+clock (`docs/rules.md`). No file may carry a date later than the story day of the case it appears in.
 
-Every hacking tool and every social/communication tool used to gate an
-objective must come from `@hotbunny/hackhub-content-sdk`'s native surface
-(see `docs/mechanics.md`) or a custom command built strictly on
-its primitives (`Shell.addCommandData`/`Files.*`/`@RegisterCommand`) —
-matching the precedent entity-resolution-mods set with `filestat`/
-`bootlog`/`zgrep`. Anything outside that requires stopping to discuss with
-the user first. This is explicit and repeated — not a suggestion.
+| Date | Event |
+|---|---|
+| 2009 to 2018 | Conrad Lindqvist is Chief Actuary of Nordhaven Mutual Assurance; Chairman of its Risk Committee 2018 to 2024 |
+| 2020-03-19 | Evidence Q1-2020-NA, Northstar Port Authority (an earlier BLACKLEDGER job) |
+| 2023-06-28 | Evidence Q2-2023-EU, Rheinland Energie AG |
+| 2026-05-02 | LOG-EU-2209, batch PB-2605-01, $1,400,000 |
+| 2026-06-18 and 2026-07-14 | Reserves FIN-EU-2214 and MED-APAC-6689 are set aside by the insurer, the same days as two access sales in the broker's ledger |
+| 2026-06-24 | Conrad instructs Orchid to pause directory sync and loosen removable media |
+| 2026-07-22 | FIN-NA-0091, batch PB-2607-01, $4,100,000 |
+| 2026-08-03 | The broker sells access to the hospital (listing code per save, e.g. MED-SEA-0417); Nordhaven survey LC-07 visits PacificCare |
+| 2026-08-07 and 2026-08-10 | USB access kit photographed; Roxanne posts her USB find ("Q3-2026-SEA") |
+| 2026-08-11 00:12 UTC | The USB is plugged into PC-IT-017 |
+| 2026-08-14 | The attack. 02:11 release approved by `sentry`, 02:41 systems locked, 05:12 "Clinical incident logged, Operating Theatre 3", 08:40 the CRO authorises payment, 09:02 ransom paid (batch PB-2608-01, CASE-A7X-0417, $2,850,000). Lock to payment: 6 hours 21 minutes |
+| 2026-08-15 to 2026-08-24 | Draft finding blames a remote-support tool; Roxanne signs an acknowledgement (08-18), is dismissed (08-19); investigation closed (08-24) |
+| 2026-09-18 | Story day of M1 |
 
-## 3. Story
+Story days of the cases: M1 09-18 (Fri), M2 09-19, M3 09-21, M4 09-24, M5 09-27, M6 09-30, M7 10-03 (Sat). Attack times are UTC. Money
+comes from `src/content/global/finance.ts` (one model for M2, M3, M7 and BACKTRACE).
 
-**GHOSTWIRE** (player alias) is an independent hacktivist/vigilante.
-Five weeks before the story starts (the attack hit on 2026-08-14, the story
-opens on 2026-09-18), GHOSTWIRE's **younger sibling** died
-because a ransomware attack by the syndicate **BLACKLEDGER** locked a
-hospital's systems during the sibling's critical operation. The hospital
-quietly paid the ransom and the official investigation was shut down fast
-(closed on 2026-08-24, ten days after the attack)
-— corporate pressure/cover-up, not a state conspiracy — so GHOSTWIRE goes
-after BLACKLEDGER personally.
+## 3. Characters
 
-BLACKLEDGER is a realistic ransomware-as-a-service **chain of roles**, not
-a single flat target — this is what makes the 4 missions feel like one big
-conspiracy unraveling gradually rather than four disconnected jobs.
+| Who | What the canon says |
+|---|---|
+| **GHOSTWIRE** | The player. Never named. The younger sibling died in surgery on 2026-08-14 when the ransomware locked the hospital |
+| **The Custodian** | The dead-drop contact (`drop@drop.null`) that receives every report. **Deliberately empty, no identity.** Promised to speak only if something is wrong ("I won't check in."), which pays off in M4 |
+| **Unknown Sender** | Sends the M1 tip only (`ghost.tip@ghost.index`) |
+| **BLACKLEDGER** | The ransomware-as-a-service syndicate. Speaks in bookkeeping: ledger, settled, escrow, "every account, settled." |
+| **X7xS3NTRY9** | Initial access broker (M1). Own infrastructure on `x7xsentry9.tech`; takes 5% ("customs brokerage") |
+| **TR4C3#404 / TR4C3404** | Toolkit developer and affiliate-panel admin (M2); takes 25% ("consulting fees"). Human side: a shopping list, an unsent text ("tell mom I said hi") |
+| **Closer-Rig** (`Qu0taCl0ser`) | Affiliate operator "FIN-NA". Optional thread in M2 |
+| **Skynet Import-Export Co.** | The shell company (M3); keeps 10%. **SKN Capital Nominees** is the parent and takes 60% ("management fee") |
+| **Dana Reyes** (`@d.reyes`) | Skynet financial analyst, a reluctant witness who wrote it down first. **Marcus Okafor** (`@m.okafor`) is a red-herring |
+| **Roxanne Anindita Natnaree** | PacificCare Systems Administrator ("R.a.N"). Curious about a USB marked "Q3-2026-SEA" and plugged it in. Dismissed and made the official cause; unreachable. The player never speaks to her: she is present through documents and, after M7, an epilog mail |
+| **Gideon Bayu Teoh** | IT contractor at PacificCare (contract to 2026-07). A decoy on the staff page and in Twotter |
+| **Vivien Orchid** | PacificCare CRO. Decided to pay and signed the finding that blames Roxanne; "staff negligence" keeps the insurance claim valid. Not the main villain: she followed Conrad's instruction of 2026-06-24 |
+| **Conrad Lindqvist** | **The Architect** and `SENTRY`: the operator who approved the release at 02:11 and attacks the player in M4. Born 1967, a former actuary who prices the risk he creates; owns SKN Capital Nominees through Nordhaven Holdings (PC) Ltd |
+| **Marlowe & Pryce Corporate Services** | The registered agent of SKN Capital Nominees (M6). Real, but not the owner |
+| **Decoys** | Alexander Voss and Imogen Hartley (nominee directors and secretary), Tomas Brandt (a former director), Marcus Okafor, Gideon Bayu Teoh |
 
-### Characters / codenames (all locked "temporer")
+Names that reach M5 went through a rename on 2026-10-05: the staff roster of the PacificCare IT page lives in `src/content/m05/echoline.ts`
+and the displayed names are read from constants (`GRETA_FULL_NAME`, `GRETA_SHORT_NAME`, `GRETA_PRIVATE_EMAIL` in
+`content/global/characters.ts`), never retyped. Internal ids keep the old `GRETA_*` and `GARETH_*` names, the flag `gretaSeen` and the
+BACKTRACE key `greta`. The portal account, the Cipher Desk key and the start of the password are the local part `rnatnaree`; her short
+name is "R. Natnaree", her private mail `roxanne.natnaree@postbox.my`; Roxanne's sticky note is signed "R.a.N" (lowercase a). Report
+matchers (`M05_REPORT_DOOR_TERMS`, `M05_REPORT_DOOR_REJECTED_TERMS`, `M07_REPORT_EVIDENCE_PERSON_TERMS`) are hand-written and must be
+checked on any new rename (`docs/bugs.md` #69). Marcus Okafor and the Reyes household are not part of the rename.
 
-| Role | Name | Notes |
+## 4. Threads the cases pay off
+
+Established in M1 to M3 and locked as world facts; no text of M1 to M3 is edited for later cases.
+
+| Thread | Planted | Paid in |
 |---|---|---|
-| Player | **GHOSTWIRE** | Independent hacktivist/vigilante |
-| Victim | GHOSTWIRE's younger sibling | Died in the hospital ransomware incident that starts the story |
-| Syndicate | **BLACKLEDGER** | Ransomware-as-a-service chain |
-| M1 target | **X7xS3NTRY9** | Initial access broker — hex/leet-styled codename, `X7x` prefix (renamed from `A7xDEFACE9` on 2026-09-22) |
-| M2 target | **TR4C3#404** | Ransomware toolkit developer / affiliate-panel admin |
-| M3 target | **Skynet Import-Export Co.** | Shell company laundering ransom payments — deliberate cross-mod easter egg, echoing "Skynet Logistics" from entity-resolution-mods' Q04 (separate stories, same recurring fictional corporate name) |
-| M3/M4 entity | **SKN Capital Nominees** | Parent holding entity behind the shell company |
-| M4 target | **"The Architect"** | BLACKLEDGER's kingpin, owner of SKN Capital Nominees |
+| The Custodian speaks only if something is wrong | M1 standing instructions | M4 first mail |
+| A forwarding rule left open is how people get found | M3 | M4 |
+| "no loose ends this time" | M1 chat | M4 `old_targets.txt` ("next: prepping") |
+| The sticky note signed R.a.N, the USB, badge and asset tag PC-IT-017 | M1 LedgerVault, folder Q3 | M5 |
+| The hospital says only "a network issue" | M1 PacificCare site | M5 |
+| Two earlier jobs: lost badges at Northstar 2020 and Rheinland 2023 | M1 | M7 survey records |
+| "a second signer above the shell company"; "Architect's cut goes out same day" | M2 | M6, M7 |
+| "Nominees isn't an operating company, someone real still owns it" | M3 | M6 |
+| Reyes: "i want it on record that i wrote this down first" | M3 | M4 (`d.reyes: monitor`), M7 |
+| `203.0.113.160`, whose whois says **Bulletproof VPN Ltd.** | M2 and M3 | M4 (control host, same registrant), M6, M7 |
+| Other victims: FIN-NA-0091, LOG-EU-2209, "Q3 closes: 4" | M2 | M7 reserves |
 
-**Mission titles (English, as of 2026-09-19):** M1 "First Trace"
-(was "Jejak Pertama"), M2 "The Maker" (was "Sang Pembuat"), M3
-"Money Trail" (was "Jalur Uang"), M4 "The Architect" (was "Sang Dalang"
-— reuses the target's own established name rather than a fresh
-translation of "the puppeteer").
+## 5. Endings
 
-A recurring anonymous dead-drop contact receives evidence at the end of
-every mission via GoMail — this same contact becomes the branch point for
-Mission 4's ending.
+The final question from the Custodian arrives by mail in M7 and is answered with the `choice` field of the report.
 
-## 4. Mission breakdown
+| Choice | Meaning | Effect |
+|---|---|---|
+| `expose` | Everyone should know what BLACKLEDGER did | Publish everything; Roxanne cleared in public, Reyes named too, Conrad open to the public, the hospital cover-up exposed |
+| `handoff` | Through the system, clean | Hand it to clean law enforcement; Roxanne cleared slowly, Reyes a witness, Conrad tried, outcome uncertain, cover-up investigated |
+| `destroy` | No more victims, ends tonight | The C2 network is unregistered and the encrypted ledger removed; Roxanne stays the scapegoat, Reyes untouched, Conrad not tried, cover-up stays |
 
-Each mission: ~9-11 objectives, matching entity-resolution-mods' Q03 depth.
+Closing material per choice: a one-way epilog mail from Roxanne (publish: short, her name is clear but nothing is as before; hand-over:
+careful, the process has only begun; **destroy: no mail**), a "done" mail from the Custodian ("It is out…", "It is filed…", "Someone closed
+it."), six personal-log lines in BACKTRACE and the fate of the next two victims (warned in public, told quietly, or left compromised).
+The effects run in the controller after the report is accepted; logs and mails are written before the objective completes.
 
-### Mission 1 — "First Trace" (redesigned twice: mechanics 2026-09-20, objective/report/entry-point 2026-09-21)
+## 6. The seven cases
 
-**Status: implemented across two redesign passes since the 2026-09-19
-FINAL LOCK, pending an external tester's validation instead of a
-developer live-test.** `src/guard/flags.ts` is currently set to
-`isTester = true` with `TESTER_FOCUS_QUEST.m01 = true` for exactly that
-purpose. What changed:
+Every case has **one** player-facing objective ("full mechanic, not full objective"): a report to `drop@drop.null`. Behind it a chain
+of gated steps runs in order (`content/mNN/gates.ts`); a step done early records nothing, and an early report gets one "not yet" reply
+with a hint. Optional steps never enter the chain. Rewards are money only: M1 to M3 1,000 each, M4 1,500, M5 2,500, M6 3,500, M7 4,500
+(15,000 in all, no XP).
 
-- **2026-09-20 (mechanics):** the broker's backend now sits behind a
-  `Firewall` device the player must breach first. The original plan was
-  `ssh` into that firewall directly — confirmed impossible (`ssh`
-  hard-rejects any non-`Device` node; see `docs/bugs.md` entry 17) —
-  replaced with `pfsense` (web-admin login) + `kimai` (a real,
-  `Firewall`-only HackDB tool that leaks a signed JWT credential).
-  Websites were also restructured into per-mission folders
-  (`src/websites/m01/…`), and the storefront domain is `blackwire-network.mkt`
-  (not `verifiedaccess.mkt`, an earlier working name).
-- **2026-09-21 (objective/report/entry-point):** the 4 player-facing
-  objectives were collapsed into 1 (see below); the tip email, dead-drop
-  ("standing instructions"), and report were all rewritten longer/richer;
-  the broker's discoverable identity was fixed from a stray placeholder
-  name to **A7xDEFACE9** (matching the "A7x" codename family M02's target
-  also uses); LedgerVault was rebuilt into an interactive file-browser
-  page and its domain reveal was moved into the IRC chat (see step 7);
-  and the mission now starts from a Hackhub feed post instead of
-  auto-starting.
-- **2026-09-22 (broker rename / listing randomization):** the broker
-  alias was renamed **X7xS3NTRY9** and moved off blackwire onto its own
-  infrastructure (`x7xsentry9.tech`, found via `lynx <alias>`); the real
-  listing became one of 18 per-save randomized SOLD listings across three
-  marketplaces. Full detail in `docs/changelog.md` (2026-09-22) and
-  `docs/bugs.md` entries 20 and 21.
+### M1 "First Trace" (story day 2026-09-18)
 
-The pre-redesign implementation is kept for reference at
-`src/archive/content/m01.original.ts` / `src/archive/main/m01.original.ts`.
+- **Start:** GHOSTWIRE's own HackHub feed post. The player applies (the claim lands after a few seconds); the Custodian's standing
+  instructions arrive, then the anonymous tip naming two domains, one real and one a decoy. M1 is the only case with a post and the
+  only one whose start rewrites the BACKTRACE state.
+- **Chain:** read the tip; find the one real listing among 18 delisted SOLD listings spread over three marketplaces (Region SEA and
+  Vendor X7xS3NTRY9; the code is rolled per save; `dirhunter` lists the pages); `lynx X7xS3NTRY9` gives `x7xsentry9.tech` and
+  `subfinder` the firewall and backend hosts; **kimai** (HackDB) leaks a signed token off the firewall; `jwt_decoder.py` turns it into a
+  pfSense login (`failsafe`); any saved change in the panel lifts the block on the backend's SSH port; **hydra** with the HackDB wordlist
+  cracks the backend login (the user is the vendor name, not "opsadmin"); `ssh`; `sales_ledger.log` names the buyer and `ops-relay.log`
+  holds a base64 blob that `openssl` decrypts into an IRC host and key; `weechat` confirms the buyer TR4C3#404 and leaks the LedgerVault
+  domain split over two lines; visit **LedgerVault** and open the `Q3-2026-SEA` folder.
+- **Decoys:** the "opsadmin" handle (`@cryp7net`), the frostgate storefront (ruled out with `geoip`), the three decommissioned gateways.
+- **LedgerVault** (`x7k2m9vdlq4wnyt3.dark`) is a permanent domain behind its own seal, never torn down, and has no `nmap` fixture on purpose
+  (a Tor-style hidden service).
+- **Report:** listing code, broker `X7xS3NTRY9`, buyer `TR4C3#404`, case `CASE-A7X-0417`, project `Q3-2026-SEA`, vault domain. Refused if
+  LedgerVault was never visited.
 
-**Target:** X7xS3NTRY9, the initial access broker who sold the hospital's
-network access. They sell through three marketplaces
-(`blackwire-network.mkt`, `frostgate-exchange.mkt`, `obsidian-access.mkt`)
-and run their own infrastructure on `x7xsentry9.tech`. Their vendor
-handle is printed on the one real listing page, hidden among 18
-per-save randomized SOLD listings (see the 2026-09-22 note above).
+### M2 "The Maker" (2026-09-19)
 
-**Entry point:** GHOSTWIRE's own Hackhub feed post is how the player
-discovers and claims this mission (`AutoStart` is off). Once claimed, a
-"standing instructions" mail from the recurring dead-drop contact (the
-Custodian) arrives, then the anonymous tip naming two domains — one
-real, one a decoy.
+- **Start:** the Custodian's mail "re: your last report" after M1.
+- **Chain:** `whois` and `nmap` on `tr4c3404.dev`; `subfinder` returns 40 random-looking subdomains and `nuclei` narrows them to three
+  candidates; `sqlmap` each: two are dead staging boxes, the real devbox yields the `admins` table (`root` plus a hash) and the
+  `affiliates` table (three rows: LOG-EU-2209, FIN-NA-0091 and the hospital's CASE-A7X-0417 at $2,850,000, each with the panel's 25%);
+  `john` cracks the admin hash; `ssh -h` into the devbox; `deploy.log` is dated 2026-08-14 and the first emotional beat; `sync-home.txt`
+  leaks the home router; behind it a Splitter hides a real NAS (Rust-Bucket, `admin`/`admin`) among four decoy devices; the home pfSense
+  panel accepts the devbox admin password; saving any rule opens port 3389 on the workstation; **Metasploit** (`bluekeep`, `Version` must be
+  the banner's `7.1.9`, retry once if the user is not ready) opens a Meterpreter session; `open` (not `cat`) reads
+  `wire_authorization.pdf`, which names the shell company.
+- **Optional:** the printer (a dead prop), and the Closer-Rig bonus thread whose `routing_notes.txt` first names `203.0.113.160`.
+- **Report:** developer host, shell company, ransom amount, payload `payload_v9`, the three home-path addresses.
 
-**Player-facing objective (1, not 9):** "Track down the broker who sold
-access to the hospital's network, get into their operation, and trace it
-back to their hidden archive -- then report what you find to the dead
-drop." Every step below still has to happen mechanically — per this
-project's "full mechanic, not full objective" rule, they just don't each
-get their own objective checkpoint anymore.
+### M3 "Money Trail" (2026-09-21)
 
-**Mechanical chain (same substance, one step reordered):**
-1. **Investigate the storefront** (merged step — `nslookup`/`nmap`/
-   `dirhunter`/`lynx`, no single required tool) — the storefront's home
-   page is a looping, shuffled list of "lots"; most are decoys, and the
-   real hospital listing (`OPN 102` / `MED-SEA-0417`) is marked "no
-   longer listed" with no link, discoverable only via `dirhunter`.
-2. **Rule out the decoy domain** (parallel, not gating) — `geoip` on the
-   decoy IP proves it's unrelated.
-3. **Breach the perimeter firewall** — `python3 kimai.py <firewall ip>`
-   leaks a signed JWT off the `Firewall` node; `python3 jwt_decoder.py
-   <token>` decodes it into a `pfsense` login credential; logging into
-   `pfsense` and making any change there lifts the block on the backend's
-   SSH port.
-4. **Access the broker's server via SSH**, now that the port is open.
-5. **Find something suspicious on the server** — `ls`/`cat` through
-   `home/`/`logs/` (several decoy files mixed in) finds `ops-relay.log`,
-   a base64-"encrypted" IRC credential note.
-6. **Decrypt it** — `openssl -dec <base64 text>` recovers the plaintext
-   IRC host/password.
-7. **Access the IRC channel** — `weechat` into the recovered channel; a
-   seeded conversation between the broker and a contact confirms the
-   buyer alias (**TR4C3#404**) and, near the end, casually reveals the
-   LedgerVault domain split across two lines ("mirror's still on
-   x7k2m9vdlq4wnyt3, right?" / "the .dark one? yeah, hasn't moved in
-   months") — moved here in the 2026-09-21 pass specifically so the vault
-   can't be found any other way (a backend cron log and a Twotter post
-   that used to leak it in plain text were both scrubbed).
-8. **Visit LedgerVault** (`x7k2m9vdlq4wnyt3.dark`) — a hard-gated,
-   mechanically-checked step (`Browser.Meta` sets `vaultVisited`; the
-   final report is refused if this never happened, regardless of whether
-   its field values are otherwise correct). Rebuilt in the 2026-09-21
-   pass into an interactive file-browser page with real evidence images;
-   contains the `network_map.txt`/`case_id.txt` content plus Q1/Q2/Q3
-   "project" folders showing BLACKLEDGER's own multi-year pattern
-   (Northstar Port Authority 2020, Rheinland Energie AG 2023, this
-   hospital case).
-9. **Report** — GoMail to the Custodian with 6 fields: `Listing`
-   (the per-save winning listing code), `Broker` (`X7xS3NTRY9`), `Buyer` (`TR4C3#404`),
-   `Case` (`CASE-A7X-0417`), `Project` (`Q3-2026-SEA`), `Vault`
-   (`x7k2m9vdlq4wnyt3.dark`).
+- **Start:** the Custodian's mail "shell company confirmed, dig into it".
+- **Chain:** recon of `skynet-importexport.biz` (the notice names the hosts, services and ports; the footer gives the policy year);
+  OSINT: `@d.reyes` posts the password recipe (short name + year + one word + `!`), `@m.okafor` is the decoy; **hydra** on the TP-Link
+  router panel with the HackDB wordlist; log in; **write the forwarding rules yourself** (nothing behind the gateway answers until you do;
+  `python3 net_tree.py` lists the hosts and public addresses): `3306` to the ledger host and `3389` to the gateway host at minimum;
+  `sqlmap` dumps `wire_transfers` (12 rows, three batches, 60/25/5% out of each) and `helpdesk_resets`; **Metasploit** on the tunnel
+  gateway; `cat site_to_site_backup.txt` names the peer `203.0.113.160` (label `SKN-CENTRAL`, owner SKN Capital Nominees).
+- **Order:** the ledger thread always comes before the gateway thread. Bonus: Reyes's host Faded-Ledger.
+- **Report:** shell company, parent entity, VPN lead `203.0.113.160`, entry (the remote portal, Vault-Line, four hosts). The rules the
+  player wrote stay where they were left.
 
-### Mission 2 — "The Maker"
+### M4 "Burn Notice" (2026-09-24)
 
-**Status: redesigned again 2026-09-24 and live-tested end-to-end that day
-(`docs/m02-playtest.md` is the current step-by-step and topology); a
-2026-09-29 follow-up (one money model shared with M3, BACKTRACE one key per
-action) is not yet live-tested.** The chain below still describes the
-2026-09-20 shape: since then the home Wi-Fi (`bettercap`+`fern`) was replaced
-by a `sync-home.txt` lead on the rooted devbox, `subfinder`/`nuclei` triage
-across three candidate hosts was added, and the home network became a
-Splitter with a real NAS and four decoys — the chain below is only patched
-for the money and the `open` step (5, 9, 10), read the playtest for the
-rest. Pre-redesign
-implementation kept at `src/archive/content/m02.original.ts`/`src/archive/main/m02.original.ts`.
+- **Start:** the Custodian breaks silence ("something's wrong"). Twenty seconds later the player becomes the target.
+- **Beats:** (1) a 60-second broadcast banner from `sentry@darknull.io` with a clock that reads 03:14:07 at zero, a threatening mail
+  and a refused `flatline` (this one cannot be cut); (2) the desktop is breached and a recovery console puzzle with an incident log must
+  be solved (`sysdiag`, `sysrepair`); (3) the hunt back: the incident log names relay 1 (Static-Hop `141.77.202.84`, NAT gateway
+  `193.164.228.17`); `whois`, `geoip` or `nmap` profile it; **hydra** on its panel gives `svc`/`relay-swap-07`; `ssh`; the `auth.log`
+  has five outbound sessions and only **one** established at 03:14:06, to Quiet-Mirror `45.155.204.31`; `notes.txt` has
+  `ops`/`mirror.night.9`; `watchdog.conf` names the control host `203.0.113.159`, the operator tag `SENTRY` and the teardown command;
+  `whois` shows the registrant **Bulletproof VPN Ltd.**, the same as `203.0.113.160`; `flatline 203.0.113.159` ends the hunt.
+- **Trap:** Paper-Moth (`194.26.192.118`, `admin`/`admin`) is a honeypot that charges up to $500 once.
+- **Report:** hunter `SENTRY`, relays `Static-Hop, Quiet-Mirror`, control `203.0.113.159`, origin `Bulletproof VPN Ltd.`, contained `yes`.
+  `old_targets.txt` seeds M5 ("d.reyes: monitor", a hospital job marked closed, "next: prepping").
+- **Built on:** the shared kit (incident banner, desktop breach, recovery console, intrusion). Kit state and its scheduled jobs survive
+  `mods.reset`, so M4's start cancels its own strike and jobs (`docs/bugs.md` #44).
 
-**Target:** TR4C3#404, the ransomware toolkit developer / affiliate-panel
-admin.
+### M5 "The Door" (2026-09-27)
 
-**Chain:**
-1. Piece together a redacted hostname from Mission 1's chat log via
-   `whois`.
-2. `subfinder`/`dirhunter` — finds the real dev subdomain.
-3. `nmap -sV` — a bare scan is insufficient (mirrors entity-resolution-mods'
-   Q02 pattern; `-sV` required).
-4. **Optional decoy:** a `/admin/` page found via `lynx` — pure
-   atmosphere/paranoia, non-gating.
-5. `sqlmap` — dumps the affiliate panel's database, which contains a row
-   matching the hospital attack's exact ransom amount/date ($2,850,000,
-   2026-08-14, batch `PB-2608-01`). It holds three batches in all (the
-   others are `LOG-EU-2209` and `FIN-NA-0091`), each with the panel's 25%
-   share — the same money M3 follows out of the shell company
-   (`src/content/global/finance.ts`).
-6. `john`/`hashcat` — cracks the admin's password hash pulled from that
-   same dump.
-7. `ssh` — into the dev's real server.
-8. `ls`/`cat` — finds deployment logs whose timestamp matches the hospital
-   incident exactly (the story's main emotional beat).
-9. **First Metasploit use of the whole mod:** search/use/set/`exploit`
-   (there is no `run`) against the dev's separate, better-defended personal
-   workstation → `RemoteConnection.Established` (a plain `exploit` never
-   raises `Meterpreter.Connected`, `bugs.md` #29).
-10. `open` the workstation's files at the `meterpreter >` prompt (`cat` only
-    reads `.txt`/`.log`; `download` is optional) — `wire_authorization.pdf`
-    names the shell company, the batch and its amount.
-11. Dead-drop mail.
+- **Start:** the mail "the note in the vault" sends the player back to the Q3 folder; no site is named.
+- **Chain (21 gated steps plus the report):** open the Q3 folder; the hospital site, its IT page and the change record SA-0826 (a
+  sealed handover note); **Echoline** shows nine captures of the IT page (Roxanne is in every capture up to 2026-06-30 and gone on
+  2026-08-18); `lynx rnatnaree` profiles her; **Cipher Desk** decrypts the handover note (key `rnatnaree`), then the policy IT-DEPT-77
+  (key `SA-0826`), which gives the portal password recipe `<local part>-<system code>-<incident date>`; log in to the portal; flag the
+  outside sign-in (`194.36.108.20`); read ticket HD-4481 (the USB nobody answered), then HD-4503 (her closure); open the 30 June change
+  CHG-2606-022 (its sealed rollback plan opens with the change id) and the legal hold CHG-2608-014 (matter L-2608-03); open Systems and
+  the sample token in HD-4496 (key `L-2608-03`); build the Cold-Chart token with Cipher Desk (**Encrypt**, key `L-2608-03`) and log in
+  to **RDC** (`rdcdesk.io`); solve the generated display puzzle in the agent console (`signal`, `agent`) and `agent attach`; open the
+  statement, the decision memo and the USB ticket (the memo shows the 02:41 to 09:02 gap).
+- **Optional:** Bedside-17 (PC-IT-017) through Metasploit; the sealed Twotter note (`Marigold2019`); the LeakIndex pointer (a decoy).
+- **Report:** door `Roxanne Anindita Natnaree`, cause (unauthorised USB media, employee negligence), decider `Vivien Orchid`, gap
+  `6 hours 21 minutes`, motive (insurance claim classification), archive `Cold-Chart`.
+- **Why it matters:** the hospital never investigated; the player learns who decided and why, and that "I know someone clean" in the
+  ending has a reason.
 
-### Mission 3 — "Money Trail"
+### M6 "Open Register" (2026-09-30)
 
-**Status: redesigned 2026-09-28 (branch `clouds-modify`), pass 2 after the
-first live-test, plus a 2026-09-29 follow-up (one money model shared with
-M2, `open` checkpoints, BACKTRACE one key per action) — none of it
-re-tested in-game (`tsc --noEmit` is clean).** Deepened to match M1/M2: a
-real Metasploit exploitation chain against a hardened internal gateway, two
-Twotter personas (Reyes + a red-herring), three decoys, and a capture that
-genuinely produces M4's lead. Objectives collapsed to a **single**
-`reportFindings`, matching M1/M2. Engine-level detail and every unverified
-assumption: `docs/scratch.md` (last two sections); topology:
-`docs/network.md`; step-by-step: `docs/m03-playtest.md`. Pre-2026-09-20
-implementation kept at `src/archive/content/m03.original.ts`/`src/archive/main/m03.original.ts`.
+- **Start:** the mail "a door that isn't on any map". **No network:** pure analysis in the browser, Very Hard.
+- **Chain (13 steps):** the `.onion` door (`x5nq3dvw7kzc2ybmr6ptua4hs2fj7ekg.onion`) shows a Playfair puzzle and accepts answers only
+  later; the **Registry** (`pcr-registry.org`) record of SKN Capital Nominees lists two decoy directors and the agent; `whois
+  marlowepryce.biz` names the agent; `dirhunter` finds the unlisted filing archive; two sealed filings via Cipher Desk (2019, key
+  `PC-114772-2019`; 2024, key built from Halvard Trust's number and the date it was dissolved, `2021-11-30`) reveal Halvard Trust and
+  then Nordhaven Holdings (PC) Ltd; the Holdings record lists Conrad Lindqvist (director) and Imogen Hartley (the decoy secretary); the Mutual record
+  links the insurer; HostTrail ties the infrastructure to the M3 contact; at the door the three key words (HALVARD, NORDHAVEN,
+  LINDQVIST), the sentence `BEHIND THE WALL` and the factor `5d86` open the minutes page, which proves who sits above the chain.
+- **Consequences of M1 to M3 show in the records** through BACKTRACE status (Skynet "dissolved", Reyes "no longer listed").
+- **Report:** architect `Conrad Lindqvist`, role (Chairman Risk Committee, Nordhaven Mutual), agent `Marlowe & Pryce`, chain (Mutual,
+  Holdings, Nominees), proof and front.
+- **Help rules:** hints point at a document or a tool and never give the word; no timers, no hint button.
 
-**Target:** Skynet Import-Export Co. (shell company), BLACKLEDGER's
-laundering front — defended like a real corporate target: OSINT-hardened
-credentials, a NAT-gated internal VLAN, and a separately-exploited tunnel
-gateway, not a company that falls to one leaked password.
+### M7 "The Architect" (2026-10-03)
 
-**Cast:** **Dana Reyes** (`@d.reyes`), finance analyst and unwitting
-accomplice — careless in public (her Twotter leaks the *shape* of the
-corporate password recipe and her own personal-password habit), uneasy in
-private (a note on her share, `do_not_open_at_work.txt`, lists what she's
-"not supposed to have noticed," including the finance box tunnelling out
-after every batch). She ties the numbers anyway: kids, a paycheck.
-**Marcus Okafor** (`@m.okafor`), facilities — a red herring: brags about
-"running the building" and access he admits he doesn't have, and posts a
-guest-wifi password that looks like the corporate pattern but leads
-nowhere.
+- **Start:** the mail "you have the name. now the books." The idea: the insurer set aside claim reserves before the attacks, FIN-EU-2214
+  and MED-APAC-6689, the same days as the broker's ledger rows.
+- **Chain (22 gated steps plus the report):** match the paid claims on the insurer's portal (`portal.nordhaven-mutual.com`); `net_tree.py`,
+  `nmap -sV` and `dirhunter` on `203.0.113.161` reach the hidden `/legacy-cms/`; the forgotten box Ash-Vector (`ssh` `admin`/`admin`)
+  holds `ash-gate_backup.txt` with the firewall login (`fw.admin`); change the rule for port `46721`; **Metasploit** (`bluekeep`,
+  `Version 5.2.1`) opens the C2 session and starts **Duel 1** (180 seconds, a banner and a trace); read `manifest.txt`, the release
+  orders and the survey in that order; `download master_ledger_backup.enc` (never `open` it on the host); the reserve references on the
+  portal now resolve and give the account `PC-114772`; at home `open` the file and decrypt it in Cipher Desk (key
+  `PC-114772-MED-APAC-6689`), which holds Conrad's console login; encrypt the token for **RDC** and solve the display puzzle, which
+  starts **Duel 2** (300 seconds); decrypt and read the documents on his workstation, which name the BLACKLEDGER room, a dynamic site on
+  a random `.blackledger` host that answers 404 until Duel 2 is won.
+- **Losing Duel 1** costs up to $500 and needs a recovery like M4's, with no dead end. Reading the `.enc` on the host shortens the window.
+- **Report:** architect (`Conrad Lindqvist, SENTRY`), path, claims, reserves, orders (`RO-2608-14`), survey (`LC-07`), account
+  (`PC-114772`, SKN), instruction and the `choice`. Closing material per choice is in section 5.
 
-**Chain (all one objective underneath):**
-1. `nmap`+`lynx` on the public site — staff directory names `@d.reyes`
-   (real lead) and `@m.okafor` (**decoy route**), plus a remote-access
-   portal, the trading name "Skynet", and a "policy in force since 2024"
-   footer.
-2. **Multi-step password deduction:** Reyes's Twotter gives the FORMAT
-   (short name + policy year + "!", one word, capitalized); the site gives
-   the SHORT NAME ("Skynet") and the POLICY YEAR (2024). Combine →
-   `Skynet2024!`. No single line hands it over; Okafor's `SkynetGuest2019`
-   is a decoy that fails.
-3. `nslookup remote.skynet-importexport.biz` → the remote-access gateway (a
-   TP-Link router panel — `bugs.md` #31); `mxlookup` maps the mail host.
-4. Into the gateway's admin panel (deduced password, or `hydra -T
-   <ip>:80 -P wordlist.lst` — no `-l` needed: the engine defaults it to
-   `guest`, the fixture answers to `guest` as well as `admin`, and the
-   success table prints `admin`) and **write the port-forwarding rules
-   yourself** to pivot — the table starts with only the locked admin rule and
-   nothing behind the gateway answers until a rule matches a host and its
-   service. The public site's Staff access notice names each host with its
-   port; `python3 net_tree.py <gateway ip>` gives each host's name, public IP
-   and LAN IP (the Local IP the rule needs).
-5. The VLAN's devices are reached by their **public** IPs (a LAN IP only
-   works inside an SSH session): `python3 net_tree.py <gateway ip>` lists
-   them, and the site's Staff access notice names the roles → `Coin-Drift`
-   (ledger DB, `ledger.skynet-importexport.biz`), `Faded-Ledger` (Reyes),
-   `Vault-Line` (the tunnel gateway), and `Split-Bill` (empty **decoy**).
-6. `sqlmap` the ledger host — `wire_transfers` is a 12-row ledger with a
-   running balance (see the money below) that names **SKN Capital
-   Nominees**; `helpdesk_resets` leaks d.reyes's personal SMB password.
-   (Or connect the **DatabaseManager** app with creds lifted from the
-   gateway config — an alternative route to the same ledger.)
-7. *(Removed 2026-09-29.)* A Wireshark step used to hand out a `.pcap` naming
-   the DB server, the gateway and the tunnel endpoint. It was weird to play
-   and, worse, a silent requirement of the report (`bugs.md` #34). The
-   Staff access notice now carries the ledger domain, and the tunnel endpoint
-   comes from the gateway's own config.
-8. **Metasploit** the hardened gateway `Vault-Line` (RDP RCE:
-   `use exploit/rdp/cve_2019_0708_bluekeep`, `RHOST` = the public IP,
-   `Version 7.1.9`, `exploit`) → Meterpreter (`rootgrab /etc/passwd` works, the
-   gateway has a `root` user, but nothing in the mod reacts to it) →
-   `cat site_to_site_backup.txt` (a plain `.txt` at the session's root; no
-   download) → its config peers to the VPN IP, labelled `SKN-CENTRAL`, owner
-   `SKN Capital Nominees`: proof the money's destination and the tunnel's far
-   end are one hand, and M4's lead.
-9. **Optional/bonus:** SSH into Reyes's account (`ssh -h d.reyes@<public ip>`
-   with the password from `helpdesk_resets`, after a rule `22 → 22 →
-   192.168.1.4`) — the engine has no SMB command, and `explorer` raises its
-   event only from Meterpreter/`evil-rm` (`bugs.md` #33). Reading her note
-   (`do_not_open_at_work.txt`) writes the personal log; the spreadsheet is the
-   other file.
-10. *(Dropped 2026-09-29.)* The first version made the player take their own
-    forwarding rules back out before the report was accepted. The rules now
-    stay where the player leaves them — the tip mail calls it "yours to keep or
-    remove" — and the report waits only for the ledger and the config.
-11. Dead-drop mail: shell company, parent entity, and the recurring
-    tunnel endpoint.
+## 7. Design rules that still bind
 
-**The money (one model for M2 and M3, `src/content/global/finance.ts`):** BLACKLEDGER
-splits every ransom batch the same way — 60% to SKN Capital Nominees (booked as
-a "management fee", the Architect's cut), 25% to TR4C3404 Consulting
-("consulting fees (logistics)", the toolkit developer), 5% to X7xSentry9
-Brokerage ("customs brokerage", the M1 broker) and 10% kept by Skynet. Three
-batches pass through the shell company: `LOG-EU-2209` $1,400,000 (2026-05-02),
-`FIN-NA-0091` $4,100,000 (2026-07-22) and `CASE-A7X-0417` $2,850,000
-(2026-08-14, the hospital) — $8,350,000 in, $5,010,000 to the parent. M2 shows
-the gross and the panel's share; M3's `wire_transfers` shows the whole
-waterfall (deposit at 09:04 UTC, then transfers out at 09:20, 09:24 and 09:27,
-balance ending at the retained $835,000), Reyes's `q3_reconciliation.xlsx`
-covers the two Q3 batches ($6,950,000 in, $4,170,000 to the parent), and the
-report states it in its "Funds" lines. The tip mail names the $2,850,000
-batch. That the money ends at one nominee, and the tunnel's far end belongs to
-the same nominee, is what M4 builds on.
-
-### Mission 4 — "Burn Notice" (built 2026-10-02, redesigned and FINAL LOCK 2026-10-03)
-
-The decisions are in `docs/world-building/README.md` #42-#47 and the full specification in
-`docs/world-building/10-spec-m4.md`; this section keeps the reasons that did not fit a decision row.
-
-**Shape.** The Custodian, silent since M1, writes first: something is wrong, stay off the endpoint. Twenty seconds
-after the mail is read a 60 second `broadcast` countdown starts (a `wall` message from `sentry@darknull.io`, a remote
-clock running 03:13:07 to 03:14:07), and at zero the desktop is taken. The attacker "took the room, not the money": the
-owner's own live test showed that a version which cost money on every expiry punished waiting three times over, so
-attack 1 cannot be repelled, costs nothing and always lands. A defensive mechanic may come back in M7 as something else.
-The player rebuilds the display in a full-screen recovery console that works on real kernel files (module, `display.conf`,
-initramfs, three staged images), then hunts the operator back through the relays, ending the hunt on the control host.
-The report goes to the dead drop.
-
-**Why the chain has a parallel pair.** `relayProfiled` requires both `incidentLogRead` and `desktopRestored`. A player who
-repairs the desktop by trying all three builds without reading the log still reaches step 7 once they read it, and the
-other way round; neither order stalls.
-
-**Why `auth.log` has five outbound sessions.** The discriminator is the clock, not the hostname: only Quiet-Mirror is
-`ESTABLISHED` at 03:14:06, the minute the incident log stamps. Paper-Moth appears twice as a probe that forwarded 0 bytes,
-once at 03:14:41, close enough to look tempting and late enough to be wrong. Three keepalives sit before 03:00. All times
-come from `docs/world-building/13-story-timeline.md` §E.
-
-**Why the incident log outlives the rebuild.** The breach files are purged when the display is rebuilt, except
-`/var/log/flcomp-incident.log`: steps 5 to 7 need the two addresses it names (the session source and the NAT gateway).
-
-**Why the clue logs are Log Viewer entries.** Players open files in the Files app as readily as with `cat`, so reading a
-clue by `cat`, `open` or the Log Viewer counts the same (`docs/bugs.md` #56). `firewall.log` is written after the rebuild:
-the attacker's mail says "you will find me in your own firewall log afterwards".
-
-**Why `flatline`.** The control host beacons every 60 seconds (`beacon_interval` in `watchdog.conf`); cutting it means
-that heartbeat dies. The command used to be `repel`. Its only in-world hint is the last comment line of `watchdog.conf`,
-and it refuses to cut Night-Shift before the origin is linked, so the animation (five `beacon` pulse lines shrinking to
-flat) never plays for nothing.
-
-**The kit is mission-blind.** The breach lives at one well-known `SaveStorage` key (`flatline.desktopBreach`) with the
-owning mission inside the record, while the intrusion state keeps a per-mission prefix plus a pointer key; so the same
-`sysdiag`, `sysrepair` and `flatline` commands serve M4 and M7 and no command imports mission content.
-
-### Mission 4 (old numbering) — "The Architect" (now Mission 7)
-
-**Renumbered 2026-10-02:** this finale became **M7** when the new M4 took the id (`docs/world-building/README.md` #4).
-The text below is kept as written.
-
-**Status: mechanics redesigned 2026-09-20, not yet live-tested.** The
-plot/chain below is unchanged; what changed (see `docs/network.md`)
-is purely technical: the VPN IP traced in step 1 is now literally the
-real network's Router address (previously a disconnected OSINT-only
-lead), gated behind a `Firewall`+`Splitter`, with two new honeypot decoys
-("Null-Crown", "Ash-Vector") alongside the C2 host as an extra
-red-herring layer. Objective count unchanged. Pre-redesign implementation
-kept at `src/archive/content/m04.original.ts`/`src/archive/main/m04.original.ts`.
-
-**Target:** "The Architect" — BLACKLEDGER's kingpin, owner of SKN Capital
-Nominees. Deliberate convergence point of all three prior threads
-(Mission 2's chat-log deference to "the architect," Mission 3's gateway
-config naming a recurring VPN IP that only becomes relevant now, and the
-holding-entity paper trail) — designed so this feels like one conspiracy,
-not four separate jobs.
-
-**Chain:**
-1. `whois`/`geoip` — on the recurring VPN IP from Mission 3's gateway config.
-2. `nmap -sV` — on a deliberately hardened, minimal-port target.
-3. `dirhunter`/`nuclei` — finds a real CVE in the C2 dashboard's old web
-   framework.
-4. `metasploit` (search/use/set matching `ifconfig` LHOST/run) — for an
-   initial low-priv shell.
-5. A **second**, separate privilege-escalation step (`Metasploit.Rootgrab`)
-   — deliberately two-stage, not one-shot.
-6. `ls`/`cat` — finds a suspicious `master_identity_backup` file.
-7. A custom forensic command (`attrcheck`, same lineage as
-   entity-resolution-mods' `filestat`) reveals it's booby-trapped (reads
-   trigger self-wipe).
-8. Player must extract it *without* triggering the trap, via
-   `explorer`/`ftp` raw download instead of `cat`.
-9. Confirms The Architect's real identity, cross-referencing all three
-   earlier threads.
-10. **Final branching objective** (A/B/C `options`/`switchBranch` dialog,
-    the exact pattern proven stable in entity-resolution-mods' Q03 once
-    every function property is stripped from the Dialog object) sent to
-    the same recurring dead-drop contact:
-    - **(A)** publish everything publicly.
-    - **(B)** hand it to a specific clean law-enforcement contact.
-    - **(C)** GHOSTWIRE destroys BLACKLEDGER's infrastructure directly via
-      the still-open Meterpreter session and tells no one.
-
-    No "correct" ending — explicitly designed as an open player choice.
-
-## 5. Design constraints (locked)
-
-- Exactly 4 missions, each with a long/deep objective chain (~9-11
-  objectives per mission, matching entity-resolution-mods' Q03 depth).
-- Overall difficulty "Very Hard," but explicitly still uses easy tools
-  (nmap/lynx/nslookup/whois/geoip) as real chain-dependencies, not just
-  hard tools.
-- Every mission includes at least one red-herring/decoy, or a "you must
-  undo your own action" beat, to earn the Very Hard label without unfair
-  difficulty.
-- Custom commands are allowed if built strictly on real SDK primitives
-  (`Shell.addCommandData`/`Files.*`/`@RegisterCommand`) — same precedent as
-  entity-resolution-mods' `filestat`/`bootlog`/`zgrep`.
-- Ending is an open player choice (A/B/C), not a fixed "correct" outcome.
-
-## 6. Decisions made and why
-
-- **Fully separate from entity-resolution-mods** — that project's hacking
-  mechanics/story are considered a weak first attempt (built with a
-  different AI tool); this is a from-scratch redo built properly,
-  reusing only the same underlying SDK/engine.
-- **Names went through several rounds before locking:**
-  - M1/M2 codenames tried `0x`-prefixed words (e.g. DEFACE/FORGE/CODEFACE)
-    before the prefix was swapped to `A7x`.
-  - M3's shell company went through more generic options ("Trade
-    Solutions"/"Commercial Partners") before landing on **Skynet
-    Import-Export Co.** specifically because it's more transparent about
-    its business type, and deliberately reuses "Skynet" as the cross-mod
-    nod to entity-resolution-mods' Q04.
-  - **SKN Capital Nominees** had a brief moment of the user seeming
-    unsure — they explicitly confirmed satisfaction with it afterward; do
-    not re-litigate this.
-- **Genre/POV/plot-structure/ending** were each chosen via explicit
-  selection over alternatives offered and rejected: corporate-insider,
-  state-conspiracy, and personal-revenge genre options; contractor/
-  insider/agent POV options; single-org and single-individual plot-
-  structure options; "leans toward revenge" and "leans toward public
-  exposure" ending options.
-- **M1's LedgerVault (`x7k2m9vdlq4wnyt3.dark`) is deliberately left with
-  no `Network.createSubnetNetwork`/`nmap` fixture** — modeled as a Tor-style
-  hidden service that ordinary IP-based scanning can't reach, not an
-  oversight. Confirmed explicitly by the user (2026-09-22/23) rather than
-  fixed under the new port-443-realism rule (`docs/rules.md`
-  §12).
-- **M1's PacificCare Health (`pacificcare-health.org`) website exists in
-  source (`src/websites/m01/pacificcare-health/`) but is deliberately not
-  wired into the quest's network at all yet** — its domain is unreachable
-  in-game on purpose; confirmed by the user (2026-09-22/23) as "not used
-  yet," not a bug, and left for a future pass.
-
-## 7. Open items for implementation
-
-Not yet decided/built — track progress here as missions move from design
-to code:
-
-- [x] **M1 "First Trace" — FINAL LOCK, live-tested and confirmed playable
-  end-to-end (2026-09-19).** `ftp`/`hydra` dropped entirely from the
-  objective chain after 6+ unresolved routing-bug attempts (see
-  `docs/bugs.md` entries 4-6 for the eventual root cause and fix — a
-  Router-wrapping-child-Device network shape). `Wireshark`/
-  `Http.Intercepted` were also tried and dropped for the session-cookie
-  step (entries 8-9); replaced by an `openssl`-decrypt mechanic confirmed
-  against the base game's own official tutorial quest. Final chain
-  described in section 4 above.
-  **2026-09-20 mechanics redesign applied on top of this** (see
-  `docs/network.md`): added a perimeter `Firewall` device (8 → 9
-  objectives), redesigned every IP/`lanIp`, moved network/domain/cookie
-  registration from `OnStart` into an idempotent `OnObjectivesStart`
-  reconcile (destroy-then-recreate, matching the pattern `docs/bugs.md`
-  entry 3 documents) so future tweaks take effect on restart without
-  abandoning the quest.
-  **2026-09-21 objective/report/entry-point pass applied on top of
-  that:** the 4 objectives collapsed to 1 (`reportFindings` only, see
-  section 4 above); the storefront's `ssh`-into-firewall step (already
-  known impossible) was replaced with `pfsense`+`kimai`; tip/dead-drop/
-  report content rewritten and the report gained 3 new fields (`Listing`,
-  `Project`, `Vault`); broker identity fixed from a stray placeholder to
-  **A7xDEFACE9**; LedgerVault rebuilt into an interactive page and its
-  domain reveal moved into the IRC chat, gated behind a new hard
-  `vaultVisited` check on the final report; and the mission now starts
-  from a Hackhub feed post (`AutoStart` off) instead of auto-starting.
-  `tsc --noEmit` clean; `isTester`/`TESTER_FOCUS_QUEST.m01` is currently
-  on so an external tester can validate this pass — **do not mark FINAL
-  LOCK again until their results come back.**
-- [x] M2 "The Maker" — mechanics redesigned 2026-09-20 (`src/content/m02.ts`,
-  `src/main/m02.ts`, `src/websites/m02/a7xcodeface/`), not yet
-  live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
-  pass run. Workstation now sits behind a `Network.createWifiNetwork` AP
-  (Router-wrapping-child-Device shape applies automatically, per
-  `bugs.md` entry 5) instead of the flat internet-facing router the
-  pre-redesign version used.
-- [x] M3 "Money Trail" — mechanics redesigned 2026-09-20 (`src/content/m03.ts`,
-  `src/main/m03.ts`, `src/websites/m03/skynet-importexport/`), not
-  yet live-tested in-game. `tsc --noEmit` clean, independent code-reviewer
-  pass run. pfSense's finance VLAN already used the correct
-  Router-wrapping-child-Device shape pre-redesign; now wraps a `Splitter`
-  with two Devices instead of one flat Device. **Redesigned again
-  2026-09-28** (branch `clouds-modify`, two passes: four Devices incl. a
-  Metasploit tunnel gateway, NAT-gated ports, `192.168.1.x` LAN, capture →
-  M4 lead, collapsed to one objective) — see §4 and `docs/scratch.md`; not
-  yet live-tested. **Follow-up 2026-09-29:** one money model shared with M2
-  (`src/content/global/finance.ts`, a 12-row ledger), the capture/config read with
-  `open` (`.pcap`/`.conf`), hydra's default `guest` user, a `root` user on
-  the gateway, and BACKTRACE's M3 keys/report; `tsc --noEmit` clean, not
-  played. **Late 2026-09-29:** the gateway is a TP-Link `Router` panel (not a
-  pfSense), so the pivot is now player-written port-forwarding rules completed
-  through `Network.PortChanges` (`bugs.md` #31); not played.
-- [x] M4 "The Architect" — mechanics redesigned 2026-09-20 (`src/content/m04.ts`,
-  `src/main/m04.ts`, `src/websites/m04/architect-c2/`,
-  `src/commands/attrcheck.ts`), not yet live-tested in-game. `tsc --noEmit`
-  clean, independent code-reviewer pass run. The pre-redesign version had
-  the C2 host as a flat top-level `Router` with direct SSH access — the
-  exact broken shape `bugs.md` entry 5 documents — now fixed by nesting it
-  under a `Firewall`+`Splitter` hierarchy as part of the same redesign.
-- [x] Manifest permission review — M1's `ssh`/`weechat`/`openssl`, M2's
-  metasploit/meterpreter/sqlmap/john/subfinder/bettercap/fern (Wi-Fi
-  added 2026-09-20), M3's pfSense/hydra/sqlmap/wireshark/metasploit/
-  meterpreter/explorer (bettercap removed, metasploit added — M3 redesign
-  pass 2, 2026-09-29, see `bugs.md`/`changelog.md`), and M4's
-  metasploit/nuclei/explorer/honeypot-mail are all now implemented and
-  re-audited against `manifest.json`'s `permissions` array (`filesystem,
-  network, events, mail, bank, shell, ui`). Every one of these rides on
-  `Network.*`/`Shell.*`/`Mail.*` namespaces already covered by that same
-  7-permission set — `Network.createWifiNetwork`/`connectWifi` are no
-  exception, there is no separate Wi-Fi-specific permission scope in the
-  SDK. No manifest change needed.
-- [x] Websites needed: M1's marketplaces, ClearEscrow and LedgerVault,
-  TR4C3#404's dev-notes site + decoy `/admin/` (M2), Skynet
-  Import-Export's public site (M3 — the internal finance portal is
-  reached by pivot + `sqlmap`/`explorer`, not a browsable `Website`), The
-  Architect's C2 dashboard + hidden `/legacy-cms/` (M4). All built.
-- [x] Custom commands needed: `attrcheck` for M4's booby-trapped file,
-  built (`src/commands/attrcheck.ts`). No `salesledger`-style command was
-  needed for M1 in the end — `cat` against the ledger file covered it.
-- [ ] Full live-test pass for M4. M2 was played end-to-end on 2026-09-24
-  (`docs/m02-playtest.md`) and again on 2026-10-01 after its pipeline
-  migration; that run proved most of what this bullet used to list as
-  unproven — `PFSense.Changes` gated on a login flag, `Subfinder.Results`,
-  `Nuclei.Results`, Metasploit (a plain `exploit`, not a low-priv shell then
-  `Rootgrab`) — plus `Network.openPort()` on a device two levels deep. M3 was
-  played end-to-end on 2026-10-01 after its pipeline migration (the log shows
-  every BACKTRACE key traced and `m3 -> complete`): the panel is a TP-Link
-  page whose Save raises `Network.PortChanges`, not `PFSense.*`, so the pivot
-  is built around player-written forwarding rules (`bugs.md` #31). Its one
-  stall, `rootgrab` having become a gate prerequisite, was fixed the same day
-  (it is optional again).
-  M4 has not been played: its `Firewall` rule reaching a `Device` nested
-  inside a sibling `Splitter` is untested (see `docs/network.md`'s M4
-  section for the fallback if it doesn't), and its `initialShellAccess`
-  listens to an event a plain `exploit` never raises (`docs/bugs.md` #29).
-  See `docs/scratch.md` for the full list of deviations/assumptions pending
-  confirmation once each mission is actually played.
+- **One objective per case; mechanics in order.** Every step is gated through `middleware/gate.ts`; world information (domains, fixtures,
+  firewall rules, ports, pages) opens per step, not when the world is built (`docs/bugs.md` #38).
+- **Every case has a decoy** or an "undo your own action" beat. Optional steps stay off the gate chain.
+- **A hint is reachable before the mechanic it helps** and never names the tool that solves it. No `hint` or `terminalCommand` on
+  objectives.
+- **Not Abandonable.** The client counts an abandoned quest as completed and starts the next one (`docs/bugs.md` #73). Restart with
+  `mods.reset`.
+- **Mechanics are not terminal-only:** pair them with something visible (widget, app, theme, site).
+- **Rewards are money only** (no XP), 15,000 across the seven cases.
+- **BACKTRACE:** one action yields at most one key finding; secondary facts go into that finding's description (`docs/rules.md` §13).
+- **Everything in the player's text keeps the fiction explicit:** no real data, no real attack instructions; the game only supplies
+  simulated tools.
+- **The Custodian stays empty;** the hospital cover-up is told through documents; the player never talks to Roxanne.
+- **Mods are single-player only.** Released on the Workshop as Flatline Protocol 2.0.0; 2.1.0 removes M1's Abandon (`docs/bugs.md` #73).

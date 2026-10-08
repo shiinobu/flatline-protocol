@@ -59,7 +59,7 @@ npx tsc -p tsconfig.json --noEmit
 - The SDK is pinned: `@hotbunny/hackhub-content-sdk` 0.25.0 (API version 2).
 
 There is no automated test suite. Verification is the typecheck above plus
-manual playtests in game (see the playtest guides in `docs/`).
+manual playtests in game.
 
 ## Project layout
 
@@ -86,21 +86,23 @@ manual playtests in game (see the playtest guides in `docs/`).
   `src/helpers/logger.ts` is the only place).
 - Release flags in `src/guard/flags.ts` must all be `false` before a commit.
 - Cover art must stay under 1 MB for the Workshop upload.
+- Bump `version` in `manifest.json` only. The Steam description lives in
+  `workshop-description.txt` (`docs/rules.md` §8).
 
 ## Documentation
 
-Most documents are written in English. The design documents under
-`docs/world-building/` are in Indonesian.
+Documents are written in English, except `docs/idea.md`, which is in
+Indonesian.
 
 - [`docs/architecture.md`](docs/architecture.md): how `src/` fits together.
 - [`docs/mechanics.md`](docs/mechanics.md): the game tools and the custom commands.
 - [`docs/rules.md`](docs/rules.md): process and structure rules.
 - [`docs/network.md`](docs/network.md): network layouts.
-- [`docs/changelog.md`](docs/changelog.md): what changed and when.
+- [`docs/story.md`](docs/story.md): the story canon and a solution guide for each case.
+- [`docs/idea.md`](docs/idea.md): ideas that are not built yet.
 - [`docs/bugs.md`](docs/bugs.md): known findings about the SDK and the mod.
 
-**Spoilers:** `docs/story.md`, the `docs/m0N-playtest.md` guides and
-`docs/world-building/` describe the full plot and every solution.
+**Spoilers:** `docs/story.md` describes the full plot and every solution.
 
 ## Credits
 

@@ -1,29 +1,17 @@
-# FLATLINE PROTOCOL — Mission Implementation Structure Standard
+# FLATLINE PROTOCOL — Mission Implementation Rules
 
-Date: 2026-09-18
-Status: **LOCKED** — mandatory structural pattern for every mission, M01
-through M04. Must not change without the user's explicit request, regardless
-of how any individual mission's story content differs.
+Status: **LOCKED** — mandatory structure and process rules for every mission, M01 through M07, as of 2026-10-08. They do not change
+without the owner's explicit request, whatever a mission's story content is.
 
-This standard adapts entity-resolution-mods' own quest-structure standard
-(`docs/implementation-rules.md` in that project) to FLATLINE PROTOCOL's
-Hybrid `src/` layout (`docs/architecture.md`) — most rules below exist
-because of a concrete bug/live-test finding in that other project, on the
-same SDK version this project uses. Rules that assumed entity-resolution's
-full `core/domain/state/application` layering have been dropped or
-reworded; rules about SDK behavior are unchanged.
+Most rules exist because of a concrete live-test finding on the SDK version this project uses (0.25.0, API version 2); the numbered
+entries of `docs/bugs.md` hold the evidence. The layout they apply to is `docs/architecture.md`.
 
 ## 1. File split: `content/` declares, `main/` files call
 
-> **Restructure in progress (2026-10-01).** M01 already follows the mission
-> pipeline in `docs/architecture.md` (`main/m01.ts` is a thin class that
-> delegates to `controller/m01/`; data lives in `content/m01/` and
-> `i18n/m01/`; generic behavior in `core/`, `components/` and `middleware/`).
-> This section and the rest of this file still describe the shape M02-M04 have
-> until they are migrated, and will be rewritten once all four missions follow
-> the pipeline.
+> Every mission follows the pipeline in `docs/architecture.md`: `main/mNN.ts` is a thin class that delegates to `controller/mNN/`; data
+> lives in `content/mNN/` and `i18n/mNN/`; generic behavior in `core/`, `components/` and `middleware/`.
 
-- `src/content/mNN.ts` holds every piece of **data** a mission needs:
+- `src/content/mNN/` holds every piece of **data** a mission needs:
   target IPs/hosts, objective IDs, the `Objectives` array, nmap/lynx/
   dirhunter fixture results, network port lists, reward numbers, mail
   subjects/bodies/templates, delay constants (`setTimeout` durations),
@@ -35,16 +23,16 @@ reworded; rules about SDK behavior are unchanged.
 - Exception: small **helper functions** (fixture registration, host
   normalization, mail-send wrappers, event handlers) stay in the quest
   file — they are behavior, not content.
-- **Watch for this specific mistake** (it bit entity-resolution-mods
+- **Watch for this specific mistake** (it bit an earlier project
   twice, on two different missions): a feed-post/`HackhubPost` definition
   or the `Dialog` tree quietly staying inline in the quest file instead of
-  moving to `content/mNN.ts`. Check explicitly whenever a mission has
+  moving to `content/mNN/`. Check explicitly whenever a mission has
   dialogue or a feed post.
 
 ## 2. No dev/prod content forking
 
 Mail bodies, feed-post text, delay/timer constants, and report subjects are
-each a **single** value in `content/mNN.ts` — never a `_PRODUCTION`/`_DEV`
+each a **single** value in `content/mNN/` — never a `_PRODUCTION`/`_DEV`
 pair. Whether `isDev` is on or off, the player sees the same narrative
 content; only unlock gating and reward-granting differ (see §2a).
 
@@ -53,21 +41,18 @@ near-duplicate summary of the mail's own body.
 
 ## 2a. `isDev` / `questGate` — the dev-focus flag
 
-Ported from entity-resolution-mods' `src/content/dev-flag.ts` (that
-project's own §7), adapted to this project's `mNN` mission ids and moved
-into its own `src/guard/` folder (see `docs/architecture.md`) since it's
-gating logic, not mission content or quest behavior.
+The flag lives in `src/guard/` (see `docs/architecture.md`) because it is gating logic, not mission content or quest behavior.
 `src/guard/flags.ts` exports:
 
-- `isDev` — a single boolean, on while missions are still being built and
-  live-tested.
-- `isDebug` — turns on the tooling in `src/debug/` (every registration there
-  goes through `debug/debug-gate.ts`). It **also** makes `questGate` return
+- `isDev` — a single boolean, on while a mission is being built and
+  live-tested. It is `false` in every release build.
+- `isDebug` — turns on the tooling in `src/debug/` (that folder now holds only
+  the gate, `debug/debug-gate.ts`). It **also** makes `questGate` return
   `[DEV_ISOLATION_LOCK]` for every mission, so a build with `isDebug = true`
-  cannot start any story mission: flip it to `false` to play M01-M04.
+  cannot start any story mission: it is `false` in every release build.
 - `isTester` / `TESTER_FOCUS_QUEST` — the same focus mechanism for an external
   tester build (`isQuestTesterFocus`); inert while `isTester` is `false`.
-- `DEV_FOCUS_QUEST` — a `{m01..m04: boolean}` map with **at most one**
+- `DEV_FOCUS_QUEST` — a `{m01..m07: boolean}` map with **at most one**
   entry `true` at a time (the file throws at import time if more than one
   is set) — the mission currently under active test.
 - `isQuestDevFocus(missionId)` — `true` only when `isDev` is on and that
@@ -84,9 +69,8 @@ gating logic, not mission content or quest behavior.
   makes a mission's full objective list visible immediately for testing,
   rather than waiting on the real chain order.
 
-Every mission wires exactly three fields off this (M01: in
-`src/controller/m01/spec.ts`, read by the class in `main/m01.ts`; M02-M04: in
-their `src/main/mNN.ts` until migrated). The generic layers (`core/`,
+Every mission wires three fields off this, in `src/controller/mNN/spec.ts`
+(read by the class in `main/mNN.ts`). The generic layers (`core/`,
 `components/`, `middleware/`) never import `guard/`:
 
 ```ts
@@ -95,13 +79,9 @@ override Objectives = applyDevGating(M0N_OBJECTIVES, isQuestDevFocus("m0N"));
 override Rewards = isQuestDevFocus("m0N") ? { money: 0 } : M0N_REWARDS;
 ```
 
-The `Rewards` gate is this project's own adaptation of entity-resolution-mods'
-"skip the reward block in dev" rule (§7 in that project) — since this
-project has no manual reward-granting code (the SDK pays `Rewards`
-automatically on `AutoComplete`, see `docs/architecture.md`), zeroing the
-`Rewards` field itself is the equivalent: it stops the player's
-money from inflating across repeated test resets of the focused
-mission, without touching any SDK-internal reward logic.
+The `Rewards` line applies to M1 to M3, which declare `Rewards` and let the SDK pay it on `AutoComplete`; zeroing the field stops the
+player's money from inflating across repeated test resets of the focused mission. M4 to M7 pay with `Bank.transaction` in `OnComplete`,
+leave `Rewards` unset and skip the payout under dev or tester focus (`docs/bugs.md`, Engine facts E-5).
 
 ## 3. GoMail report-submission template
 
@@ -142,13 +122,13 @@ Mail.registerTemplate({
 - A template's `content` must leave every declared `field` as an unreplaced
   `{{field}}` token. In template mode the compose body is read-only text and
   the only inputs are those tokens, and Send stays disabled until every
-  declared field has a value (engine `index.js` @10052689 and @10055662).
+  declared field has a value (engine behavior).
   Interpolate only context values: M3's `fundsFacts()` carries amounts and
   names but none of its field names (`shellCompany`, `parentEntity`,
   `vpnLead`), so all three stay tokens. Passing the field values into
   `Localization.t(KEY, facts)` leaves nothing to type, and the report could
   then only be sent as a freehand exact-body retype. M4-M7 shipped that way
-  until 2026-10-02 (`docs/changelog.md`). `ReportSpec.body` is optional: a
+  until 2026-10-02. `ReportSpec.body` is optional: a
   report whose answer cannot be encoded in a freehand body (M07's `choice`)
   is template-only.
 
@@ -179,7 +159,7 @@ private isTemplateXxxReport(subject: string, content: string): boolean {
 }
 ```
 
-Name "correct answer" values as constants in `content/mNN.ts`, shared with
+Name "correct answer" values as constants in `content/mNN/`, shared with
 the freehand `MNN_REPORT_BODY` construction, rather than hardcoding
 literals twice.
 
@@ -262,9 +242,8 @@ pointer from the nmap fixture, instead of a non-default port on a hostname.
 
 ## 8. Docs and workflow discipline
 
-- `docs/changelog.md` is the mandatory timeline for this project — every
-  real change (a bug found/fixed, a mechanic changed, a doc reorganized,
-  a mission passing validation) gets a dated one-line entry there.
+- The project history is the git log: a commit message says what changed and
+  why (`type: description`, conventional commits). There is no changelog file.
 - Live-test findings/bugs go in `docs/bugs.md` as new numbered entries —
   never a new doc file.
 - Standing process per mission: discuss the design/fix before touching
@@ -288,25 +267,19 @@ pointer from the nmap fixture, instead of a non-default port on a hostname.
 
 **No comments anywhere in `src/`**, at any point in development — not just
 once a mission reaches FINAL LOCK. Any "why" a developer would normally
-write inline goes into `docs/scratch.md` (scratch file, scoped to
-whichever mission is currently under active development) while the
-mission is being built; once that mission reaches FINAL LOCK, filter those
-notes into `docs/bugs.md` (engine/SDK facts) or `docs/story.md` (design/
-story rationale), then empty `scratch.md` back out. Verify with
-`grep -rn "^\s*//" src/` — zero
-matches expected at any point. Carried over unchanged from
-entity-resolution-mods, where this was made an explicit hard rule
-("TIDAK BOLEH ADA COMMENT DI SOURCE PROJECT") after comments drifted stale
-against the actual shipped behavior.
+write inline goes into `docs/bugs.md` (engine and SDK facts), `docs/story.md`
+(design and story rationale) or the commit message. Verify with
+`grep -rn "^\s*//" src/` — zero matches expected at any point. The rule was
+made explicit after comments drifted stale against the shipped behavior.
 
 ## 10. Diagnostic tracing — MANDATORY RULE
 
 Never call `console.log` directly for a debugging/trace print. If tracing
-is needed, add one shared `trace(scope, message, ...args)` helper (mirror
-entity-resolution-mods' `src/infrastructure/hackhub/logger.ts`) rather than
-scattering ad-hoc `console.log` calls across quest files. Remove all
-`trace()` calls from a mission's source once it reaches FINAL LOCK — it is
-investigation tooling, not shipped behavior.
+is needed, use the one shared `trace(scope, message, ...args)` helper in
+`src/helpers/logger.ts` (the only place that prints) rather than scattering
+ad-hoc `console.log` calls across quest files. Remove all `trace()` calls from
+a mission's source once it reaches FINAL LOCK — it is investigation tooling,
+not shipped behavior. The release build has none; the helper itself stays.
 
 ## 11. Every hacking/social tool comes from the SDK
 
@@ -334,10 +307,8 @@ A domain's `nmap` fixture must reflect whether it actually serves a page:
 Decorative subdomains with no page of their own (e.g. `api.`/`support.`/
 `gateway.` aliases used only for OSINT/whois flavor) are exempt either way.
 A deliberate exception to this rule (e.g. a Tor/`.dark` address modeled as
-unreachable by ordinary scanning) must be written down — in
-`docs/scratch.md` while the mission is still under active development, or
-in `docs/story.md`/`docs/bugs.md` once it has reached FINAL LOCK — never
-left as an unexplained gap.
+unreachable by ordinary scanning) must be written down in `docs/story.md`
+or `docs/bugs.md`, never left as an unexplained gap.
 
 ## 13. BACKTRACE — MANDATORY RULE: one action yields at most one key finding
 
@@ -360,10 +331,10 @@ dump traced 5, M3's ledger dump 4) "makes no sense".
 - The Key Findings list in a report is the chain of events, not a mirror of
   the keys, and may be longer than the key list.
 - Per-mission totals are a design decision, not a constant: M1 4, M2 7, M3 6
-  (5 required and `accomplice`), M4 6 (5 required and `probe`), M5 6, M6 6, M7 6
-  today. Adding a key means adding a new action that proves it, not splitting an
-  existing one.
-- **Required and optional traces (2026-10-04, `docs/world-building/README.md` #52).**
+  (5 required and `accomplice`), M4 6 (5 required and `probe`), M5 6, M6 6, M7 15
+  (12 required, and `decoy`, `model` and `dossier`) today. Adding a key means
+  adding a new action that proves it, not splitting an existing one.
+- **Required and optional traces (2026-10-04).**
   A mission has at least 5 *required* traces; M1, locked at 4, is the one
   owner-approved exception. A trace is required when its value is a field of the
   mission's report, so the report cannot be filed without it (#53). It is optional
@@ -385,7 +356,7 @@ dump traced 5, M3's ledger dump 4) "makes no sense".
   own is captioned `MOMENT` (a moment log that belongs to a trace, M4's breach, keeps its `[ MOMENT ]` flag); a line with
   no known source is captioned `OTHER`. Captions are interface text and stay English (#54). The sheet's header stays
   pinned while the log scrolls.
-- **Language of the app (2026-10-04, `docs/world-building/README.md` #54).** The BACKTRACE interface
+- **Language of the app (2026-10-04).** The BACKTRACE interface
   (titles, labels, buttons, toasts, trace values) is English only. Only prose that is read is localized:
   the personal logs (`Localization.t`) and, in `backtrace.html`, the mission summaries, the Key findings,
   The story and the closing letter (its four paragraphs, the thanks line and the "Warm regards" greeting
@@ -409,7 +380,7 @@ two copies of the number. The HTML preview sample in `backtrace.html` is the
 one deliberate hardcoded copy (it renders outside the game) and must be
 updated together with the model.
 
-## 11. Step gating and engine contexts — the M1 pattern (LOCKED 2026-10-01)
+## 15. Step gating and engine contexts — the M1 pattern (LOCKED 2026-10-01)
 
 Every mission from M2 on follows what M1 proved in the live test:
 
@@ -431,7 +402,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    the controller calls `openMissionSites` in `OnObjectivesStart` and
    `closeMissionSites` in `OnComplete`
    (`context/global/site-access.ts`). A site that must outlive its mission
-   (LedgerVault) is the explicit exception. The BLACKLEDGER site is no longer one: since 2026-10-07 it is an M7 mission site (README #83).
+   (LedgerVault) is the explicit exception. The BLACKLEDGER site is no longer one: since 2026-10-07 it is an M7 mission site.
 4. **Early completion gets a reply, not silence**: a submission that is
    correct but premature is answered once (`sendReplacingMail`, tracked by id).
 5. **Mails**: `Mail.send` mail survives `mods.reset` and `getInbox().subject` is
@@ -441,9 +412,7 @@ Every mission from M2 on follows what M1 proved in the live test:
    an unawaited one. Use `core/register` / `unregister`, which defer to a
    sequential awaited Scheduler job (bugs #35).
 7. **FINAL LOCK** (§9-10): `trace()` removed from the mission's source, zero
-   comments, `tsc` clean. M1 reached it on 2026-10-01; M2 and M3 migrated to
-   this pipeline the same day and both passed their live test; M4 reached it on
-   2026-10-03 after a live run of the whole hunt; the owner declared M5 and M6 locked on
-   2026-10-06 (M5's `trace()` calls are still in `controller/m05`); M7 is next, one
-   mission at a time, each with a live test before the next. No mission is `Abandonable` (an
+   comments, `tsc` clean. The release of 2026-10-07 stripped every `trace()`
+   call and the debug labs from all seven missions; changes go one mission at
+   a time, each with a live test. No mission is `Abandonable` (an
    abandoned quest counts as completed and starts the next one, bugs #73); restarting is `mods.reset`.
